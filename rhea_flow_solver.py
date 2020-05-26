@@ -676,71 +676,71 @@ def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, f_rhou, 
         for j in range( 1, num_grid_y + 1 ):    
             for k in range( 1, num_grid_z + 1 ):
                 # Geometric stuff
-                delta_x = 0.5*( grid[i+1][j][k][0] - grid[i-1][j][k][0] ) 
-                delta_y = 0.5*( grid[i][j+1][k][1] - grid[i][j-1][k][1] ) 
-                delta_z = 0.5*( grid[i][j][k+1][2] - grid[i][j][k-1][2] ) 
+                delta_x = grid[i+1][j][k][0] - grid[i-1][j][k][0] 
+                delta_y = grid[i][j+1][k][1] - grid[i][j-1][k][1] 
+                delta_z = grid[i][j][k+1][2] - grid[i][j][k-1][2] 
                 # Divergence of tau tensor terms
-                div_tau_xx  = ( 1.0/delta_x )*( 2.0*mu*( ( ( u[i+1][j][k] - u[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) ) 
+                div_tau_xx  = ( 2.0/delta_x )*( 2.0*mu*( ( ( u[i+1][j][k] - u[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) ) 
                                                        - ( ( u[i][j][k] - u[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) ) ) )
-                div_tau_xx -= ( 1.0/delta_x )*( ( 2.0/3.0 )*mu*( ( ( u[i+1][j][k] - u[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) ) 
+                div_tau_xx -= ( 2.0/delta_x )*( ( 2.0/3.0 )*mu*( ( ( u[i+1][j][k] - u[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) ) 
                                                                - ( ( u[i][j][k] - u[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) ) ) )
                 div_tau_xx -= ( 1.0/delta_x )*( ( 2.0/3.0 )*mu*( ( ( v[i+1][j+1][k] - v[i+1][j-1][k] )/delta_y ) 
                                                                - ( ( v[i-1][j+1][k] - v[i-1][j-1][k] )/delta_y ) ) )                
                 div_tau_xx -= ( 1.0/delta_x )*( ( 2.0/3.0 )*mu*( ( ( w[i+1][j][k+1] - w[i+1][j][k-1] )/delta_z ) 
                                                                - ( ( w[i-1][j][k+1] - w[i-1][j][k-1] )/delta_z ) ) )                
-                div_tau_xy  = ( 1.0/delta_x )*( mu*( ( ( v[i+1][j][k] - v[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) ) 
+                div_tau_xy  = ( 2.0/delta_x )*( mu*( ( ( v[i+1][j][k] - v[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) ) 
                                                    - ( ( v[i][j][k] - v[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) ) ) )
                 div_tau_xy += ( 1.0/delta_x )*( mu*( ( ( u[i+1][j+1][k] - u[i+1][j-1][k] )/delta_y ) 
                                                    - ( ( u[i-1][j+1][k] - u[i-1][j-1][k] )/delta_y ) ) )
-                div_tau_xz  = ( 1.0/delta_x )*( mu*( ( ( w[i+1][j][k] - w[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) ) 
+                div_tau_xz  = ( 2.0/delta_x )*( mu*( ( ( w[i+1][j][k] - w[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) ) 
                                                    - ( ( w[i][j][k] - w[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) ) ) )
                 div_tau_xz += ( 1.0/delta_x )*( mu*( ( ( u[i+1][j][k+1] - u[i+1][j][k-1] )/delta_z ) 
                                                    - ( ( u[i-1][j][k+1] - u[i-1][j][k-1] )/delta_z ) ) )
-                div_tau_yx  = ( 1.0/delta_y )*( mu*( ( ( u[i][j+1][k] - u[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) ) 
+                div_tau_yx  = ( 2.0/delta_y )*( mu*( ( ( u[i][j+1][k] - u[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) ) 
                                                    - ( ( u[i][j][k] - u[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) ) ) )
                 div_tau_yx += ( 1.0/delta_y )*( mu*( ( ( v[i+1][j+1][k] - v[i-1][j+1][k] )/delta_x ) 
                                                    - ( ( v[i+1][j-1][k] - v[i-1][j-1][k] )/delta_x ) ) )
-                div_tau_yy  = ( 1.0/delta_y )*( 2.0*mu*( ( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) ) 
+                div_tau_yy  = ( 2.0/delta_y )*( 2.0*mu*( ( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) ) 
                                                        - ( ( v[i][j][k] - v[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) ) ) )
                 div_tau_yy -= ( 1.0/delta_y )*( ( 2.0/3.0 )*mu*( ( ( u[i+1][j+1][k] - u[i-1][j+1][k] )/delta_x ) 
                                                                - ( ( u[i+1][j-1][k] - u[i-1][j-1][k] )/delta_x ) ) )
-                div_tau_yy -= ( 1.0/delta_y )*( ( 2.0/3.0 )*mu*( ( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) ) 
+                div_tau_yy -= ( 2.0/delta_y )*( ( 2.0/3.0 )*mu*( ( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) ) 
                                                                - ( ( v[i][j][k] - v[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) ) ) )
                 div_tau_yy -= ( 1.0/delta_y )*( ( 2.0/3.0 )*mu*( ( ( w[i][j+1][k+1] - w[i][j+1][k-1] )/delta_z ) 
                                                                - ( ( w[i][j-1][k+1] - w[i][j-1][k-1] )/delta_z ) ) )                
-                div_tau_yz  = ( 1.0/delta_y )*( mu*( ( ( w[i][j+1][k] - w[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) ) 
+                div_tau_yz  = ( 2.0/delta_y )*( mu*( ( ( w[i][j+1][k] - w[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) ) 
                                                    - ( ( w[i][j][k] - w[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) ) ) )
                 div_tau_yz += ( 1.0/delta_y )*( mu*( ( ( v[i][j+1][k+1] - v[i][j+1][k-1] )/delta_z ) 
                                                    - ( ( v[i][j-1][k+1] - v[i][j-1][k-1] )/delta_z ) ) )                
-                div_tau_zx  = ( 1.0/delta_z )*( mu*( ( ( u[i][j][k+1] - u[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) ) 
+                div_tau_zx  = ( 2.0/delta_z )*( mu*( ( ( u[i][j][k+1] - u[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) ) 
                                                    - ( ( u[i][j][k] - u[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) ) )
                 div_tau_zx += ( 1.0/delta_z )*( mu*( ( ( w[i+1][j][k+1] - w[i-1][j][k+1] )/delta_x ) 
                                                    - ( ( w[i+1][j][k-1] - w[i-1][j][k-1] )/delta_x ) ) )
-                div_tau_zy  = ( 1.0/delta_z )*( mu*( ( ( v[i][j][k+1] - v[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) ) 
+                div_tau_zy  = ( 2.0/delta_z )*( mu*( ( ( v[i][j][k+1] - v[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) ) 
                                                    - ( ( v[i][j][k] - v[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) ) )
                 div_tau_zy += ( 1.0/delta_z )*( mu*( ( ( w[i][j+1][k+1] - w[i][j-1][k+1] )/delta_y ) 
                                                    - ( ( w[i][j+1][k-1] - w[i][j-1][k-1] )/delta_y ) ) )                
-                div_tau_zz  = ( 1.0/delta_z )*( 2.0*mu*( ( ( w[i][j][k+1] - w[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) ) 
+                div_tau_zz  = ( 2.0/delta_z )*( 2.0*mu*( ( ( w[i][j][k+1] - w[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) ) 
                                                        - ( ( w[i][j][k] - w[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) ) )
                 div_tau_zz -= ( 1.0/delta_z )*( ( 2.0/3.0 )*mu*( ( ( u[i+1][j][k+1] - u[i-1][j][k+1] )/delta_x ) 
                                                                - ( ( u[i+1][j][k-1] - u[i-1][j][k-1] )/delta_x ) ) )
                 div_tau_zz -= ( 1.0/delta_z )*( ( 2.0/3.0 )*mu*( ( ( v[i][j+1][k+1] - v[i][j-1][k+1] )/delta_y ) 
                                                                - ( ( v[i][j+1][k-1] - v[i][j-1][k-1] )/delta_y ) ) )                
-                div_tau_zz -= ( 1.0/delta_z )*( ( 2.0/3.0 )*mu*( ( ( w[i][j][k+1] - w[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) ) 
+                div_tau_zz -= ( 2.0/delta_z )*( ( 2.0/3.0 )*mu*( ( ( w[i][j][k+1] - w[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) ) 
                                                                - ( ( w[i][j][k] - w[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) ) )
                 # Fourier term
-                div_q = ( -1.0 )*( ( 1.0/delta_x )*( kappa*( ( ( T[i+1][j][k] - T[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) ) 
+                div_q = ( -1.0 )*( ( 2.0/delta_x )*( kappa*( ( ( T[i+1][j][k] - T[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) ) 
                                                            - ( ( T[i][j][k] - T[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) ) ) ) 
-                                 + ( 1.0/delta_y )*( kappa*( ( ( T[i][j+1][k] - T[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) ) 
+                                 + ( 2.0/delta_y )*( kappa*( ( ( T[i][j+1][k] - T[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) ) 
                                                            - ( ( T[i][j][k] - T[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) ) ) )
-                                 + ( 1.0/delta_z )*( kappa*( ( ( T[i][j][k+1] - T[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) ) 
+                                 + ( 2.0/delta_z )*( kappa*( ( ( T[i][j][k+1] - T[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) ) 
                                                            - ( ( T[i][j][k] - T[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) ) ) )
                 # Power terms
                 vel_p = 0.5*( u[i+1][j][k] + u[i][j][k] ); vel_m = 0.5*( u[i][j][k] + u[i-1][j][k] )
-                div_tauuvw_x  = ( 1.0/delta_x )*( 2.0*mu*( ( ( u[i+1][j][k] - u[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) )*vel_p 
+                div_tauuvw_x  = ( 2.0/delta_x )*( 2.0*mu*( ( ( u[i+1][j][k] - u[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) )*vel_p 
                                                          - ( ( u[i][j][k] - u[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )*vel_m ) )
                 vel_p = 0.5*( u[i+1][j][k] + u[i][j][k] ); vel_m = 0.5*( u[i][j][k] + u[i-1][j][k] )
-                div_tauuvw_x -= ( 1.0/delta_x )*( ( 2.0/3.0 )*mu*( ( ( u[i+1][j][k] - u[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) )*vel_p 
+                div_tauuvw_x -= ( 2.0/delta_x )*( ( 2.0/3.0 )*mu*( ( ( u[i+1][j][k] - u[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) )*vel_p 
                                                                  - ( ( u[i][j][k] - u[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )*vel_m ) )
                 vel_p = 0.5*( u[i+1][j][k] + u[i+1][j][k] ); vel_m = 0.5*( u[i-1][j][k] + u[i-1][j][k] )
                 div_tauuvw_x -= ( 1.0/delta_x )*( ( 2.0/3.0 )*mu*( ( ( v[i+1][j+1][k] - v[i+1][j-1][k] )/delta_y )*vel_p 
@@ -749,55 +749,55 @@ def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, f_rhou, 
                 div_tauuvw_x -= ( 1.0/delta_x )*( ( 2.0/3.0 )*mu*( ( ( w[i+1][j][k+1] - w[i+1][j][k-1] )/delta_z )*vel_p 
                                                                  - ( ( w[i-1][j][k+1] - w[i-1][j][k-1] )/delta_z )*vel_m ) )                
                 vel_p = 0.5*( v[i+1][j][k] + v[i][j][k] ); vel_m = 0.5*( v[i][j][k] + v[i-1][j][k] )
-                div_tauuvw_x  = ( 1.0/delta_x )*( mu*( ( ( v[i+1][j][k] - v[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) )*vel_p 
+                div_tauuvw_x  = ( 2.0/delta_x )*( mu*( ( ( v[i+1][j][k] - v[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) )*vel_p 
                                                      - ( ( v[i][j][k] - v[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )*vel_m ) )
                 vel_p = 0.5*( v[i+1][j][k] + v[i+1][j][k] ); vel_m = 0.5*( v[i-1][j][k] + v[i-1][j][k] )
                 div_tauuvw_x += ( 1.0/delta_x )*( mu*( ( ( u[i+1][j+1][k] - u[i+1][j-1][k] )/delta_y )*vel_p 
                                                      - ( ( u[i-1][j+1][k] - u[i-1][j-1][k] )/delta_y )*vel_m ) )
                 vel_p = 0.5*( w[i+1][j][k] + w[i][j][k] ); vel_m = 0.5*( w[i][j][k] + w[i-1][j][k] )
-                div_tauuvw_x  = ( 1.0/delta_x )*( mu*( ( ( w[i+1][j][k] - w[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) )*vel_p 
+                div_tauuvw_x  = ( 2.0/delta_x )*( mu*( ( ( w[i+1][j][k] - w[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] ) )*vel_p 
                                                      - ( ( w[i][j][k] - w[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )*vel_m ) )
                 vel_p = 0.5*( w[i+1][j][k] + w[i+1][j][k] ); vel_m = 0.5*( w[i-1][j][k] + w[i-1][j][k] )
                 div_tauuvw_x += ( 1.0/delta_x )*( mu*( ( ( u[i+1][j][k+1] - u[i+1][j][k-1] )/delta_z )*vel_p 
                                                      - ( ( u[i-1][j][k+1] - u[i-1][j][k-1] )/delta_z )*vel_m ) )
                 vel_p = 0.5*( u[i][j+1][k] + u[i][j][k] ); vel_m = 0.5*( u[i][j][k] + u[i][j-1][k] )
-                div_tauuvw_y  = ( 1.0/delta_y )*( mu*( ( ( u[i][j+1][k] - u[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) )*vel_p 
+                div_tauuvw_y  = ( 2.0/delta_y )*( mu*( ( ( u[i][j+1][k] - u[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) )*vel_p 
                                                      - ( ( u[i][j][k] - u[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )*vel_m ) )
                 vel_p = 0.5*( u[i][j+1][k] + u[i][j+1][k] ); vel_m = 0.5*( u[i][j-1][k] + u[i][j-1][k] )
                 div_tauuvw_y += ( 1.0/delta_y )*( mu*( ( ( v[i+1][j+1][k] - v[i-1][j+1][k] )/delta_x )*vel_p 
                                                      - ( ( v[i+1][j-1][k] - v[i-1][j-1][k] )/delta_x )*vel_m ) )
                 vel_p = 0.5*( v[i][j+1][k] + v[i][j][k] ); vel_m = 0.5*( v[i][j][k] + v[i][j-1][k] )
-                div_tauuvw_y  = ( 1.0/delta_y )*( 2.0*mu*( ( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) )*vel_p 
+                div_tauuvw_y  = ( 2.0/delta_y )*( 2.0*mu*( ( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) )*vel_p 
                                                          - ( ( v[i][j][k] - v[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )*vel_m ) )
                 vel_p = 0.5*( v[i][j+1][k] + v[i][j+1][k] ); vel_m = 0.5*( v[i][j-1][k] + v[i][j-1][k] )
                 div_tauuvw_y -= ( 1.0/delta_y )*( ( 2.0/3.0 )*mu*( ( ( u[i+1][j+1][k] - u[i-1][j+1][k] )/delta_x )*vel_p
                                                                  - ( ( u[i+1][j-1][k] - u[i-1][j-1][k] )/delta_x )*vel_m ) )
                 vel_p = 0.5*( v[i][j+1][k] + v[i][j][k] ); vel_m = 0.5*( v[i][j][k] + v[i][j-1][k] )
-                div_tauuvw_y -= ( 1.0/delta_y )*( ( 2.0/3.0 )*mu*( ( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) )*vel_p 
+                div_tauuvw_y -= ( 2.0/delta_y )*( ( 2.0/3.0 )*mu*( ( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) )*vel_p 
                                                                  - ( ( v[i][j][k] - v[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )*vel_m ) )
                 vel_p = 0.5*( v[i][j+1][k] + v[i][j+1][k] ); vel_m = 0.5*( v[i][j-1][k] + v[i][j-1][k] )
                 div_tauuvw_y -= ( 1.0/delta_y )*( ( 2.0/3.0 )*mu*( ( ( w[i][j+1][k+1] - w[i][j+1][k-1] )/delta_z )*vel_p
                                                                  - ( ( w[i][j-1][k+1] - w[i][j-1][k-1] )/delta_z )*vel_m ) )                
                 vel_p = 0.5*( w[i][j+1][k] + w[i][j][k] ); vel_m = 0.5*( w[i][j][k] + w[i][j-1][k] )
-                div_tauuvw_y  = ( 1.0/delta_y )*( mu*( ( ( w[i][j+1][k] - w[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) )*vel_p 
+                div_tauuvw_y  = ( 2.0/delta_y )*( mu*( ( ( w[i][j+1][k] - w[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] ) )*vel_p 
                                                      - ( ( w[i][j][k] - w[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )*vel_m ) )
                 vel_p = 0.5*( w[i][j+1][k] + w[i][j+1][k] ); vel_m = 0.5*( w[i][j-1][k] + w[i][j-1][k] )
                 div_tauuvw_y += ( 1.0/delta_y )*( mu*( ( ( v[i][j+1][k+1] - v[i][j+1][k-1] )/delta_z )*vel_p 
                                                      - ( ( v[i][j-1][k+1] - v[i][j-1][k-1] )/delta_z )*vel_m ) )                
                 vel_p = 0.5*( u[i][j][k+1] + u[i][j][k] ); vel_m = 0.5*( u[i][j][k] + u[i][j][k-1] )
-                div_tauuvw_z  = ( 1.0/delta_z )*( mu*( ( ( u[i][j][k+1] - u[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) )*vel_p
+                div_tauuvw_z  = ( 2.0/delta_z )*( mu*( ( ( u[i][j][k+1] - u[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) )*vel_p
                                                      - ( ( u[i][j][k] - u[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) )*vel_m ) )
                 vel_p = 0.5*( u[i][j][k+1] + u[i][j][k+1] ); vel_m = 0.5*( u[i][j][k-1] + u[i][j][k-1] )
                 div_tauuvw_z += ( 1.0/delta_z )*( mu*( ( ( w[i+1][j][k+1] - w[i-1][j][k+1] )/delta_x )*vel_p
                                                      - ( ( w[i+1][j][k-1] - w[i-1][j][k-1] )/delta_x )*vel_m ) )
                 vel_p = 0.5*( v[i][j][k+1] + v[i][j][k] ); vel_m = 0.5*( v[i][j][k] + v[i][j][k-1] )
-                div_tauuvw_z  = ( 1.0/delta_z )*( mu*( ( ( v[i][j][k+1] - v[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) )*vel_p
+                div_tauuvw_z  = ( 2.0/delta_z )*( mu*( ( ( v[i][j][k+1] - v[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) )*vel_p
                                                      - ( ( v[i][j][k] - v[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) )*vel_m ) )
                 vel_p = 0.5*( v[i][j][k+1] + v[i][j][k+1] ); vel_m = 0.5*( v[i][j][k-1] + v[i][j][k-1] )
                 div_tauuvw_z += ( 1.0/delta_z )*( mu*( ( ( w[i][j+1][k+1] - w[i][j-1][k+1] )/delta_y )*vel_p
                                                      - ( ( w[i][j+1][k-1] - w[i][j-1][k-1] )/delta_y )*vel_m ) )                
                 vel_p = 0.5*( w[i][j][k+1] + w[i][j][k] ); vel_m = 0.5*( w[i][j][k] + w[i][j][k-1] )
-                div_tauuvw_z  = ( 1.0/delta_z )*( 2.0*mu*( ( ( w[i][j][k+1] - w[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) )*vel_p
+                div_tauuvw_z  = ( 2.0/delta_z )*( 2.0*mu*( ( ( w[i][j][k+1] - w[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) )*vel_p
                                                          - ( ( w[i][j][k] - w[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) )*vel_m ) )
                 vel_p = 0.5*( w[i][j][k+1] + w[i][j][k+1] ); vel_m = 0.5*( w[i][j][k-1] + w[i][j][k-1] )
                 div_tauuvw_z -= ( 1.0/delta_z )*( ( 2.0/3.0 )*mu*( ( ( u[i+1][j][k+1] - u[i-1][j][k+1] )/delta_x )*vel_p
@@ -806,7 +806,7 @@ def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, f_rhou, 
                 div_tauuvw_z -= ( 1.0/delta_z )*( ( 2.0/3.0 )*mu*( ( ( v[i][j+1][k+1] - v[i][j-1][k+1] )/delta_y )*vel_p 
                                                                  - ( ( v[i][j+1][k-1] - v[i][j-1][k-1] )/delta_y )*vel_m ) )                
                 vel_p = 0.5*( w[i][j][k+1] + w[i][j][k] ); vel_m = 0.5*( w[i][j][k] + w[i][j][k-1] )
-                div_tauuvw_z -= ( 1.0/delta_z )*( ( 2.0/3.0 )*mu*( ( ( w[i][j][k+1] - w[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) )*vel_p
+                div_tauuvw_z -= ( 2.0/delta_z )*( ( 2.0/3.0 )*mu*( ( ( w[i][j][k+1] - w[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] ) )*vel_p
                                                                  - ( ( w[i][j][k] - w[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) )*vel_m ) )
                 div_tauuvw = div_tauuvw_x + div_tauuvw_y + div_tauuvw_z 
                 f_rhouvw   = f_rhou[i][j][k]*u[i][j][k] + f_rhov[i][j][k]*v[i][j][k] + f_rhow[i][j][k]*w[i][j][k] 
