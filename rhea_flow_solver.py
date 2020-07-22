@@ -924,8 +924,8 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE ):
 
     # West boundary points
     i = 0
-    for j in range( 0, num_grid_y + 2 ):    
-        for k in range( 0, num_grid_z + 2 ):    
+    for j in range( 1, num_grid_y + 1 ):    
+        for k in range( 1, num_grid_z + 1 ):    
             rho[i][j][k]  = rho[num_grid_x][j][k]
             rhou[i][j][k] = rhou[num_grid_x][j][k]
             rhov[i][j][k] = rhov[num_grid_x][j][k]
@@ -934,8 +934,8 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE ):
 
     # East boundary points
     i = num_grid_x + 1    
-    for j in range( 0, num_grid_y + 2 ):    
-        for k in range( 0, num_grid_z + 2 ):    
+    for j in range( 1, num_grid_y + 1 ):    
+        for k in range( 1, num_grid_z + 1 ):    
             rho[i][j][k]  = rho[1][j][k]
             rhou[i][j][k] = rhou[1][j][k]
             rhov[i][j][k] = rhov[1][j][k]
@@ -944,8 +944,8 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE ):
 
     # South boundary points
     j = 0    
-    for i in range( 0, num_grid_x + 2 ):    
-        for k in range( 0, num_grid_z + 2 ):    
+    for i in range( 1, num_grid_x + 1 ):    
+        for k in range( 1, num_grid_z + 1 ):    
             rho[i][j][k]  = 2.0*rho_ref - rho[i][j+1][k]
             rhou[i][j][k] = ( -1.0 )*rhou[i][j+1][k]
             rhov[i][j][k] = ( -1.0 )*rhov[i][j+1][k]
@@ -954,8 +954,8 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE ):
 
     # North boundary points
     j = num_grid_y + 1    
-    for i in range( 0, num_grid_x + 2 ):    
-        for k in range( 0, num_grid_z + 2 ):    
+    for i in range( 1, num_grid_x + 1 ):    
+        for k in range( 1, num_grid_z + 1 ):    
             rho[i][j][k]  = 2.0*rho_ref - rho[i][j-1][k]            
             rhou[i][j][k] = ( -1.0 )*rhou[i][j-1][k]            
             rhov[i][j][k] = ( -1.0 )*rhov[i][j-1][k]            
@@ -964,8 +964,8 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE ):
 
     # Back boundary points
     k = 0    
-    for i in range( 0, num_grid_x + 2 ):    
-        for j in range( 0, num_grid_y + 2 ):    
+    for i in range( 1, num_grid_x + 1 ):    
+        for j in range( 1, num_grid_y + 1 ):    
             rho[i][j][k]  = rho[i][j][num_grid_z]
             rhou[i][j][k] = rhou[i][j][num_grid_z]
             rhov[i][j][k] = rhov[i][j][num_grid_z]
@@ -974,13 +974,145 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE ):
 
     # Front boundary points
     k = num_grid_z + 1    
-    for i in range( 0, num_grid_x + 2 ):    
-        for j in range( 0, num_grid_y + 2 ):    
+    for i in range( 1, num_grid_x + 1 ):    
+        for j in range( 1, num_grid_y + 1 ):    
             rho[i][j][k]  = rho[i][j][1]
             rhou[i][j][k] = rhou[i][j][1]
             rhov[i][j][k] = rhov[i][j][1]
             rhow[i][j][k] = rhow[i][j][1]
             rhoE[i][j][k] = rhoE[i][j][1]
+
+    # Fill x-direction edge boundary points
+    for i in range( 1, num_grid_x + 1 ):    
+        j = 0; k = 0
+        rho[i][j][k]  = 0.5*( rho[i][j+1][k] + rho[i][j][k+1] )
+        rhou[i][j][k] = 0.5*( rhou[i][j+1][k] + rhou[i][j][k+1] )
+        rhov[i][j][k] = 0.5*( rhov[i][j+1][k] + rhov[i][j][k+1] )
+        rhow[i][j][k] = 0.5*( rhow[i][j+1][k] + rhow[i][j][k+1] )
+        rhoE[i][j][k] = 0.5*( rhoE[i][j+1][k] + rhoE[i][j][k+1] )
+        j = 0; k = num_grid_z + 1
+        rho[i][j][k]  = 0.5*( rho[i][j+1][k] + rho[i][j][k-1] )
+        rhou[i][j][k] = 0.5*( rhou[i][j+1][k] + rhou[i][j][k-1] )
+        rhov[i][j][k] = 0.5*( rhov[i][j+1][k] + rhov[i][j][k-1] )
+        rhow[i][j][k] = 0.5*( rhow[i][j+1][k] + rhow[i][j][k-1] )
+        rhoE[i][j][k] = 0.5*( rhoE[i][j+1][k] + rhoE[i][j][k-1] )
+        j = num_grid_y + 1; k = 0
+        rho[i][j][k]  = 0.5*( rho[i][j-1][k] + rho[i][j][k+1] )
+        rhou[i][j][k] = 0.5*( rhou[i][j-1][k] + rhou[i][j][k+1] )
+        rhov[i][j][k] = 0.5*( rhov[i][j-1][k] + rhov[i][j][k+1] )
+        rhow[i][j][k] = 0.5*( rhow[i][j-1][k] + rhow[i][j][k+1] )
+        rhoE[i][j][k] = 0.5*( rhoE[i][j-1][k] + rhoE[i][j][k+1] )
+        j = num_grid_y + 1; k = num_grid_z + 1
+        rho[i][j][k]  = 0.5*( rho[i][j-1][k] + rho[i][j][k-1] )
+        rhou[i][j][k] = 0.5*( rhou[i][j-1][k] + rhou[i][j][k-1] )
+        rhov[i][j][k] = 0.5*( rhov[i][j-1][k] + rhov[i][j][k-1] )
+        rhow[i][j][k] = 0.5*( rhow[i][j-1][k] + rhow[i][j][k-1] )
+        rhoE[i][j][k] = 0.5*( rhoE[i][j-1][k] + rhoE[i][j][k-1] )
+
+    # Fill y-direction edge boundary points
+    for j in range( 1, num_grid_y + 1 ):    
+        i = 0; k = 0
+        rho[i][j][k]  = 0.5*( rho[i+1][j][k] + rho[i][j][k+1] )
+        rhou[i][j][k] = 0.5*( rhou[i+1][j][k] + rhou[i][j][k+1] )
+        rhov[i][j][k] = 0.5*( rhov[i+1][j][k] + rhov[i][j][k+1] )
+        rhow[i][j][k] = 0.5*( rhow[i+1][j][k] + rhow[i][j][k+1] )
+        rhoE[i][j][k] = 0.5*( rhoE[i+1][j][k] + rhoE[i][j][k+1] )
+        i = 0; k = num_grid_z + 1
+        rho[i][j][k]  = 0.5*( rho[i+1][j][k] + rho[i][j][k-1] )
+        rhou[i][j][k] = 0.5*( rhou[i+1][j][k] + rhou[i][j][k-1] )
+        rhov[i][j][k] = 0.5*( rhov[i+1][j][k] + rhov[i][j][k-1] )
+        rhow[i][j][k] = 0.5*( rhow[i+1][j][k] + rhow[i][j][k-1] )
+        rhoE[i][j][k] = 0.5*( rhoE[i+1][j][k] + rhoE[i][j][k-1] )
+        i = num_grid_x + 1; k = 0
+        rho[i][j][k]  = 0.5*( rho[i-1][j][k] + rho[i][j][k+1] )
+        rhou[i][j][k] = 0.5*( rhou[i-1][j][k] + rhou[i][j][k+1] )
+        rhov[i][j][k] = 0.5*( rhov[i-1][j][k] + rhov[i][j][k+1] )
+        rhow[i][j][k] = 0.5*( rhow[i-1][j][k] + rhow[i][j][k+1] )
+        rhoE[i][j][k] = 0.5*( rhoE[i-1][j][k] + rhoE[i][j][k+1] )
+        i = num_grid_x + 1; k = num_grid_z + 1
+        rho[i][j][k]  = 0.5*( rho[i-1][j][k] + rho[i][j][k-1] )
+        rhou[i][j][k] = 0.5*( rhou[i-1][j][k] + rhou[i][j][k-1] )
+        rhov[i][j][k] = 0.5*( rhov[i-1][j][k] + rhov[i][j][k-1] )
+        rhow[i][j][k] = 0.5*( rhow[i-1][j][k] + rhow[i][j][k-1] )
+        rhoE[i][j][k] = 0.5*( rhoE[i-1][j][k] + rhoE[i][j][k-1] )
+
+    # Fill z-direction edge boundary points
+    for k in range( 1, num_grid_z + 1 ):    
+        i = 0; j = 0
+        rho[i][j][k]  = 0.5*( rho[i+1][j][k] + rho[i][j+1][k] )
+        rhou[i][j][k] = 0.5*( rhou[i+1][j][k] + rhou[i][j+1][k] )
+        rhov[i][j][k] = 0.5*( rhov[i+1][j][k] + rhov[i][j+1][k] )
+        rhow[i][j][k] = 0.5*( rhow[i+1][j][k] + rhow[i][j+1][k] )
+        rhoE[i][j][k] = 0.5*( rhoE[i+1][j][k] + rhoE[i][j+1][k] )
+        i = 0; j = num_grid_y + 1
+        rho[i][j][k]  = 0.5*( rho[i+1][j][k] + rho[i][j-1][k] )
+        rhou[i][j][k] = 0.5*( rhou[i+1][j][k] + rhou[i][j-1][k] )
+        rhov[i][j][k] = 0.5*( rhov[i+1][j][k] + rhov[i][j-1][k] )
+        rhow[i][j][k] = 0.5*( rhow[i+1][j][k] + rhow[i][j-1][k] )
+        rhoE[i][j][k] = 0.5*( rhoE[i+1][j][k] + rhoE[i][j-1][k] )
+        i = num_grid_x + 1; j = 0
+        rho[i][j][k]  = 0.5*( rho[i-1][j][k] + rho[i][j+1][k] )
+        rhou[i][j][k] = 0.5*( rhou[i-1][j][k] + rhou[i][j+1][k] )
+        rhov[i][j][k] = 0.5*( rhov[i-1][j][k] + rhov[i][j+1][k] )
+        rhow[i][j][k] = 0.5*( rhow[i-1][j][k] + rhow[i][j+1][k] )
+        rhoE[i][j][k] = 0.5*( rhoE[i-1][j][k] + rhoE[i][j+1][k] )
+        i = num_grid_x + 1; j = num_grid_y + 1
+        rho[i][j][k]  = 0.5*( rho[i-1][j][k] + rho[i][j-1][k] )
+        rhou[i][j][k] = 0.5*( rhou[i-1][j][k] + rhou[i][j-1][k] )
+        rhov[i][j][k] = 0.5*( rhov[i-1][j][k] + rhov[i][j-1][k] )
+        rhow[i][j][k] = 0.5*( rhow[i-1][j][k] + rhow[i][j-1][k] )
+        rhoE[i][j][k] = 0.5*( rhoE[i-1][j][k] + rhoE[i][j-1][k] )
+
+    # Fill corner boundary points
+    i = 0; j = 0; k = 0
+    rho[i][j][k]  = ( 1.0/3.0 )*( rho[i+1][j][k] + rho[i][j+1][k] + rho[i][j][k+1] )
+    rhou[i][j][k] = ( 1.0/3.0 )*( rhou[i+1][j][k] + rhou[i][j+1][k] + rhou[i][j][k+1] )
+    rhov[i][j][k] = ( 1.0/3.0 )*( rhov[i+1][j][k] + rhov[i][j+1][k] + rhov[i][j][k+1] )
+    rhow[i][j][k] = ( 1.0/3.0 )*( rhow[i+1][j][k] + rhow[i][j+1][k] + rhow[i][j][k+1] )
+    rhoE[i][j][k] = ( 1.0/3.0 )*( rhoE[i+1][j][k] + rhoE[i][j+1][k] + rhoE[i][j][k+1] )
+    i = num_grid_x + 1; j = 0; k = 0
+    rho[i][j][k]  = ( 1.0/3.0 )*( rho[i-1][j][k] + rho[i][j+1][k] + rho[i][j][k+1] )
+    rhou[i][j][k] = ( 1.0/3.0 )*( rhou[i-1][j][k] + rhou[i][j+1][k] + rhou[i][j][k+1] )
+    rhov[i][j][k] = ( 1.0/3.0 )*( rhov[i-1][j][k] + rhov[i][j+1][k] + rhov[i][j][k+1] )
+    rhow[i][j][k] = ( 1.0/3.0 )*( rhow[i-1][j][k] + rhow[i][j+1][k] + rhow[i][j][k+1] )
+    rhoE[i][j][k] = ( 1.0/3.0 )*( rhoE[i-1][j][k] + rhoE[i][j+1][k] + rhoE[i][j][k+1] )
+    i = 0; j = num_grid_y + 1; k = 0
+    rho[i][j][k]  = ( 1.0/3.0 )*( rho[i+1][j][k] + rho[i][j-1][k] + rho[i][j][k+1] )
+    rhou[i][j][k] = ( 1.0/3.0 )*( rhou[i+1][j][k] + rhou[i][j-1][k] + rhou[i][j][k+1] )
+    rhov[i][j][k] = ( 1.0/3.0 )*( rhov[i+1][j][k] + rhov[i][j-1][k] + rhov[i][j][k+1] )
+    rhow[i][j][k] = ( 1.0/3.0 )*( rhow[i+1][j][k] + rhow[i][j-1][k] + rhow[i][j][k+1] )
+    rhoE[i][j][k] = ( 1.0/3.0 )*( rhoE[i+1][j][k] + rhoE[i][j-1][k] + rhoE[i][j][k+1] )
+    i = num_grid_x + 1; j = num_grid_y + 1; k = 0
+    rho[i][j][k]  = ( 1.0/3.0 )*( rho[i-1][j][k] + rho[i][j-1][k] + rho[i][j][k+1] )
+    rhou[i][j][k] = ( 1.0/3.0 )*( rhou[i-1][j][k] + rhou[i][j-1][k] + rhou[i][j][k+1] )
+    rhov[i][j][k] = ( 1.0/3.0 )*( rhov[i-1][j][k] + rhov[i][j-1][k] + rhov[i][j][k+1] )
+    rhow[i][j][k] = ( 1.0/3.0 )*( rhow[i-1][j][k] + rhow[i][j-1][k] + rhow[i][j][k+1] )
+    rhoE[i][j][k] = ( 1.0/3.0 )*( rhoE[i-1][j][k] + rhoE[i][j-1][k] + rhoE[i][j][k+1] )
+    i = 0; j = 0; k = num_grid_z + 1
+    rho[i][j][k]  = ( 1.0/3.0 )*( rho[i+1][j][k] + rho[i][j+1][k] + rho[i][j][k-1] )
+    rhou[i][j][k] = ( 1.0/3.0 )*( rhou[i+1][j][k] + rhou[i][j+1][k] + rhou[i][j][k-1] )
+    rhov[i][j][k] = ( 1.0/3.0 )*( rhov[i+1][j][k] + rhov[i][j+1][k] + rhov[i][j][k-1] )
+    rhow[i][j][k] = ( 1.0/3.0 )*( rhow[i+1][j][k] + rhow[i][j+1][k] + rhow[i][j][k-1] )
+    rhoE[i][j][k] = ( 1.0/3.0 )*( rhoE[i+1][j][k] + rhoE[i][j+1][k] + rhoE[i][j][k-1] )
+    i = num_grid_x + 1; j = 0; k = num_grid_z + 1
+    rho[i][j][k]  = ( 1.0/3.0 )*( rho[i-1][j][k] + rho[i][j+1][k] + rho[i][j][k-1] )
+    rhou[i][j][k] = ( 1.0/3.0 )*( rhou[i-1][j][k] + rhou[i][j+1][k] + rhou[i][j][k-1] )
+    rhov[i][j][k] = ( 1.0/3.0 )*( rhov[i-1][j][k] + rhov[i][j+1][k] + rhov[i][j][k-1] )
+    rhow[i][j][k] = ( 1.0/3.0 )*( rhow[i-1][j][k] + rhow[i][j+1][k] + rhow[i][j][k-1] )
+    rhoE[i][j][k] = ( 1.0/3.0 )*( rhoE[i-1][j][k] + rhoE[i][j+1][k] + rhoE[i][j][k-1] )
+    i = 0; j = num_grid_y + 1; k = num_grid_z + 1
+    rho[i][j][k]  = ( 1.0/3.0 )*( rho[i+1][j][k] + rho[i][j-1][k] + rho[i][j][k-1] )
+    rhou[i][j][k] = ( 1.0/3.0 )*( rhou[i+1][j][k] + rhou[i][j-1][k] + rhou[i][j][k-1] )
+    rhov[i][j][k] = ( 1.0/3.0 )*( rhov[i+1][j][k] + rhov[i][j-1][k] + rhov[i][j][k-1] )
+    rhow[i][j][k] = ( 1.0/3.0 )*( rhow[i+1][j][k] + rhow[i][j-1][k] + rhow[i][j][k-1] )
+    rhoE[i][j][k] = ( 1.0/3.0 )*( rhoE[i+1][j][k] + rhoE[i][j-1][k] + rhoE[i][j][k-1] )
+    i = num_grid_x + 1; j = num_grid_y + 1; k = num_grid_z + 1
+    rho[i][j][k]  = ( 1.0/3.0 )*( rho[i-1][j][k] + rho[i][j-1][k] + rho[i][j][k-1] )
+    rhou[i][j][k] = ( 1.0/3.0 )*( rhou[i-1][j][k] + rhou[i][j-1][k] + rhou[i][j][k-1] )
+    rhov[i][j][k] = ( 1.0/3.0 )*( rhov[i-1][j][k] + rhov[i][j-1][k] + rhov[i][j][k-1] )
+    rhow[i][j][k] = ( 1.0/3.0 )*( rhow[i-1][j][k] + rhow[i][j-1][k] + rhow[i][j][k-1] )
+    rhoE[i][j][k] = ( 1.0/3.0 )*( rhoE[i-1][j][k] + rhoE[i][j-1][k] + rhoE[i][j][k-1] )
+
     #print( rho )    
     #print( rhou )    
     #print( rhov )    
