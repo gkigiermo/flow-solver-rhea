@@ -1,0 +1,7 @@
+RHEA DEVELOPMENT AGENDA:
+
+- Add communicating scheme for full cell stencil (26 neighbors) --> Willy 26/7/2020
+
+- Implement first complete version of flow physics/numerical method --> Lluis 2/8/2020
+
+- ...
