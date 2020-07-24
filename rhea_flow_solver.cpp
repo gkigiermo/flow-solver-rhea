@@ -1,77 +1,30 @@
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                                                                              //
-// RHEA - an open-source Reproducible Hybrid-architecture flow solver Engineered for Academia                   //
-//                                                                                                              //
-// Rhea was the Titaness great Mother of the Gods, and goddess of female fertility, motherhood, and generation. //
-// Her name means "flow" and "ease", representing the eternal flow of time and generations with ease.           //
-//                                                                                                              //
-//                                                                                                              //
-// REHA is released under the MIT License:                                                                      //
-//                                                                                                              //
-// Copyright (c) 2020 Lluis Jofre Cruanyes & Guillermo Oyarzun Altamirano.                                      //
-//                                                                                                              //
-// Permission is hereby granted, free of charge, to any person obtaining a copy                                 //
-// of this software and associated documentation files (the "Software"), to deal                                //
-// in the Software without restriction, including without limitation the rights                                 //
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell                                    //
-// copies of the Software, and to permit persons to whom the Software is                                        //
-// furnished to do so, subject to the following conditions:                                                     //
-//                                                                                                              //
-// The above copyright notice and this permission notice shall be included in all                               //
-// copies or substantial portions of the Software.                                                              //
-//                                                                                                              //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR                                   //
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,                                     //
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE                                  //
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER                                       //
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,                                //
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE                                //
-// SOFTWARE.                                                                                                    //
-//                                                                                                              //
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#include <stdio.h>
-#include <math.h>
-#include <iostream>
-#include <string>
-#include <mpi.h>
-#include "src/parameters.h"
-#include "src/domain.h"
-#include "src/comm_scheme.h"
-#include "src/parvec.h"
+#include "rhea_flow_solver.h"
 
 using namespace std;
 
-
-// Primitive variables:
-//   - Density rho
-//   - Velocities u, v, w
-//   - Specific total energy E
-//     ... E = e + ke
-//     ... is the sum of internal energy e
-//     ... and kinetic energy ke = (u*u + v*v + w*w)/2
-//
-// Conserved variables:
-//   - Mass rho
-//   - Momentum rho*u, rho*v, rho*w
-//   - Total energy rho*E
-//
-// Thermodynamic state:
-//   - Pressure P
-//   - Temperature T
-//   - Speed of sound sos
-//
-// Thermophysical properties:
-//   - Specific gas constant R_specific
-//   - Ratio of heat capacities gamma
-//   - Dynamic viscosity mu
-//   - Thermal conductivity kappa
-
-// Fixed parameters
+////////// FIXED PARAMETERS //////////
 const double rk_order = 3;			// Time-integration Runge-Kutta order (fixed value)
 const double epsilon  = 1.0e-15;		// Small epsilon number (fixed value)
-const double Pi       = 2.0*asin(1.0);		// Pi number
+const double Pi       = 2.0*asin(1.0);		// Pi number (fixed value)
 
+
+////////// FUNCTIONS //////////
+
+// Initialize u, v, w, P and T variables
+void initialize_uvwPT( u, v, w, P, T, grid ):
+
+    # All points
+    for i in range( 0, num_grid_x + 2 ):    
+        for j in range( 0, num_grid_y + 2 ):    
+            for k in range( 0, num_grid_z + 2 ):
+                u[i][j][k] = u_tau*np.sin( grid[i][j][k][0] )
+                v[i][j][k] = 0.0
+                w[i][j][k] = u_tau*np.sin( grid[i][j][k][2] )
+                P[i][j][k] = P_ref
+                T[i][j][k] = ( 1.0/( rho_ref*R_specific ) )*P[i][j][k]
+
+
+////////// MAIN //////////
 int main(int argc, char** argv)
 {
 
