@@ -16,59 +16,109 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     // ... work in progress (YAML language)	
 
     // The lines below need to be introduced via configuration (input) file !!
-    const int _DEBUG_ = 0;
+    const int _DEBUG_    = 0;
     const double Re_tau  = 100.0;				// Friction Reynolds number [-]
     const double delta   = 1.0;					// Channel half-height [m]
     const double u_tau   = 1.0;					// Friction velocity [m/s]
     const double rho_ref = 1.0;					// Reference density [kg/m3]
     const double P_ref   = 101325.0;				// Reference pressure [Pa]
 
-    R_specific = 287.058;
-    gamma      = 1.4;
-    mu         = rho_ref*u_tau*delta/Re_tau;
-    kappa      = 0.0;
-    x_0           = 0.0;
-    y_0           = 0.0;
-    z_0           = 0.0;
-    L_x           = 4.0*Pi*delta;
-    L_y           = 2.0*delta;
-    L_z           = 4.0*Pi*delta/3.0;
-    initial_time  = 0.0;
-    final_time    = 1.0e3;
+    R_specific        = 287.058;
+    gamma             = 1.4;
+    mu                = rho_ref*u_tau*delta/Re_tau;
+    kappa             = 0.0;
+    x_0               = 0.0;
+    y_0               = 0.0;
+    z_0               = 0.0;
+    L_x               = 4.0*Pi*delta;
+    L_y               = 2.0*delta;
+    L_z               = 4.0*Pi*delta/3.0;
+    initial_time      = 0.0;
+    final_time        = 1.0e3;
     num_grid_x        = 64;
     num_grid_y        = 64;
     num_grid_z        = 64;
     CFL               = 0.9;
     max_num_time_iter = 1e6;
     output_iter       = 1e2;
-    bocos[_WEST_]  = _PERIODIC_;
-    bocos[_EAST_]  = _PERIODIC_;
-    bocos[_SOUTH_] = _PERIODIC_;
-    bocos[_NORTH_] = _PERIODIC_;
-    bocos[_BACK_]  = _PERIODIC_;
-    bocos[_FRONT_] = _PERIODIC_;
-    np_x = 2;
-    np_y = 1;
-    np_z = 1;
+    bocos[_WEST_]     = _PERIODIC_;
+    bocos[_EAST_]     = _PERIODIC_;
+    bocos[_SOUTH_]    = _PERIODIC_;
+    bocos[_NORTH_]    = _PERIODIC_;
+    bocos[_BACK_]     = _PERIODIC_;
+    bocos[_FRONT_]    = _PERIODIC_;
+    np_x              = 2;
+    np_y              = 1;
+    np_z              = 1;
     // The lines above need to be introduced via configuration (input) file !!
 
+    /// Initialize (construct) computational domain
+    dom = new domain(L_x, L_y, L_z, x_0, y_0, z_0, RHEA_NX, RHEA_NY, RHEA_NZ);
 
+    /// Add boundary conditions to computational domain
+    dom->updateBocos(bocos);
 
-    //This is just for testing, later would be read from a file
-    domain dom(L_x, L_y, L_z, x_0, y_0, z_0, RHEA_NX, RHEA_NY, RHEA_NZ);
+    /// Initialize (construct) communication scheme
+    topo = new comm_scheme(dom, np_x, np_y, np_z);
+    //if(topo->getRank() == 0) dom->printDomain();
+    //for(int p = 0; p < np_x*np_y*np_z; p++) topo->printCommSchemeToFile(p);
 
-    //To add the boundary conditions, later would be read from a file
-    dom.updateBocos(bocos);
+    /// Allocate (parallel) primitive, conserved and thermodynamic variables	
+    rho_field  = new parvec(topo);
+    u_field    = new parvec(topo);
+    v_field    = new parvec(topo);
+    w_field    = new parvec(topo);
+    E_field    = new parvec(topo);
+    rhou_field = new parvec(topo);
+    rhov_field = new parvec(topo);
+    rhow_field = new parvec(topo);
+    rhoE_field = new parvec(topo);
+    P_field    = new parvec(topo);
+    T_field    = new parvec(topo);
+    sos_field  = new parvec(topo);
 
-    comm_scheme topo(&dom, npx, npy, npz);
+    /// Allocate (parallel) time-integration variables	
+    rho_0_field  = new parvec(topo);
+    rhou_0_field = new parvec(topo);
+    rhov_0_field = new parvec(topo);
+    rhow_0_field = new parvec(topo);
+    rhoE_0_field = new parvec(topo);    
 
-    if(topo.getRank() == 0)
-        dom.printDomain();
+    /// Allocate (parallel) time-integration fluxes	
+    rho_rk1_flux  = new parvec(topo);
+    rho_rk2_flux  = new parvec(topo);
+    rho_rk3_flux  = new parvec(topo);
+    rhou_rk1_flux = new parvec(topo);
+    rhou_rk2_flux = new parvec(topo);
+    rhou_rk3_flux = new parvec(topo);    
+    rhov_rk1_flux = new parvec(topo);
+    rhov_rk2_flux = new parvec(topo);
+    rhov_rk3_flux = new parvec(topo);    
+    rhow_rk1_flux = new parvec(topo);
+    rhow_rk2_flux = new parvec(topo);
+    rhow_rk3_flux = new parvec(topo);
+    rhoE_rk1_flux = new parvec(topo);
+    rhoE_rk2_flux = new parvec(topo);
+    rhoE_rk3_flux = new parvec(topo);
 
-   for(int p = 0; p < npx*npy*npz; p++)
-       topo.printCommSchemeToFile(p);
+    /// Allocate (parallel) inviscid fluxes	
+    rho_inv_flux  = new parvec(topo);
+    rhou_inv_flux = new parvec(topo);
+    rhov_inv_flux = new parvec(topo);
+    rhow_inv_flux = new parvec(topo);
+    rhoE_inv_flux = new parvec(topo);
 
-    /// Allocate parallelized variables	
+    /// Allocate (parallel) viscous fluxes	
+    rhou_vis_flux = new parvec(topo);
+    rhov_vis_flux = new parvec(topo);
+    rhow_vis_flux = new parvec(topo);
+    rhoE_vis_flux = new parvec(topo);
+
+    /// Allocate (parallel) volumetric & external forces
+    f_rhou_field = new parvec(topo);
+    f_rhov_field = new parvec(topo);
+    f_rhow_field = new parvec(topo);
+    f_rhoE_field = new parvec(topo);
 
 };
 
@@ -76,10 +126,71 @@ FlowSolverRHEA::FlowSolverRHEA(const FlowSolverRHEA &in) {};
 
 FlowSolverRHEA::~FlowSolverRHEA() {
 
-    /// Free allocated memory
+    /// Free domain, boundary conditions & topology
+    if(dom != NULL) free(dom);	
     if(bocos != NULL) free(bocos);	
+    if(topo != NULL) free(topo);
+
+    /// Free primitive, conserved and thermodynamic variables
+    if(rho_field != NULL)  free(rho_field);	
+    if(u_field != NULL)    free(u_field);	
+    if(v_field != NULL)    free(v_field);	
+    if(w_field != NULL)    free(w_field);	
+    if(E_field != NULL)    free(E_field);	
+    if(rhou_field != NULL) free(rhou_field);	
+    if(rhov_field != NULL) free(rhov_field);	
+    if(rhow_field != NULL) free(rhow_field);	
+    if(rhoE_field != NULL) free(rhoE_field);	
+    if(P_field != NULL)    free(P_field);	
+    if(T_field != NULL)    free(T_field);	
+    if(sos_field != NULL)  free(sos_field);	
+        
+    /// Free time-integration variables
+    if(rho_0_field != NULL)  free(rho_0_field);	
+    if(rhou_0_field != NULL) free(rhou_0_field);	
+    if(rhov_0_field != NULL) free(rhov_0_field);	
+    if(rhow_0_field != NULL) free(rhow_0_field);	
+    if(rhoE_0_field != NULL) free(rhoE_0_field);	
+        
+    /// Free time-integration fluxes
+    if(rho_rk1_flux != NULL)  free(rho_rk1_flux);	
+    if(rho_rk2_flux != NULL)  free(rho_rk2_flux);	
+    if(rho_rk3_flux != NULL)  free(rho_rk3_flux);
+    if(rhou_rk1_flux != NULL) free(rhou_rk1_flux);	
+    if(rhou_rk2_flux != NULL) free(rhou_rk2_flux);	
+    if(rhou_rk3_flux != NULL) free(rhou_rk3_flux);    
+    if(rhov_rk1_flux != NULL) free(rhov_rk1_flux);	
+    if(rhov_rk2_flux != NULL) free(rhov_rk2_flux);	
+    if(rhov_rk3_flux != NULL) free(rhov_rk3_flux);
+    if(rhow_rk1_flux != NULL) free(rhow_rk1_flux);	
+    if(rhow_rk2_flux != NULL) free(rhow_rk2_flux);	
+    if(rhow_rk3_flux != NULL) free(rhow_rk3_flux);
+    if(rhoE_rk1_flux != NULL) free(rhoE_rk1_flux);	
+    if(rhoE_rk2_flux != NULL) free(rhoE_rk2_flux);	
+    if(rhoE_rk3_flux != NULL) free(rhoE_rk3_flux);
+
+    /// Free inviscid fluxes
+    if(rho_inv_flux != NULL)  free(rho_inv_flux);
+    if(rhou_inv_flux != NULL) free(rhou_inv_flux);
+    if(rhov_inv_flux != NULL) free(rhov_inv_flux);
+    if(rhow_inv_flux != NULL) free(rhow_inv_flux);
+    if(rhoE_inv_flux != NULL) free(rhoE_inv_flux);
+
+    /// Free viscous fluxes
+    if(rhou_vis_flux != NULL) free(rhou_vis_flux);
+    if(rhov_vis_flux != NULL) free(rhov_vis_flux);
+    if(rhow_vis_flux != NULL) free(rhow_vis_flux);
+    if(rhoE_vis_flux != NULL) free(rhoE_vis_flux);
+
+    /// Free volumetric & external forces
+    if(f_rhou_field != NULL) free(f_rhou_field);
+    if(f_rhov_field != NULL) free(f_rhov_field);
+    if(f_rhow_field != NULL) free(f_rhow_field);
+    if(f_rhoE_field != NULL) free(f_rhoE_field);
 
 };
+
+
 
 
 
@@ -110,135 +221,6 @@ int main(int argc, char** argv) {
     FlowSolverRHEA flow_solver_RHEA("configuration_file.yaml");
 
 /*    
-
-    // The lines below need to be introduced via configuration (input) file
-    const int _DEBUG_ = 0;
-
-    ////////// SET PARAMETERS //////////
-    const double Re_tau  = 100.0;				// Friction Reynolds number [-]
-    const double delta   = 1.0;					// Channel half-height [m]
-    const double u_tau   = 1.0;					// Friction velocity [m/s]
-    const double rho_ref = 1.0;					// Reference density [kg/m3]
-    const double P_ref   = 101325.0;				// Reference pressure [Pa]
-
-    /// Fluid properties 
-    const double R_specific = 287.058;				// Specific gas constant of air [J/(kg K)]
-    const double gamma      = 1.4;				// Heat capacity ratio of air [-]
-    const double mu         = rho_ref*u_tau*delta/Re_tau;	// Dynamic viscosity of air [Pa s]
-    const double kappa      = 0.0;				// Thermal conductivity of air [W/(m k)]
-
-    /// Problem parameters
-    const double x_0           = 0.0;                     	// Domain origin in x-direction [m]
-    const double y_0           = 0.0;                     	// Domain origin in y-direction [m]
-    const double z_0           = 0.0;                     	// Domain origin in z-direction [m]
-    const double L_x           = 4.0*Pi*delta;   		// Size of domain in x-direction
-    const double L_y           = 2.0*delta;      		// Size of domain in y-direction
-    const double L_z           = 4.0*Pi*delta/3.0;		// Size of domain in z-direction
-    const double initial_time  = 0.0;   			// Initial time [s]
-    const double final_time    = 1.0e3;      			// Final time [s]
-    const string name_file_out = "output_data.csv";		// Name of output data [-]
-
-    /// Computational parameters
-    const double num_grid_x        = 64;			// Number of internal grid points in the x-direction
-    const double num_grid_y        = 64;			// Number of internal grid points in the y-direction
-    const double num_grid_z        = 64;			// Number of internal grid points in the z-direction
-    const double CFL               = 0.9;			// CFL coefficient
-    const double max_num_time_iter = 1e6;			// Maximum number of time iterations
-    const double output_iter       = 1e2;			// Output data every given number of iterations
-
-    /// Boundary conditions
-    int bocos[6];
-    bocos[_WEST_]  = _PERIODIC_;
-    bocos[_EAST_]  = _PERIODIC_;
-    bocos[_SOUTH_] = _PERIODIC_;
-    bocos[_NORTH_] = _PERIODIC_;
-    bocos[_BACK_]  = _PERIODIC_;
-    bocos[_FRONT_] = _PERIODIC_;
-
-    /// Parallelization scheme
-    const int npx = 2;
-    const int npy = 1;
-    const int npz = 1;
-    // The lines above need to be introduced via configuration (input) file
-
-    //This is just for testing, later would be read from a file
-    domain dom(L_x, L_y, L_z, x_0, y_0, z_0, RHEA_NX, RHEA_NY, RHEA_NZ);
-
-    //To add the boundary conditions,  later would be read from a file
-    dom.updateBocos(bocos);
-
-    comm_scheme topo(&dom, npx, npy, npz);
-
-    if(topo.getRank() == 0)
-        dom.printDomain();
-
-   for(int p = 0; p < npx*npy*npz; p++)
-       topo.printCommSchemeToFile(p);
-
-
-    ////////// ALLOCATE MEMORY //////////
-
-    /// Primitive, conserved and thermodynamic variables
-    parvec rho_field(&topo);		// 3-D field of rho
-    parvec u_field(&topo);		// 3-D field of u
-    parvec v_field(&topo);		// 3-D field of v
-    parvec w_field(&topo);		// 3-D field of w
-    parvec E_field(&topo);		// 3-D field of E
-    parvec rhou_field(&topo);		// 3-D field of rhou
-    parvec rhov_field(&topo);		// 3-D field of rhov
-    parvec rhow_field(&topo);		// 3-D field of rhow
-    parvec rhoE_field(&topo);		// 3-D field of rhoE
-    parvec P_field(&topo);		// 3-D field of P
-    parvec T_field(&topo);		// 3-D field of T
-    parvec sos_field(&topo);		// 3-D field of sos
-
-    /// Time integration variables
-    parvec rho_0_field(&topo);		// 3-D old field of rho
-    parvec rhou_0_field(&topo);		// 3-D old field of rhou
-    parvec rhov_0_field(&topo);		// 3-D old field of rhov
-    parvec rhow_0_field(&topo);		// 3-D old field of rhow
-    parvec rhoE_0_field(&topo);		// 3-D old field of rhoE
-
-    /// Time integration fluxes
-    parvec rho_rk1_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rho
-    parvec rho_rk2_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rho
-    parvec rho_rk3_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rho
-    parvec rhou_rk1_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rhou
-    parvec rhou_rk2_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rhou
-    parvec rhou_rk3_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rhou
-    parvec rhov_rk1_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rhov
-    parvec rhov_rk2_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rhov
-    parvec rhov_rk3_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rhov
-    parvec rhow_rk1_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rhow
-    parvec rhow_rk2_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rhow
-    parvec rhow_rk3_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rhow
-    parvec rhoE_rk1_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rhoE
-    parvec rhoE_rk2_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rhoE
-    parvec rhoE_rk3_fluxes(&topo);	// 3-D Runge-Kutta fluxes of rhoE
-
-    /// Inviscid fluxes
-    parvec rho_inv_flux(&topo);		// 3-D inviscid fluxes of rho
-    parvec rhou_inv_flux(&topo);	// 3-D inviscid fluxes of rhou
-    parvec rhov_inv_flux(&topo);	// 3-D inviscid fluxes of rhov
-    parvec rhow_inv_flux(&topo);	// 3-D inviscid fluxes of rhow
-    parvec rhoE_inv_flux(&topo);	// 3-D inviscid fluxes of rhoE
-
-    /// Viscous fluxes
-    parvec rhou_vis_flux(&topo);	// 3-D viscous fluxes of rhou
-    parvec rhov_vis_flux(&topo);	// 3-D viscous fluxes of rhov
-    parvec rhow_vis_flux(&topo);	// 3-D viscous fluxes of rhow
-    parvec rhoE_vis_flux(&topo);	// 3-D viscous fluxes of rhoE
-
-    /// Body forces
-    parvec f_rhou_field(&topo);		// 3-D field of rhou
-    parvec f_rhov_field(&topo);		// 3-D field of rhov
-    parvec f_rhow_field(&topo);		// 3-D field of rhow
-    parvec f_rhoE_field(&topo);		// 3-D field of rhoE
-
-*/
-/*    parvec T(&topo);
-    parvec Tnew(&topo);
-
     T = 0.0;
     Tnew = 0.0;
 
