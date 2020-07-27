@@ -92,7 +92,7 @@ class FlowSolverRHEA {
         inline double getInitialTime() { return( initial_time ); };
         inline double getCurrentTime() { return( current_time ); };
         inline double getFinalTime() { return( final_time ); };
-        inline double getDeltaTime() { return( delta_t ); };
+        inline double getTimeStep() { return( delta_t ); };
         inline double getInitialTimeIteration() { return( initial_time_iter ); };
         inline double getCurrentTimeIteration() { return( current_time_iter ); };
         inline double getFinalTimeIteration() { return( final_time_iter ); };
@@ -101,7 +101,7 @@ class FlowSolverRHEA {
         inline void setInitialTime(double initial_time_) { initial_time = initial_time_; };
         inline void setCurrentTime(double current_time_) { current_time = current_time_; };
         inline void setFinalTime(double final_time_) { final_time = final_time_; };
-        inline void setDeltaTime(double delta_t_) { delta_t = delta_t_; };
+        inline void setTimeStep(double delta_t_) { delta_t = delta_t_; };
         inline void setInitialTimeIteration(double initial_time_iter_) { initial_time_iter = initial_time_iter_; };
         inline void setCurrentTimeIteration(double current_time_iter_) { current_time_iter = current_time_iter_; };
         inline void setFinalTimeIteration(double final_time_iter_) { final_time_iter = final_time_iter_; };
