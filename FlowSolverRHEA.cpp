@@ -416,19 +416,19 @@ int main(int argc, char** argv) {
 
         /// Calculate time step
         flow_solver_RHEA.calculateTimeStep();
-        if( ( flow_solver_RHEA.getCurrentTime() + flow_solver_RHEA.getDeltaTime() ) > flow_solver_RHEA.getFinalTime() ) {
-            flow_solver_RHEA.setDeltaTime( flow_solver_RHEA.getFinalTime() - flow_solver_RHEA.getCurrentTime() );
+        if( ( flow_solver_RHEA.getCurrentTime() + flow_solver_RHEA.getTimeStep() ) > flow_solver_RHEA.getFinalTime() ) {
+            flow_solver_RHEA.setTimeStep( flow_solver_RHEA.getFinalTime() - flow_solver_RHEA.getCurrentTime() );
         }
 
         /// Print time iteration information
         if(world_rank == 0) {
             cout << "Time iteration " << t << ":" 
                  << "t = " << flow_solver_RHEA.getCurrentTime() << " [s], "
-                 << "delta_t = " << flow_solver_RHEA.getDeltaTime() << " [s]" << endl;
+                 << "delta_t = " << flow_solver_RHEA.getTimeStep() << " [s]" << endl;
         }
 
         /// Update time
-        flow_solver_RHEA.setCurrentTime( flow_solver_RHEA.getCurrentTime() + flow_solver_RHEA.getDeltaTime() );
+        flow_solver_RHEA.setCurrentTime( flow_solver_RHEA.getCurrentTime() + flow_solver_RHEA.getTimeStep() );
 
         /// Check if simulation is completed: current_time > final_time
         if(flow_solver_RHEA.getCurrentTime() >= flow_solver_RHEA.getFinalTime() ) break;
