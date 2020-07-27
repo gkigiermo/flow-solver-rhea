@@ -15,6 +15,8 @@ class parvec{
         double& operator[](int);
         void operator= (double);
 
+        void setTopology(comm_scheme* topo);
+
 
         double* vector;
         int size;
