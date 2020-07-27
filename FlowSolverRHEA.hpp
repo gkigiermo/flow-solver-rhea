@@ -38,6 +38,7 @@
 #include <math.h>
 #include <iostream>
 #include <string>
+#include <limits>
 #include <mpi.h>
 #include "src/parameters.h"
 #include "src/domain.h"
@@ -85,8 +86,45 @@ class FlowSolverRHEA {
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
         FlowSolverRHEA();					/// Default constructor
         FlowSolverRHEA(const string configuration_file);	/// Parametrized constructor
-        FlowSolverRHEA(const FlowSolverRHEA &in);		/// Copy constructor
         virtual ~FlowSolverRHEA();				/// Destructor
+
+	////////// GET FUNCTIONS //////////
+        inline double getInitialTime() { return( initial_time ); };
+        inline double getCurrentTime() { return( current_time ); };
+        inline double getFinalTime() { return( final_time ); };
+        inline double getDeltaTime() { return( delta_t ); };
+        inline double getInitialTimeIteration() { return( initial_time_iter ); };
+        inline double getCurrentTimeIteration() { return( current_time_iter ); };
+        inline double getFinalTimeIteration() { return( final_time_iter ); };
+
+	////////// SET FUNCTIONS //////////
+        inline void setInitialTime(double initial_time_) { initial_time = initial_time_; };
+        inline void setCurrentTime(double current_time_) { current_time = current_time_; };
+        inline void setFinalTime(double final_time_) { final_time = final_time_; };
+        inline void setDeltaTime(double delta_t_) { delta_t = delta_t_; };
+        inline void setInitialTimeIteration(double initial_time_iter_) { initial_time_iter = initial_time_iter_; };
+        inline void setCurrentTimeIteration(double current_time_iter_) { current_time_iter = current_time_iter_; };
+        inline void setFinalTimeIteration(double final_time_iter_) { final_time_iter = final_time_iter_; };
+
+	////////// SOLVER METHODS //////////
+
+        /// Set initial conditions: u, v, w, P and T
+        void setInitialConditions();
+
+        /// Initialize thermodynamic state: rho, e, ke, E and sos
+        void initializeThermodynamics();
+
+        /// Update boundary values: rho, rhou, rhov, rhow and rhoE
+        void updateBoundaries();
+
+        /// Calculate conserved variables from primitive variables: variable -> rho*variable
+        void primitiveToConservedVariables();
+
+        /// Update previous state of conserved variables: variable -> variable_0
+        void updatePreviousStateConservedVariables();
+
+        /// Calculate time step satisfying CFL constraint
+        void calculateTimeStep();
 
     protected:
 
@@ -106,6 +144,7 @@ class FlowSolverRHEA {
         double L_y;      					/// Domain size in y-direction
         double L_z;						/// Domain size in z-direction
         double initial_time;   					/// Initial time [s]
+        double current_time;   					/// Current time [s]
         double final_time;		      			/// Final time [s]
         string configuration_file;				/// Configuration file (YAML language)	
 
@@ -114,8 +153,15 @@ class FlowSolverRHEA {
         double num_grid_y;					/// Number of internal grid points in the y-direction
         double num_grid_z;					/// Number of internal grid points in the z-direction
         double CFL;						/// CFL coefficient
-        double max_num_time_iter;				/// Maximum number of time iterations
+        double delta_t;		      				/// Time step [s]
+        double initial_time_iter;				/// Initial time iteration
+        double current_time_iter;				/// Current time iteration
+        double final_time_iter;					/// Final time iteration
         double output_iter;					/// Output data every given number of iterations
+        // The lines below are temporary ... will need to be removed!
+        int _lNx_;
+        int _lNy_;
+        int _lNz_;
 
         /// Boundary conditions
         int bocos[6];						/// Array of boundary conditions
@@ -128,68 +174,65 @@ class FlowSolverRHEA {
 	////////// SOLVER (PARALLELIZED) VARIABLES //////////
 	
         /// Primitive, conserved and thermodynamic variables
-        parvec *rho_field;					/// 3-D field of rho
-        parvec *u_field;					/// 3-D field of u
-        parvec *v_field;					/// 3-D field of v
-        parvec *w_field;					/// 3-D field of w
-        parvec *E_field;					/// 3-D field of E
-        parvec *rhou_field;					/// 3-D field of rhou
-        parvec *rhov_field;					/// 3-D field of rhov
-        parvec *rhow_field;					/// 3-D field of rhow
-        parvec *rhoE_field;					/// 3-D field of rhoE
-        parvec *P_field;					/// 3-D field of P
-        parvec *T_field;					/// 3-D field of T
-        parvec *sos_field;					/// 3-D field of sos
+        parvec rho_field;					/// 3-D field of rho
+        parvec u_field;						/// 3-D field of u
+        parvec v_field;						/// 3-D field of v
+        parvec w_field;						/// 3-D field of w
+        parvec E_field;						/// 3-D field of E
+        parvec rhou_field;					/// 3-D field of rhou
+        parvec rhov_field;					/// 3-D field of rhov
+        parvec rhow_field;					/// 3-D field of rhow
+        parvec rhoE_field;					/// 3-D field of rhoE
+        parvec P_field;						/// 3-D field of P
+        parvec T_field;						/// 3-D field of T
+        parvec sos_field;					/// 3-D field of sos
 
         /// Time-integration variables
-        parvec *rho_0_field;					/// 3-D old field of rho
-        parvec *rhou_0_field;					/// 3-D old field of rhou
-        parvec *rhov_0_field;					/// 3-D old field of rhov
-        parvec *rhow_0_field;					/// 3-D old field of rhow
-        parvec *rhoE_0_field;					/// 3-D old field of rhoE
+        parvec rho_0_field;					/// 3-D old field of rho
+        parvec rhou_0_field;					/// 3-D old field of rhou
+        parvec rhov_0_field;					/// 3-D old field of rhov
+        parvec rhow_0_field;					/// 3-D old field of rhow
+        parvec rhoE_0_field;					/// 3-D old field of rhoE
 
         /// Time-integration fluxes
-        parvec *rho_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rho
-        parvec *rho_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rho
-        parvec *rho_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rho
-        parvec *rhou_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rhou
-        parvec *rhou_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rhou
-        parvec *rhou_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rhou
-        parvec *rhov_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rhov
-        parvec *rhov_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rhov
-        parvec *rhov_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rhov
-        parvec *rhow_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rhow
-        parvec *rhow_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rhow
-        parvec *rhow_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rhow
-        parvec *rhoE_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rhoE
-        parvec *rhoE_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rhoE
-        parvec *rhoE_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rhoE
+        parvec rho_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rho
+        parvec rho_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rho
+        parvec rho_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rho
+        parvec rhou_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rhou
+        parvec rhou_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rhou
+        parvec rhou_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rhou
+        parvec rhov_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rhov
+        parvec rhov_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rhov
+        parvec rhov_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rhov
+        parvec rhow_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rhow
+        parvec rhow_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rhow
+        parvec rhow_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rhow
+        parvec rhoE_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rhoE
+        parvec rhoE_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rhoE
+        parvec rhoE_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rhoE
 
         /// Inviscid fluxes
-        parvec *rho_inv_flux;					/// 3-D inviscid fluxes of rho
-        parvec *rhou_inv_flux;					/// 3-D inviscid fluxes of rhou
-        parvec *rhov_inv_flux;					/// 3-D inviscid fluxes of rhov
-        parvec *rhow_inv_flux;					/// 3-D inviscid fluxes of rhow
-        parvec *rhoE_inv_flux;					/// 3-D inviscid fluxes of rhoE
+        parvec rho_inv_flux;					/// 3-D inviscid fluxes of rho
+        parvec rhou_inv_flux;					/// 3-D inviscid fluxes of rhou
+        parvec rhov_inv_flux;					/// 3-D inviscid fluxes of rhov
+        parvec rhow_inv_flux;					/// 3-D inviscid fluxes of rhow
+        parvec rhoE_inv_flux;					/// 3-D inviscid fluxes of rhoE
 
         /// Viscous fluxes
-        parvec *rhou_vis_flux;					/// 3-D viscous fluxes of rhou
-        parvec *rhov_vis_flux;					/// 3-D viscous fluxes of rhov
-        parvec *rhow_vis_flux;					/// 3-D viscous fluxes of rhow
-        parvec *rhoE_vis_flux;					/// 3-D viscous fluxes of rhoE
+        parvec rhou_vis_flux;					/// 3-D viscous fluxes of rhou
+        parvec rhov_vis_flux;					/// 3-D viscous fluxes of rhov
+        parvec rhow_vis_flux;					/// 3-D viscous fluxes of rhow
+        parvec rhoE_vis_flux;					/// 3-D viscous fluxes of rhoE
 
         /// Volumetric & external forces
-        parvec *f_rhou_field;					/// 3-D field of rhou
-        parvec *f_rhov_field;					/// 3-D field of rhov
-        parvec *f_rhow_field;					/// 3-D field of rhow
-        parvec *f_rhoE_field;					/// 3-D field of rhoE
+        parvec f_rhou_field;					/// 3-D field of rhou
+        parvec f_rhov_field;					/// 3-D field of rhov
+        parvec f_rhow_field;					/// 3-D field of rhow
+        parvec f_rhoE_field;					/// 3-D field of rhoE
 
 	////////// COMPUTATIONAL DOMAIN & PARALLEL TOPOLOGY //////////
         domain *dom;						/// Computational domain
         comm_scheme *topo;					/// Communication scheme (parallel topology)
-
-	////////// SOLVER METHODS //////////
-	
 
     private:
 
