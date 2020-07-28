@@ -117,7 +117,7 @@ class comm_scheme{
         void create_comm_arrays();
 
         void exchange_2nd_level_neighbour_info();
-
+        void find_extra_neighbours();
         void pack(double*);
         void halo_exchange();
         void unpack(double*);

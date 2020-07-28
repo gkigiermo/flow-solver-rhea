@@ -309,52 +309,52 @@ void comm_scheme::find_extra_neighbours()
 // Lineal neighbours 
 
     //WEST SOUTH 
-    if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_SOUTH_] != _NO_NEIGHBOUR)
+    if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_SOUTH_] != _NO_NEIGHBOUR_)
     {
         neighb[_WEST_S_] =  info_2nd[ off_nb[_WEST_] + _SOUTH_ ]; 
     }
 
     //WEST NORTH 
-    if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_NORTH_] != _NO_NEIGHBOUR)
+    if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_NORTH_] != _NO_NEIGHBOUR_)
     {
         neighb[_WEST_N_] =  info_2nd[ off_nb[_WEST_] + _NORTH_ ]; 
     }
 
     //WEST BACK 
-    if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR)
+    if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR_)
     {
         neighb[_WEST_B_] =  info_2nd[ off_nb[_WEST_] + _BACK_ ]; 
     }
 
     //WEST FRONT 
-    if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR)
+    if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR_)
     {
         neighb[_WEST_F_] =  info_2nd[ off_nb[_WEST_] + _FRONT_ ]; 
     }
 
 
     //EAST SOUTH 
-    if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_SOUTH_] != _NO_NEIGHBOUR)
+    if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_SOUTH_] != _NO_NEIGHBOUR_)
     {
         neighb[_EAST_S_] = info_2nd[ off_nb[_EAST_] + _SOUTH_ ]; 
     }
 
     //EAST NORTH 
-    if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_NORTH_] != _NO_NEIGHBOUR)
+    if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_NORTH_] != _NO_NEIGHBOUR_)
     {
         neighb[_EAST_N_] = info_2nd[ off_nb[_EAST_] + _NORTH_ ]; 
 
     }
 
     //EAST BACK 
-    if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR)
+    if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR_)
     {
         neighb[_EAST_B_] = info_2nd[ off_nb[_EAST_] + _BACK_ ]; 
 
     }
 
     //EAST FRONT 
-    if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR)
+    if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR_)
     {
         neighb[_EAST_F_] = info_2nd[ off_nb[_EAST_] + _FRONT_ ]; 
 
@@ -362,26 +362,26 @@ void comm_scheme::find_extra_neighbours()
 
 
     //SOUTH BACK
-    if( neighb[_SOUTH_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR)
+    if( neighb[_SOUTH_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR_)
     {
         neighb[_SOUTH_B_] = info_2nd[ off_nb[_SOUTH_] + _BACK_ ];  
     }
 
     //SOUTH FRONT
-    if( neighb[_SOUTH_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR)
+    if( neighb[_SOUTH_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR_)
     {
         neighb[_SOUTH_F_] = info_2nd[ off_nb[_SOUTH_] + _FRONT_ ];  
 
     }
 
     //NORTH BACK
-    if( neighb[_NORTH_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR)
+    if( neighb[_NORTH_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR_)
     {
         neighb[_NORTH_B_] = info_2nd[ off_nb[_NORTH_] + _BACK_ ]; 
     }
 
     //NORTH FRONT
-    if( neighb[_NORTH_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR)
+    if( neighb[_NORTH_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR_)
     {
         neighb[_NORTH_F_] =  info_2nd[ off_nb[_NORTH_] + _FRONT_ ]; 
 
