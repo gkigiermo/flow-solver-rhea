@@ -3,8 +3,8 @@
 using namespace std;
 
 ////////// FIXED PARAMETERS //////////
-const double epsilon  = 1.0e-15;		// Small epsilon number
-const double Pi       = 2.0*asin(1.0);		// Pi number
+const double epsilon = 1.0e-15;			// Small epsilon number
+const double Pi      = 2.0*asin(1.0);		// Pi number
 
 ////////// FlowSolverRHEA CLASS //////////
 FlowSolverRHEA::FlowSolverRHEA() {};
