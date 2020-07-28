@@ -246,6 +246,8 @@ void FlowSolverRHEA::updateBoundaries() {
             }
         }
     }
+                
+    // ... work in progress: add completion of edges (1/2) and corners (1/3)
 
 };
 
