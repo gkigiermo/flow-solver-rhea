@@ -57,22 +57,23 @@ class FlowSolverRHEA {
         virtual ~FlowSolverRHEA();				/// Destructor
 
 	////////// GET FUNCTIONS //////////
-        inline double getInitialTime() { return( initial_time ); };
         inline double getCurrentTime() { return( current_time ); };
         inline double getFinalTime() { return( final_time ); };
         inline double getTimeStep() { return( delta_t ); };
-        inline double getInitialTimeIteration() { return( initial_time_iter ); };
-        inline double getCurrentTimeIteration() { return( current_time_iter ); };
-        inline double getFinalTimeIteration() { return( final_time_iter ); };
+        inline int getCurrentTimeIteration() { return( current_time_iter ); };
+        inline int getFinalTimeIteration() { return( final_time_iter ); };
+        inline int getOutputIteration() { return( output_iter ); };
+        inline int getCurrentRungeKuttaStep() { return( rk_step ); };
+        inline int getRungeKuttaOrder() { return( rk_order ); };
 
 	////////// SET FUNCTIONS //////////
-        inline void setInitialTime(double initial_time_) { initial_time = initial_time_; };
         inline void setCurrentTime(double current_time_) { current_time = current_time_; };
         inline void setFinalTime(double final_time_) { final_time = final_time_; };
         inline void setTimeStep(double delta_t_) { delta_t = delta_t_; };
-        inline void setInitialTimeIteration(double initial_time_iter_) { initial_time_iter = initial_time_iter_; };
-        inline void setCurrentTimeIteration(double current_time_iter_) { current_time_iter = current_time_iter_; };
-        inline void setFinalTimeIteration(double final_time_iter_) { final_time_iter = final_time_iter_; };
+        inline void setCurrentTimeIteration(int current_time_iter_) { current_time_iter = current_time_iter_; };
+        inline void setFinalTimeIteration(int final_time_iter_) { final_time_iter = final_time_iter_; };
+        inline void setOutputIteration(int output_iter_) { output_iter = output_iter_; };
+        inline void setCurrentRungeKuttaStep(int rk_step_) { rk_step = rk_step_; };
 
 	////////// SOLVER METHODS //////////
 
@@ -94,6 +95,36 @@ class FlowSolverRHEA {
         /// Calculate time step satisfying CFL constraint
         void calculateTimeStep();
 
+        /// Output current solver state data
+        void outputCurrentStateData();
+
+        /// Calculate source terms
+        void calculateSourceTerms();
+
+        /// Calculate thermodynamics from primitive variables
+        void calculateThermodynamicsFromPrimitiveVariables();
+
+        /// Calculate primitive variables from conserved variables: rho*variable -> variable
+        void conservedToPrimitiveVariables();
+
+        /// Calculate waves speed
+        void calculateWavesSpeed(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, double &S_L, double &S_R);
+
+        /// Calculate HLLC flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+        void calculateHllcFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type, double &F);
+
+        /// Calculate inviscid fluxes
+        void calculateInviscidFluxes();
+
+        /// Calculate viscous fluxes
+        void calculateViscousFluxes();
+
+        /// Advance conserved variables in time
+        void timeAdvanceConservedVariables();
+
+        /// Sum viscous and viscous fluxes
+        void sumInviscidViscousFluxes();
+
     protected:
 
         ////////// SOLVER PARAMETERS //////////
@@ -111,10 +142,10 @@ class FlowSolverRHEA {
         double L_x;   						/// Domain size in x-direction
         double L_y;      					/// Domain size in y-direction
         double L_z;						/// Domain size in z-direction
-        double initial_time;   					/// Initial time [s]
         double current_time;   					/// Current time [s]
         double final_time;		      			/// Final time [s]
         string configuration_file;				/// Configuration file (YAML language)	
+        string output_data_file;				/// Output data file (HDF5 format)	
 
         /// Computational parameters
         double num_grid_x;					/// Number of internal grid points in the x-direction
@@ -122,10 +153,11 @@ class FlowSolverRHEA {
         double num_grid_z;					/// Number of internal grid points in the z-direction
         double CFL;						/// CFL coefficient
         double delta_t;		      				/// Time step [s]
-        double initial_time_iter;				/// Initial time iteration
         double current_time_iter;				/// Current time iteration
         double final_time_iter;					/// Final time iteration
         double output_iter;					/// Output data every given number of iterations
+        int rk_step;						/// Current Runge-Kutta step
+        const int rk_order = 3;					/// Order of Runge-Kutta method (fixed)
         // The lines below are temporary ... will need to be removed!
         int _lNx_;
         int _lNy_;
