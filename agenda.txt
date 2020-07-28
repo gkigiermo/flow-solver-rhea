@@ -1,7 +1,7 @@
 RHEA DEVELOPMENT AGENDA:
 
-- Add communicating scheme for full cell stencil (26 neighbors) --> Willy 26/7/2020
-
+- Add communicating scheme for full cell stencil (26 neighbors) --> Willy 2/8/2020
+- Implement automatic updating of edge (1/2) and corner (1/3) boundary points --> Willy 2/8/2020
 - Implement first complete version of flow physics/numerical method --> Lluis 2/8/2020
 
 - ...
