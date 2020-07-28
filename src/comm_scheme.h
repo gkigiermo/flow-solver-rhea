@@ -35,10 +35,10 @@ class comm_scheme{
         // Basic iterators to move on the domain
 
         int iter_common[2][6]; 
-        int iter_bound[6][6];
-        int iter_halo[6][6];
-        int iter_toSend[6][6];
-        int iter_toRecv[6][6];
+        int iter_bound[26][6];
+        int iter_halo[26][6];
+        int iter_toSend[26][6];
+        int iter_toRecv[26][6];
 
         int iter_glob_ind[6];
 
@@ -71,10 +71,22 @@ class comm_scheme{
         int len;
 
         // IDs of the neighbours
-        int neighb[6];
+        int neighb[26];
 
         // IDs of the boundaries
-        int lbounds[6];
+        int lbounds[26];
+
+
+        // 2nd level info
+
+        int *info_2nd;
+        int off_nb[6];
+
+
+        // 3er level info
+
+        int proc_z_start;
+        int proc_z_end;
 
         // For the communication
         int len_xy;
@@ -103,6 +115,8 @@ class comm_scheme{
         void create_toRecv_iters();
         void create_global_iters();
         void create_comm_arrays();
+
+        void exchange_2nd_level_neighbour_info();
 
         void pack(double*);
         void halo_exchange();

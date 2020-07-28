@@ -69,14 +69,18 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
     //cout<<" Rank MPI  "<<mpirank<<endl;
 
 
-    //Finding neighbours
+
+
+    //Finding surface neighbours
+    //By default there is no connection with other sub-domains
+    for(int nb = 0 ; nb < 26 ; nb++)
+        neighb[nb] = _NO_NEIGHBOUR_;
 
     int periodic_x;
     if(dom->getBoco(_WEST_) == _PERIODIC_)
         periodic_x = 1;
     else
         periodic_x = 0;
-
 
     //Direction X 
     //WEST
@@ -87,9 +91,6 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
         if( periodic_x == 1 ) {
             neighb[_WEST_] = rank + npx - 1;
         }
-        else{
-            neighb[_WEST_] = _NO_NEIGHBOUR_; 
-        }
     }
     //EAST
     if(rank%npx != (npx - 1) ){
@@ -98,9 +99,6 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
     else{
         if( periodic_x == 1 ){
             neighb[_EAST_] = rank - npx + 1;
-        }
-        else{
-            neighb[_EAST_] =  _NO_NEIGHBOUR_;
         }
     }
 
@@ -121,9 +119,6 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
         if(periodic_y == 1) {
             neighb[_SOUTH_] = rank + (npy-1)*npx;
         }
-        else{
-            neighb[_SOUTH_] = _NO_NEIGHBOUR_;
-        }
     }
 
     //NORTH
@@ -134,9 +129,6 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
         if(periodic_y == 1) {
             neighb[_NORTH_] = rank - (npy-1)*npx;
         }
-        else{
-            neighb[_NORTH_] = _NO_NEIGHBOUR_;
-        }
     }
 
     //BACK
@@ -146,6 +138,11 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
     else
         periodic_z = 0;
 
+
+    proc_z_start = 0;
+    proc_z_end   = 0;
+
+
     plane_rank = rank/(npx*npy);
     if(plane_rank != 0){
         neighb[_BACK_] = rank - npx*npy;
@@ -153,9 +150,7 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
     else{
         if(periodic_z == 1 ){
             neighb[_BACK_] = rank + (npx*npy)*(npz-1);
-        }
-        else{
-            neighb[_BACK_] = _NO_NEIGHBOUR_;
+            proc_z_start = 1;
         }
     }
 
@@ -166,12 +161,9 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
     else{
         if(periodic_z == 1){
             neighb[_FRONT_] = rank - (npx*npy)*(npz-1);
-        }
-        else{
-            neighb[_FRONT_] = _NO_NEIGHBOUR_;
+            proc_z_end = 1;
         }
     }
-
 
 
     //Calculating Id offsets /* this should be updated to include the case with imbalanced partitions*/
@@ -218,7 +210,198 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
         l++;
     }
 
+    // To create the extra connections
+
+    exchange_2nd_level_neighbour_info();
+
+
 }
+
+void comm_scheme::exchange_2nd_level_neighbour_info()
+{
+    int pack[6];
+    
+    int count_nb=0; // number of 1st level neighbours
+
+    MPI_Barrier(RHEA_3DCOMM);
+
+    //Counting with whom am I connected
+    for(int nb =_WEST_ ; nb <= _FRONT_ ; nb++){
+        if( neighb[nb] != _NO_NEIGHBOUR_ ){
+            off_nb[nb] = count_nb*6;
+            count_nb++;
+        }
+    }
+     
+    //Packs the message that is sent to all the 1st level neighbours
+    for(int l=_WEST_;l<=_FRONT_;l++)
+        pack[l] = neighb[l];
+
+    //int* recv_data;
+    info_2nd = new int[count_nb*6];
+
+    
+    MPI_Request req_s[6];
+    MPI_Request req_r[6];
+
+    MPI_Status  stat_s[6];
+    MPI_Status  stat_r[6];
+
+
+
+    if(getNB(_WEST_) != _NO_NEIGHBOUR_ )
+        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_WEST_), 0, RHEA_3DCOMM, &req_s[_WEST_]);
+
+    if(getNB(_EAST_) != _NO_NEIGHBOUR_ )
+        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_EAST_), 0, RHEA_3DCOMM, &req_s[_EAST_]);
+
+    if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ )
+        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_SOUTH_), 0, RHEA_3DCOMM, &req_s[_SOUTH_]);
+
+    if(getNB(_NORTH_) != _NO_NEIGHBOUR_ )
+        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_NORTH_), 0, RHEA_3DCOMM, &req_s[_NORTH_]);
+
+    if(getNB(_BACK_) != _NO_NEIGHBOUR_ )
+        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_BACK_), 0, RHEA_3DCOMM, &req_s[_BACK_]);
+
+    if(getNB(_FRONT_) != _NO_NEIGHBOUR_ )
+        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_FRONT_), 0, RHEA_3DCOMM, &req_s[_FRONT_]);
+
+
+    if(getNB(_WEST_) != _NO_NEIGHBOUR_ )
+        MPI_Irecv(&info_2nd[off_nb[_WEST_]], 6, MPI_INT, getNB(_WEST_), 0, RHEA_3DCOMM, &req_r[_WEST_]);
+
+    if(getNB(_EAST_) != _NO_NEIGHBOUR_ )
+        MPI_Irecv(&info_2nd[off_nb[_EAST_]], 6, MPI_INT, getNB(_EAST_), 0, RHEA_3DCOMM, &req_r[_EAST_]);
+
+    if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ )
+        MPI_Irecv(&info_2nd[off_nb[_SOUTH_]], 6, MPI_INT, getNB(_SOUTH_), 0, RHEA_3DCOMM, &req_r[_SOUTH_]);
+
+    if(getNB(_NORTH_) != _NO_NEIGHBOUR_ )
+        MPI_Irecv(&info_2nd[off_nb[_NORTH_]], 6, MPI_INT, getNB(_NORTH_), 0, RHEA_3DCOMM, &req_r[_NORTH_]);
+
+    if(getNB(_BACK_) != _NO_NEIGHBOUR_ )
+        MPI_Irecv(&info_2nd[off_nb[_BACK_]], 6, MPI_INT, getNB(_BACK_), 0, RHEA_3DCOMM, &req_r[_BACK_]);
+
+    if(getNB(_FRONT_) != _NO_NEIGHBOUR_ )
+        MPI_Irecv(&info_2nd[off_nb[_FRONT_]], 6, MPI_INT, getNB(_FRONT_), 0, RHEA_3DCOMM, &req_r[_FRONT_]);
+
+
+    if(getNB(_WEST_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_r[_WEST_], &stat_r[_WEST_]);
+    if(getNB(_EAST_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_r[_EAST_], &stat_r[_EAST_]);
+    if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_r[_SOUTH_], &stat_r[_SOUTH_]);
+    if(getNB(_NORTH_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_r[_NORTH_], &stat_r[_NORTH_]);
+    if(getNB(_BACK_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_r[_BACK_], &stat_r[_BACK_]);
+    if(getNB(_FRONT_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_r[_FRONT_], &stat_r[_FRONT_]);
+
+}
+
+
+void comm_scheme::find_extra_neighbours()
+{
+
+// Lineal neighbours 
+
+    //WEST SOUTH 
+    if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_SOUTH_] != _NO_NEIGHBOUR)
+    {
+        neighb[_WEST_S_] =  info_2nd[ off_nb[_WEST_] + _SOUTH_ ]; 
+    }
+
+    //WEST NORTH 
+    if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_NORTH_] != _NO_NEIGHBOUR)
+    {
+        neighb[_WEST_N_] =  info_2nd[ off_nb[_WEST_] + _NORTH_ ]; 
+    }
+
+    //WEST BACK 
+    if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR)
+    {
+        neighb[_WEST_B_] =  info_2nd[ off_nb[_WEST_] + _BACK_ ]; 
+    }
+
+    //WEST FRONT 
+    if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR)
+    {
+        neighb[_WEST_F_] =  info_2nd[ off_nb[_WEST_] + _FRONT_ ]; 
+    }
+
+
+    //EAST SOUTH 
+    if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_SOUTH_] != _NO_NEIGHBOUR)
+    {
+        neighb[_EAST_S_] = info_2nd[ off_nb[_EAST_] + _SOUTH_ ]; 
+    }
+
+    //EAST NORTH 
+    if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_NORTH_] != _NO_NEIGHBOUR)
+    {
+        neighb[_EAST_N_] = info_2nd[ off_nb[_EAST_] + _NORTH_ ]; 
+
+    }
+
+    //EAST BACK 
+    if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR)
+    {
+        neighb[_EAST_B_] = info_2nd[ off_nb[_EAST_] + _BACK_ ]; 
+
+    }
+
+    //EAST FRONT 
+    if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR)
+    {
+        neighb[_EAST_F_] = info_2nd[ off_nb[_EAST_] + _FRONT_ ]; 
+
+    }
+
+
+    //SOUTH BACK
+    if( neighb[_SOUTH_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR)
+    {
+        neighb[_SOUTH_B_] = info_2nd[ off_nb[_SOUTH_] + _BACK_ ];  
+    }
+
+    //SOUTH FRONT
+    if( neighb[_SOUTH_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR)
+    {
+        neighb[_SOUTH_F_] = info_2nd[ off_nb[_SOUTH_] + _FRONT_ ];  
+
+    }
+
+    //NORTH BACK
+    if( neighb[_NORTH_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR)
+    {
+        neighb[_NORTH_B_] = info_2nd[ off_nb[_NORTH_] + _BACK_ ]; 
+    }
+
+    //NORTH FRONT
+    if( neighb[_NORTH_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR)
+    {
+        neighb[_NORTH_F_] =  info_2nd[ off_nb[_NORTH_] + _FRONT_ ]; 
+
+    }
+
+/*
+    //Point Neighbours
+    //WEST SOUTH BACK 
+    if( neighb[_WEST_S_]  != _NO_NEIGHBOUR_ && neighb[_WEST_B_] != _NO_NEIGHBOUR)
+    {
+        
+        if( proc_z_start == 1) //this if already implies that is periodic
+            neighb[_WEST_S_B_] = ; 
+    }
+
+*/
+
+
+}
+
 
 void comm_scheme::printCommScheme(int proc)
 {
