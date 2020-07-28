@@ -3,7 +3,6 @@
 using namespace std;
 
 ////////// FIXED PARAMETERS //////////
-const double rk_order = 3;			// Time-integration Runge-Kutta order
 const double epsilon  = 1.0e-15;		// Small epsilon number
 const double Pi       = 2.0*asin(1.0);		// Pi number
 
