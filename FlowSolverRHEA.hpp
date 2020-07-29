@@ -77,7 +77,7 @@ class FlowSolverRHEA {
 
 	////////// SOLVER METHODS //////////
 
-        /// Set initial conditions: u, v, w, P and T
+        /// Set initial conditions: u, v, w, P and T ... needs to be modified/overwritten according to the problem under consideration
         void setInitialConditions();
 
         /// Initialize thermodynamic state: rho, e, ke, E and sos
@@ -101,14 +101,14 @@ class FlowSolverRHEA {
         /// Calculate time step satisfying CFL constraint
         void calculateTimeStep();
 
-        /// Calculate source terms
+        /// Calculate source terms ... needs to be modified/overwritten according to the problem under consideration
         void calculateSourceTerms();
 
         /// Calculate waves speed
         void calculateWavesSpeed(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, double &S_L, double &S_R);
 
         /// Calculate HLLC flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
-        void calculateHllcFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type, double &F);
+        double calculateHllcFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
 
         /// Calculate inviscid fluxes
         void calculateInviscidFluxes();
@@ -156,7 +156,7 @@ class FlowSolverRHEA {
         double current_time_iter;				/// Current time iteration
         double final_time_iter;					/// Final time iteration
         double output_iter;					/// Output data every given number of iterations
-        int rk_step;						/// Current Runge-Kutta step
+        int rk_step;						/// Current Runge-Kutta step: 1, 2, 3
         const int rk_order = 3;					/// Order of Runge-Kutta method (fixed)
         // The lines below are temporary ... will need to be removed!
         int _lNx_;
