@@ -28,26 +28,26 @@ class FlowSolverRHEA {
     ////////// VARIABLES & PARAMETERS DESCRIPTION //////////
 
     /// Primitive variables:
-    ///   - Density rho
-    ///   - Velocities u, v, w
-    ///   - Specific total energy E = e + ke
-    ///     ... sum of internal energy e and kinetic energy ke = (u*u + v*v + w*w)/2
+    ///   - Density: rho
+    ///   - Velocities: u, v, w
+    ///   - Specific total energy: E = e + ke
+    ///     ... sum of specific internal energy e, and specific kinetic energy ke = (u*u + v*v + w*w)/2
 
     /// Conserved variables:
-    ///   - Mass rho
-    ///   - Momentum rho*u, rho*v, rho*w
-    ///   - Total energy rho*E
+    ///   - Mass: rho
+    ///   - Momentum: rho*u, rho*v, rho*w
+    ///   - Total energy: rho*E
 
     /// Thermodynamic state:
-    ///   - Pressure P
-    ///   - Temperature T
-    ///   - Speed of sound sos
+    ///   - Pressure: P
+    ///   - Temperature: T
+    ///   - Speed of sound: sos
 
     /// Thermophysical properties:
-    ///   - Specific gas constant R_specific
-    ///   - Ratio of heat capacities gamma
-    ///   - Dynamic viscosity mu
-    ///   - Thermal conductivity kappa
+    ///   - Specific gas constant: R_specific
+    ///   - Ratio of heat capacities: gamma
+    ///   - Dynamic viscosity: mu
+    ///   - Thermal conductivity: kappa
  
     public:
 
@@ -83,29 +83,26 @@ class FlowSolverRHEA {
         /// Initialize thermodynamic state: rho, e, ke, E and sos
         void initializeThermodynamics();
 
-        /// Update boundary values: rho, rhou, rhov, rhow and rhoE
-        void updateBoundaries();
-
         /// Calculate conserved variables from primitive variables: variable -> rho*variable
         void primitiveToConservedVariables();
 
-        /// Update previous state of conserved variables: variable -> variable_0
+        /// Calculate primitive variables from conserved variables: rho*variable -> variable
+        void conservedToPrimitiveVariables();
+
+        /// Calculate thermodynamics from primitive variables
+        void calculateThermodynamicsFromPrimitiveVariables();
+
+        /// Update boundary values: rho, rhou, rhov, rhow and rhoE
+        void updateBoundaries();
+
+        /// Update previous state of conserved variables: rho*variable -> rho_0*variable_0
         void updatePreviousStateConservedVariables();
 
         /// Calculate time step satisfying CFL constraint
         void calculateTimeStep();
 
-        /// Output current solver state data
-        void outputCurrentStateData();
-
         /// Calculate source terms
         void calculateSourceTerms();
-
-        /// Calculate thermodynamics from primitive variables
-        void calculateThermodynamicsFromPrimitiveVariables();
-
-        /// Calculate primitive variables from conserved variables: rho*variable -> variable
-        void conservedToPrimitiveVariables();
 
         /// Calculate waves speed
         void calculateWavesSpeed(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, double &S_L, double &S_R);
@@ -119,38 +116,41 @@ class FlowSolverRHEA {
         /// Calculate viscous fluxes
         void calculateViscousFluxes();
 
+        /// Sum viscous and viscous fluxes
+        void sumInviscidViscousFluxes();
+
         /// Advance conserved variables in time
         void timeAdvanceConservedVariables();
 
-        /// Sum viscous and viscous fluxes
-        void sumInviscidViscousFluxes();
+        /// Output current solver state data
+        void outputCurrentStateData();
 
     protected:
 
         ////////// SOLVER PARAMETERS //////////
 	
         /// Fluid properties 
-        double R_specific;					/// Specific gas constant [J/(kg K)]
+        double R_specific;					/// Specific gas constant [J/(kg·K)]
         double gamma;						/// Heat capacity ratio [-]
-        double mu;						/// Dynamic viscosity [Pa s]
-        double kappa;						/// Thermal conductivity [W/(m k)]       
+        double mu;						/// Dynamic viscosity [Pa·s]
+        double kappa;						/// Thermal conductivity [W/(m·k)]       
 
         /// Problem parameters
         double x_0;           	        	 	 	/// Domain origin in x-direction [m]
         double y_0;             	        		/// Domain origin in y-direction [m]
         double z_0;                     			/// Domain origin in z-direction [m]
-        double L_x;   						/// Domain size in x-direction
-        double L_y;      					/// Domain size in y-direction
-        double L_z;						/// Domain size in z-direction
+        double L_x;   						/// Domain size in x-direction [m]
+        double L_y;      					/// Domain size in y-direction [m]
+        double L_z;						/// Domain size in z-direction [m]
         double current_time;   					/// Current time [s]
         double final_time;		      			/// Final time [s]
         string configuration_file;				/// Configuration file (YAML language)	
         string output_data_file;				/// Output data file (HDF5 format)	
 
         /// Computational parameters
-        double num_grid_x;					/// Number of internal grid points in the x-direction
-        double num_grid_y;					/// Number of internal grid points in the y-direction
-        double num_grid_z;					/// Number of internal grid points in the z-direction
+        double num_grid_x;					/// Number of inner grid points in x-direction
+        double num_grid_y;					/// Number of inner grid points in y-direction
+        double num_grid_z;					/// Number of inner grid points in z-direction
         double CFL;						/// CFL coefficient
         double delta_t;		      				/// Time step [s]
         double current_time_iter;				/// Current time iteration
@@ -171,7 +171,7 @@ class FlowSolverRHEA {
         int np_y;						/// Number of processes in y-direction
         int np_z;						/// Number of processes in z-direction
 
-	////////// SOLVER (PARALLELIZED) VARIABLES //////////
+	////////// SOLVER (PARALLEL) VARIABLES //////////
 	
         /// Primitive, conserved and thermodynamic variables
         parvec rho_field;					/// 3-D field of rho
@@ -188,11 +188,11 @@ class FlowSolverRHEA {
         parvec sos_field;					/// 3-D field of sos
 
         /// Time-integration variables
-        parvec rho_0_field;					/// 3-D old field of rho
-        parvec rhou_0_field;					/// 3-D old field of rhou
-        parvec rhov_0_field;					/// 3-D old field of rhov
-        parvec rhow_0_field;					/// 3-D old field of rhow
-        parvec rhoE_0_field;					/// 3-D old field of rhoE
+        parvec rho_0_field;					/// 3-D previous field of rho
+        parvec rhou_0_field;					/// 3-D previous field of rhou
+        parvec rhov_0_field;					/// 3-D previous field of rhov
+        parvec rhow_0_field;					/// 3-D previous field of rhow
+        parvec rhoE_0_field;					/// 3-D previous field of rhoE
 
         /// Time-integration fluxes
         parvec rho_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rho
@@ -224,14 +224,14 @@ class FlowSolverRHEA {
         parvec rhow_vis_flux;					/// 3-D viscous fluxes of rhow
         parvec rhoE_vis_flux;					/// 3-D viscous fluxes of rhoE
 
-        /// Volumetric & external forces
+        /// Source terms
         parvec f_rhou_field;					/// 3-D field of rhou
         parvec f_rhov_field;					/// 3-D field of rhov
         parvec f_rhow_field;					/// 3-D field of rhow
         parvec f_rhoE_field;					/// 3-D field of rhoE
 
 	////////// COMPUTATIONAL DOMAIN & PARALLEL TOPOLOGY //////////
-        domain *dom;						/// Computational domain
+        domain *mesh;						/// Computational mesh
         comm_scheme *topo;					/// Communication scheme (parallel topology)
 
     private:
