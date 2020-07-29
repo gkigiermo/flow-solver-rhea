@@ -3,8 +3,8 @@
 using namespace std;
 
 ////////// FIXED PARAMETERS //////////
-const double epsilon = 1.0e-15;			// Small epsilon number
-const double Pi      = 2.0*asin(1.0);		// Pi number
+const double epsilon = 1.0e-15;			// Small epsilon number (fixed)
+const double Pi      = 2.0*asin(1.0);		// Pi number (fixed)
 
 ////////// FlowSolverRHEA CLASS //////////
 FlowSolverRHEA::FlowSolverRHEA() {};
@@ -54,14 +54,14 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     // The lines above need to be introduced via configuration (input) file !!
 
     /// Initialize (construct) computational domain
-    dom = new domain(L_x, L_y, L_z, x_0, y_0, z_0, RHEA_NX, RHEA_NY, RHEA_NZ);
+    mesh = new domain(L_x, L_y, L_z, x_0, y_0, z_0, RHEA_NX, RHEA_NY, RHEA_NZ);
 
     /// Add boundary conditions to computational domain
-    dom->updateBocos(bocos);
+    mesh->updateBocos(bocos);
 
     /// Initialize (construct) communication scheme
-    topo = new comm_scheme(dom, np_x, np_y, np_z);
-    //if(topo->getRank() == 0) dom->printDomain();
+    topo = new comm_scheme(mesh, np_x, np_y, np_z);
+    //if(topo->getRank() == 0) mesh->printDomain();
     //for(int p = 0; p < np_x*np_y*np_z; p++) topo->printCommSchemeToFile(p);
 
     // The lines below are temporary ... will need to be removed!
@@ -132,7 +132,7 @@ FlowSolverRHEA::~FlowSolverRHEA() {
 
     /// Free boundary conditions, domain and topology
     if(bocos != NULL) free(bocos);	
-    if(dom != NULL) free(dom);	
+    if(mesh != NULL) free(mesh);	
     if(topo != NULL) free(topo);
 
 };
@@ -158,6 +158,114 @@ void FlowSolverRHEA::setInitialConditions() {
     w_field.update();
     P_field.update();
     T_field.update();
+
+};
+
+void FlowSolverRHEA::initializeThermodynamics() {
+
+    /// Ideal-gas model:
+    /// rho = P/(R_specific*T) is density
+    /// e = P/(rho*(gamma - 1)) is specific internal energy
+    /// ke = (u*u + v*v + w*w)/2 is specific kinetic energy
+    /// E = e + ke is total energy
+    /// sos = sqrt(gamma*P/rho) is speed of sound
+
+    /// All (inner & boundary) points: rho, e, ke, E and sos
+    double e, ke;
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
+                rho_field[I1D(i,j,k)] = ( 1.0/( R_specific*T_field[I1D(i,j,k)] ) )*P_field[I1D(i,j,k)];
+                e                     = ( 1.0/( rho_field[I1D(i,j,k)]*( gamma - 1.0 ) ) )*P_field[I1D(i,j,k)];
+                ke                    = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) );
+                E_field[I1D(i,j,k)]   = e + ke;
+                sos_field[I1D(i,j,k)] = sqrt( gamma*( ( 1.0/rho_field[I1D(i,j,k)] )*P_field[I1D(i,j,k)] ) );
+            }
+        }
+    }
+
+    /// Update halo values
+    rho_field.update();
+    E_field.update();
+    sos_field.update();
+
+};
+
+void FlowSolverRHEA::primitiveToConservedVariables() {
+
+    /// All (inner & boundary) points: rhou, rhov, rhow and rhoE
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
+                rhou_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*u_field[I1D(i,j,k)]; 
+                rhov_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*v_field[I1D(i,j,k)]; 
+                rhow_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*w_field[I1D(i,j,k)]; 
+                rhoE_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*E_field[I1D(i,j,k)]; 
+            }
+        }
+    }
+
+    /// Update halo values
+    rhou_field.update();
+    rhov_field.update();
+    rhow_field.update();
+    rhoE_field.update();
+
+};
+
+void FlowSolverRHEA::conservedToPrimitiveVariables() {
+
+    /// All (inner & boundary) points: u, v, w and E
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
+                u_field[I1D(i,j,k)] = rhou_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
+                v_field[I1D(i,j,k)] = rhov_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
+                w_field[I1D(i,j,k)] = rhow_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
+                E_field[I1D(i,j,k)] = rhoE_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
+            }
+        }
+    }
+
+    /// Update halo values
+    u_field.update();
+    v_field.update();
+    w_field.update();
+    E_field.update();
+
+};
+
+void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
+
+    /// Ideal-gas model:
+    /// c_v = R_specific/(gamma - 1) is specific heat capcity at constant volume
+    /// ke = (u*u + v*v + w*w)/2 is specific kinetic energy
+    /// e = E - ke is specific internal energy
+    /// P = e*rho*(gamma - 1) is pressure
+    /// T = e/c_v is temperature
+    /// sos = sqrt(gamma*P/rho) is speed of sound
+
+    /// Specific heat capacity at constant volume
+    const double c_v = R_specific/( gamma - 1.0 );
+
+    /// All (inner & boundary) points: ke, e, P, T and sos
+    double ke, e;
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
+                ke                    = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
+                e                     = E_field[I1D(i,j,k)] - ke;
+                P_field[I1D(i,j,k)]   = e*rho_field[I1D(i,j,k)]*( gamma - 1.0 ); 
+                T_field[I1D(i,j,k)]   = e/c_v; 
+                sos_field[I1D(i,j,k)] = sqrt( gamma*P_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)] );
+            }
+        }
+    }
+
+    /// Update halo values
+    P_field.update();
+    T_field.update();
+    sos_field.update();
 
 };
 
@@ -251,58 +359,6 @@ void FlowSolverRHEA::updateBoundaries() {
 
 };
 
-void FlowSolverRHEA::initializeThermodynamics() {
-
-    /// Ideal-gas model:
-    /// rho = P/(R_specific*T) is density
-    /// e = P/(rho*(gamma - 1)) is specific internal energy
-    /// ke = (u*u + v*v + w*w)/2 is specific kinetic energy
-    /// E = e + ke is total energy
-    /// sos = sqrt(gamma*P/rho) is speed of sound
-
-    /// All (inner & boundary) points: rho, e, ke, E and sos
-    double e, ke;
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
-                rho_field[I1D(i,j,k)] = ( 1.0/( R_specific*T_field[I1D(i,j,k)] ) )*P_field[I1D(i,j,k)];
-                e                     = ( 1.0/( rho_field[I1D(i,j,k)]*( gamma - 1.0 ) ) )*P_field[I1D(i,j,k)];
-                ke                    = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) );
-                E_field[I1D(i,j,k)]   = e + ke;
-                sos_field[I1D(i,j,k)] = sqrt( gamma*( ( 1.0/rho_field[I1D(i,j,k)] )*P_field[I1D(i,j,k)] ) );
-            }
-        }
-    }
-
-    /// Update halo values
-    rho_field.update();
-    E_field.update();
-    sos_field.update();
-
-};
-
-void FlowSolverRHEA::primitiveToConservedVariables() {
-
-    /// All (inner & boundary) points: rhou, rhov, rhow and rhoE
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
-                rhou_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*u_field[I1D(i,j,k)]; 
-                rhov_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*v_field[I1D(i,j,k)]; 
-                rhow_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*w_field[I1D(i,j,k)]; 
-                rhoE_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*E_field[I1D(i,j,k)]; 
-            }
-        }
-    }
-
-    /// Update halo values
-    rhou_field.update();
-    rhov_field.update();
-    rhow_field.update();
-    rhoE_field.update();
-
-};
-
 void FlowSolverRHEA::updatePreviousStateConservedVariables() {
 
     /// All (inner & boundary) points: rho_0, rhou_0 rhov_0, rhow_0 and rhoE_0
@@ -357,9 +413,9 @@ void FlowSolverRHEA::calculateTimeStep() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_INIY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_INIZ_]; k++) {
                 /// Geometric stuff
-                delta_x = 0.5*( dom->x[i+1] - dom->x[i-1] ); 
-                delta_y = 0.5*( dom->y[j+1] - dom->y[j-1] ); 
-                delta_z = 0.5*( dom->z[k+1] - dom->z[k-1] );                
+                delta_x = 0.5*( mesh->x[i+1] - mesh->x[i-1] ); 
+                delta_y = 0.5*( mesh->y[j+1] - mesh->y[j-1] ); 
+                delta_z = 0.5*( mesh->z[k+1] - mesh->z[k-1] );                
                 /// x-direction inviscid & viscous terms
                 S_x           = abs( u_field[I1D(i,j,k)] ) + sos_field[I1D(i,j,k)];
                 local_delta_t = min( local_delta_t, CFL*delta_x/S_x );
@@ -385,44 +441,6 @@ void FlowSolverRHEA::calculateTimeStep() {
 
 };
 
-void FlowSolverRHEA::outputCurrentStateData() {
-
-    // This method needs to be implemented using HDF5!
-   
-    /// Obtain MPI world rank
-    int world_rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
- 
-    /// Open output data file
-    ofstream output_file(output_data_file);
-
-    /// Header string
-    if(world_rank == 0) output_file << "#x [m],y [m],z [m],rho [kg/m3],u [m/s],v [m/s],w [m/s],E [J/kg],P [Pa],T [K],sos [m/s]" << endl;
-
-    /// All (inner & boundary) points: x, y, z, rho, u, v, w, E, P, T, sos
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
-                output_file << dom->x[i] << ","; 
-                output_file << dom->y[j] << ","; 
-                output_file << dom->z[k] << ","; 
-                output_file << rho_field[I1D(i,j,k)] << ","; 
-                output_file << u_field[I1D(i,j,k)] << ","; 
-                output_file << v_field[I1D(i,j,k)] << ","; 
-                output_file << w_field[I1D(i,j,k)] << ","; 
-                output_file << E_field[I1D(i,j,k)] << ","; 
-                output_file << P_field[I1D(i,j,k)] << ","; 
-                output_file << T_field[I1D(i,j,k)] << ","; 
-                output_file << sos_field[I1D(i,j,k)] << endl; 
-            }
-        }
-    }
-
-    /// Close output data file
-    output_file.close();
-
-};
-
 void FlowSolverRHEA::calculateSourceTerms() {
 
     /// Inner points: f_rhou, f_rhov, f_rhow and f_rhoE
@@ -442,62 +460,6 @@ void FlowSolverRHEA::calculateSourceTerms() {
     f_rhov_field.update();
     f_rhow_field.update();
     f_rhoE_field.update();
-
-};
-
-void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
-
-    /// Ideal-gas model:
-    /// c_v = R_specific/(gamma - 1) is specific heat capcity at constant volume
-    /// ke = (u*u + v*v + w*w)/2 is specific kinetic energy
-    /// e = E - ke is specific internal energy
-    /// P = e*rho*(gamma - 1) is pressure
-    /// T = e/c_v is temperature
-    /// sos = sqrt(gamma*P/rho) is speed of sound
-
-    /// Specific heat capacity at constant volume
-    const double c_v = R_specific/( gamma - 1.0 );
-
-    /// All (inner & boundary) points: ke, e, P, T and sos
-    double ke, e;
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
-                ke                    = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
-                e                     = E_field[I1D(i,j,k)] - ke;
-                P_field[I1D(i,j,k)]   = e*rho_field[I1D(i,j,k)]*( gamma - 1.0 ); 
-                T_field[I1D(i,j,k)]   = e/c_v; 
-                sos_field[I1D(i,j,k)] = sqrt( gamma*P_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)] );
-            }
-        }
-    }
-
-    /// Update halo values
-    P_field.update();
-    T_field.update();
-    sos_field.update();
-
-};
-
-void FlowSolverRHEA::conservedToPrimitiveVariables() {
-
-    /// All (inner & boundary) points: u, v, w and E
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
-                u_field[I1D(i,j,k)] = rhou_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
-                v_field[I1D(i,j,k)] = rhov_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
-                w_field[I1D(i,j,k)] = rhow_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
-                E_field[I1D(i,j,k)] = rhoE_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
-            }
-        }
-    }
-
-    /// Update halo values
-    u_field.update();
-    v_field.update();
-    w_field.update();
-    E_field.update();
 
 };
 
@@ -585,9 +547,9 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_INIY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_INIZ_]; k++) {
                 /// Geometric stuff
-                delta_x = 0.5*( dom->x[i+1] - dom->x[i-1] ); 
-                delta_y = 0.5*( dom->y[j+1] - dom->y[j-1] ); 
-                delta_z = 0.5*( dom->z[k+1] - dom->z[k-1] );                
+                delta_x = 0.5*( mesh->x[i+1] - mesh->x[i-1] ); 
+                delta_y = 0.5*( mesh->y[j+1] - mesh->y[j-1] ); 
+                delta_z = 0.5*( mesh->z[k+1] - mesh->z[k-1] );                
                 /// x-direction i+1/2
                 index_L = i;                           index_R = i + 1;
                 rho_L   = rho_field[I1D(index_L,j,k)]; rho_R   = rho_field[I1D(index_R,j,k)]; 
@@ -898,72 +860,72 @@ void FlowSolverRHEA::calculateViscousFluxes() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_INIY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_INIZ_]; k++) {
                 /// Geometric stuff
-                delta_x = 0.5*( dom->x[i+1] - dom->x[i-1] ); 
-                delta_y = 0.5*( dom->y[j+1] - dom->y[j-1] ); 
-                delta_z = 0.5*( dom->z[k+1] - dom->z[k-1] );
+                delta_x = 0.5*( mesh->x[i+1] - mesh->x[i-1] ); 
+                delta_y = 0.5*( mesh->y[j+1] - mesh->y[j-1] ); 
+                delta_z = 0.5*( mesh->z[k+1] - mesh->z[k-1] );
                 /// Divergence of tau tensor terms
-                div_tau_xx  = ( 2.0/delta_x )*( 2.0*mu*( ( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( dom->x[i+1] - dom->x[i] ) )
-                                                       - ( ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( dom->x[i] - dom->x[i-1] ) ) ) );
-                div_tau_xx -= ( 2.0/delta_x )*( ( 2.0/3.0 )*mu*( ( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( dom->x[i+1] - dom->x[i] ) )
-                                                               - ( ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( dom->x[i] - dom->x[i-1] ) ) ) );
+                div_tau_xx  = ( 2.0/delta_x )*( 2.0*mu*( ( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] ) )
+                                                       - ( ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) ) ) );
+                div_tau_xx -= ( 2.0/delta_x )*( ( 2.0/3.0 )*mu*( ( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] ) )
+                                                               - ( ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) ) ) );
                 div_tau_xx -= ( 1.0/delta_x )*( ( 2.0/3.0 )*mu*( ( ( v_field[I1D(i+1,j+1,k)] - v_field[I1D(i+1,j-1,k)] )/delta_y )
                                                                - ( ( v_field[I1D(i-1,j+1,k)] - v_field[I1D(i-1,j-1,k)] )/delta_y ) ) );
                 div_tau_xx -= ( 1.0/delta_x )*( ( 2.0/3.0 )*mu*( ( ( w_field[I1D(i+1,j,k+1)] - w_field[I1D(i+1,j,k-1)] )/delta_z )
                                                                - ( ( w_field[I1D(i-1,j,k+1)] - w_field[I1D(i-1,j,k-1)] )/delta_z ) ) );
-                div_tau_xy  = ( 2.0/delta_x )*( mu*( ( ( v_field[I1D(i+1,j,k)] - v_field[I1D(i,j,k)] )/( dom->x[i+1] - dom->x[i] ) ) 
-                                                   - ( ( v_field[I1D(i,j,k)] - v_field[I1D(i-1,j,k)] )/( dom->x[i] - dom->x[i-1] ) ) ) );
+                div_tau_xy  = ( 2.0/delta_x )*( mu*( ( ( v_field[I1D(i+1,j,k)] - v_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] ) ) 
+                                                   - ( ( v_field[I1D(i,j,k)] - v_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) ) ) );
                 div_tau_xy += ( 1.0/delta_x )*( mu*( ( ( u_field[I1D(i+1,j+1,k)] - u_field[I1D(i+1,j-1,k)] )/delta_y )
                                                    - ( ( u_field[I1D(i-1,j+1,k)] - u_field[I1D(i-1,j-1,k)] )/delta_y ) ) );
-                div_tau_xz  = ( 2.0/delta_x )*( mu*( ( ( w_field[I1D(i+1,j,k)] - w_field[I1D(i,j,k)] )/( dom->x[i+1] - dom->x[i] ) )
-                                                   - ( ( w_field[I1D(i,j,k)] - w_field[I1D(i-1,j,k)] )/( dom->x[i] - dom->x[i-1] ) ) ) );
+                div_tau_xz  = ( 2.0/delta_x )*( mu*( ( ( w_field[I1D(i+1,j,k)] - w_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] ) )
+                                                   - ( ( w_field[I1D(i,j,k)] - w_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) ) ) );
                 div_tau_xz += ( 1.0/delta_x )*( mu*( ( ( u_field[I1D(i+1,j,k+1)] - u_field[I1D(i+1,j,k-1)] )/delta_z )
                                                    - ( ( u_field[I1D(i-1,j,k+1)] - u_field[I1D(i-1,j,k-1)] )/delta_z ) ) );
-                div_tau_yx  = ( 2.0/delta_y )*( mu*( ( ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j,k)] )/( dom->y[j+1] - dom->y[j] ) )
-                                                   - ( ( u_field[I1D(i,j,k)] - u_field[I1D(i,j-1,k)] )/( dom->y[j] - dom->y[j-1] ) ) ) );
+                div_tau_yx  = ( 2.0/delta_y )*( mu*( ( ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] ) )
+                                                   - ( ( u_field[I1D(i,j,k)] - u_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) ) ) );
                 div_tau_yx += ( 1.0/delta_y )*( mu*( ( ( v_field[I1D(i+1,j+1,k)] - v_field[I1D(i-1,j+1,k)] )/delta_x )
                                                    - ( ( v_field[I1D(i+1,j-1,k)] - v_field[I1D(i-1,j-1,k)] )/delta_x ) ) );
-                div_tau_yy  = ( 2.0/delta_y )*( 2.0*mu*( ( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j,k)] )/( dom->y[j+1] - dom->y[j] ) )
-                                                       - ( ( v_field[I1D(i,j,k)] - v_field[I1D(i,j-1,k)] )/( dom->y[j] - dom->y[j-1] ) ) ) );
+                div_tau_yy  = ( 2.0/delta_y )*( 2.0*mu*( ( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] ) )
+                                                       - ( ( v_field[I1D(i,j,k)] - v_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) ) ) );
                 div_tau_yy -= ( 1.0/delta_y )*( ( 2.0/3.0 )*mu*( ( ( u_field[I1D(i+1,j+1,k)] - u_field[I1D(i-1,j+1,k)] )/delta_x )
                                                                - ( ( u_field[I1D(i+1,j-1,k)] - u_field[I1D(i-1,j-1,k)] )/delta_x ) ) );
-                div_tau_yy -= ( 2.0/delta_y )*( ( 2.0/3.0 )*mu*( ( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j,k)] )/( dom->y[j+1] - dom->y[j] ) )
-                                                               - ( ( v_field[I1D(i,j,k)] - v_field[I1D(i,j-1,k)] )/( dom->y[j] - dom->y[j-1] ) ) ) );
+                div_tau_yy -= ( 2.0/delta_y )*( ( 2.0/3.0 )*mu*( ( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] ) )
+                                                               - ( ( v_field[I1D(i,j,k)] - v_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) ) ) );
                 div_tau_yy -= ( 1.0/delta_y )*( ( 2.0/3.0 )*mu*( ( ( w_field[I1D(i,j+1,k+1)] - w_field[I1D(i,j+1,k-1)] )/delta_z )
                                                                - ( ( w_field[I1D(i,j-1,k+1)] - w_field[I1D(i,j-1,k-1)] )/delta_z ) ) );
-                div_tau_yz  = ( 2.0/delta_y )*( mu*( ( ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j,k)] )/( dom->y[j+1] - dom->y[j] ) )
-                                                   - ( ( w_field[I1D(i,j,k)] - w_field[I1D(i,j-1,k)] )/( dom->y[j] - dom->y[j-1] ) ) ) );
+                div_tau_yz  = ( 2.0/delta_y )*( mu*( ( ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] ) )
+                                                   - ( ( w_field[I1D(i,j,k)] - w_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) ) ) );
                 div_tau_yz += ( 1.0/delta_y )*( mu*( ( ( v_field[I1D(i,j+1,k+1)] - v_field[I1D(i,j+1,k-1)] )/delta_z )
                                                    - ( ( v_field[I1D(i,j-1,k+1)] - v_field[I1D(i,j-1,k-1)] )/delta_z ) ) );
-                div_tau_zx  = ( 2.0/delta_z )*( mu*( ( ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k)] )/( dom->z[k+1] - dom->z[k] ) )
-                                                   - ( ( u_field[I1D(i,j,k)] - u_field[I1D(i,j,k-1)] )/( dom->z[k] - dom->z[k-1] ) ) ) );
+                div_tau_zx  = ( 2.0/delta_z )*( mu*( ( ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] ) )
+                                                   - ( ( u_field[I1D(i,j,k)] - u_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) ) );
                 div_tau_zx += ( 1.0/delta_z )*( mu*( ( ( w_field[I1D(i+1,j,k+1)] - w_field[I1D(i-1,j,k+1)] )/delta_x )
                                                    - ( ( w_field[I1D(i+1,j,k-1)] - w_field[I1D(i-1,j,k-1)] )/delta_x ) ) );
-                div_tau_zy  = ( 2.0/delta_z )*( mu*( ( ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k)] )/( dom->z[k+1] - dom->z[k] ) )
-                                                   - ( ( v_field[I1D(i,j,k)] - v_field[I1D(i,j,k-1)] )/( dom->z[k] - dom->z[k-1] ) ) ) );
+                div_tau_zy  = ( 2.0/delta_z )*( mu*( ( ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] ) )
+                                                   - ( ( v_field[I1D(i,j,k)] - v_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) ) );
                 div_tau_zy += ( 1.0/delta_z )*( mu*( ( ( w_field[I1D(i,j+1,k+1)] - w_field[I1D(i,j-1,k+1)] )/delta_y )
                                                    - ( ( w_field[I1D(i,j+1,k-1)] - w_field[I1D(i,j-1,k-1)] )/delta_y ) ) );
-                div_tau_zz  = ( 2.0/delta_z )*( 2.0*mu*( ( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k)] )/( dom->z[k+1] - dom->z[k] ) )
-                                                       - ( ( w_field[I1D(i,j,k)] - w_field[I1D(i,j,k-1)] )/( dom->z[k] - dom->z[k-1] ) ) ) );
+                div_tau_zz  = ( 2.0/delta_z )*( 2.0*mu*( ( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] ) )
+                                                       - ( ( w_field[I1D(i,j,k)] - w_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) ) );
                 div_tau_zz -= ( 1.0/delta_z )*( ( 2.0/3.0 )*mu*( ( ( u_field[I1D(i+1,j,k+1)] - u_field[I1D(i-1,j,k+1)] )/delta_x )
                                                                - ( ( u_field[I1D(i+1,j,k-1)] - u_field[I1D(i-1,j,k-1)] )/delta_x ) ) );
                 div_tau_zz -= ( 1.0/delta_z )*( ( 2.0/3.0 )*mu*( ( ( v_field[I1D(i,j+1,k+1)] - v_field[I1D(i,j-1,k+1)] )/delta_y )
                                                                - ( ( v_field[I1D(i,j+1,k-1)] - v_field[I1D(i,j-1,k-1)] )/delta_y ) ) );
-                div_tau_zz -= ( 2.0/delta_z )*( ( 2.0/3.0 )*mu*( ( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k)] )/( dom->z[k+1] - dom->z[k] ) )
-                                                               - ( ( w_field[I1D(i,j,k)] - w_field[I1D(i,j,k-1)] )/( dom->z[k] - dom->z[k-1] ) ) ) );
+                div_tau_zz -= ( 2.0/delta_z )*( ( 2.0/3.0 )*mu*( ( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] ) )
+                                                               - ( ( w_field[I1D(i,j,k)] - w_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) ) );
                 /// Fourier term
-                div_q = ( -1.0 )*( ( 2.0/delta_x )*( kappa*( ( ( T_field[I1D(i+1,j,k)] - T_field[I1D(i,j,k)] )/( dom->x[i+1] - dom->x[i] ) )
-                                                           - ( ( T_field[I1D(i,j,k)] - T_field[I1D(i-1,j,k)] )/( dom->x[i] - dom->x[i-1] ) ) ) )
-                                 + ( 2.0/delta_y )*( kappa*( ( ( T_field[I1D(i,j+1,k)] - T_field[I1D(i,j,k)] )/( dom->y[j+1] - dom->y[j] ) )
-                                                           - ( ( T_field[I1D(i,j,k)] - T_field[I1D(i,j-1,k)] )/( dom->y[j] - dom->y[j-1] ) ) ) )
-                                 + ( 2.0/delta_z )*( kappa*( ( ( T_field[I1D(i,j,k+1)] - T_field[I1D(i,j,k)] )/( dom->z[k+1] - dom->z[k] ) )
-                                                           - ( ( T_field[I1D(i,j,k)] - T_field[I1D(i,j,k-1)] )/( dom->z[k] - dom->z[k-1] ) ) ) ) );
+                div_q = ( -1.0 )*( ( 2.0/delta_x )*( kappa*( ( ( T_field[I1D(i+1,j,k)] - T_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] ) )
+                                                           - ( ( T_field[I1D(i,j,k)] - T_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) ) ) )
+                                 + ( 2.0/delta_y )*( kappa*( ( ( T_field[I1D(i,j+1,k)] - T_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] ) )
+                                                           - ( ( T_field[I1D(i,j,k)] - T_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) ) ) )
+                                 + ( 2.0/delta_z )*( kappa*( ( ( T_field[I1D(i,j,k+1)] - T_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] ) )
+                                                           - ( ( T_field[I1D(i,j,k)] - T_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) ) ) );
                 /// Divergence of tau*velocity terms
                 vel_p = 0.5*( u_field[I1D(i+1,j,k)] + u_field[I1D(i,j,k)] ); vel_m = 0.5*( u_field[I1D(i,j,k)] + u_field[I1D(i-1,j,k)] );
-                div_tauuvw_x  = ( 2.0/delta_x )*( 2.0*mu*( vel_p*( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( dom->x[i+1] - dom->x[i] ) )
-                                                         - vel_m*( ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( dom->x[i] - dom->x[i-1] ) ) ) );
+                div_tauuvw_x  = ( 2.0/delta_x )*( 2.0*mu*( vel_p*( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] ) )
+                                                         - vel_m*( ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) ) ) );
                 vel_p = 0.5*( u_field[I1D(i+1,j,k)] + u_field[I1D(i,j,k)] ); vel_m = 0.5*( u_field[I1D(i,j,k)] + u_field[I1D(i-1,j,k)] );
-                div_tauuvw_x -= ( 2.0/delta_x )*( ( 2.0/3.0 )*mu*( vel_p*( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( dom->x[i+1] - dom->x[i] ) )
-                                                                 - vel_m*( ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( dom->x[i] - dom->x[i-1] ) ) ) );
+                div_tauuvw_x -= ( 2.0/delta_x )*( ( 2.0/3.0 )*mu*( vel_p*( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] ) )
+                                                                 - vel_m*( ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) ) ) );
                 vel_p = 0.5*( u_field[I1D(i+1,j,k)] + u_field[I1D(i+1,j,k)] ); vel_m = 0.5*( u_field[I1D(i-1,j,k)] + u_field[I1D(i-1,j,k)] );
                 div_tauuvw_x -= ( 1.0/delta_x )*( ( 2.0/3.0 )*mu*( vel_p*( ( v_field[I1D(i+1,j+1,k)] - v_field[I1D(i+1,j-1,k)] )/delta_y )
                                                                  - vel_m*( ( v_field[I1D(i-1,j+1,k)] - v_field[I1D(i-1,j-1,k)] )/delta_y ) ) );
@@ -971,56 +933,56 @@ void FlowSolverRHEA::calculateViscousFluxes() {
                 div_tauuvw_x -= ( 1.0/delta_x )*( ( 2.0/3.0 )*mu*( vel_p*( ( w_field[I1D(i+1,j,k+1)] - w_field[I1D(i+1,j,k-1)] )/delta_z )
                                                                  - vel_m*( ( w_field[I1D(i-1,j,k+1)] - w_field[I1D(i-1,j,k-1)] )/delta_z ) ) );
                 vel_p = 0.5*( v_field[I1D(i+1,j,k)] + v_field[I1D(i,j,k)] ); vel_m = 0.5*( v_field[I1D(i,j,k)] + v_field[I1D(i-1,j,k)] );
-                div_tauuvw_x += ( 2.0/delta_x )*( mu*( vel_p*( ( v_field[I1D(i+1,j,k)] - v_field[I1D(i,j,k)] )/( dom->x[i+1] - dom->x[i] ) )
-                                                     - vel_m*( ( v_field[I1D(i,j,k)] - v_field[I1D(i-1,j,k)] )/( dom->x[i] - dom->x[i-1] ) ) ) );
+                div_tauuvw_x += ( 2.0/delta_x )*( mu*( vel_p*( ( v_field[I1D(i+1,j,k)] - v_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] ) )
+                                                     - vel_m*( ( v_field[I1D(i,j,k)] - v_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) ) ) );
                 vel_p = 0.5*( v_field[I1D(i+1,j,k)] + v_field[I1D(i+1,j,k)] ); vel_m = 0.5*( v_field[I1D(i-1,j,k)] + v_field[I1D(i-1,j,k)] );
                 div_tauuvw_x += ( 1.0/delta_x )*( mu*( vel_p*( ( u_field[I1D(i+1,j+1,k)] - u_field[I1D(i+1,j-1,k)] )/delta_y )
                                                      - vel_m*( ( u_field[I1D(i-1,j+1,k)] - u_field[I1D(i-1,j-1,k)] )/delta_y ) ) );
                 vel_p = 0.5*( w_field[I1D(i+1,j,k)] + w_field[I1D(i,j,k)] ); vel_m = 0.5*( w_field[I1D(i,j,k)] + w_field[I1D(i-1,j,k)] );
-                div_tauuvw_x += ( 2.0/delta_x )*( mu*( vel_p*( ( w_field[I1D(i+1,j,k)] - w_field[I1D(i,j,k)] )/( dom->x[i+1] - dom->x[i] ) )
-                                                     - vel_m*( ( w_field[I1D(i,j,k)] - w_field[I1D(i-1,j,k)] )/( dom->x[i] - dom->x[i-1] ) ) ) );
+                div_tauuvw_x += ( 2.0/delta_x )*( mu*( vel_p*( ( w_field[I1D(i+1,j,k)] - w_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] ) )
+                                                     - vel_m*( ( w_field[I1D(i,j,k)] - w_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) ) ) );
                 vel_p = 0.5*( w_field[I1D(i+1,j,k)] + w_field[I1D(i+1,j,k)] ); vel_m = 0.5*( w_field[I1D(i-1,j,k)] + w_field[I1D(i-1,j,k)] );
                 div_tauuvw_x += ( 1.0/delta_x )*( mu*( vel_p*( ( u_field[I1D(i+1,j,k+1)] - u_field[I1D(i+1,j,k-1)] )/delta_z )
                                                      - vel_m*( ( u_field[I1D(i-1,j,k+1)] - u_field[I1D(i-1,j,k-1)] )/delta_z ) ) );
                 vel_p = 0.5*( u_field[I1D(i,j+1,k)] + u_field[I1D(i,j,k)] ); vel_m = 0.5*( u_field[I1D(i,j,k)] + u_field[I1D(i,j-1,k)] );
-                div_tauuvw_y  = ( 2.0/delta_y )*( mu*( vel_p*( ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j,k)] )/( dom->y[j+1] - dom->y[j] ) )
-                                                     - vel_m*( ( u_field[I1D(i,j,k)] - u_field[I1D(i,j-1,k)] )/( dom->y[j] - dom->y[j-1] ) ) ) );
+                div_tauuvw_y  = ( 2.0/delta_y )*( mu*( vel_p*( ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] ) )
+                                                     - vel_m*( ( u_field[I1D(i,j,k)] - u_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) ) ) );
                 vel_p = 0.5*( u_field[I1D(i,j+1,k)] + u_field[I1D(i,j+1,k)] ); vel_m = 0.5*( u_field[I1D(i,j-1,k)] + u_field[I1D(i,j-1,k)] );
                 div_tauuvw_y += ( 1.0/delta_y )*( mu*( vel_p*( ( v_field[I1D(i+1,j+1,k)] - v_field[I1D(i-1,j+1,k)] )/delta_x )
                                                      - vel_m*( ( v_field[I1D(i+1,j-1,k)] - v_field[I1D(i-1,j-1,k)] )/delta_x ) ) );
                 vel_p = 0.5*( v_field[I1D(i,j+1,k)] + v_field[I1D(i,j,k)] ); vel_m = 0.5*( v_field[I1D(i,j,k)] + v_field[I1D(i,j-1,k)] );
-                div_tauuvw_y += ( 2.0/delta_y )*( 2.0*mu*( vel_p*( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j,k)] )/( dom->y[j+1] - dom->y[j] ) )
-                                                         - vel_m*( ( v_field[I1D(i,j,k)] - v_field[I1D(i,j-1,k)] )/( dom->y[j] - dom->y[j-1] ) ) ) );
+                div_tauuvw_y += ( 2.0/delta_y )*( 2.0*mu*( vel_p*( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] ) )
+                                                         - vel_m*( ( v_field[I1D(i,j,k)] - v_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) ) ) );
                 vel_p = 0.5*( v_field[I1D(i,j+1,k)] + v_field[I1D(i,j+1,k)] ); vel_m = 0.5*( v_field[I1D(i,j-1,k)] + v_field[I1D(i,j-1,k)] );
                 div_tauuvw_y -= ( 1.0/delta_y )*( ( 2.0/3.0 )*mu*( vel_p*( ( u_field[I1D(i+1,j+1,k)] - u_field[I1D(i-1,j+1,k)] )/delta_x )
                                                                  - vel_m*( ( u_field[I1D(i+1,j-1,k)] - u_field[I1D(i-1,j-1,k)] )/delta_x ) ) );
                 vel_p = 0.5*( v_field[I1D(i,j+1,k)] + v_field[I1D(i,j,k)] ); vel_m = 0.5*( v_field[I1D(i,j,k)] + v_field[I1D(i,j-1,k)] );
-                div_tauuvw_y -= ( 2.0/delta_y )*( ( 2.0/3.0 )*mu*( vel_p*( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j,k)] )/( dom->y[j+1] - dom->y[j] ) )
-                                                                 - vel_m*( ( v_field[I1D(i,j,k)] - v_field[I1D(i,j-1,k)] )/( dom->y[j] - dom->y[j-1] ) ) ) );
+                div_tauuvw_y -= ( 2.0/delta_y )*( ( 2.0/3.0 )*mu*( vel_p*( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] ) )
+                                                                 - vel_m*( ( v_field[I1D(i,j,k)] - v_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) ) ) );
                 vel_p = 0.5*( v_field[I1D(i,j+1,k)] + v_field[I1D(i,j+1,k)] ); vel_m = 0.5*( v_field[I1D(i,j-1,k)] + v_field[I1D(i,j-1,k)] );
                 div_tauuvw_y -= ( 1.0/delta_y )*( ( 2.0/3.0 )*mu*( vel_p*( ( w_field[I1D(i,j+1,k+1)] - w_field[I1D(i,j+1,k-1)] )/delta_z )
                                                                  - vel_m*( ( w_field[I1D(i,j-1,k+1)] - w_field[I1D(i,j-1,k-1)] )/delta_z ) ) );
                 vel_p = 0.5*( w_field[I1D(i,j+1,k)] + w_field[I1D(i,j,k)] ); vel_m = 0.5*( w_field[I1D(i,j,k)] + w_field[I1D(i,j-1,k)] );
-                div_tauuvw_y += ( 2.0/delta_y )*( mu*( vel_p*( ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j,k)] )/( dom->y[j+1] - dom->y[j] ) )
-                                                     - vel_m*( ( w_field[I1D(i,j,k)] - w_field[I1D(i,j-1,k)] )/( dom->y[j] - dom->y[j-1] ) ) ) );
+                div_tauuvw_y += ( 2.0/delta_y )*( mu*( vel_p*( ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] ) )
+                                                     - vel_m*( ( w_field[I1D(i,j,k)] - w_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) ) ) );
                 vel_p = 0.5*( w_field[I1D(i,j+1,k)] + w_field[I1D(i,j+1,k)] ); vel_m = 0.5*( w_field[I1D(i,j-1,k)] + w_field[I1D(i,j-1,k)] );
                 div_tauuvw_y += ( 1.0/delta_y )*( mu*( vel_p*( ( v_field[I1D(i,j+1,k+1)] - v_field[I1D(i,j+1,k-1)] )/delta_z )
                                                      - vel_m*( ( v_field[I1D(i,j-1,k+1)] - v_field[I1D(i,j-1,k-1)] )/delta_z ) ) );
                 vel_p = 0.5*( u_field[I1D(i,j,k+1)] + u_field[I1D(i,j,k)] ); vel_m = 0.5*( u_field[I1D(i,j,k)] + u_field[I1D(i,j,k-1)] );
-                div_tauuvw_z  = ( 2.0/delta_z )*( mu*( vel_p*( ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k)] )/( dom->z[k+1] - dom->z[k] ) )
-                                                     - vel_m*( ( u_field[I1D(i,j,k)] - u_field[I1D(i,j,k-1)] )/( dom->z[k] - dom->z[k-1] ) ) ) );
+                div_tauuvw_z  = ( 2.0/delta_z )*( mu*( vel_p*( ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] ) )
+                                                     - vel_m*( ( u_field[I1D(i,j,k)] - u_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) ) );
                 vel_p = 0.5*( u_field[I1D(i,j,k+1)] + u_field[I1D(i,j,k+1)] ); vel_m = 0.5*( u_field[I1D(i,j,k-1)] + u_field[I1D(i,j,k-1)] );
                 div_tauuvw_z += ( 1.0/delta_z )*( mu*( vel_p*( ( w_field[I1D(i+1,j,k+1)] - w_field[I1D(i-1,j,k+1)] )/delta_x )
                                                      - vel_m*( ( w_field[I1D(i+1,j,k-1)] - w_field[I1D(i-1,j,k-1)] )/delta_x ) ) );
                 vel_p = 0.5*( v_field[I1D(i,j,k+1)] + v_field[I1D(i,j,k)] ); vel_m = 0.5*( v_field[I1D(i,j,k)] + v_field[I1D(i,j,k-1)] );
-                div_tauuvw_z += ( 2.0/delta_z )*( mu*( vel_p*( ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k)] )/( dom->z[k+1] - dom->z[k] ) )
-                                                     - vel_m*( ( v_field[I1D(i,j,k)] - v_field[I1D(i,j,k-1)] )/( dom->z[k] - dom->z[k-1] ) ) ) );
+                div_tauuvw_z += ( 2.0/delta_z )*( mu*( vel_p*( ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] ) )
+                                                     - vel_m*( ( v_field[I1D(i,j,k)] - v_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) ) );
                 vel_p = 0.5*( v_field[I1D(i,j,k+1)] + v_field[I1D(i,j,k+1)] ); vel_m = 0.5*( v_field[I1D(i,j,k-1)] + v_field[I1D(i,j,k-1)] );
                 div_tauuvw_z += ( 1.0/delta_z )*( mu*( vel_p*( ( w_field[I1D(i,j+1,k+1)] - w_field[I1D(i,j-1,k+1)] )/delta_y )
                                                      - vel_m*( ( w_field[I1D(i,j+1,k-1)] - w_field[I1D(i,j-1,k-1)] )/delta_y ) ) );
                 vel_p = 0.5*( w_field[I1D(i,j,k+1)] + w_field[I1D(i,j,k)] ); vel_m = 0.5*( w_field[I1D(i,j,k)] + w_field[I1D(i,j,k-1)] );
-                div_tauuvw_z += ( 2.0/delta_z )*( 2.0*mu*( vel_p*( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k)] )/( dom->z[k+1] - dom->z[k] ) )
-                                                         - vel_m*( ( w_field[I1D(i,j,k)] - w_field[I1D(i,j,k-1)] )/( dom->z[k] - dom->z[k-1] ) ) ) );
+                div_tauuvw_z += ( 2.0/delta_z )*( 2.0*mu*( vel_p*( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] ) )
+                                                         - vel_m*( ( w_field[I1D(i,j,k)] - w_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) ) );
                 vel_p = 0.5*( w_field[I1D(i,j,k+1)] + w_field[I1D(i,j,k+1)] ); vel_m = 0.5*( w_field[I1D(i,j,k-1)] + w_field[I1D(i,j,k-1)] );
                 div_tauuvw_z -= ( 1.0/delta_z )*( ( 2.0/3.0 )*mu*( vel_p*( ( u_field[I1D(i+1,j,k+1)] - u_field[I1D(i-1,j,k+1)] )/delta_x )
                                                                  - vel_m*( ( u_field[I1D(i+1,j,k-1)] - u_field[I1D(i-1,j,k-1)] )/delta_x ) ) );
@@ -1028,8 +990,8 @@ void FlowSolverRHEA::calculateViscousFluxes() {
                 div_tauuvw_z -= ( 1.0/delta_z )*( ( 2.0/3.0 )*mu*( vel_p*( ( v_field[I1D(i,j+1,k+1)] - v_field[I1D(i,j-1,k+1)] )/delta_y )
                                                                  - vel_m*( ( v_field[I1D(i,j+1,k-1)] - v_field[I1D(i,j-1,k-1)] )/delta_y ) ) );
                 vel_p = 0.5*( w_field[I1D(i,j,k+1)] + w_field[I1D(i,j,k)] ); vel_m = 0.5*( w_field[I1D(i,j,k)] + w_field[I1D(i,j,k-1)] );
-                div_tauuvw_z -= ( 2.0/delta_z )*( ( 2.0/3.0 )*mu*( vel_p*( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k)] )/( dom->z[k+1] - dom->z[k] ) )
-                                                                 - vel_m*( ( w_field[I1D(i,j,k)] - w_field[I1D(i,j,k-1)] )/( dom->z[k] - dom->z[k-1] ) ) ) );
+                div_tauuvw_z -= ( 2.0/delta_z )*( ( 2.0/3.0 )*mu*( vel_p*( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] ) )
+                                                                 - vel_m*( ( w_field[I1D(i,j,k)] - w_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) ) );
                 /// Work of viscous stresses
                 div_tauuvw = div_tauuvw_x + div_tauuvw_y + div_tauuvw_z; 
                 /// Work of sources
@@ -1194,6 +1156,43 @@ void FlowSolverRHEA::timeAdvanceConservedVariables() {
 
 };
 
+void FlowSolverRHEA::outputCurrentStateData() {
+
+    // This method needs to be implemented using HDF5!
+   
+    /// Obtain MPI world rank
+    int world_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+ 
+    /// Open output data file
+    ofstream output_file(output_data_file);
+
+    /// Header string
+    if(world_rank == 0) output_file << "#x [m],y [m],z [m],rho [kg/m3],u [m/s],v [m/s],w [m/s],E [J/kg],P [Pa],T [K],sos [m/s]" << endl;
+
+    /// All (inner & boundary) points: x, y, z, rho, u, v, w, E, P, T, sos
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
+                output_file << mesh->x[i] << ","; 
+                output_file << mesh->y[j] << ","; 
+                output_file << mesh->z[k] << ","; 
+                output_file << rho_field[I1D(i,j,k)] << ","; 
+                output_file << u_field[I1D(i,j,k)] << ","; 
+                output_file << v_field[I1D(i,j,k)] << ","; 
+                output_file << w_field[I1D(i,j,k)] << ","; 
+                output_file << E_field[I1D(i,j,k)] << ","; 
+                output_file << P_field[I1D(i,j,k)] << ","; 
+                output_file << T_field[I1D(i,j,k)] << ","; 
+                output_file << sos_field[I1D(i,j,k)] << endl; 
+            }
+        }
+    }
+
+    /// Close output data file
+    output_file.close();
+
+};
 
 
 
