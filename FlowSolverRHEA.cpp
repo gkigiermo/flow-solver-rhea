@@ -53,13 +53,13 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     np_z              = 1;
     // The lines above need to be introduced via configuration (input) file !!
 
-    /// Initialize (construct) computational domain
+    /// Construct (initialize) computational domain
     mesh = new domain(L_x, L_y, L_z, x_0, y_0, z_0, RHEA_NX, RHEA_NY, RHEA_NZ);
 
     /// Add boundary conditions to computational domain
     mesh->updateBocos(bocos);
 
-    /// Initialize (construct) communication scheme
+    /// Construct (initialize) communication scheme
     topo = new comm_scheme(mesh, np_x, np_y, np_z);
     //if(topo->getRank() == 0) mesh->printDomain();
     //for(int p = 0; p < np_x*np_y*np_z; p++) topo->printCommSchemeToFile(p);
@@ -69,7 +69,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     _lNy_ = topo->getlNy();
     _lNz_ = topo->getlNz();
 
-    /// Set parallel topology primitive, conserved and thermodynamic variables	
+    /// Set parallel topology of primitive, conserved and thermodynamic variables	
     rho_field.setTopology(topo);
     u_field.setTopology(topo);
     v_field.setTopology(topo);
@@ -83,14 +83,14 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     T_field.setTopology(topo);
     sos_field.setTopology(topo);
 
-    /// Set parallel topology time-integration variables	
+    /// Set parallel topology of time-integration variables	
     rho_0_field.setTopology(topo);
     rhou_0_field.setTopology(topo);
     rhov_0_field.setTopology(topo);
     rhow_0_field.setTopology(topo);
     rhoE_0_field.setTopology(topo);    
 
-    /// Set parallel topology time-integration fluxes	
+    /// Set parallel topology of time-integration fluxes	
     rho_rk1_flux.setTopology(topo);
     rho_rk2_flux.setTopology(topo);
     rho_rk3_flux.setTopology(topo);
@@ -107,20 +107,20 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     rhoE_rk2_flux.setTopology(topo);
     rhoE_rk3_flux.setTopology(topo);
 
-    /// Set parallel topology inviscid fluxes	
+    /// Set parallel topology of inviscid fluxes	
     rho_inv_flux.setTopology(topo);
     rhou_inv_flux.setTopology(topo);
     rhov_inv_flux.setTopology(topo);
     rhow_inv_flux.setTopology(topo);
     rhoE_inv_flux.setTopology(topo);
 
-    /// Set parallel topology viscous fluxes	
+    /// Set parallel topology of viscous fluxes	
     rhou_vis_flux.setTopology(topo);
     rhov_vis_flux.setTopology(topo);
     rhow_vis_flux.setTopology(topo);
     rhoE_vis_flux.setTopology(topo);
 
-    /// Set parallel topology volumetric & external forces
+    /// Set parallel topology of source terms
     f_rhou_field.setTopology(topo);
     f_rhov_field.setTopology(topo);
     f_rhow_field.setTopology(topo);
@@ -130,7 +130,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
 
 FlowSolverRHEA::~FlowSolverRHEA() {
 
-    /// Free boundary conditions, domain and topology
+    /// Free bocos, mesh and topo
     if(bocos != NULL) free(bocos);	
     if(mesh != NULL) free(mesh);	
     if(topo != NULL) free(topo);
@@ -139,10 +139,12 @@ FlowSolverRHEA::~FlowSolverRHEA() {
 
 void FlowSolverRHEA::setInitialConditions() {
 
+    /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
+
     /// All (inner & boundary) points: u, v, w, P and T
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 u_field[I1D(i,j,k)] = 0.0;
                 v_field[I1D(i,j,k)] = 0.0;
                 w_field[I1D(i,j,k)] = 0.0;
@@ -172,14 +174,14 @@ void FlowSolverRHEA::initializeThermodynamics() {
 
     /// All (inner & boundary) points: rho, e, ke, E and sos
     double e, ke;
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
-                rho_field[I1D(i,j,k)] = ( 1.0/( R_specific*T_field[I1D(i,j,k)] ) )*P_field[I1D(i,j,k)];
-                e                     = ( 1.0/( rho_field[I1D(i,j,k)]*( gamma - 1.0 ) ) )*P_field[I1D(i,j,k)];
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+                rho_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( R_specific*T_field[I1D(i,j,k)] );
+                e                     = P_field[I1D(i,j,k)]/( rho_field[I1D(i,j,k)]*( gamma - 1.0 ) );
                 ke                    = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) );
                 E_field[I1D(i,j,k)]   = e + ke;
-                sos_field[I1D(i,j,k)] = sqrt( gamma*( ( 1.0/rho_field[I1D(i,j,k)] )*P_field[I1D(i,j,k)] ) );
+                sos_field[I1D(i,j,k)] = sqrt( gamma*P_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)] );
             }
         }
     }
@@ -194,9 +196,9 @@ void FlowSolverRHEA::initializeThermodynamics() {
 void FlowSolverRHEA::primitiveToConservedVariables() {
 
     /// All (inner & boundary) points: rhou, rhov, rhow and rhoE
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 rhou_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*u_field[I1D(i,j,k)]; 
                 rhov_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*v_field[I1D(i,j,k)]; 
                 rhow_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*w_field[I1D(i,j,k)]; 
@@ -216,9 +218,9 @@ void FlowSolverRHEA::primitiveToConservedVariables() {
 void FlowSolverRHEA::conservedToPrimitiveVariables() {
 
     /// All (inner & boundary) points: u, v, w and E
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 u_field[I1D(i,j,k)] = rhou_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
                 v_field[I1D(i,j,k)] = rhov_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
                 w_field[I1D(i,j,k)] = rhow_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
@@ -250,9 +252,9 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
 
     /// All (inner & boundary) points: ke, e, P, T and sos
     double ke, e;
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 ke                    = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
                 e                     = E_field[I1D(i,j,k)] - ke;
                 P_field[I1D(i,j,k)]   = e*rho_field[I1D(i,j,k)]*( gamma - 1.0 ); 
@@ -271,7 +273,7 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
 
 void FlowSolverRHEA::updateBoundaries() {
 
-    /// West points: rho, rhou, rhov, rhow and rhoE
+    /// West boundary points: rho, rhou, rhov, rhow and rhoE
     for(int i = topo->iter_bound[_WEST_][_INIX_]; i <= topo->iter_bound[_WEST_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_WEST_][_INIY_]; j <= topo->iter_bound[_WEST_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_WEST_][_INIZ_]; k <= topo->iter_bound[_WEST_][_ENDZ_]; k++) {
@@ -285,7 +287,7 @@ void FlowSolverRHEA::updateBoundaries() {
         }
     }
 
-    /// East points: rho, rhou, rhov, rhow and rhoE
+    /// East boundary points: rho, rhou, rhov, rhow and rhoE
     for(int i = topo->iter_bound[_EAST_][_INIX_]; i <= topo->iter_bound[_EAST_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_EAST_][_INIY_]; j <= topo->iter_bound[_EAST_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_EAST_][_INIZ_]; k <= topo->iter_bound[_EAST_][_ENDZ_]; k++) {
@@ -299,7 +301,7 @@ void FlowSolverRHEA::updateBoundaries() {
         }
     }
 
-    /// South points: rho, rhou, rhov, rhow and rhoE
+    /// South boundary points: rho, rhou, rhov, rhow and rhoE
     for(int i = topo->iter_bound[_SOUTH_][_INIX_]; i <= topo->iter_bound[_SOUTH_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_SOUTH_][_INIY_]; j <= topo->iter_bound[_SOUTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_SOUTH_][_INIZ_]; k <= topo->iter_bound[_SOUTH_][_ENDZ_]; k++) {
@@ -313,7 +315,7 @@ void FlowSolverRHEA::updateBoundaries() {
         }
     }
 
-    /// North points: rho, rhou, rhov, rhow and rhoE
+    /// North boundary points: rho, rhou, rhov, rhow and rhoE
     for(int i = topo->iter_bound[_NORTH_][_INIX_]; i <= topo->iter_bound[_NORTH_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_NORTH_][_INIY_]; j <= topo->iter_bound[_NORTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_NORTH_][_INIZ_]; k <= topo->iter_bound[_NORTH_][_ENDZ_]; k++) {
@@ -327,7 +329,7 @@ void FlowSolverRHEA::updateBoundaries() {
         }
     }
 
-    /// Back points: rho, rhou, rhov, rhow and rhoE
+    /// Back boundary points: rho, rhou, rhov, rhow and rhoE
     for(int i = topo->iter_bound[_BACK_][_INIX_]; i <= topo->iter_bound[_BACK_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_BACK_][_INIY_]; j <= topo->iter_bound[_BACK_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_BACK_][_INIZ_]; k <= topo->iter_bound[_BACK_][_ENDZ_]; k++) {
@@ -341,7 +343,7 @@ void FlowSolverRHEA::updateBoundaries() {
         }
     }
 
-    /// Front points: rho, rhou, rhov, rhow and rhoE
+    /// Front boundary points: rho, rhou, rhov, rhow and rhoE
     for(int i = topo->iter_bound[_FRONT_][_INIX_]; i <= topo->iter_bound[_FRONT_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_FRONT_][_INIY_]; j <= topo->iter_bound[_FRONT_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_FRONT_][_INIZ_]; k <= topo->iter_bound[_FRONT_][_ENDZ_]; k++) {
@@ -362,9 +364,9 @@ void FlowSolverRHEA::updateBoundaries() {
 void FlowSolverRHEA::updatePreviousStateConservedVariables() {
 
     /// All (inner & boundary) points: rho_0, rhou_0 rhov_0, rhow_0 and rhoE_0
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 rho_0_field[I1D(i,j,k)]  = rho_field[I1D(i,j,k)]; 
                 rhou_0_field[I1D(i,j,k)] = rhou_field[I1D(i,j,k)]; 
                 rhov_0_field[I1D(i,j,k)] = rhov_field[I1D(i,j,k)]; 
@@ -409,9 +411,9 @@ void FlowSolverRHEA::calculateTimeStep() {
     /// Inner points: find minimum (local) delta_t
     double delta_x, delta_y, delta_z;
     double S_x, S_y, S_z;
-    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_INIZ_]; k++) {
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 /// Geometric stuff
                 delta_x = 0.5*( mesh->x[i+1] - mesh->x[i-1] ); 
                 delta_y = 0.5*( mesh->y[j+1] - mesh->y[j-1] ); 
@@ -443,14 +445,17 @@ void FlowSolverRHEA::calculateTimeStep() {
 
 void FlowSolverRHEA::calculateSourceTerms() {
 
+    /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
+
     /// Inner points: f_rhou, f_rhov, f_rhow and f_rhoE
-    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_INIZ_]; k++) {
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 f_rhou_field[I1D(i,j,k)] = 0.0;
                 f_rhov_field[I1D(i,j,k)] = 0.0;
                 f_rhow_field[I1D(i,j,k)] = 0.0;
                 f_rhoE_field[I1D(i,j,k)] = 0.0;
+                //f_rhoE_field[I1D(i,j,k)] = ( -1.0 )*( f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)] )
             }
         }
     }
@@ -477,13 +482,13 @@ void FlowSolverRHEA::calculateWavesSpeed(const double &rho_L, const double &rho_
     double q_L     = 1.0;
     if(P_star > P_L) q_L = sqrt( 1.0 + ( ( gamma + 1.0 )/( 2.0*gamma ) )*( ( P_star/P_L ) - 1.0 ) );
     double q_R     = 1.0;
-    if(P_star > P_R) q_R =sqrt( 1.0 + ( ( gamma + 1.0 )/( 2.0*gamma ) )*( ( P_star/P_R ) - 1.0 ) );
+    if(P_star > P_R) q_R = sqrt( 1.0 + ( ( gamma + 1.0 )/( 2.0*gamma ) )*( ( P_star/P_R ) - 1.0 ) );
     S_L = u_L - a_L*q_L;
     S_R = u_R + a_R*q_R;
 
 };
 
-void FlowSolverRHEA::calculateHllcFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type, double &F) {
+double FlowSolverRHEA::calculateHllcFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
     /// HLLC approximate Riemann solver:
     /// E. F. Toro.
@@ -513,7 +518,7 @@ void FlowSolverRHEA::calculateHllcFlux(const double &F_L, const double &F_R, con
     }
     double F_star_L = F_L + S_L*( U_star_L - U_L );
     double F_star_R = F_R + S_R*( U_star_R - U_R );
-    F = 0.0;
+    double F = 0.0;
     if(0.0 <= S_L) {
         F = F_L;
     } else if(( S_L <= 0.0 ) && ( 0.0 <= S_star )) {
@@ -523,6 +528,8 @@ void FlowSolverRHEA::calculateHllcFlux(const double &F_L, const double &F_R, con
     } else if(0.0 >= S_R) {
         F = F_R;
     }
+
+    return( F );
 
 };
 
@@ -543,9 +550,9 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
     double rhov_F_L, rhov_U_L, rhov_F_R, rhov_U_R, rhov_F_p, rhov_F_m;
     double rhow_F_L, rhow_U_L, rhow_F_R, rhow_U_R, rhow_F_p, rhow_F_m;
     double rhoE_F_L, rhoE_U_L, rhoE_F_R, rhoE_U_R, rhoE_F_p, rhoE_F_m;
-    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_INIZ_]; k++) {
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 /// Geometric stuff
                 delta_x = 0.5*( mesh->x[i+1] - mesh->x[i-1] ); 
                 delta_y = 0.5*( mesh->y[j+1] - mesh->y[j-1] ); 
@@ -565,35 +572,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)];
                 rho_U_L  = rho_field[I1D(index_L,j,k)];
                 rho_U_R  = rho_field[I1D(index_R,j,k)];
-                this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rho_F_p );
+                rho_F_p = this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 1;
                 rhou_F_L = rho_field[I1D(index_L,j,k)]*u_field[I1D(index_L,j,k)]*u_field[I1D(index_L,j,k)] + P_field[I1D(index_L,j,k)];
                 rhou_F_R = rho_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)] + P_field[I1D(index_R,j,k)];
                 rhou_U_L = rho_field[I1D(index_L,j,k)]*u_field[I1D(index_L,j,k)];
                 rhou_U_R = rho_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)];
-                this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhou_F_p );
+                rhou_F_p = this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 rhov_F_L = rho_field[I1D(index_L,j,k)]*u_field[I1D(index_L,j,k)]*v_field[I1D(index_L,j,k)];
                 rhov_F_R = rho_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)]*v_field[I1D(index_R,j,k)];
                 rhov_U_L = rho_field[I1D(index_L,j,k)]*v_field[I1D(index_L,j,k)];
                 rhov_U_R = rho_field[I1D(index_R,j,k)]*v_field[I1D(index_R,j,k)];
-                this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhov_F_p );
+                rhov_F_p = this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 rhow_F_L = rho_field[I1D(index_L,j,k)]*u_field[I1D(index_L,j,k)]*w_field[I1D(index_L,j,k)];
                 rhow_F_R = rho_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)]*w_field[I1D(index_R,j,k)];
                 rhow_U_L = rho_field[I1D(index_L,j,k)]*w_field[I1D(index_L,j,k)];
                 rhow_U_R = rho_field[I1D(index_R,j,k)]*w_field[I1D(index_R,j,k)];
-                this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhow_F_p );
+                rhow_F_p = this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_field[I1D(index_L,j,k)]*u_field[I1D(index_L,j,k)]*E_field[I1D(index_L,j,k)] + u_field[I1D(index_L,j,k)]*P_field[I1D(index_L,j,k)];
                 rhoE_F_R = rho_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)]*E_field[I1D(index_R,j,k)] + u_field[I1D(index_R,j,k)]*P_field[I1D(index_R,j,k)];
                 rhoE_U_L = rho_field[I1D(index_L,j,k)]*E_field[I1D(index_L,j,k)];
                 rhoE_U_R = rho_field[I1D(index_R,j,k)]*E_field[I1D(index_R,j,k)];
-                this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhoE_F_p );
+                rhoE_F_p = this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// x-direction i-1/2
                 index_L = i - 1;                       index_R = i;
                 rho_L   = rho_field[I1D(index_L,j,k)]; rho_R   = rho_field[I1D(index_R,j,k)];
@@ -609,35 +616,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)];
                 rho_U_L  = rho_field[I1D(index_L,j,k)];
                 rho_U_R  = rho_field[I1D(index_R,j,k)];
-                this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rho_F_m );
+                rho_F_m = this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 1;
                 rhou_F_L = rho_field[I1D(index_L,j,k)]*u_field[I1D(index_L,j,k)]*u_field[I1D(index_L,j,k)] + P_field[I1D(index_L,j,k)];
                 rhou_F_R = rho_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)] + P_field[I1D(index_R,j,k)];
                 rhou_U_L = rho_field[I1D(index_L,j,k)]*u_field[I1D(index_L,j,k)];
                 rhou_U_R = rho_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)];
-                this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhou_F_m );
+                rhou_F_m = this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 rhov_F_L = rho_field[I1D(index_L,j,k)]*u_field[I1D(index_L,j,k)]*v_field[I1D(index_L,j,k)];
                 rhov_F_R = rho_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)]*v_field[I1D(index_R,j,k)];
                 rhov_U_L = rho_field[I1D(index_L,j,k)]*v_field[I1D(index_L,j,k)];
                 rhov_U_R = rho_field[I1D(index_R,j,k)]*v_field[I1D(index_R,j,k)];
-                this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhov_F_m );
+                rhov_F_m = this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 rhow_F_L = rho_field[I1D(index_L,j,k)]*u_field[I1D(index_L,j,k)]*w_field[I1D(index_L,j,k)];
                 rhow_F_R = rho_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)]*w_field[I1D(index_R,j,k)];
                 rhow_U_L = rho_field[I1D(index_L,j,k)]*w_field[I1D(index_L,j,k)];
                 rhow_U_R = rho_field[I1D(index_R,j,k)]*w_field[I1D(index_R,j,k)];
-                this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhow_F_m );
+                rhow_F_m = this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_field[I1D(index_L,j,k)]*u_field[I1D(index_L,j,k)]*E_field[I1D(index_L,j,k)] + u_field[I1D(index_L,j,k)]*P_field[I1D(index_L,j,k)];
                 rhoE_F_R = rho_field[I1D(index_R,j,k)]*u_field[I1D(index_R,j,k)]*E_field[I1D(index_R,j,k)] + u_field[I1D(index_R,j,k)]*P_field[I1D(index_R,j,k)];
                 rhoE_U_L = rho_field[I1D(index_L,j,k)]*E_field[I1D(index_L,j,k)];
                 rhoE_U_R = rho_field[I1D(index_R,j,k)]*E_field[I1D(index_R,j,k)];
-                this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhoE_F_m );
+                rhoE_F_m = this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes x-direction
                 rho_inv_flux[I1D(i,j,k)]  = ( rho_F_p - rho_F_m )/delta_x;
                 rhou_inv_flux[I1D(i,j,k)] = ( rhou_F_p - rhou_F_m )/delta_x;
@@ -659,35 +666,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)];
                 rho_U_L  = rho_field[I1D(i,index_L,k)];
                 rho_U_R  = rho_field[I1D(i,index_R,k)];
-                this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rho_F_p );
+                rho_F_p = this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 2;
                 rhou_F_L = rho_field[I1D(i,index_L,k)]*v_field[I1D(i,index_L,k)]*u_field[I1D(i,index_L,k)];
                 rhou_F_R = rho_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)]*u_field[I1D(i,index_R,k)];
                 rhou_U_L = rho_field[I1D(i,index_L,k)]*u_field[I1D(i,index_L,k)];
                 rhou_U_R = rho_field[I1D(i,index_R,k)]*u_field[I1D(i,index_R,k)];
-                this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhou_F_p );
+                rhou_F_p = this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 1;
                 rhov_F_L = rho_field[I1D(i,index_L,k)]*v_field[I1D(i,index_L,k)]*v_field[I1D(i,index_L,k)] + P_field[I1D(i,index_L,k)];
                 rhov_F_R = rho_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)] + P_field[I1D(i,index_R,k)];
                 rhov_U_L = rho_field[I1D(i,index_L,k)]*v_field[I1D(i,index_L,k)];
                 rhov_U_R = rho_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)];
-                this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhov_F_p );
+                rhov_F_p = this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 rhow_F_L = rho_field[I1D(i,index_L,k)]*v_field[I1D(i,index_L,k)]*w_field[I1D(i,index_L,k)];
                 rhow_F_R = rho_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)]*w_field[I1D(i,index_R,k)];
                 rhow_U_L = rho_field[I1D(i,index_L,k)]*w_field[I1D(i,index_L,k)];
                 rhow_U_R = rho_field[I1D(i,index_R,k)]*w_field[I1D(i,index_R,k)];
-                this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhow_F_p );
+                rhow_F_p = this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_field[I1D(i,index_L,k)]*v_field[I1D(i,index_L,k)]*E_field[I1D(i,index_L,k)] + v_field[I1D(i,index_L,k)]*P_field[I1D(i,index_L,k)];
                 rhoE_F_R = rho_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)]*E_field[I1D(i,index_R,k)] + v_field[I1D(i,index_R,k)]*P_field[I1D(i,index_R,k)];
                 rhoE_U_L = rho_field[I1D(i,index_L,k)]*E_field[I1D(i,index_L,k)];
                 rhoE_U_R = rho_field[I1D(i,index_R,k)]*E_field[I1D(i,index_R,k)];
-                this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhoE_F_p );
+                rhoE_F_p = this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// y-direction j-1/2
                 index_L = j - 1;                       index_R = j;
                 rho_L   = rho_field[I1D(i,index_L,k)]; rho_R   = rho_field[I1D(i,index_R,k)];
@@ -703,35 +710,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)];
                 rho_U_L  = rho_field[I1D(i,index_L,k)];
                 rho_U_R  = rho_field[I1D(i,index_R,k)];
-                this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rho_F_m );
+                rho_F_m = this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 2;
                 rhou_F_L = rho_field[I1D(i,index_L,k)]*v_field[I1D(i,index_L,k)]*u_field[I1D(i,index_L,k)];
                 rhou_F_R = rho_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)]*u_field[I1D(i,index_R,k)];
                 rhou_U_L = rho_field[I1D(i,index_L,k)]*u_field[I1D(i,index_L,k)];
                 rhou_U_R = rho_field[I1D(i,index_R,k)]*u_field[I1D(i,index_R,k)];
-                this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhou_F_m );
+                rhou_F_m = this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 1;
                 rhov_F_L = rho_field[I1D(i,index_L,k)]*v_field[I1D(i,index_L,k)]*v_field[I1D(i,index_L,k)] + P_field[I1D(i,index_L,k)];
                 rhov_F_R = rho_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)] + P_field[I1D(i,index_R,k)];
                 rhov_U_L = rho_field[I1D(i,index_L,k)]*v_field[I1D(i,index_L,k)];
                 rhov_U_R = rho_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)];
-                this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhov_F_m );
+                rhov_F_m = this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 rhow_F_L = rho_field[I1D(i,index_L,k)]*v_field[I1D(i,index_L,k)]*w_field[I1D(i,index_L,k)];
                 rhow_F_R = rho_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)]*w_field[I1D(i,index_R,k)];
                 rhow_U_L = rho_field[I1D(i,index_L,k)]*w_field[I1D(i,index_L,k)];
                 rhow_U_R = rho_field[I1D(i,index_R,k)]*w_field[I1D(i,index_R,k)];
-                this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhow_F_m );
+                rhow_F_m = this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_field[I1D(i,index_L,k)]*v_field[I1D(i,index_L,k)]*E_field[I1D(i,index_L,k)] + v_field[I1D(i,index_L,k)]*P_field[I1D(i,index_L,k)];
                 rhoE_F_R = rho_field[I1D(i,index_R,k)]*v_field[I1D(i,index_R,k)]*E_field[I1D(i,index_R,k)] + v_field[I1D(i,index_R,k)]*P_field[I1D(i,index_R,k)];
                 rhoE_U_L = rho_field[I1D(i,index_L,k)]*E_field[I1D(i,index_L,k)];
                 rhoE_U_R = rho_field[I1D(i,index_R,k)]*E_field[I1D(i,index_R,k)];
-                this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhoE_F_m );
+                rhoE_F_m = this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes y-direction
                 rho_inv_flux[I1D(i,j,k)]  += ( rho_F_p - rho_F_m )/delta_y;
                 rhou_inv_flux[I1D(i,j,k)] += ( rhou_F_p - rhou_F_m )/delta_y;
@@ -753,35 +760,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)];
                 rho_U_L  = rho_field[I1D(i,j,index_L)];
                 rho_U_R  = rho_field[I1D(i,j,index_R)];
-                this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rho_F_p );
+                rho_F_p = this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 3;
                 rhou_F_L = rho_field[I1D(i,j,index_L)]*w_field[I1D(i,j,index_L)]*u_field[I1D(i,j,index_L)];
                 rhou_F_R = rho_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)]*u_field[I1D(i,j,index_R)];
                 rhou_U_L = rho_field[I1D(i,j,index_L)]*u_field[I1D(i,j,index_L)];
                 rhou_U_R = rho_field[I1D(i,j,index_R)]*u_field[I1D(i,j,index_R)];
-                this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhou_F_p );
+                rhou_F_p = this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 rhov_F_L = rho_field[I1D(i,j,index_L)]*w_field[I1D(i,j,index_L)]*v_field[I1D(i,j,index_L)];
                 rhov_F_R = rho_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)]*v_field[I1D(i,j,index_R)];
                 rhov_U_L = rho_field[I1D(i,j,index_L)]*v_field[I1D(i,j,index_L)];
                 rhov_U_R = rho_field[I1D(i,j,index_R)]*v_field[I1D(i,j,index_R)];
-                this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhov_F_p );
+                rhov_F_p = this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 1;
                 rhow_F_L = rho_field[I1D(i,j,index_L)]*w_field[I1D(i,j,index_L)]*w_field[I1D(i,j,index_L)] + P_field[I1D(i,j,index_L)];
                 rhow_F_R = rho_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)] + P_field[I1D(i,j,index_R)];
                 rhow_U_L = rho_field[I1D(i,j,index_L)]*w_field[I1D(i,j,index_L)];
                 rhow_U_R = rho_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)];
-                this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhow_F_p );
+                rhow_F_p = this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_field[I1D(i,j,index_L)]*w_field[I1D(i,j,index_L)]*E_field[I1D(i,j,index_L)] + w_field[I1D(i,j,index_L)]*P_field[I1D(i,j,index_L)];
                 rhoE_F_R = rho_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)]*E_field[I1D(i,j,index_R)] + w_field[I1D(i,j,index_R)]*P_field[I1D(i,j,index_R)];
                 rhoE_U_L = rho_field[I1D(i,j,index_L)]*E_field[I1D(i,j,index_L)];
                 rhoE_U_R = rho_field[I1D(i,j,index_R)]*E_field[I1D(i,j,index_R)];
-                this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhoE_F_p );
+                rhoE_F_p = this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// z-direction k-1/2
                 index_L = k - 1;                       index_R = k;
                 rho_L   = rho_field[I1D(i,j,index_L)]; rho_R   = rho_field[I1D(i,j,index_R)];
@@ -797,35 +804,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)];
                 rho_U_L  = rho_field[I1D(i,j,index_L)];
                 rho_U_R  = rho_field[I1D(i,j,index_R)];
-                this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rho_F_m );
+                rho_F_m = this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 3;
                 rhou_F_L = rho_field[I1D(i,j,index_L)]*w_field[I1D(i,j,index_L)]*u_field[I1D(i,j,index_L)];
                 rhou_F_R = rho_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)]*u_field[I1D(i,j,index_R)];
                 rhou_U_L = rho_field[I1D(i,j,index_L)]*u_field[I1D(i,j,index_L)];
                 rhou_U_R = rho_field[I1D(i,j,index_R)]*u_field[I1D(i,j,index_R)];
-                this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhou_F_m );
+                rhou_F_m = this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 rhov_F_L = rho_field[I1D(i,j,index_L)]*w_field[I1D(i,j,index_L)]*v_field[I1D(i,j,index_L)];
                 rhov_F_R = rho_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)]*v_field[I1D(i,j,index_R)];
                 rhov_U_L = rho_field[I1D(i,j,index_L)]*v_field[I1D(i,j,index_L)];
                 rhov_U_R = rho_field[I1D(i,j,index_R)]*v_field[I1D(i,j,index_R)];
-                this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhov_F_m );
+                rhov_F_m = this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 1;
                 rhow_F_L = rho_field[I1D(i,j,index_L)]*w_field[I1D(i,j,index_L)]*w_field[I1D(i,j,index_L)] + P_field[I1D(i,j,index_L)];
                 rhow_F_R = rho_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)] + P_field[I1D(i,j,index_R)];
                 rhow_U_L = rho_field[I1D(i,j,index_L)]*w_field[I1D(i,j,index_L)];
                 rhow_U_R = rho_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)];
-                this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhow_F_m );
+                rhow_F_m = this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_field[I1D(i,j,index_L)]*w_field[I1D(i,j,index_L)]*E_field[I1D(i,j,index_L)] + w_field[I1D(i,j,index_L)]*P_field[I1D(i,j,index_L)];
                 rhoE_F_R = rho_field[I1D(i,j,index_R)]*w_field[I1D(i,j,index_R)]*E_field[I1D(i,j,index_R)] + w_field[I1D(i,j,index_R)]*P_field[I1D(i,j,index_R)];
                 rhoE_U_L = rho_field[I1D(i,j,index_L)]*E_field[I1D(i,j,index_L)];
                 rhoE_U_R = rho_field[I1D(i,j,index_R)]*E_field[I1D(i,j,index_R)];
-                this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, rhoE_F_m );
+                rhoE_F_m = this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes z-direction
                 rho_inv_flux[I1D(i,j,k)]  += ( rho_F_p - rho_F_m )/delta_z;
                 rhou_inv_flux[I1D(i,j,k)] += ( rhou_F_p - rhou_F_m )/delta_z;
@@ -856,9 +863,9 @@ void FlowSolverRHEA::calculateViscousFluxes() {
     double delta_x, delta_y, delta_z;
     double div_tau_xx, div_tau_xy, div_tau_xz, div_tau_yx, div_tau_yy, div_tau_yz, div_tau_zx, div_tau_zy, div_tau_zz;
     double div_q, vel_p, vel_m, div_tauuvw_x, div_tauuvw_y, div_tauuvw_z, div_tauuvw, f_rhouvw; 
-    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_INIZ_]; k++) {
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 /// Geometric stuff
                 delta_x = 0.5*( mesh->x[i+1] - mesh->x[i-1] ); 
                 delta_y = 0.5*( mesh->y[j+1] - mesh->y[j-1] ); 
@@ -1019,9 +1026,9 @@ void FlowSolverRHEA::sumInviscidViscousFluxes() {
     if(rk_step == 1) {
 
         /// Inner points: rho, rhou, rhov, rhow and rhoE
-        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_INIX_]; i++) {
-            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_INIY_]; j++) {
-                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_INIZ_]; k++) {
+        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                     rho_rk1_flux[I1D(i,j,k)]  = ( -1.0 )*rho_inv_flux[I1D(i,j,k)]; 
                     rhou_rk1_flux[I1D(i,j,k)] = ( -1.0 )*rhou_inv_flux[I1D(i,j,k)] + rhou_vis_flux[I1D(i,j,k)]; 
                     rhov_rk1_flux[I1D(i,j,k)] = ( -1.0 )*rhov_inv_flux[I1D(i,j,k)] + rhov_vis_flux[I1D(i,j,k)]; 
@@ -1044,9 +1051,9 @@ void FlowSolverRHEA::sumInviscidViscousFluxes() {
     if(rk_step == 2) {
 
         /// Inner points: rho, rhou, rhov, rhow and rhoE
-        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_INIX_]; i++) {
-            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_INIY_]; j++) {
-                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_INIZ_]; k++) {
+        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                     rho_rk2_flux[I1D(i,j,k)]  = ( -1.0 )*rho_inv_flux[I1D(i,j,k)]; 
                     rhou_rk2_flux[I1D(i,j,k)] = ( -1.0 )*rhou_inv_flux[I1D(i,j,k)] + rhou_vis_flux[I1D(i,j,k)]; 
                     rhov_rk2_flux[I1D(i,j,k)] = ( -1.0 )*rhov_inv_flux[I1D(i,j,k)] + rhov_vis_flux[I1D(i,j,k)]; 
@@ -1069,9 +1076,9 @@ void FlowSolverRHEA::sumInviscidViscousFluxes() {
     if(rk_step == 3) {
 
         /// Inner points: rho, rhou, rhov, rhow and rhoE
-        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_INIX_]; i++) {
-            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_INIY_]; j++) {
-                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_INIZ_]; k++) {
+        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                     rho_rk3_flux[I1D(i,j,k)]  = ( -1.0 )*rho_inv_flux[I1D(i,j,k)]; 
                     rhou_rk3_flux[I1D(i,j,k)] = ( -1.0 )*rhou_inv_flux[I1D(i,j,k)] + rhou_vis_flux[I1D(i,j,k)]; 
                     rhov_rk3_flux[I1D(i,j,k)] = ( -1.0 )*rhov_inv_flux[I1D(i,j,k)] + rhov_vis_flux[I1D(i,j,k)]; 
@@ -1102,9 +1109,9 @@ void FlowSolverRHEA::timeAdvanceConservedVariables() {
     /// First Runge-Kutta step
     if(rk_step == 1) {
         /// Inner points: rho, rhou, rhov, rhow and rhoE
-        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_INIX_]; i++) {
-            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_INIY_]; j++) {
-                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_INIZ_]; k++) {
+        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                     rho_field[I1D(i,j,k)]  = rho_0_field[I1D(i,j,k)] + delta_t*rho_rk1_flux[I1D(i,j,k)];
                     rhou_field[I1D(i,j,k)] = rhou_0_field[I1D(i,j,k)] + delta_t*rhou_rk1_flux[I1D(i,j,k)];
                     rhov_field[I1D(i,j,k)] = rhov_0_field[I1D(i,j,k)] + delta_t*rhov_rk1_flux[I1D(i,j,k)];
@@ -1118,9 +1125,9 @@ void FlowSolverRHEA::timeAdvanceConservedVariables() {
     /// Second Runge-Kutta step
     if(rk_step == 2) {
         /// Inner points: rho, rhou, rhov, rhow and rhoE
-        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_INIX_]; i++) {
-            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_INIY_]; j++) {
-                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_INIZ_]; k++) {
+        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                     rho_field[I1D(i,j,k)]  = rho_0_field[I1D(i,j,k)] + ( delta_t/4.0 )*( rho_rk1_flux[I1D(i,j,k)] + rho_rk2_flux[I1D(i,j,k)] );
                     rhou_field[I1D(i,j,k)] = rhou_0_field[I1D(i,j,k)] + ( delta_t/4.0 )*( rhou_rk1_flux[I1D(i,j,k)] + rhou_rk2_flux[I1D(i,j,k)] );
                     rhov_field[I1D(i,j,k)] = rhov_0_field[I1D(i,j,k)] + ( delta_t/4.0 )*( rhov_rk1_flux[I1D(i,j,k)] + rhov_rk2_flux[I1D(i,j,k)] );
@@ -1134,9 +1141,9 @@ void FlowSolverRHEA::timeAdvanceConservedVariables() {
     /// Third Runge-Kutta step
     if(rk_step == 3) {
         /// Inner points: rho, rhou, rhov, rhow and rhoE
-        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_INIX_]; i++) {
-            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_INIY_]; j++) {
-                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_INIZ_]; k++) {
+        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                     rho_field[I1D(i,j,k)]  = rho_0_field[I1D(i,j,k)] + ( delta_t/6.0 )*( rho_rk1_flux[I1D(i,j,k)] + rho_rk2_flux[I1D(i,j,k)] + 4.0*rho_rk3_flux[I1D(i,j,k)] );
                     rhou_field[I1D(i,j,k)] = rhou_0_field[I1D(i,j,k)] + ( delta_t/6.0 )*( rhou_rk1_flux[I1D(i,j,k)] + rhou_rk2_flux[I1D(i,j,k)] + 4.0*rhou_rk3_flux[I1D(i,j,k)] );
                     rhov_field[I1D(i,j,k)] = rhov_0_field[I1D(i,j,k)] + ( delta_t/6.0 )*( rhov_rk1_flux[I1D(i,j,k)] + rhov_rk2_flux[I1D(i,j,k)] + 4.0*rhov_rk3_flux[I1D(i,j,k)] );
@@ -1160,33 +1167,40 @@ void FlowSolverRHEA::outputCurrentStateData() {
 
     // This method needs to be implemented using HDF5!
    
-    /// Obtain MPI world rank
-    int world_rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    /// Obtain MPI information
+    int my_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
  
     /// Open output data file
     ofstream output_file(output_data_file);
 
     /// Header string
-    if(world_rank == 0) output_file << "#x [m],y [m],z [m],rho [kg/m3],u [m/s],v [m/s],w [m/s],E [J/kg],P [Pa],T [K],sos [m/s]" << endl;
+    if(my_rank == 0) output_file << "#x [m],y [m],z [m],rho [kg/m3],u [m/s],v [m/s],w [m/s],E [J/kg],P [Pa],T [K],sos [m/s]" << endl;
 
     /// All (inner & boundary) points: x, y, z, rho, u, v, w, E, P, T, sos
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_INIX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_INIY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_INIZ_]; k++) {
-                output_file << mesh->x[i] << ","; 
-                output_file << mesh->y[j] << ","; 
-                output_file << mesh->z[k] << ","; 
-                output_file << rho_field[I1D(i,j,k)] << ","; 
-                output_file << u_field[I1D(i,j,k)] << ","; 
-                output_file << v_field[I1D(i,j,k)] << ","; 
-                output_file << w_field[I1D(i,j,k)] << ","; 
-                output_file << E_field[I1D(i,j,k)] << ","; 
-                output_file << P_field[I1D(i,j,k)] << ","; 
-                output_file << T_field[I1D(i,j,k)] << ","; 
-                output_file << sos_field[I1D(i,j,k)] << endl; 
+    for(int p = 0; p < world_size; p++) {
+        /// Serialize writing to file
+        if(my_rank == p) {
+            for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+                for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+                    for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+                        output_file << mesh->x[i] << ","; 
+                        output_file << mesh->y[j] << ","; 
+                        output_file << mesh->z[k] << ","; 
+                        output_file << rho_field[I1D(i,j,k)] << ","; 
+                        output_file << u_field[I1D(i,j,k)] << ","; 
+                        output_file << v_field[I1D(i,j,k)] << ","; 
+                        output_file << w_field[I1D(i,j,k)] << ","; 
+                        output_file << E_field[I1D(i,j,k)] << ","; 
+                        output_file << P_field[I1D(i,j,k)] << ","; 
+                        output_file << T_field[I1D(i,j,k)] << ","; 
+                        output_file << sos_field[I1D(i,j,k)] << endl; 
+                    }
+                }
             }
         }
+        MPI_Barrier(MPI_COMM_WORLD);
     }
 
     /// Close output data file
@@ -1201,12 +1215,12 @@ int main(int argc, char** argv) {
 
     /// Initialize MPI
     MPI_Init(&argc, &argv);
-    int world_rank, world_size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    int my_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
     /// Start RHEA simulation
-    if(world_rank == 0) cout << "RHEA: START SIMULATION" << endl;
+    if(my_rank == 0) cout << "RHEA: START SIMULATION" << endl;
 
     /// Construct flow solver RHEA
     FlowSolverRHEA flow_solver_RHEA("configuration_file.yaml");
@@ -1233,13 +1247,13 @@ int main(int argc, char** argv) {
         }
 
         /// Print time iteration information
-        if(world_rank == 0) {
+        if(my_rank == 0) {
             cout << "Time iteration " << flow_solver_RHEA.getCurrentTimeIteration() << ":" 
                  << "time = " << flow_solver_RHEA.getCurrentTime() << " [s], "
                  << "time-step = " << flow_solver_RHEA.getTimeStep() << " [s]" << endl;
         }
 
-        /// Output current state data to file
+        /// Output current state data to file (if criterion satisfied)
         if(flow_solver_RHEA.getCurrentTimeIteration()%flow_solver_RHEA.getOutputIteration() == 0) flow_solver_RHEA.outputCurrentStateData();
 
         /// Runge-Kutta time-integration steps
@@ -1284,10 +1298,9 @@ int main(int argc, char** argv) {
     }
 
     /// Print time iteration information
-    if(world_rank == 0) {
+    if(my_rank == 0) {
         cout << "Time iteration " << flow_solver_RHEA.getCurrentTimeIteration() << ":" 
-             << "time = " << flow_solver_RHEA.getCurrentTime() << " [s], "
-             << "time-step = " << flow_solver_RHEA.getTimeStep() << " [s]" << endl;
+             << "time = " << flow_solver_RHEA.getCurrentTime() << " [s]" << endl;
     }
 
     /// Output current state data to file
@@ -1296,7 +1309,7 @@ int main(int argc, char** argv) {
     /// Destruct flow solver RHEA ... destructor is called automatically
 
     /// End RHEA simulation
-    if(world_rank == 0) cout << "RHEA: END SIMULATION" << endl;
+    if(my_rank == 0) cout << "RHEA: END SIMULATION" << endl;
 
     /// Finalize MPI
     MPI_Finalize();
