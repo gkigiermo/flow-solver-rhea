@@ -8,6 +8,7 @@ RHEA DEVELOPMENT AGENDA:
 
 - Implement/develop solver state communication (cout & file)
 - Implement/develop configuration (input) file using yaml
+- Implement/develop boundary conditions
 - Implement/develop data output strategy (hdf5)
 - Implement/develop re-initialization strategy (hdf5)
 - Improve code implementation in all files
