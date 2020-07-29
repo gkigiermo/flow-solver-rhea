@@ -214,7 +214,7 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
 
     exchange_2nd_level_neighbour_info();
 
-
+    find_extra_neighbours();
 }
 
 void comm_scheme::exchange_2nd_level_neighbour_info()
@@ -387,18 +387,51 @@ void comm_scheme::find_extra_neighbours()
 
     }
 
-/*
+
+    //3er level conexions
+    int* lconx;
+    int pack[6];
+    //Packs the message that is sent to all the 1st level neighbours
+    for(int l=_WEST_;l<=_FRONT_;l++)
+        pack[l] = neighb[l];
+
+   
+    lconx = new int[6*npx*npy*npz]; // For each proc saves the 6 neighbours
+
+    MPI_Allgather(pack, 6, MPI_INT, lconx, 6, MPI_INT, MPI_COMM_WORLD);
+
+
     //Point Neighbours
-    //WEST SOUTH BACK 
-    if( neighb[_WEST_S_]  != _NO_NEIGHBOUR_ && neighb[_WEST_B_] != _NO_NEIGHBOUR)
+    //WEST SOUTH and NORTH BACK 
+    if( neighb[_WEST_B_] != _NO_NEIGHBOUR_)
     {
-        
-        if( proc_z_start == 1) //this if already implies that is periodic
-            neighb[_WEST_S_B_] = ; 
+        neighb[_WEST_S_B_] = lconx[neighb[_WEST_B_]*6 + _SOUTH_ ] ; 
+        neighb[_WEST_N_B_] = lconx[neighb[_WEST_B_]*6 + _NORTH_ ] ; 
     }
 
-*/
+    //WEST SOUTH and NORTH FRONT 
+    if( neighb[_WEST_F_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_WEST_S_F_] = lconx[neighb[_WEST_F_]*6 + _SOUTH_ ] ; 
+        neighb[_WEST_N_F_] = lconx[neighb[_WEST_F_]*6 + _NORTH_ ] ; 
+    }
 
+    //EAST SOUTH and NORTH BACK 
+    if( neighb[_EAST_B_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_EAST_S_B_] = lconx[neighb[_EAST_B_]*6 + _SOUTH_ ] ; 
+        neighb[_EAST_N_B_] = lconx[neighb[_EAST_B_]*6 + _NORTH_ ] ; 
+    }
+
+    //EAST SOUTH and NORTH FRONT 
+    if( neighb[_EAST_F_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_EAST_S_F_] = lconx[neighb[_EAST_F_]*6 + _SOUTH_ ] ; 
+        neighb[_EAST_N_F_] = lconx[neighb[_EAST_F_]*6 + _NORTH_ ] ; 
+    }
+
+
+    delete[] lconx; 
 
 }
 
@@ -435,9 +468,21 @@ void comm_scheme::printCommSchemeToFile(int proc)
             myfile<<" lNz "<<lNz<<endl;
             myfile<<"--------"<<endl;
             myfile<<" Neighbour ids: "<<endl;
-            myfile<<" X : WEST  "<<neighb[_WEST_] <<" EAST  "<<neighb[_EAST_]<<endl;
-            myfile<<" Y : SOUTH "<<neighb[_SOUTH_]<<" NORTH "<<neighb[_NORTH_]<<endl;
-            myfile<<" Z : BACK  "<<neighb[_BACK_] <<" FRONT "<<neighb[_FRONT_]<<endl;
+            myfile<<" X  : WEST  "<<neighb[_WEST_] <<" EAST  "<<neighb[_EAST_]<<endl;
+            myfile<<" Y  : SOUTH "<<neighb[_SOUTH_]<<" NORTH "<<neighb[_NORTH_]<<endl;
+            myfile<<" Z  : BACK  "<<neighb[_BACK_] <<" FRONT "<<neighb[_FRONT_]<<endl;
+            myfile<<" 2nd level connections: "<<endl;
+            myfile<<" XY : WEST  SOUTH  "<<neighb[_WEST_S_]  <<"  WEST NORTH "<<neighb[_WEST_N_]<<endl;
+            myfile<<" XZ : WEST  BACK   "<<neighb[_WEST_B_]  <<"  WEST FRONT "<<neighb[_WEST_F_]<<endl;
+            myfile<<" XY : EAST  SOUTH  "<<neighb[_EAST_S_]  <<"  EAST NORTH "<<neighb[_EAST_N_]<<endl;
+            myfile<<" XZ : EAST  BACK   "<<neighb[_EAST_B_]  <<"  EAST FRONT "<<neighb[_EAST_F_]<<endl;
+            myfile<<" YZ : SOUTH BACK   "<<neighb[_SOUTH_B_] <<" SOUTH FRONT "<<neighb[_SOUTH_F_]<<endl;
+            myfile<<" YZ : NORTH BACK   "<<neighb[_NORTH_B_] <<" NORTH FRONT "<<neighb[_NORTH_F_]<<endl;
+            myfile<<" 3er level connections: "<<endl;
+            myfile<<" XYZ : WEST SOUTH BACK  "<<neighb[_WEST_S_B_]  <<"  WEST NORTH BACK  "<<neighb[_WEST_N_B_]<<endl;
+            myfile<<" XYZ : WEST SOUTH FRONT "<<neighb[_WEST_S_F_]  <<"  WEST NORTH FRONT "<<neighb[_WEST_N_F_]<<endl;
+            myfile<<" XYZ : EAST SOUTH BACK  "<<neighb[_EAST_S_B_]  <<"  EAST NORTH BACK  "<<neighb[_EAST_N_B_]<<endl;
+            myfile<<" XYZ : EAST SOUTH FRONT "<<neighb[_EAST_S_F_]  <<"  EAST NORTH FRONT "<<neighb[_EAST_N_F_]<<endl;
             myfile<<"--------"<<endl;
             myfile<<" Internal iterators: "<<endl;
             myfile<<" INI_X  "<<iter_common[_INNER_][_INIX_]<<" END_X "<<iter_common[_INNER_][_ENDX_]<<endl;
