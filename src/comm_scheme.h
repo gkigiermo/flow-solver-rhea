@@ -120,7 +120,8 @@ class comm_scheme{
         void find_extra_neighbours();
         void create_complex_bound_iters();
         void create_complex_halo_iters();
-
+        void create_complex_toRecv_iters();
+ 
 
         void pack(double*);
         void halo_exchange();
