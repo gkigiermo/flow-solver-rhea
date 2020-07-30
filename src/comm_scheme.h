@@ -119,6 +119,8 @@ class comm_scheme{
         void exchange_2nd_level_neighbour_info();
         void find_extra_neighbours();
         void create_complex_bound_iters();
+        void create_complex_halo_iters();
+
 
         void pack(double*);
         void halo_exchange();

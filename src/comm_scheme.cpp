@@ -215,6 +215,7 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
     exchange_2nd_level_neighbour_info();
     find_extra_neighbours();
     create_complex_bound_iters();
+    create_complex_halo_iters();
 
 }
 
@@ -928,7 +929,7 @@ void comm_scheme::create_complex_bound_iters(){
 void comm_scheme::create_halo_iters()
 {
     // By default non halos are created
-    for(int bd=_WEST_; bd<= _FRONT_; bd++)
+    for(int bd=_WEST_; bd<= _EAST_N_F_; bd++)
     {
         iter_halo[bd][_INIX_] =   0;
         iter_halo[bd][_ENDX_] =  -1;
@@ -997,6 +998,217 @@ void comm_scheme::create_halo_iters()
         iter_halo[_FRONT_][_ENDY_] =   lNy-2;
         iter_halo[_FRONT_][_INIZ_] =   lNz-1;
         iter_halo[_FRONT_][_ENDZ_] =   lNz-1;
+    }
+}
+
+void comm_scheme::create_complex_halo_iters()
+{
+
+    //2nd Level Halos (lines)
+    //WEST SOUTH
+    if(neighb[_WEST_S_]== _NO_NEIGHBOUR_) {
+        iter_halo[_WEST_S_][_INIX_] =   0;
+        iter_halo[_WEST_S_][_ENDX_] =   0;
+        iter_halo[_WEST_S_][_INIY_] =   0;
+        iter_halo[_WEST_S_][_ENDY_] =   0;
+        iter_halo[_WEST_S_][_INIZ_] =   1;
+        iter_halo[_WEST_S_][_ENDZ_] = lNz-2;
+    }
+
+    //WEST NORTH
+    if(neighb[_WEST_N_]== _NO_NEIGHBOUR_) {
+        iter_halo[_WEST_N_][_INIX_] =   0;
+        iter_halo[_WEST_N_][_ENDX_] =   0;
+        iter_halo[_WEST_N_][_INIY_] = lNy-1;
+        iter_halo[_WEST_N_][_ENDY_] = lNy-1;
+        iter_halo[_WEST_N_][_INIZ_] =   1;
+        iter_halo[_WEST_N_][_ENDZ_] = lNz-2;
+    }
+
+    //WEST BACK
+    if(neighb[_WEST_B_]== _NO_NEIGHBOUR_) {
+        iter_halo[_WEST_B_][_INIX_] =   0;
+        iter_halo[_WEST_B_][_ENDX_] =   0;
+        iter_halo[_WEST_B_][_INIY_] =   1;
+        iter_halo[_WEST_B_][_ENDY_] = lNy-2;
+        iter_halo[_WEST_B_][_INIZ_] =   0;
+        iter_halo[_WEST_B_][_ENDZ_] =   0;
+    }
+
+    //WEST FRONT
+    if(neighb[_WEST_F_]== _NO_NEIGHBOUR_) {
+        iter_halo[_WEST_F_][_INIX_] =   0;
+        iter_halo[_WEST_F_][_ENDX_] =   0;
+        iter_halo[_WEST_F_][_INIY_] =   1;
+        iter_halo[_WEST_F_][_ENDY_] = lNy-2;
+        iter_halo[_WEST_F_][_INIZ_] = lNz-1;
+        iter_halo[_WEST_F_][_ENDZ_] = lNz-1;
+    }
+
+
+    //EAST SOUTH
+    if(neighb[_EAST_S_]== _NO_NEIGHBOUR_) {
+        iter_halo[_EAST_S_][_INIX_] = lNx-1;
+        iter_halo[_EAST_S_][_ENDX_] = lNx-1;
+        iter_halo[_EAST_S_][_INIY_] =   0;
+        iter_halo[_EAST_S_][_ENDY_] =   0;
+        iter_halo[_EAST_S_][_INIZ_] =   1;
+        iter_halo[_EAST_S_][_ENDZ_] = lNz-2;
+    }
+
+    //EAST NORTH
+    if(neighb[_EAST_N_]== _NO_NEIGHBOUR_) {
+        iter_halo[_EAST_N_][_INIX_] = lNx-1;
+        iter_halo[_EAST_N_][_ENDX_] = lNx-1;
+        iter_halo[_EAST_N_][_INIY_] = lNy-1;
+        iter_halo[_EAST_N_][_ENDY_] = lNy-1;
+        iter_halo[_EAST_N_][_INIZ_] =   1;
+        iter_halo[_EAST_N_][_ENDZ_] = lNz-2;
+    }
+
+    //EAST BACK
+    if(neighb[_EAST_B_]== _NO_NEIGHBOUR_) {
+        iter_halo[_EAST_B_][_INIX_] = lNx-1;
+        iter_halo[_EAST_B_][_ENDX_] = lNx-1;
+        iter_halo[_EAST_B_][_INIY_] =   1;
+        iter_halo[_EAST_B_][_ENDY_] = lNy-2;
+        iter_halo[_EAST_B_][_INIZ_] =   0;
+        iter_halo[_EAST_B_][_ENDZ_] =   0;
+    }
+
+    //EAST FRONT
+    if(neighb[_EAST_F_]== _NO_NEIGHBOUR_) {
+        iter_halo[_EAST_F_][_INIX_] = lNx-1;
+        iter_halo[_EAST_F_][_ENDX_] = lNx-1;
+        iter_halo[_EAST_F_][_INIY_] =   1;
+        iter_halo[_EAST_F_][_ENDY_] = lNy-2;
+        iter_halo[_EAST_F_][_INIZ_] = lNz-1;
+        iter_halo[_EAST_F_][_ENDZ_] = lNz-1;
+    }
+
+    //SOUTH BACK
+    if(neighb[_SOUTH_B_]== _NO_NEIGHBOUR_) {
+        iter_halo[_SOUTH_B_][_INIX_] =   1;
+        iter_halo[_SOUTH_B_][_ENDX_] = lNx-2;
+        iter_halo[_SOUTH_B_][_INIY_] =   0;
+        iter_halo[_SOUTH_B_][_ENDY_] =   0;
+        iter_halo[_SOUTH_B_][_INIZ_] =   0;
+        iter_halo[_SOUTH_B_][_ENDZ_] =   0;
+    }
+
+    //SOUTH FRONT
+    if(neighb[_SOUTH_F_]== _NO_NEIGHBOUR_) {
+        iter_halo[_SOUTH_F_][_INIX_] =   1;
+        iter_halo[_SOUTH_F_][_ENDX_] = lNx-2;
+        iter_halo[_SOUTH_F_][_INIY_] =   0;
+        iter_halo[_SOUTH_F_][_ENDY_] =   0;
+        iter_halo[_SOUTH_F_][_INIZ_] = lNz-1;
+        iter_halo[_SOUTH_F_][_ENDZ_] = lNz-1;
+    }
+
+
+    //NORTH BACK
+    if(neighb[_NORTH_B_]== _NO_NEIGHBOUR_) {
+        iter_halo[_NORTH_B_][_INIX_] =   1;
+        iter_halo[_NORTH_B_][_ENDX_] = lNx-2;
+        iter_halo[_NORTH_B_][_INIY_] = lNy-1;
+        iter_halo[_NORTH_B_][_ENDY_] = lNy-1;
+        iter_halo[_NORTH_B_][_INIZ_] =   0;
+        iter_halo[_NORTH_B_][_ENDZ_] =   0;
+    }
+
+    //NORTH FRONT
+    if(neighb[_NORTH_F_]== _NO_NEIGHBOUR_) {
+        iter_halo[_NORTH_F_][_INIX_] =   1;
+        iter_halo[_NORTH_F_][_ENDX_] = lNx-2;
+        iter_halo[_NORTH_F_][_INIY_] = lNy-1;
+        iter_halo[_NORTH_F_][_ENDY_] = lNy-1;
+        iter_halo[_NORTH_F_][_INIZ_] = lNz-1;
+        iter_halo[_NORTH_F_][_ENDZ_] = lNz-1;
+    }
+
+// 3er Level (corners)
+
+    //WEST SOUTH BACK
+    if(neighb[_WEST_S_B_]== _NO_NEIGHBOUR_) {
+        iter_halo[_WEST_S_B_][_INIX_] =   0;
+        iter_halo[_WEST_S_B_][_ENDX_] =   0;
+        iter_halo[_WEST_S_B_][_INIY_] =   0;
+        iter_halo[_WEST_S_B_][_ENDY_] =   0;
+        iter_halo[_WEST_S_B_][_INIZ_] =   0;
+        iter_halo[_WEST_S_B_][_ENDZ_] =   0;
+    }
+
+    //WEST NORTH BACK
+    if(neighb[_WEST_N_B_]== _NO_NEIGHBOUR_) {
+        iter_halo[_WEST_N_B_][_INIX_] =   0;
+        iter_halo[_WEST_N_B_][_ENDX_] =   0;
+        iter_halo[_WEST_N_B_][_INIY_] = lNy-1;
+        iter_halo[_WEST_N_B_][_ENDY_] = lNy-1;
+        iter_halo[_WEST_N_B_][_INIZ_] =   0;
+        iter_halo[_WEST_N_B_][_ENDZ_] =   0;
+    }
+
+    //WEST SOUTH FRONT
+    if(neighb[_WEST_S_F_]== _NO_NEIGHBOUR_) {
+        iter_halo[_WEST_S_F_][_INIX_] =   0;
+        iter_halo[_WEST_S_F_][_ENDX_] =   0;
+        iter_halo[_WEST_S_F_][_INIY_] =   0;
+        iter_halo[_WEST_S_F_][_ENDY_] =   0;
+        iter_halo[_WEST_S_F_][_INIZ_] = lNz-1;
+        iter_halo[_WEST_S_F_][_ENDZ_] = lNz-1;
+    }
+
+    //WEST NORTH FRONT
+    if(neighb[_WEST_N_F_]== _NO_NEIGHBOUR_) {
+        iter_halo[_WEST_N_F_][_INIX_] =   0;
+        iter_halo[_WEST_N_F_][_ENDX_] =   0;
+        iter_halo[_WEST_N_F_][_INIY_] = lNy-1;
+        iter_halo[_WEST_N_F_][_ENDY_] = lNy-1;
+        iter_halo[_WEST_N_F_][_INIZ_] = lNz-1;
+        iter_halo[_WEST_N_F_][_ENDZ_] = lNz-1;
+    }
+
+ 
+    //EAST SOUTH BACK
+    if(neighb[_EAST_S_B_]== _NO_NEIGHBOUR_) {
+        iter_halo[_EAST_S_B_][_INIX_] = lNx-1;
+        iter_halo[_EAST_S_B_][_ENDX_] = lNx-1;
+        iter_halo[_EAST_S_B_][_INIY_] =   0;
+        iter_halo[_EAST_S_B_][_ENDY_] =   0;
+        iter_halo[_EAST_S_B_][_INIZ_] =   0;
+        iter_halo[_EAST_S_B_][_ENDZ_] =   0;
+    }
+
+    //EAST NORTH BACK
+    if(neighb[_EAST_N_B_]== _NO_NEIGHBOUR_) {
+        iter_halo[_EAST_N_B_][_INIX_] = lNx-1;
+        iter_halo[_EAST_N_B_][_ENDX_] = lNx-1;
+        iter_halo[_EAST_N_B_][_INIY_] = lNy-1;
+        iter_halo[_EAST_N_B_][_ENDY_] = lNy-1;
+        iter_halo[_EAST_N_B_][_INIZ_] =   0;
+        iter_halo[_EAST_N_B_][_ENDZ_] =   0;
+    }
+
+
+    //EAST SOUTH FRONT
+    if(neighb[_EAST_S_F_]== _NO_NEIGHBOUR_) {
+        iter_halo[_EAST_S_F_][_INIX_] = lNx-1;
+        iter_halo[_EAST_S_F_][_ENDX_] = lNx-1;
+        iter_halo[_EAST_S_F_][_INIY_] =   0;
+        iter_halo[_EAST_S_F_][_ENDY_] =   0;
+        iter_halo[_EAST_S_F_][_INIZ_] = lNz-1;
+        iter_halo[_EAST_S_F_][_ENDZ_] = lNz-1;
+    }
+
+    //EAST NORTH FRONT
+    if(neighb[_EAST_N_]== _NO_NEIGHBOUR_) {
+        iter_halo[_EAST_N_F_][_INIX_] = lNx-1;
+        iter_halo[_EAST_N_F_][_ENDX_] = lNx-1;
+        iter_halo[_EAST_N_F_][_INIY_] = lNy-1;
+        iter_halo[_EAST_N_F_][_ENDY_] = lNy-1;
+        iter_halo[_EAST_N_F_][_INIZ_] = lNz-1;
+        iter_halo[_EAST_N_F_][_ENDZ_] = lNz-1;
     }
 
 }
