@@ -93,6 +93,12 @@ class comm_scheme{
         int len_xz;
         int len_yz;
 
+        int len_1Dx;
+        int len_1Dy;
+        int len_1Dz;
+
+        int len_1pt;
+
         double *pack_send_w;
         double *pack_send_e;
         double *pack_send_s;
@@ -100,12 +106,63 @@ class comm_scheme{
         double *pack_send_b;
         double *pack_send_f;
 
+        double *pack_send_ws;
+        double *pack_send_wn;
+        double *pack_send_wb;
+        double *pack_send_wf;
+
+        double *pack_send_es;
+        double *pack_send_en;
+        double *pack_send_eb;
+        double *pack_send_ef;
+
+        double *pack_send_sb;
+        double *pack_send_sf;
+        double *pack_send_nb;
+        double *pack_send_nf;
+
+        double *pack_send_wsb;
+        double *pack_send_wnb;
+        double *pack_send_wsf;
+        double *pack_send_wnf;
+
+        double *pack_send_esb;
+        double *pack_send_enb;
+        double *pack_send_esf;
+        double *pack_send_enf;
+
         double *pack_recv_w;
         double *pack_recv_e;
         double *pack_recv_s;
         double *pack_recv_n;
         double *pack_recv_b;
         double *pack_recv_f;
+
+        double *pack_recv_ws;
+        double *pack_recv_wn;
+        double *pack_recv_wb;
+        double *pack_recv_wf;
+
+        double *pack_recv_es;
+        double *pack_recv_en;
+        double *pack_recv_eb;
+        double *pack_recv_ef;
+
+        double *pack_recv_sb;
+        double *pack_recv_sf;
+        double *pack_recv_nb;
+        double *pack_recv_nf;
+
+        double *pack_recv_wsb;
+        double *pack_recv_wnb;
+        double *pack_recv_wsf;
+        double *pack_recv_wnf;
+
+        double *pack_recv_esb;
+        double *pack_recv_enb;
+        double *pack_recv_esf;
+        double *pack_recv_enf;
+
 
 
         void create_common_iters();
@@ -122,7 +179,9 @@ class comm_scheme{
         void create_complex_halo_iters();
         void create_complex_toRecv_iters();
         void create_complex_toSend_iters();
- 
+        void create_complex_comm_arrays();
+
+
         void pack(double*);
         void halo_exchange();
         void unpack(double*);
