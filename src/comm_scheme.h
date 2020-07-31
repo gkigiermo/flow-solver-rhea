@@ -184,6 +184,7 @@ class comm_scheme{
         void pack(double*);
         void pack_simple(double*);
         void halo_exchange();
+        void halo_exchange_simple();
         void unpack(double*);
         void unpack_simple(double*);
 
