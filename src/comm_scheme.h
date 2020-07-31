@@ -181,10 +181,12 @@ class comm_scheme{
         void create_complex_toSend_iters();
         void create_complex_comm_arrays();
 
-
         void pack(double*);
+        void pack_simple(double*);
         void halo_exchange();
         void unpack(double*);
+        void unpack_simple(double*);
+
 
 };
 
