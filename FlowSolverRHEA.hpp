@@ -152,9 +152,9 @@ class FlowSolverRHEA {
         string output_data_file;				/// Output data file (HDF5 format)	
 
         /// Computational parameters
-        double num_grid_x;					/// Number of inner grid points in x-direction
-        double num_grid_y;					/// Number of inner grid points in y-direction
-        double num_grid_z;					/// Number of inner grid points in z-direction
+        int num_grid_x;						/// Number of inner grid points in x-direction
+        int num_grid_y;						/// Number of inner grid points in y-direction
+        int num_grid_z;						/// Number of inner grid points in z-direction
         double CFL;						/// CFL coefficient
         double delta_t;		      				/// Time step [s]
         int current_time_iter;					/// Current time iteration
@@ -171,11 +171,11 @@ class FlowSolverRHEA {
 
         /// Boundary conditions
         int bocos_type[6];					/// Array of boundary conditions type
-        int bocos_u[6];						/// Array of boundary conditions u
-        int bocos_v[6];						/// Array of boundary conditions v
-        int bocos_w[6];						/// Array of boundary conditions w
-        int bocos_P[6];						/// Array of boundary conditions P
-        int bocos_T[6];						/// Array of boundary conditions T
+        double bocos_u[6];					/// Array of boundary conditions u
+        double bocos_v[6];					/// Array of boundary conditions v
+        double bocos_w[6];					/// Array of boundary conditions w
+        double bocos_P[6];					/// Array of boundary conditions P
+        double bocos_T[6];					/// Array of boundary conditions T
 
         /// Parallelization scheme
         int np_x;						/// Number of processes in x-direction

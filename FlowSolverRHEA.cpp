@@ -111,81 +111,80 @@ void FlowSolverRHEA::readConfigurationFile() {
 
     /// Create YAML object
     YAML::Node configuration = YAML::LoadFile(configuration_file);
-    //cout << configuration << endl;
 
     /// Fluid properties
     const YAML::Node & fluid_properties = configuration["fluid_properties"];
-    R_specific = fluid_properties["R_specific"];
-    gamma      = fluid_properties["gamma"];
-    mu         = fluid_properties["mu"];
-    kappa      = fluid_properties["kappa"];
+    R_specific = fluid_properties["R_specific"].as<double>();
+    gamma      = fluid_properties["gamma"].as<double>();
+    mu         = fluid_properties["mu"].as<double>();
+    kappa      = fluid_properties["kappa"].as<double>();
 
     /// Problem parameters
     const YAML::Node & problem_parameters = configuration["problem_parameters"];
-    x_0              = problem_parameters["x_0"];
-    y_0              = problem_parameters["y_0"];
-    z_0              = problem_parameters["z_0"];
-    L_x              = problem_parameters["L_x"];
-    L_y              = problem_parameters["L_y"];
-    L_z              = problem_parameters["L_z"];
-    current_time     = problem_parameters["current_time"];
-    final_time       = problem_parameters["final_time"];
-    output_data_file = problem_parameters["output_data_file"];
+    x_0              = problem_parameters["x_0"].as<double>();
+    y_0              = problem_parameters["y_0"].as<double>();
+    z_0              = problem_parameters["z_0"].as<double>();
+    L_x              = problem_parameters["L_x"].as<double>();
+    L_y              = problem_parameters["L_y"].as<double>();
+    L_z              = problem_parameters["L_z"].as<double>();
+    current_time     = problem_parameters["current_time"].as<double>();
+    final_time       = problem_parameters["final_time"].as<double>();
+    output_data_file = problem_parameters["output_data_file"].as<string>();
 
     /// Computational parameters
     const YAML::Node & computational_parameters = configuration["computational_parameters"];
-    num_grid_x        = computational_parameters["num_grid_x"];
-    num_grid_y        = computational_parameters["num_grid_y"];
-    num_grid_z        = computational_parameters["num_grid_z"];
-    CFL               = computational_parameters["CFL"];
-    current_time_iter = computational_parameters["current_time_iter"];
-    final_time_iter   = computational_parameters["final_time_iter"];
-    output_iter       = computational_parameters["output_iter"];
+    num_grid_x        = computational_parameters["num_grid_x"].as<int>();
+    num_grid_y        = computational_parameters["num_grid_y"].as<int>();
+    num_grid_z        = computational_parameters["num_grid_z"].as<int>();
+    CFL               = computational_parameters["CFL"].as<double>();
+    current_time_iter = computational_parameters["current_time_iter"].as<int>();
+    final_time_iter   = computational_parameters["final_time_iter"].as<int>();
+    output_iter       = computational_parameters["output_iter"].as<int>();
 
     /// Boundary conditions
     const YAML::Node & boundary_conditons = configuration["boundary_conditons"];
-    bocos_type[_WEST_]  = boundary_conditons["west_bc_type"];
-    bocos_type[_EAST_]  = boundary_conditons["east_bc_type"];
-    bocos_type[_SOUTH_] = boundary_conditons["south_bc_type"];
-    bocos_type[_NORTH_] = boundary_conditons["north_bc_type"];
-    bocos_type[_BACK_]  = boundary_conditons["back_bc_type"];
-    bocos_type[_FRONT_] = boundary_conditons["front_bc_type"];
-    bocos_u[_WEST_]     = boundary_conditons["west_bc_u"];
-    bocos_u[_EAST_]     = boundary_conditons["east_bc_u"];
-    bocos_u[_SOUTH_]    = boundary_conditons["south_bc_u"];
-    bocos_u[_NORTH_]    = boundary_conditons["north_bc_u"];
-    bocos_u[_BACK_]     = boundary_conditons["back_bc_u"];
-    bocos_u[_FRONT_]    = boundary_conditons["front_bc_u"];
-    bocos_v[_WEST_]     = boundary_conditons["west_bc_v"];
-    bocos_v[_EAST_]     = boundary_conditons["east_bc_v"];
-    bocos_v[_SOUTH_]    = boundary_conditons["south_bc_v"];
-    bocos_v[_NORTH_]    = boundary_conditons["north_bc_v"];
-    bocos_v[_BACK_]     = boundary_conditons["back_bc_v"];
-    bocos_v[_FRONT_]    = boundary_conditons["front_bc_v"];
-    bocos_w[_WEST_]     = boundary_conditons["west_bc_w"];
-    bocos_w[_EAST_]     = boundary_conditons["east_bc_w"];
-    bocos_w[_SOUTH_]    = boundary_conditons["south_bc_w"];
-    bocos_w[_NORTH_]    = boundary_conditons["north_bc_w"];
-    bocos_w[_BACK_]     = boundary_conditons["back_bc_w"];
-    bocos_w[_FRONT_]    = boundary_conditons["front_bc_w"];
-    bocos_P[_WEST_]     = boundary_conditons["west_bc_P"];
-    bocos_P[_EAST_]     = boundary_conditons["east_bc_P"];
-    bocos_P[_SOUTH_]    = boundary_conditons["south_bc_P"];
-    bocos_P[_NORTH_]    = boundary_conditons["north_bc_P"];
-    bocos_P[_BACK_]     = boundary_conditons["back_bc_P"];
-    bocos_P[_FRONT_]    = boundary_conditons["front_bc_P"];
-    bocos_T[_WEST_]     = boundary_conditons["west_bc_T"];
-    bocos_T[_EAST_]     = boundary_conditons["east_bc_T"];
-    bocos_T[_SOUTH_]    = boundary_conditons["south_bc_T"];
-    bocos_T[_NORTH_]    = boundary_conditons["north_bc_T"];
-    bocos_T[_BACK_]     = boundary_conditons["back_bc_T"];
-    bocos_T[_FRONT_]    = boundary_conditons["front_bc_T"];
+    bocos_type[_WEST_]  = boundary_conditons["west_bc_type"].as<int>();
+    bocos_type[_EAST_]  = boundary_conditons["east_bc_type"].as<int>();
+    bocos_type[_SOUTH_] = boundary_conditons["south_bc_type"].as<int>();
+    bocos_type[_NORTH_] = boundary_conditons["north_bc_type"].as<int>();
+    bocos_type[_BACK_]  = boundary_conditons["back_bc_type"].as<int>();
+    bocos_type[_FRONT_] = boundary_conditons["front_bc_type"].as<int>();
+    bocos_u[_WEST_]     = boundary_conditons["west_bc_u"].as<double>();
+    bocos_u[_EAST_]     = boundary_conditons["east_bc_u"].as<double>();
+    bocos_u[_SOUTH_]    = boundary_conditons["south_bc_u"].as<double>();
+    bocos_u[_NORTH_]    = boundary_conditons["north_bc_u"].as<double>();
+    bocos_u[_BACK_]     = boundary_conditons["back_bc_u"].as<double>();
+    bocos_u[_FRONT_]    = boundary_conditons["front_bc_u"].as<double>();
+    bocos_v[_WEST_]     = boundary_conditons["west_bc_v"].as<double>();
+    bocos_v[_EAST_]     = boundary_conditons["east_bc_v"].as<double>();
+    bocos_v[_SOUTH_]    = boundary_conditons["south_bc_v"].as<double>();
+    bocos_v[_NORTH_]    = boundary_conditons["north_bc_v"].as<double>();
+    bocos_v[_BACK_]     = boundary_conditons["back_bc_v"].as<double>();
+    bocos_v[_FRONT_]    = boundary_conditons["front_bc_v"].as<double>();
+    bocos_w[_WEST_]     = boundary_conditons["west_bc_w"].as<double>();
+    bocos_w[_EAST_]     = boundary_conditons["east_bc_w"].as<double>();
+    bocos_w[_SOUTH_]    = boundary_conditons["south_bc_w"].as<double>();
+    bocos_w[_NORTH_]    = boundary_conditons["north_bc_w"].as<double>();
+    bocos_w[_BACK_]     = boundary_conditons["back_bc_w"].as<double>();
+    bocos_w[_FRONT_]    = boundary_conditons["front_bc_w"].as<double>();
+    bocos_P[_WEST_]     = boundary_conditons["west_bc_P"].as<double>();
+    bocos_P[_EAST_]     = boundary_conditons["east_bc_P"].as<double>();
+    bocos_P[_SOUTH_]    = boundary_conditons["south_bc_P"].as<double>();
+    bocos_P[_NORTH_]    = boundary_conditons["north_bc_P"].as<double>();
+    bocos_P[_BACK_]     = boundary_conditons["back_bc_P"].as<double>();
+    bocos_P[_FRONT_]    = boundary_conditons["front_bc_P"].as<double>();
+    bocos_T[_WEST_]     = boundary_conditons["west_bc_T"].as<double>();
+    bocos_T[_EAST_]     = boundary_conditons["east_bc_T"].as<double>();
+    bocos_T[_SOUTH_]    = boundary_conditons["south_bc_T"].as<double>();
+    bocos_T[_NORTH_]    = boundary_conditons["north_bc_T"].as<double>();
+    bocos_T[_BACK_]     = boundary_conditons["back_bc_T"].as<double>();
+    bocos_T[_FRONT_]    = boundary_conditons["front_bc_T"].as<double>();
 
     /// Parallelization scheme
     const YAML::Node & parallelization_scheme = configuration["parallelization_scheme"];
-    np_x = parallelization_scheme["np_x"];
-    np_y = parallelization_scheme["np_y"];
-    np_z = parallelization_scheme["np_z"];
+    np_x = parallelization_scheme["np_x"].as<int>();
+    np_y = parallelization_scheme["np_y"].as<int>();
+    np_z = parallelization_scheme["np_z"].as<int>();
 
 };
 
