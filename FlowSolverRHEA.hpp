@@ -164,7 +164,12 @@ class FlowSolverRHEA {
         int _lNz_;
 
         /// Boundary conditions
-        int bocos[6];						/// Array of boundary conditions
+        int bocos_type[6];					/// Array of boundary conditions type
+        int bocos_u[6];						/// Array of boundary conditions u
+        int bocos_v[6];						/// Array of boundary conditions v
+        int bocos_w[6];						/// Array of boundary conditions w
+        int bocos_P[6];						/// Array of boundary conditions P
+        int bocos_T[6];						/// Array of boundary conditions T
 
         /// Parallelization scheme
         int np_x;						/// Number of processes in x-direction
