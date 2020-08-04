@@ -1,14 +1,11 @@
 RHEA DEVELOPMENT AGENDA:
 
-- Add communicating scheme for full cell stencil (26 neighbors) --> Willy 2/8/2020
-- Implement automatic updating of edge (1/2) and corner (1/3) boundary points --> Willy 2/8/2020
-- Implement first complete version of flow physics/numerical method --> Lluis 2/8/2020
+- Implement/develop configuration (input) file using yaml -> Lluis
+- Implement/develop data output strategy (hdf5) -> Willy
 
 - ...
 
-- Implement/develop solver state communication (cout & file)
 - Implement/develop configuration (input) file using yaml
-- Implement/develop boundary conditions
 - Implement/develop data output strategy (hdf5)
 - Implement/develop re-initialization strategy (hdf5)
 - Improve code implementation in all files

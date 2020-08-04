@@ -8,6 +8,7 @@
 #include <string>
 #include <limits>
 #include <mpi.h>
+#include "yaml-cpp/yaml.h"
 #include "src/parameters.h"
 #include "src/domain.h"
 #include "src/comm_scheme.h"
@@ -76,6 +77,9 @@ class FlowSolverRHEA {
         inline void setCurrentRungeKuttaStep(int rk_step_) { rk_step = rk_step_; };
 
 	////////// SOLVER METHODS //////////
+
+        /// Read configuration (input) file written in YAML language
+        void readConfigurationFile();
 
         /// Set initial conditions: u, v, w, P and T ... needs to be modified/overwritten according to the problem under consideration
         void setInitialConditions();
@@ -158,7 +162,9 @@ class FlowSolverRHEA {
         int output_iter;					/// Output data every given number of iterations
         int rk_step;						/// Current Runge-Kutta step: 1, 2, 3
         int rk_order;						/// Order of Runge-Kutta method (fixed)
+
         // The lines below are temporary ... will need to be removed!
+        int _DEBUG_;
         int _lNx_;
         int _lNy_;
         int _lNz_;
