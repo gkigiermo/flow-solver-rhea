@@ -34,6 +34,12 @@ void parvec::update()
     mydomain->update(vector);
 }
 
+void parvec::update_simple()
+{
+    mydomain->update_simple(vector);
+}
+
+
 double& parvec::operator[](int idx)
 {
     return vector[idx];

@@ -12,6 +12,7 @@ class parvec{
         parvec(){};
         parvec(comm_scheme*);
         void update();
+        void update_simple();
         double& operator[](int);
         void operator= (double);
 

@@ -218,6 +218,7 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
     create_complex_halo_iters();
     create_complex_toRecv_iters();
     create_complex_toSend_iters();
+    create_complex_comm_arrays();
 }
 
 void comm_scheme::exchange_2nd_level_neighbour_info()
@@ -1921,6 +1922,13 @@ void comm_scheme::update(double *vec)
     pack(vec);
     halo_exchange();
     unpack(vec);
+}
+
+void comm_scheme::update_simple(double *vec)
+{
+    pack_simple(vec);
+    halo_exchange_simple();
+    unpack_simple(vec);
 }
 
 
