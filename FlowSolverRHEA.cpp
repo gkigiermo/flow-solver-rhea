@@ -22,43 +22,73 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     const double rho_ref = 1.0;					// Reference density [kg/m3]
     const double P_ref   = 101325.0;				// Reference pressure [Pa]
 
-    R_specific        = 287.058;
-    gamma             = 1.4;
-    mu                = rho_ref*u_tau*delta/Re_tau;
-    kappa             = 0.0;
-    x_0               = 0.0;
-    y_0               = 0.0;
-    z_0               = 0.0;
-    L_x               = 4.0*Pi*delta;
-    L_y               = 2.0*delta;
-    L_z               = 4.0*Pi*delta/3.0;
-    current_time      = 0.0;
-    final_time        = 1.0e3;
-    output_data_file  = "output_state_data.csv";
-    num_grid_x        = 64;
-    num_grid_y        = 64;
-    num_grid_z        = 64;
-    CFL               = 0.9;
-    current_time_iter = 0;
-    final_time_iter   = 1e6;
-    output_iter       = 1e2;
-    rk_order          = 3;
-    bocos[_WEST_]     = _PERIODIC_;
-    bocos[_EAST_]     = _PERIODIC_;
-    bocos[_SOUTH_]    = _PERIODIC_;
-    bocos[_NORTH_]    = _PERIODIC_;
-    bocos[_BACK_]     = _PERIODIC_;
-    bocos[_FRONT_]    = _PERIODIC_;
-    np_x              = 2;
-    np_y              = 1;
-    np_z              = 1;
+    R_specific          = 287.058;
+    gamma               = 1.4;
+    mu                  = rho_ref*u_tau*delta/Re_tau;
+    kappa               = 0.0;
+    x_0                 = 0.0;
+    y_0                 = 0.0;
+    z_0                 = 0.0;
+    L_x                 = 4.0*Pi*delta;
+    L_y                 = 2.0*delta;
+    L_z                 = 4.0*Pi*delta/3.0;
+    current_time        = 0.0;
+    final_time          = 1.0e3;
+    output_data_file    = "output_state_data.csv";
+    num_grid_x          = 64;
+    num_grid_y          = 64;
+    num_grid_z          = 64;
+    CFL                 = 0.9;
+    current_time_iter   = 0;
+    final_time_iter     = 1e6;
+    output_iter         = 1e2;
+    rk_order            = 3;
+    bocos_type[_WEST_]  = _PERIODIC_;
+    bocos_type[_EAST_]  = _PERIODIC_;
+    bocos_type[_SOUTH_] = _PERIODIC_;
+    bocos_type[_NORTH_] = _PERIODIC_;
+    bocos_type[_BACK_]  = _PERIODIC_;
+    bocos_type[_FRONT_] = _PERIODIC_;
+    bocos_u[_WEST_]     = 0.0;
+    bocos_u[_EAST_]     = 0.0;
+    bocos_u[_SOUTH_]    = 0.0;
+    bocos_u[_NORTH_]    = 0.0;
+    bocos_u[_BACK_]     = 0.0;
+    bocos_u[_FRONT_]    = 0.0;
+    bocos_v[_WEST_]     = 0.0;
+    bocos_v[_EAST_]     = 0.0;
+    bocos_v[_SOUTH_]    = 0.0;
+    bocos_v[_NORTH_]    = 0.0;
+    bocos_v[_BACK_]     = 0.0;
+    bocos_v[_FRONT_]    = 0.0;
+    bocos_w[_WEST_]     = 0.0;
+    bocos_w[_EAST_]     = 0.0;
+    bocos_w[_SOUTH_]    = 0.0;
+    bocos_w[_NORTH_]    = 0.0;
+    bocos_w[_BACK_]     = 0.0;
+    bocos_w[_FRONT_]    = 0.0;
+    bocos_P[_WEST_]     = 0.0;
+    bocos_P[_EAST_]     = 0.0;
+    bocos_P[_SOUTH_]    = 0.0;
+    bocos_P[_NORTH_]    = 0.0;
+    bocos_P[_BACK_]     = 0.0;
+    bocos_P[_FRONT_]    = 0.0;
+    bocos_T[_WEST_]     = 0.0;
+    bocos_T[_EAST_]     = 0.0;
+    bocos_T[_SOUTH_]    = 0.0;
+    bocos_T[_NORTH_]    = 0.0;
+    bocos_T[_BACK_]     = 0.0;
+    bocos_T[_FRONT_]    = 0.0;
+    np_x                = 2;
+    np_y                = 1;
+    np_z                = 1;
     // The lines above need to be introduced via configuration (input) file !!
 
     /// Construct (initialize) computational domain
     mesh = new domain(L_x, L_y, L_z, x_0, y_0, z_0, RHEA_NX, RHEA_NY, RHEA_NZ);
 
     /// Add boundary conditions to computational domain
-    mesh->updateBocos(bocos);
+    mesh->updateBocos(bocos_type);
 
     /// Construct (initialize) communication scheme
     topo = new comm_scheme(mesh, np_x, np_y, np_z);
@@ -134,7 +164,12 @@ FlowSolverRHEA::~FlowSolverRHEA() {
     /// Free mesh, topo and bocos
     if(mesh != NULL) free(mesh);	
     if(topo != NULL) free(topo);
-    free(bocos);	
+    free(bocos_type);	
+    free(bocos_u);	
+    free(bocos_v);	
+    free(bocos_w);	
+    free(bocos_P);	
+    free(bocos_T);	
 
 };
 
@@ -274,86 +309,180 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
 
 void FlowSolverRHEA::updateBoundaries() {
 
+    /// General form: w_g*phi_g + w_in*phi_in = phi_b
+    /// phi_g is ghost cell value
+    /// phi_in is inner cell value
+    /// phi_b is boundary value/flux
+    /// w_g is ghost cell weight
+    /// w_in is inner cell weight
+
+    /// Declare variables & weights
+    double rho_b, rhou_b, rhov_b, rhov_b, e_b, ke_b, rhoE_b, w_g, w_in;
+
     /// West boundary points: rho, rhou, rhov, rhow and rhoE
+    if( bocos_type[_WEST_] == _DIRICHLET_ ) {
+        w_g  = ( 1.0 )*( 1.0/2.0 );
+        w_in = ( 1.0 )*( 1.0/2.0 );
+    }
+    if( bocos_type[_WEST_] == _NEUMANN_ ) {
+        w_g  = (  1.0 )/( mesh->getGlobx[1] - mesh->getGlobx[0] );
+        w_in = ( -1.0 )/( mesh->getGlobx[1] - mesh->getGlobx[0] );
+    }
+    rho_b  = bocos_P[_WEST_]/( R_specific*bocos_T[_WEST_] + epsilon );
+    rhou_b = rho_b*bocos_u[_WEST_];
+    rhov_b = rho_b*bocos_v[_WEST_];
+    rhow_b = rho_b*bocos_w[_WEST_];
+    e_b    = bocos_P[_WEST_]/( rho_b*( gamma - 1.0 ) + epsilon );
+    ke_b   = 0.5*( pow( bocos_u[_WEST_], 2.0 ) + pow( bocos_v[_WEST_], 2.0 ) + pow( bocos_w[_WEST_], 2.0 ) );
+    rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_WEST_][_INIX_]; i <= topo->iter_bound[_WEST_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_WEST_][_INIY_]; j <= topo->iter_bound[_WEST_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_WEST_][_INIZ_]; k <= topo->iter_bound[_WEST_][_ENDZ_]; k++) {
-                // ... work in progress: implement different types of boundaries!
-                rho_field[I1D(i,j,k)]  = 0.0;
-                rhou_field[I1D(i,j,k)] = 0.0;
-                rhov_field[I1D(i,j,k)] = 0.0;
-                rhow_field[I1D(i,j,k)] = 0.0;
-                rhoE_field[I1D(i,j,k)] = 0.0;
+                rho_field[I1D(i,j,k)]  = ( rho_b - w_in*rho_field[I1D(i+1,j,k)] )/w_g;
+                rhou_field[I1D(i,j,k)] = ( rhou_b - w_in*rhou_field[I1D(i+1,j,k)] )/w_g;
+                rhov_field[I1D(i,j,k)] = ( rhov_b - w_in*rhov_field[I1D(i+1,j,k)] )/w_g;
+                rhow_field[I1D(i,j,k)] = ( rhow_b - w_in*rhow_field[I1D(i+1,j,k)] )/w_g;
+                rhoE_field[I1D(i,j,k)] = ( rhoE_b - w_in*rhoE_field[I1D(i+1,j,k)] )/w_g;
             }
         }
     }
 
     /// East boundary points: rho, rhou, rhov, rhow and rhoE
+    if( bocos_type[_EAST_] == _DIRICHLET_ ) {
+        w_g  = ( 1.0 )*( 1.0/2.0 );
+        w_in = ( 1.0 )*( 1.0/2.0 );
+    }
+    if( bocos_type[_EAST_] == _NEUMANN_ ) {
+        w_g  = (  1.0 )/( mesh->getGlobx[mesh->getGNx()+1] - mesh->getGlobx[mesh->getGNx()] );
+        w_in = ( -1.0 )/( mesh->getGlobx[mesh->getGNx()+1] - mesh->getGlobx[mesh->getGNx()] );
+    }
+    rho_b  = bocos_P[_EAST_]/( R_specific*bocos_T[_EAST_] + epsilon );
+    rhou_b = rho_b*bocos_u[_EAST_];
+    rhov_b = rho_b*bocos_v[_EAST_];
+    rhow_b = rho_b*bocos_w[_EAST_];
+    e_b    = bocos_P[_EAST_]/( rho_b*( gamma - 1.0 ) + epsilon );
+    ke_b   = 0.5*( pow( bocos_u[_EAST_], 2.0 ) + pow( bocos_v[_EAST_], 2.0 ) + pow( bocos_w[_EAST_], 2.0 ) );
+    rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_EAST_][_INIX_]; i <= topo->iter_bound[_EAST_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_EAST_][_INIY_]; j <= topo->iter_bound[_EAST_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_EAST_][_INIZ_]; k <= topo->iter_bound[_EAST_][_ENDZ_]; k++) {
-                // ... work in progress: implement different types of boundaries!
-                rho_field[I1D(i,j,k)]  = 0.0;
-                rhou_field[I1D(i,j,k)] = 0.0;
-                rhov_field[I1D(i,j,k)] = 0.0;
-                rhow_field[I1D(i,j,k)] = 0.0;
-                rhoE_field[I1D(i,j,k)] = 0.0;
+                rho_field[I1D(i,j,k)]  = ( rho_b - w_in*rho_field[I1D(i-1,j,k)] )/w_g;
+                rhou_field[I1D(i,j,k)] = ( rhou_b - w_in*rhou_field[I1D(i-1,j,k)] )/w_g;
+                rhov_field[I1D(i,j,k)] = ( rhov_b - w_in*rhov_field[I1D(i-1,j,k)] )/w_g;
+                rhow_field[I1D(i,j,k)] = ( rhow_b - w_in*rhow_field[I1D(i-1,j,k)] )/w_g;
+                rhoE_field[I1D(i,j,k)] = ( rhoE_b - w_in*rhoE_field[I1D(i-1,j,k)] )/w_g;
             }
         }
     }
 
     /// South boundary points: rho, rhou, rhov, rhow and rhoE
+    if( bocos_type[_SOUTH_] == _DIRICHLET_ ) {
+        w_g  = ( 1.0 )*( 1.0/2.0 );
+        w_in = ( 1.0 )*( 1.0/2.0 );
+    }
+    if( bocos_type[_SOUTH_] == _NEUMANN_ ) {
+        w_g  = (  1.0 )/( mesh->getGloby[1] - mesh->getGloby[0] );
+        w_in = ( -1.0 )/( mesh->getGloby[1] - mesh->getGloby[0] );
+    }
+    rho_b  = bocos_P[_SOUTH_]/( R_specific*bocos_T[_SOUTH_] + epsilon );
+    rhou_b = rho_b*bocos_u[_SOUTH_];
+    rhov_b = rho_b*bocos_v[_SOUTH_];
+    rhow_b = rho_b*bocos_w[_SOUTH_];
+    e_b    = bocos_P[_SOUTH_]/( rho_b*( gamma - 1.0 ) + epsilon );
+    ke_b   = 0.5*( pow( bocos_u[_SOUTH_], 2.0 ) + pow( bocos_v[_SOUTH_], 2.0 ) + pow( bocos_w[_SOUTH_], 2.0 ) );
+    rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_SOUTH_][_INIX_]; i <= topo->iter_bound[_SOUTH_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_SOUTH_][_INIY_]; j <= topo->iter_bound[_SOUTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_SOUTH_][_INIZ_]; k <= topo->iter_bound[_SOUTH_][_ENDZ_]; k++) {
-                // ... work in progress: implement different types of boundaries!
-                rho_field[I1D(i,j,k)]  = 0.0;
-                rhou_field[I1D(i,j,k)] = 0.0;
-                rhov_field[I1D(i,j,k)] = 0.0;
-                rhow_field[I1D(i,j,k)] = 0.0;
-                rhoE_field[I1D(i,j,k)] = 0.0;
+                rho_field[I1D(i,j,k)]  = ( rho_b - w_in*rho_field[I1D(i,j+1,k)] )/w_g;
+                rhou_field[I1D(i,j,k)] = ( rhou_b - w_in*rhou_field[I1D(i,j+1,k)] )/w_g;
+                rhov_field[I1D(i,j,k)] = ( rhov_b - w_in*rhov_field[I1D(i,j+1,k)] )/w_g;
+                rhow_field[I1D(i,j,k)] = ( rhow_b - w_in*rhow_field[I1D(i,j+1,k)] )/w_g;
+                rhoE_field[I1D(i,j,k)] = ( rhoE_b - w_in*rhoE_field[I1D(i,j+1,k)] )/w_g;
             }
         }
     }
 
     /// North boundary points: rho, rhou, rhov, rhow and rhoE
+    if( bocos_type[_NORTH_] == _DIRICHLET_ ) {
+        w_g  = ( 1.0 )*( 1.0/2.0 );
+        w_in = ( 1.0 )*( 1.0/2.0 );
+    }
+    if( bocos_type[_NORTH_] == _NEUMANN_ ) {
+        w_g  = (  1.0 )/( mesh->getGloby[mesh->getGNy()+1] - mesh->getGloby[mesh->getGNy()] );
+        w_in = ( -1.0 )/( mesh->getGloby[mesh->getGNy()+1] - mesh->getGloby[mesh->getGNy()] );
+    }
+    rho_b  = bocos_P[_NORTH_]/( R_specific*bocos_T[_NORTH_] + epsilon );
+    rhou_b = rho_b*bocos_u[_NORTH_];
+    rhov_b = rho_b*bocos_v[_NORTH_];
+    rhow_b = rho_b*bocos_w[_NORTH_];
+    e_b    = bocos_P[_NORTH_]/( rho_b*( gamma - 1.0 ) + epsilon );
+    ke_b   = 0.5*( pow( bocos_u[_NORTH_], 2.0 ) + pow( bocos_v[_NORTH_], 2.0 ) + pow( bocos_w[_NORTH_], 2.0 ) );
+    rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_NORTH_][_INIX_]; i <= topo->iter_bound[_NORTH_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_NORTH_][_INIY_]; j <= topo->iter_bound[_NORTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_NORTH_][_INIZ_]; k <= topo->iter_bound[_NORTH_][_ENDZ_]; k++) {
-                // ... work in progress: implement different types of boundaries!
-                rho_field[I1D(i,j,k)]  = 0.0;
-                rhou_field[I1D(i,j,k)] = 0.0;
-                rhov_field[I1D(i,j,k)] = 0.0;
-                rhow_field[I1D(i,j,k)] = 0.0;
-                rhoE_field[I1D(i,j,k)] = 0.0;
+                rho_field[I1D(i,j,k)]  = ( rho_b - w_in*rho_field[I1D(i,j-1,k)] )/w_g;
+                rhou_field[I1D(i,j,k)] = ( rhou_b - w_in*rhou_field[I1D(i,j-1,k)] )/w_g;
+                rhov_field[I1D(i,j,k)] = ( rhov_b - w_in*rhov_field[I1D(i,j-1,k)] )/w_g;
+                rhow_field[I1D(i,j,k)] = ( rhow_b - w_in*rhow_field[I1D(i,j-1,k)] )/w_g;
+                rhoE_field[I1D(i,j,k)] = ( rhoE_b - w_in*rhoE_field[I1D(i,j-1,k)] )/w_g;
             }
         }
     }
 
     /// Back boundary points: rho, rhou, rhov, rhow and rhoE
+    if( bocos_type[_BACK_] == _DIRICHLET_ ) {
+        w_g  = ( 1.0 )*( 1.0/2.0 );
+        w_in = ( 1.0 )*( 1.0/2.0 );
+    }
+    if( bocos_type[_BACK_] == _NEUMANN_ ) {
+        w_g  = (  1.0 )/( mesh->getGlobz[1] - mesh->getGlobz[0] );
+        w_in = ( -1.0 )/( mesh->getGlobz[1] - mesh->getGlobz[0] );
+    }
+    rho_b  = bocos_P[_BACK_]/( R_specific*bocos_T[_BACK_] + epsilon );
+    rhou_b = rho_b*bocos_u[_BACK_];
+    rhov_b = rho_b*bocos_v[_BACK_];
+    rhow_b = rho_b*bocos_w[_BACK_];
+    e_b    = bocos_P[_BACK_]/( rho_b*( gamma - 1.0 ) + epsilon );
+    ke_b   = 0.5*( pow( bocos_u[_BACK_], 2.0 ) + pow( bocos_v[_BACK_], 2.0 ) + pow( bocos_w[_BACK_], 2.0 ) );
+    rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_BACK_][_INIX_]; i <= topo->iter_bound[_BACK_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_BACK_][_INIY_]; j <= topo->iter_bound[_BACK_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_BACK_][_INIZ_]; k <= topo->iter_bound[_BACK_][_ENDZ_]; k++) {
-                // ... work in progress: implement different types of boundaries!
-                rho_field[I1D(i,j,k)]  = 0.0;
-                rhou_field[I1D(i,j,k)] = 0.0;
-                rhov_field[I1D(i,j,k)] = 0.0;
-                rhow_field[I1D(i,j,k)] = 0.0;
-                rhoE_field[I1D(i,j,k)] = 0.0;
+                rho_field[I1D(i,j,k)]  = ( rho_b - w_in*rho_field[I1D(i,j,k+1)] )/w_g;
+                rhou_field[I1D(i,j,k)] = ( rhou_b - w_in*rhou_field[I1D(i,j,k+1)] )/w_g;
+                rhov_field[I1D(i,j,k)] = ( rhov_b - w_in*rhov_field[I1D(i,j,k+1)] )/w_g;
+                rhow_field[I1D(i,j,k)] = ( rhow_b - w_in*rhow_field[I1D(i,j,k+1)] )/w_g;
+                rhoE_field[I1D(i,j,k)] = ( rhoE_b - w_in*rhoE_field[I1D(i,j,k+1)] )/w_g;
             }
         }
     }
 
     /// Front boundary points: rho, rhou, rhov, rhow and rhoE
+    if( bocos_type[_FRONT_] == _DIRICHLET_ ) {
+        w_g  = ( 1.0 )*( 1.0/2.0 );
+        w_in = ( 1.0 )*( 1.0/2.0 );
+    }
+    if( bocos_type[_FRONT_] == _NEUMANN_ ) {
+        w_g  = (  1.0 )/( mesh->getGlobz[mesh->getGNz()+1] - mesh->getGlobz[mesh->getGNz()] );
+        w_in = ( -1.0 )/( mesh->getGlobz[mesh->getGNz()+1] - mesh->getGlobz[mesh->getGNz()] );
+    }
+    rho_b  = bocos_P[_FRONT_]/( R_specific*bocos_T[_FRONT_] + epsilon );
+    rhou_b = rho_b*bocos_u[_FRONT_];
+    rhov_b = rho_b*bocos_v[_FRONT_];
+    rhow_b = rho_b*bocos_w[_FRONT_];
+    e_b    = bocos_P[_FRONT_]/( rho_b*( gamma - 1.0 ) + epsilon );
+    ke_b   = 0.5*( pow( bocos_u[_FRONT_], 2.0 ) + pow( bocos_v[_FRONT_], 2.0 ) + pow( bocos_w[_FRONT_], 2.0 ) );
+    rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_FRONT_][_INIX_]; i <= topo->iter_bound[_FRONT_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_FRONT_][_INIY_]; j <= topo->iter_bound[_FRONT_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_FRONT_][_INIZ_]; k <= topo->iter_bound[_FRONT_][_ENDZ_]; k++) {
-                // ... work in progress: implement different types of boundaries!
-                rho_field[I1D(i,j,k)]  = 0.0;
-                rhou_field[I1D(i,j,k)] = 0.0;
-                rhov_field[I1D(i,j,k)] = 0.0;
-                rhow_field[I1D(i,j,k)] = 0.0;
-                rhoE_field[I1D(i,j,k)] = 0.0;
+                rho_field[I1D(i,j,k)]  = ( rho_b - w_in*rho_field[I1D(i,j,k-1)] )/w_g;
+                rhou_field[I1D(i,j,k)] = ( rhou_b - w_in*rhou_field[I1D(i,j,k-1)] )/w_g;
+                rhov_field[I1D(i,j,k)] = ( rhov_b - w_in*rhov_field[I1D(i,j,k-1)] )/w_g;
+                rhow_field[I1D(i,j,k)] = ( rhow_b - w_in*rhow_field[I1D(i,j,k-1)] )/w_g;
+                rhoE_field[I1D(i,j,k)] = ( rhoE_b - w_in*rhoE_field[I1D(i,j,k-1)] )/w_g;
             }
         }
     }
