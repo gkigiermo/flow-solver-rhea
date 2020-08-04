@@ -17,6 +17,7 @@ class comm_scheme{
         void printCommScheme(int);
         void printCommSchemeToFile(int);
         void update(double*);
+        void update_simple(double*);
         int getNB(int id){return neighb[id];};
         int getSize(){return len;};
         int getlNx(){return lNx;};
