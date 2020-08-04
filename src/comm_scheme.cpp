@@ -76,6 +76,13 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
     for(int nb = 0 ; nb < 26 ; nb++)
         neighb[nb] = _NO_NEIGHBOUR_;
 
+    is_inix=0;
+    is_iniy=0;
+    is_iniz=0;
+    is_endx=0;
+    is_endy=0;
+    is_endz=0;
+
     int periodic_x;
     if(dom->getBoco(_WEST_) == _PERIODIC_)
         periodic_x = 1;
@@ -91,6 +98,7 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
         if( periodic_x == 1 ) {
             neighb[_WEST_] = rank + npx - 1;
         }
+        is_inix=1;
     }
     //EAST
     if(rank%npx != (npx - 1) ){
@@ -99,6 +107,7 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
     else{
         if( periodic_x == 1 ){
             neighb[_EAST_] = rank - npx + 1;
+            is_endx = 1;
         }
     }
 
@@ -118,6 +127,7 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
     else{
         if(periodic_y == 1) {
             neighb[_SOUTH_] = rank + (npy-1)*npx;
+            is_iniy = 1;
         }
     }
 
@@ -128,6 +138,7 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
     else{
         if(periodic_y == 1) {
             neighb[_NORTH_] = rank - (npy-1)*npx;
+            is_endy = 1;
         }
     }
 
@@ -151,6 +162,7 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
         if(periodic_z == 1 ){
             neighb[_BACK_] = rank + (npx*npy)*(npz-1);
             proc_z_start = 1;
+            is_iniz = 1;
         }
     }
 
@@ -162,6 +174,7 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
         if(periodic_z == 1){
             neighb[_FRONT_] = rank - (npx*npy)*(npz-1);
             proc_z_end = 1;
+            is_endz = 1;
         }
     }
 

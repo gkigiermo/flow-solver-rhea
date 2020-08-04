@@ -79,6 +79,12 @@ class comm_scheme{
 
 
         // 2nd level info
+        int is_inix;
+        int is_endx;
+        int is_iniy;
+        int is_endy;
+        int is_iniz;
+        int is_endz;
 
         int *info_2nd;
         int off_nb[6];
