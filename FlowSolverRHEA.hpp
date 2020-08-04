@@ -3,7 +3,7 @@
 
 ////////// INCLUDES //////////
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <limits>
@@ -153,11 +153,11 @@ class FlowSolverRHEA {
         double num_grid_z;					/// Number of inner grid points in z-direction
         double CFL;						/// CFL coefficient
         double delta_t;		      				/// Time step [s]
-        double current_time_iter;				/// Current time iteration
-        double final_time_iter;					/// Final time iteration
-        double output_iter;					/// Output data every given number of iterations
+        int current_time_iter;					/// Current time iteration
+        int final_time_iter;					/// Final time iteration
+        int output_iter;					/// Output data every given number of iterations
         int rk_step;						/// Current Runge-Kutta step: 1, 2, 3
-        const int rk_order = 3;					/// Order of Runge-Kutta method (fixed)
+        int rk_order;						/// Order of Runge-Kutta method (fixed)
         // The lines below are temporary ... will need to be removed!
         int _lNx_;
         int _lNy_;

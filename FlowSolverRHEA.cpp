@@ -42,6 +42,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     current_time_iter = 0;
     final_time_iter   = 1e6;
     output_iter       = 1e2;
+    rk_order          = 3;
     bocos[_WEST_]     = _PERIODIC_;
     bocos[_EAST_]     = _PERIODIC_;
     bocos[_SOUTH_]    = _PERIODIC_;
@@ -130,10 +131,10 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
 
 FlowSolverRHEA::~FlowSolverRHEA() {
 
-    /// Free bocos, mesh and topo
-    if(bocos != NULL) free(bocos);	
+    /// Free mesh, topo and bocos
     if(mesh != NULL) free(mesh);	
     if(topo != NULL) free(topo);
+    free(bocos);	
 
 };
 
@@ -356,8 +357,13 @@ void FlowSolverRHEA::updateBoundaries() {
             }
         }
     }
-                
-    // ... work in progress: add completion of edges (1/2) and corners (1/3)
+
+    /// Update halo values
+    rho_0_field.update();
+    rhou_0_field.update();
+    rhov_0_field.update();
+    rhow_0_field.update();
+    rhoE_0_field.update();
 
 };
 

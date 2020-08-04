@@ -14,5 +14,6 @@ RHEA DEVELOPMENT AGENDA:
 - Improve code implementation in all files
 - Homogenize nomenclature and notation
 - Homogenize and improve layout/aesthetics
+- Check that it compiles with different compilers
 - Verify numerics and parallelization with different number of processes (including 1)
 - ...
