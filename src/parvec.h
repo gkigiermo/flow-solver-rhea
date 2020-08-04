@@ -13,6 +13,7 @@ class parvec{
         parvec(comm_scheme*);
         void update();
         void update_simple();
+        void fillEdgeCornerBoundaries();
         double& operator[](int);
         void operator= (double);
 
