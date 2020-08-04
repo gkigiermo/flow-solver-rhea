@@ -325,84 +325,154 @@ void comm_scheme::find_extra_neighbours()
 
 // Lineal neighbours 
 
-    //WEST SOUTH 
+    //WEST SOUTH
+    neighb[_WEST_S_] = neighb[_WEST_]; 
     if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_SOUTH_] != _NO_NEIGHBOUR_)
-    {
+    {    
         neighb[_WEST_S_] =  info_2nd[ off_nb[_WEST_] + _SOUTH_ ]; 
     }
+    else if ( neighb[_SOUTH_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_WEST_S_] =  neighb[_SOUTH_]; 
+    } 
 
     //WEST NORTH 
+    neighb[_WEST_N_] = neighb[_WEST_]; 
     if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_NORTH_] != _NO_NEIGHBOUR_)
     {
         neighb[_WEST_N_] =  info_2nd[ off_nb[_WEST_] + _NORTH_ ]; 
     }
+    else if ( neighb[_NORTH_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_WEST_N_] =  neighb[_NORTH_]; 
+    } 
+
 
     //WEST BACK 
+    neighb[_WEST_B_] = neighb[_WEST_]; 
     if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR_)
     {
         neighb[_WEST_B_] =  info_2nd[ off_nb[_WEST_] + _BACK_ ]; 
     }
+    else if ( neighb[_BACK_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_WEST_B_] =  neighb[_BACK_]; 
+    } 
+
 
     //WEST FRONT 
+    neighb[_WEST_F_] = neighb[_WEST_]; 
     if( neighb[_WEST_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR_)
     {
         neighb[_WEST_F_] =  info_2nd[ off_nb[_WEST_] + _FRONT_ ]; 
     }
+    else if ( neighb[_FRONT_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_WEST_F_] =  neighb[_FRONT_]; 
+    } 
+
 
 
     //EAST SOUTH 
+    neighb[_EAST_S_] = neighb[_EAST_]; 
     if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_SOUTH_] != _NO_NEIGHBOUR_)
     {
         neighb[_EAST_S_] = info_2nd[ off_nb[_EAST_] + _SOUTH_ ]; 
     }
+    else if ( neighb[_SOUTH_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_EAST_S_] =  neighb[_SOUTH_]; 
+    } 
+
 
     //EAST NORTH 
+    neighb[_EAST_N_] = neighb[_EAST_]; 
     if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_NORTH_] != _NO_NEIGHBOUR_)
     {
         neighb[_EAST_N_] = info_2nd[ off_nb[_EAST_] + _NORTH_ ]; 
 
     }
+    else if ( neighb[_NORTH_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_EAST_N_] =  neighb[_NORTH_]; 
+    } 
+
 
     //EAST BACK 
+    neighb[_EAST_B_] = neighb[_EAST_]; 
     if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR_)
     {
         neighb[_EAST_B_] = info_2nd[ off_nb[_EAST_] + _BACK_ ]; 
 
     }
+    else if ( neighb[_BACK_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_EAST_B_] =  neighb[_BACK_]; 
+    } 
+
 
     //EAST FRONT 
+    neighb[_EAST_F_] = neighb[_EAST_]; 
     if( neighb[_EAST_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR_)
     {
         neighb[_EAST_F_] = info_2nd[ off_nb[_EAST_] + _FRONT_ ]; 
 
     }
+    else if ( neighb[_FRONT_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_EAST_F_] =  neighb[_FRONT_]; 
+    } 
+
 
 
     //SOUTH BACK
+    neighb[_SOUTH_B_] = neighb[_SOUTH_]; 
     if( neighb[_SOUTH_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR_)
     {
         neighb[_SOUTH_B_] = info_2nd[ off_nb[_SOUTH_] + _BACK_ ];  
     }
+    else if ( neighb[_BACK_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_SOUTH_B_] =  neighb[_BACK_]; 
+    } 
+
 
     //SOUTH FRONT
+    neighb[_SOUTH_F_] = neighb[_SOUTH_]; 
     if( neighb[_SOUTH_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR_)
     {
         neighb[_SOUTH_F_] = info_2nd[ off_nb[_SOUTH_] + _FRONT_ ];  
 
     }
+    else if ( neighb[_FRONT_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_SOUTH_F_] =  neighb[_FRONT_]; 
+    } 
+
 
     //NORTH BACK
+    neighb[_NORTH_B_] = neighb[_NORTH_]; 
     if( neighb[_NORTH_]  != _NO_NEIGHBOUR_ && neighb[_BACK_] != _NO_NEIGHBOUR_)
     {
         neighb[_NORTH_B_] = info_2nd[ off_nb[_NORTH_] + _BACK_ ]; 
     }
+    else if ( neighb[_BACK_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_NORTH_B_] =  neighb[_BACK_]; 
+    } 
+
 
     //NORTH FRONT
+    neighb[_NORTH_F_] = neighb[_NORTH_]; 
     if( neighb[_NORTH_]  != _NO_NEIGHBOUR_ && neighb[_FRONT_] != _NO_NEIGHBOUR_)
     {
         neighb[_NORTH_F_] =  info_2nd[ off_nb[_NORTH_] + _FRONT_ ]; 
-
     }
+    else if ( neighb[_FRONT_] != _NO_NEIGHBOUR_)
+    {
+        neighb[_NORTH_F_] =  neighb[_FRONT_]; 
+    } 
+
 
 
     //3er level conexions
