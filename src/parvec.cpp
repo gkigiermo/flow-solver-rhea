@@ -124,6 +124,7 @@ void parvec::fillEdgeCornerBoundaries() {
         for(int j = mydomain->iter_bound[_EAST_B_][_INIY_]; j <= mydomain->iter_bound[_EAST_B_][_ENDY_]; j++) {
             for(int k = mydomain->iter_bound[_EAST_B_][_INIZ_]; k <= mydomain->iter_bound[_EAST_B_][_ENDZ_]; k++) {
                 vector[I1D(i,j,k)]  = ( 1.0/2.0 )*( vector[I1D(i-1,j,k)] + vector[I1D(i,j,k+1)] );
+                cout<<" rank "<<mydomain->getRank()<<" Sets the variables as a corner "<<endl;
             }
         }
     }
