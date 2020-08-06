@@ -5,8 +5,10 @@ RHEA DEVELOPMENT AGENDA:
 
 - ...
 
+- Modify domain class constructor to provide stretching parameters via input file
 - Implement/develop data output strategy (hdf5)
 - Implement/develop re-initialization strategy (hdf5)
+- Create iterators for hdf5 stuff (inner and boundaries, no halo)
 - Improve code implementation in all files
 - Homogenize nomenclature and notation
 - Homogenize and improve layout/aesthetics
