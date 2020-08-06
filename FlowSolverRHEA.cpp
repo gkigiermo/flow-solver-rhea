@@ -11,78 +11,11 @@ FlowSolverRHEA::FlowSolverRHEA() {};
 
 FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configuration_file(name_configuration_file) {
 
-    /// Read configuration file
-    // ... work in progress (YAML language)	
-
-    // The lines below need to be introduced via configuration (input) file !!
-    const int _DEBUG_    = 0;
-    const double Re_tau  = 100.0;				// Friction Reynolds number [-]
-    const double delta   = 1.0;					// Channel half-height [m]
-    const double u_tau   = 1.0;					// Friction velocity [m/s]
-    const double rho_ref = 1.0;					// Reference density [kg/m3]
-    const double P_ref   = 101325.0;				// Reference pressure [Pa]
-
-    R_specific          = 287.058;
-    gamma               = 1.4;
-    mu                  = rho_ref*u_tau*delta/Re_tau;
-    kappa               = 0.0;
-    x_0                 = 0.0;
-    y_0                 = 0.0;
-    z_0                 = 0.0;
-    L_x                 = 4.0*Pi*delta;
-    L_y                 = 2.0*delta;
-    L_z                 = 4.0*Pi*delta/3.0;
-    current_time        = 0.0;
-    final_time          = 1.0e3;
-    output_data_file    = "output_state_data.csv";
-    num_grid_x          = 64;
-    num_grid_y          = 64;
-    num_grid_z          = 64;
-    CFL                 = 0.9;
-    current_time_iter   = 0;
-    final_time_iter     = 1e6;
-    output_iter         = 1e2;
-    rk_order            = 3;
-    bocos_type[_WEST_]  = _PERIODIC_;
-    bocos_type[_EAST_]  = _PERIODIC_;
-    bocos_type[_SOUTH_] = _PERIODIC_;
-    bocos_type[_NORTH_] = _PERIODIC_;
-    bocos_type[_BACK_]  = _PERIODIC_;
-    bocos_type[_FRONT_] = _PERIODIC_;
-    bocos_u[_WEST_]     = 0.0;
-    bocos_u[_EAST_]     = 0.0;
-    bocos_u[_SOUTH_]    = 0.0;
-    bocos_u[_NORTH_]    = 0.0;
-    bocos_u[_BACK_]     = 0.0;
-    bocos_u[_FRONT_]    = 0.0;
-    bocos_v[_WEST_]     = 0.0;
-    bocos_v[_EAST_]     = 0.0;
-    bocos_v[_SOUTH_]    = 0.0;
-    bocos_v[_NORTH_]    = 0.0;
-    bocos_v[_BACK_]     = 0.0;
-    bocos_v[_FRONT_]    = 0.0;
-    bocos_w[_WEST_]     = 0.0;
-    bocos_w[_EAST_]     = 0.0;
-    bocos_w[_SOUTH_]    = 0.0;
-    bocos_w[_NORTH_]    = 0.0;
-    bocos_w[_BACK_]     = 0.0;
-    bocos_w[_FRONT_]    = 0.0;
-    bocos_P[_WEST_]     = 0.0;
-    bocos_P[_EAST_]     = 0.0;
-    bocos_P[_SOUTH_]    = 0.0;
-    bocos_P[_NORTH_]    = 0.0;
-    bocos_P[_BACK_]     = 0.0;
-    bocos_P[_FRONT_]    = 0.0;
-    bocos_T[_WEST_]     = 0.0;
-    bocos_T[_EAST_]     = 0.0;
-    bocos_T[_SOUTH_]    = 0.0;
-    bocos_T[_NORTH_]    = 0.0;
-    bocos_T[_BACK_]     = 0.0;
-    bocos_T[_FRONT_]    = 0.0;
-    np_x                = 2;
-    np_y                = 1;
-    np_z                = 1;
-    // The lines above need to be introduced via configuration (input) file !!
+    /// Read configuration (input) file written in YAML language
+    this->readConfigurationFile();
+	
+    /// Set value of fixed variables
+    rk_order = 3;
 
     /// Construct (initialize) computational domain
     mesh = new domain(L_x, L_y, L_z, x_0, y_0, z_0, RHEA_NX, RHEA_NY, RHEA_NZ);
@@ -96,6 +29,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     //for(int p = 0; p < np_x*np_y*np_z; p++) topo->printCommSchemeToFile(p);
 
     // The lines below are temporary ... will need to be removed!
+    _DEBUG_ = 0;
     _lNx_ = topo->getlNx();
     _lNy_ = topo->getlNy();
     _lNz_ = topo->getlNz();
@@ -173,9 +107,118 @@ FlowSolverRHEA::~FlowSolverRHEA() {
 
 };
 
+void FlowSolverRHEA::readConfigurationFile() {
+
+    /// Create YAML object
+    YAML::Node configuration = YAML::LoadFile(configuration_file);
+
+    /// Fluid properties
+    const YAML::Node & fluid_properties = configuration["fluid_properties"];
+    R_specific = fluid_properties["R_specific"].as<double>();
+    gamma      = fluid_properties["gamma"].as<double>();
+    mu         = fluid_properties["mu"].as<double>();
+    kappa      = fluid_properties["kappa"].as<double>();
+
+    /// Problem parameters
+    const YAML::Node & problem_parameters = configuration["problem_parameters"];
+    x_0               = problem_parameters["x_0"].as<double>();
+    y_0               = problem_parameters["y_0"].as<double>();
+    z_0               = problem_parameters["z_0"].as<double>();
+    L_x               = problem_parameters["L_x"].as<double>();
+    L_y               = problem_parameters["L_y"].as<double>();
+    L_z               = problem_parameters["L_z"].as<double>();
+    current_time      = problem_parameters["current_time"].as<double>();
+    final_time        = problem_parameters["final_time"].as<double>();
+    output_data_file  = problem_parameters["output_data_file"].as<string>();
+    restart_data_file = problem_parameters["restart_data_file"].as<string>();
+    use_restart       = problem_parameters["use_restart"].as<bool>();
+
+    /// Computational parameters
+    const YAML::Node & computational_parameters = configuration["computational_parameters"];
+    num_grid_x        = computational_parameters["num_grid_x"].as<int>();
+    num_grid_y        = computational_parameters["num_grid_y"].as<int>();
+    num_grid_z        = computational_parameters["num_grid_z"].as<int>();
+    CFL               = computational_parameters["CFL"].as<double>();
+    current_time_iter = computational_parameters["current_time_iter"].as<int>();
+    final_time_iter   = computational_parameters["final_time_iter"].as<int>();
+    output_iter       = computational_parameters["output_iter"].as<int>();
+
+    /// Boundary conditions
+    const YAML::Node & boundary_conditons = configuration["boundary_conditons"];
+    bocos_type[_WEST_]  = boundary_conditons["west_bc_type"].as<int>();
+    bocos_type[_EAST_]  = boundary_conditons["east_bc_type"].as<int>();
+    bocos_type[_SOUTH_] = boundary_conditons["south_bc_type"].as<int>();
+    bocos_type[_NORTH_] = boundary_conditons["north_bc_type"].as<int>();
+    bocos_type[_BACK_]  = boundary_conditons["back_bc_type"].as<int>();
+    bocos_type[_FRONT_] = boundary_conditons["front_bc_type"].as<int>();
+    bocos_u[_WEST_]     = boundary_conditons["west_bc_u"].as<double>();
+    bocos_u[_EAST_]     = boundary_conditons["east_bc_u"].as<double>();
+    bocos_u[_SOUTH_]    = boundary_conditons["south_bc_u"].as<double>();
+    bocos_u[_NORTH_]    = boundary_conditons["north_bc_u"].as<double>();
+    bocos_u[_BACK_]     = boundary_conditons["back_bc_u"].as<double>();
+    bocos_u[_FRONT_]    = boundary_conditons["front_bc_u"].as<double>();
+    bocos_v[_WEST_]     = boundary_conditons["west_bc_v"].as<double>();
+    bocos_v[_EAST_]     = boundary_conditons["east_bc_v"].as<double>();
+    bocos_v[_SOUTH_]    = boundary_conditons["south_bc_v"].as<double>();
+    bocos_v[_NORTH_]    = boundary_conditons["north_bc_v"].as<double>();
+    bocos_v[_BACK_]     = boundary_conditons["back_bc_v"].as<double>();
+    bocos_v[_FRONT_]    = boundary_conditons["front_bc_v"].as<double>();
+    bocos_w[_WEST_]     = boundary_conditons["west_bc_w"].as<double>();
+    bocos_w[_EAST_]     = boundary_conditons["east_bc_w"].as<double>();
+    bocos_w[_SOUTH_]    = boundary_conditons["south_bc_w"].as<double>();
+    bocos_w[_NORTH_]    = boundary_conditons["north_bc_w"].as<double>();
+    bocos_w[_BACK_]     = boundary_conditons["back_bc_w"].as<double>();
+    bocos_w[_FRONT_]    = boundary_conditons["front_bc_w"].as<double>();
+    bocos_P[_WEST_]     = boundary_conditons["west_bc_P"].as<double>();
+    bocos_P[_EAST_]     = boundary_conditons["east_bc_P"].as<double>();
+    bocos_P[_SOUTH_]    = boundary_conditons["south_bc_P"].as<double>();
+    bocos_P[_NORTH_]    = boundary_conditons["north_bc_P"].as<double>();
+    bocos_P[_BACK_]     = boundary_conditons["back_bc_P"].as<double>();
+    bocos_P[_FRONT_]    = boundary_conditons["front_bc_P"].as<double>();
+    bocos_T[_WEST_]     = boundary_conditons["west_bc_T"].as<double>();
+    bocos_T[_EAST_]     = boundary_conditons["east_bc_T"].as<double>();
+    bocos_T[_SOUTH_]    = boundary_conditons["south_bc_T"].as<double>();
+    bocos_T[_NORTH_]    = boundary_conditons["north_bc_T"].as<double>();
+    bocos_T[_BACK_]     = boundary_conditons["back_bc_T"].as<double>();
+    bocos_T[_FRONT_]    = boundary_conditons["front_bc_T"].as<double>();
+
+    /// Parallelization scheme
+    const YAML::Node & parallelization_scheme = configuration["parallelization_scheme"];
+    np_x = parallelization_scheme["np_x"].as<int>();
+    np_y = parallelization_scheme["np_y"].as<int>();
+    np_z = parallelization_scheme["np_z"].as<int>();
+
+};
+
 void FlowSolverRHEA::setInitialConditions() {
 
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
+
+    /// All (inner & boundary) points: u, v, w, P and T
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+                u_field[I1D(i,j,k)] = 0.0;
+                v_field[I1D(i,j,k)] = 0.0;
+                w_field[I1D(i,j,k)] = 0.0;
+                P_field[I1D(i,j,k)] = 0.0;
+                T_field[I1D(i,j,k)] = 0.0;
+            }
+        }
+    }
+
+    /// Update halo values
+    u_field.update();
+    v_field.update();
+    w_field.update();
+    P_field.update();
+    T_field.update();
+
+};
+
+void FlowSolverRHEA::initializeFromRestart() {
+
+    // This method needs to be modified according to HDF5 restart_data_file !!
 
     /// All (inner & boundary) points: u, v, w, P and T
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
@@ -317,7 +360,7 @@ void FlowSolverRHEA::updateBoundaries() {
     /// w_in is inner cell weight
 
     /// Declare variables & weights
-    double rho_b, rhou_b, rhov_b, rhov_b, e_b, ke_b, rhoE_b, w_g, w_in;
+    double rho_b, rhou_b, rhov_b, rhow_b, e_b, ke_b, rhoE_b, w_g, w_in;
 
     /// West boundary points: rho, rhou, rhov, rhow and rhoE
     if( bocos_type[_WEST_] == _DIRICHLET_ ) {
@@ -325,8 +368,8 @@ void FlowSolverRHEA::updateBoundaries() {
         w_in = ( 1.0 )*( 1.0/2.0 );
     }
     if( bocos_type[_WEST_] == _NEUMANN_ ) {
-        w_g  = (  1.0 )/( mesh->getGlobx[1] - mesh->getGlobx[0] );
-        w_in = ( -1.0 )/( mesh->getGlobx[1] - mesh->getGlobx[0] );
+        w_g  = (  1.0 )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
+        w_in = ( -1.0 )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
     }
     rho_b  = bocos_P[_WEST_]/( R_specific*bocos_T[_WEST_] + epsilon );
     rhou_b = rho_b*bocos_u[_WEST_];
@@ -353,8 +396,8 @@ void FlowSolverRHEA::updateBoundaries() {
         w_in = ( 1.0 )*( 1.0/2.0 );
     }
     if( bocos_type[_EAST_] == _NEUMANN_ ) {
-        w_g  = (  1.0 )/( mesh->getGlobx[mesh->getGNx()+1] - mesh->getGlobx[mesh->getGNx()] );
-        w_in = ( -1.0 )/( mesh->getGlobx[mesh->getGNx()+1] - mesh->getGlobx[mesh->getGNx()] );
+        w_g  = (  1.0 )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
+        w_in = ( -1.0 )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
     }
     rho_b  = bocos_P[_EAST_]/( R_specific*bocos_T[_EAST_] + epsilon );
     rhou_b = rho_b*bocos_u[_EAST_];
@@ -381,8 +424,8 @@ void FlowSolverRHEA::updateBoundaries() {
         w_in = ( 1.0 )*( 1.0/2.0 );
     }
     if( bocos_type[_SOUTH_] == _NEUMANN_ ) {
-        w_g  = (  1.0 )/( mesh->getGloby[1] - mesh->getGloby[0] );
-        w_in = ( -1.0 )/( mesh->getGloby[1] - mesh->getGloby[0] );
+        w_g  = (  1.0 )/( mesh->getGloby(1) - mesh->getGloby(0) );
+        w_in = ( -1.0 )/( mesh->getGloby(1) - mesh->getGloby(0) );
     }
     rho_b  = bocos_P[_SOUTH_]/( R_specific*bocos_T[_SOUTH_] + epsilon );
     rhou_b = rho_b*bocos_u[_SOUTH_];
@@ -409,8 +452,8 @@ void FlowSolverRHEA::updateBoundaries() {
         w_in = ( 1.0 )*( 1.0/2.0 );
     }
     if( bocos_type[_NORTH_] == _NEUMANN_ ) {
-        w_g  = (  1.0 )/( mesh->getGloby[mesh->getGNy()+1] - mesh->getGloby[mesh->getGNy()] );
-        w_in = ( -1.0 )/( mesh->getGloby[mesh->getGNy()+1] - mesh->getGloby[mesh->getGNy()] );
+        w_g  = (  1.0 )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
+        w_in = ( -1.0 )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
     }
     rho_b  = bocos_P[_NORTH_]/( R_specific*bocos_T[_NORTH_] + epsilon );
     rhou_b = rho_b*bocos_u[_NORTH_];
@@ -437,8 +480,8 @@ void FlowSolverRHEA::updateBoundaries() {
         w_in = ( 1.0 )*( 1.0/2.0 );
     }
     if( bocos_type[_BACK_] == _NEUMANN_ ) {
-        w_g  = (  1.0 )/( mesh->getGlobz[1] - mesh->getGlobz[0] );
-        w_in = ( -1.0 )/( mesh->getGlobz[1] - mesh->getGlobz[0] );
+        w_g  = (  1.0 )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
+        w_in = ( -1.0 )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
     }
     rho_b  = bocos_P[_BACK_]/( R_specific*bocos_T[_BACK_] + epsilon );
     rhou_b = rho_b*bocos_u[_BACK_];
@@ -465,8 +508,8 @@ void FlowSolverRHEA::updateBoundaries() {
         w_in = ( 1.0 )*( 1.0/2.0 );
     }
     if( bocos_type[_FRONT_] == _NEUMANN_ ) {
-        w_g  = (  1.0 )/( mesh->getGlobz[mesh->getGNz()+1] - mesh->getGlobz[mesh->getGNz()] );
-        w_in = ( -1.0 )/( mesh->getGlobz[mesh->getGNz()+1] - mesh->getGlobz[mesh->getGNz()] );
+        w_g  = (  1.0 )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
+        w_in = ( -1.0 )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
     }
     rho_b  = bocos_P[_FRONT_]/( R_specific*bocos_T[_FRONT_] + epsilon );
     rhou_b = rho_b*bocos_u[_FRONT_];
@@ -1360,8 +1403,18 @@ int main(int argc, char** argv) {
     /// Construct flow solver RHEA
     FlowSolverRHEA flow_solver_RHEA("configuration_file.yaml");
 
-    /// Set initial conditions
-    flow_solver_RHEA.setInitialConditions();
+    /// Initialize variables setting initial conditions or from restart file
+    if(!flow_solver_RHEA.getUseRestart()) {
+
+        /// Set initial conditions
+        flow_solver_RHEA.setInitialConditions();
+
+    } else {
+
+        /// Initialize from restart file
+        flow_solver_RHEA.initializeFromRestart();
+
+    }
 
     /// Initialize thermodynamics
     flow_solver_RHEA.initializeThermodynamics();

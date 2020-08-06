@@ -8,6 +8,7 @@
 #include <string>
 #include <limits>
 #include <mpi.h>
+#include "yaml-cpp/yaml.h"
 #include "src/parameters.h"
 #include "src/domain.h"
 #include "src/comm_scheme.h"
@@ -59,6 +60,7 @@ class FlowSolverRHEA {
 	////////// GET FUNCTIONS //////////
         inline double getCurrentTime() { return( current_time ); };
         inline double getFinalTime() { return( final_time ); };
+        inline bool getUseRestart() { return( use_restart ); };
         inline double getTimeStep() { return( delta_t ); };
         inline int getCurrentTimeIteration() { return( current_time_iter ); };
         inline int getFinalTimeIteration() { return( final_time_iter ); };
@@ -69,6 +71,7 @@ class FlowSolverRHEA {
 	////////// SET FUNCTIONS //////////
         inline void setCurrentTime(double current_time_) { current_time = current_time_; };
         inline void setFinalTime(double final_time_) { final_time = final_time_; };
+        inline void setUseRestart(bool use_restart_) { use_restart = use_restart_; };
         inline void setTimeStep(double delta_t_) { delta_t = delta_t_; };
         inline void setCurrentTimeIteration(int current_time_iter_) { current_time_iter = current_time_iter_; };
         inline void setFinalTimeIteration(int final_time_iter_) { final_time_iter = final_time_iter_; };
@@ -77,8 +80,14 @@ class FlowSolverRHEA {
 
 	////////// SOLVER METHODS //////////
 
+        /// Read configuration (input) file written in YAML language
+        void readConfigurationFile();
+
         /// Set initial conditions: u, v, w, P and T ... needs to be modified/overwritten according to the problem under consideration
         void setInitialConditions();
+
+        /// Initialize from restart file: u, v, w, P and T
+        void initializeFromRestart();
 
         /// Initialize thermodynamic state: rho, e, ke, E and sos
         void initializeThermodynamics();
@@ -146,11 +155,13 @@ class FlowSolverRHEA {
         double final_time;		      			/// Final time [s]
         string configuration_file;				/// Configuration file (YAML language)	
         string output_data_file;				/// Output data file (HDF5 format)	
+        string restart_data_file;				/// Restart data file (HDF5 format)	
+        bool use_restart;					/// Use restart file for initialization
 
         /// Computational parameters
-        double num_grid_x;					/// Number of inner grid points in x-direction
-        double num_grid_y;					/// Number of inner grid points in y-direction
-        double num_grid_z;					/// Number of inner grid points in z-direction
+        int num_grid_x;						/// Number of inner grid points in x-direction
+        int num_grid_y;						/// Number of inner grid points in y-direction
+        int num_grid_z;						/// Number of inner grid points in z-direction
         double CFL;						/// CFL coefficient
         double delta_t;		      				/// Time step [s]
         int current_time_iter;					/// Current time iteration
@@ -158,18 +169,20 @@ class FlowSolverRHEA {
         int output_iter;					/// Output data every given number of iterations
         int rk_step;						/// Current Runge-Kutta step: 1, 2, 3
         int rk_order;						/// Order of Runge-Kutta method (fixed)
+
         // The lines below are temporary ... will need to be removed!
+        int _DEBUG_;
         int _lNx_;
         int _lNy_;
         int _lNz_;
 
         /// Boundary conditions
         int bocos_type[6];					/// Array of boundary conditions type
-        int bocos_u[6];						/// Array of boundary conditions u
-        int bocos_v[6];						/// Array of boundary conditions v
-        int bocos_w[6];						/// Array of boundary conditions w
-        int bocos_P[6];						/// Array of boundary conditions P
-        int bocos_T[6];						/// Array of boundary conditions T
+        double bocos_u[6];					/// Array of boundary conditions u
+        double bocos_v[6];					/// Array of boundary conditions v
+        double bocos_w[6];					/// Array of boundary conditions w
+        double bocos_P[6];					/// Array of boundary conditions P
+        double bocos_T[6];					/// Array of boundary conditions T
 
         /// Parallelization scheme
         int np_x;						/// Number of processes in x-direction
