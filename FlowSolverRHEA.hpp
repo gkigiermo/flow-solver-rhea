@@ -60,6 +60,7 @@ class FlowSolverRHEA {
 	////////// GET FUNCTIONS //////////
         inline double getCurrentTime() { return( current_time ); };
         inline double getFinalTime() { return( final_time ); };
+        inline bool getUseRestart() { return( use_restart ); };
         inline double getTimeStep() { return( delta_t ); };
         inline int getCurrentTimeIteration() { return( current_time_iter ); };
         inline int getFinalTimeIteration() { return( final_time_iter ); };
@@ -70,6 +71,7 @@ class FlowSolverRHEA {
 	////////// SET FUNCTIONS //////////
         inline void setCurrentTime(double current_time_) { current_time = current_time_; };
         inline void setFinalTime(double final_time_) { final_time = final_time_; };
+        inline void setUseRestart(bool use_restart_) { use_restart = use_restart_; };
         inline void setTimeStep(double delta_t_) { delta_t = delta_t_; };
         inline void setCurrentTimeIteration(int current_time_iter_) { current_time_iter = current_time_iter_; };
         inline void setFinalTimeIteration(int final_time_iter_) { final_time_iter = final_time_iter_; };
@@ -83,6 +85,9 @@ class FlowSolverRHEA {
 
         /// Set initial conditions: u, v, w, P and T ... needs to be modified/overwritten according to the problem under consideration
         void setInitialConditions();
+
+        /// Initialize from restart file: u, v, w, P and T
+        void initializeFromRestart();
 
         /// Initialize thermodynamic state: rho, e, ke, E and sos
         void initializeThermodynamics();
@@ -150,6 +155,8 @@ class FlowSolverRHEA {
         double final_time;		      			/// Final time [s]
         string configuration_file;				/// Configuration file (YAML language)	
         string output_data_file;				/// Output data file (HDF5 format)	
+        string restart_data_file;				/// Restart data file (HDF5 format)	
+        bool use_restart;					/// Use restart file for initialization
 
         /// Computational parameters
         int num_grid_x;						/// Number of inner grid points in x-direction

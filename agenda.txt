@@ -1,11 +1,10 @@
 RHEA DEVELOPMENT AGENDA:
 
-- Implement/develop configuration (input) file using yaml -> Lluis
+- Implement/develop reinitialization strategy (hdf5) -> Lluis
 - Implement/develop data output strategy (hdf5) -> Willy
 
 - ...
 
-- Implement/develop configuration (input) file using yaml
 - Implement/develop data output strategy (hdf5)
 - Implement/develop re-initialization strategy (hdf5)
 - Improve code implementation in all files

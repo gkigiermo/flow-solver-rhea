@@ -121,15 +121,17 @@ void FlowSolverRHEA::readConfigurationFile() {
 
     /// Problem parameters
     const YAML::Node & problem_parameters = configuration["problem_parameters"];
-    x_0              = problem_parameters["x_0"].as<double>();
-    y_0              = problem_parameters["y_0"].as<double>();
-    z_0              = problem_parameters["z_0"].as<double>();
-    L_x              = problem_parameters["L_x"].as<double>();
-    L_y              = problem_parameters["L_y"].as<double>();
-    L_z              = problem_parameters["L_z"].as<double>();
-    current_time     = problem_parameters["current_time"].as<double>();
-    final_time       = problem_parameters["final_time"].as<double>();
-    output_data_file = problem_parameters["output_data_file"].as<string>();
+    x_0               = problem_parameters["x_0"].as<double>();
+    y_0               = problem_parameters["y_0"].as<double>();
+    z_0               = problem_parameters["z_0"].as<double>();
+    L_x               = problem_parameters["L_x"].as<double>();
+    L_y               = problem_parameters["L_y"].as<double>();
+    L_z               = problem_parameters["L_z"].as<double>();
+    current_time      = problem_parameters["current_time"].as<double>();
+    final_time        = problem_parameters["final_time"].as<double>();
+    output_data_file  = problem_parameters["output_data_file"].as<string>();
+    restart_data_file = problem_parameters["restart_data_file"].as<string>();
+    use_restart       = problem_parameters["use_restart"].as<bool>();
 
     /// Computational parameters
     const YAML::Node & computational_parameters = configuration["computational_parameters"];
@@ -191,6 +193,32 @@ void FlowSolverRHEA::readConfigurationFile() {
 void FlowSolverRHEA::setInitialConditions() {
 
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
+
+    /// All (inner & boundary) points: u, v, w, P and T
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+                u_field[I1D(i,j,k)] = 0.0;
+                v_field[I1D(i,j,k)] = 0.0;
+                w_field[I1D(i,j,k)] = 0.0;
+                P_field[I1D(i,j,k)] = 0.0;
+                T_field[I1D(i,j,k)] = 0.0;
+            }
+        }
+    }
+
+    /// Update halo values
+    u_field.update();
+    v_field.update();
+    w_field.update();
+    P_field.update();
+    T_field.update();
+
+};
+
+void FlowSolverRHEA::initializeFromRestart() {
+
+    // This method needs to be modified according to HDF5 restart_data_file !!
 
     /// All (inner & boundary) points: u, v, w, P and T
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
@@ -1375,8 +1403,18 @@ int main(int argc, char** argv) {
     /// Construct flow solver RHEA
     FlowSolverRHEA flow_solver_RHEA("configuration_file.yaml");
 
-    /// Set initial conditions
-    flow_solver_RHEA.setInitialConditions();
+    /// Initialize variables setting initial conditions or from restart file
+    if(!flow_solver_RHEA.getUseRestart()) {
+
+        /// Set initial conditions
+        flow_solver_RHEA.setInitialConditions();
+
+    } else {
+
+        /// Initialize from restart file
+        flow_solver_RHEA.initializeFromRestart();
+
+    }
 
     /// Initialize thermodynamics
     flow_solver_RHEA.initializeThermodynamics();

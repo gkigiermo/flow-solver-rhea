@@ -19,7 +19,9 @@ problem_parameters:
    L_z: 1.0                            # Size of domain in z-direction [m]
    current_time: 0.0                   # Current time [s]
    final_time: 1000.0                  # Final time [s]
-   output_data_file: output_data.csv   # Name of output data [-]
+   output_data_file: output_data.h5    # Name of output data [-]
+   restart_data_file: restart_data.h5  # Name of restart data [-]
+   use_restart: FALSE                  # Use restart to initialize problem
 
 
 ##### COMPUTATIONAL PARAMETERS #####
