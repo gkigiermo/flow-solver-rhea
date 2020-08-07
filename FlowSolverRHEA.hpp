@@ -83,6 +83,9 @@ class FlowSolverRHEA {
         /// Read configuration (input) file written in YAML language
         void readConfigurationFile();
 
+        /// Fill x, y and z mesh coordinate fields (HDF5 data)
+        void fillMeshCoordinateFields();
+
         /// Set initial conditions: u, v, w, P and T ... needs to be modified/overwritten according to the problem under consideration
         void setInitialConditions();
 
@@ -191,6 +194,11 @@ class FlowSolverRHEA {
 
 	////////// SOLVER (PARALLEL) VARIABLES //////////
 	
+        /// Mesh coordinates (HDF5 data)
+        parvec x_field;						/// 3-D field of x-coordinate
+        parvec y_field;						/// 3-D field of y-coordinate
+        parvec z_field;						/// 3-D field of z-coordinate
+
         /// Primitive, conserved and thermodynamic variables
         parvec rho_field;					/// 3-D field of rho
         parvec u_field;						/// 3-D field of u

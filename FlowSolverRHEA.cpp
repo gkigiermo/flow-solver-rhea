@@ -34,6 +34,11 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     _lNy_ = topo->getlNy();
     _lNz_ = topo->getlNz();
 
+    /// Set parallel topology of mesh coordinates
+    x_field.setTopology(topo);
+    y_field.setTopology(topo);
+    z_field.setTopology(topo);
+	
     /// Set parallel topology of primitive, conserved and thermodynamic variables	
     rho_field.setTopology(topo);
     u_field.setTopology(topo);
@@ -90,6 +95,9 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     f_rhov_field.setTopology(topo);
     f_rhow_field.setTopology(topo);
     f_rhoE_field.setTopology(topo);
+
+    /// Fill x, y and z fields
+    this->fillMeshCoordinateFields();
 
 };
 
@@ -187,6 +195,26 @@ void FlowSolverRHEA::readConfigurationFile() {
     np_x = parallelization_scheme["np_x"].as<int>();
     np_y = parallelization_scheme["np_y"].as<int>();
     np_z = parallelization_scheme["np_z"].as<int>();
+
+};
+
+void FlowSolverRHEA::fillMeshCoordinateFields() {
+
+    /// All (inner & boundary) points: x, y and z
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+                x_field[I1D(i,j,k)] = mesh->x[i];
+                y_field[I1D(i,j,k)] = mesh->y[j];
+                z_field[I1D(i,j,k)] = mesh->z[k];
+            }
+        }
+    }
+
+    /// Update halo values
+    x_field.update();
+    y_field.update();
+    z_field.update();
 
 };
 
