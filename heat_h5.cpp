@@ -185,17 +185,52 @@ int main(int argc, char** argv)
 
     sprintf(filename,"filetest-%d.h5",rank);
 
+  //  sprintf(filename,"filetest.h5");
+
+
     cout<<"writing  "<<filename<<endl;
     hid_t       file_id;   /* file identifier */
     herr_t      status;
 
     /* Create a new file using default properties. */
+/*    hid_t fa_plist_id, dx_plist_id;
+    fa_plist_id = H5Pcreate(H5P_FILE_ACCESS);
+
+    MPI_Comm comm  = MPI_COMM_WORLD;
+    MPI_Info info  = MPI_INFO_NULL;
+    MPI_Info_create(&info);
+
+    herr_t ret =  H5Pset_fapl_mpio(fa_plist_id, comm , info);
+
+    cout<<" ret " <<ret<<" "<<-1<<endl;
+
+    file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fa_plist_id);*/
     file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
+/*
+    ret = H5Pclose(fa_plist_id);
+    cout<<" ret2 " <<ret<<" "<<-1<<endl;
+
+
+    dx_plist_id = H5Pcreate(H5P_DATASET_XFER);
+    H5Pset_dxpl_mpio(dx_plist_id, H5FD_MPIO_COLLECTIVE);
+
+
+    cout<<"after set dxpl"<<endl;
 	// Create the data space for the dataset.
 	hsize_t dim_size[1];               // dataset dimensions
 	dim_size[0] = _lNx_*_lNy_*_lNz_;
     int num_dims=1;
+*/
+
+    // Create the data space for the dataset.
+	hsize_t dim_size[3];               // dataset dimensions
+	dim_size[0] = _lNz_;
+    dim_size[1] = _lNy_;
+    dim_size[2] = _lNx_;
+    int num_dims=3;
+
+    cout<<"dim 1: "<<dim_size[0]<<" 2: "<<dim_size[1]<<" 3: "<<dim_size[2]<<endl;
 
     hsize_t array_tonto[1];
     array_tonto[0] = 1;
@@ -203,33 +238,54 @@ int main(int argc, char** argv)
     hid_t dataspace_id = H5Screate_simple(num_dims, dim_size, NULL);
 //	DataSpace dataspace(num_dims, dim_size);
 
-    hid_t attspace_id = H5Screate_simple(num_dims, array_tonto, NULL);
+ //   hid_t attspace_id = H5Screate_simple(num_dims, array_tonto, NULL);
 
 
 	// Create the dataset.      
 //	DataSet dataset = file.createDataSet("T1", H5T_NATIVE_DOUBLE, dataspace);
+
     hid_t dataset_id1 = H5Dcreate2(file_id, "T1", H5T_NATIVE_DOUBLE, dataspace_id, 
                           H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
+//    hid_t dataset_id1 = H5Dcreate(file_id, "T1", H5T_NATIVE_DOUBLE, dataspace_id, 
+//                           H5P_DEFAULT);
+
+ 
     hid_t dataset_id2 = H5Dcreate2(file_id, "T2", H5T_NATIVE_DOUBLE, dataspace_id, 
                           H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
 
-    hid_t attri1 = H5Acreate(file_id,"Time",H5T_NATIVE_DOUBLE, attspace_id,H5P_DEFAULT,H5P_DEFAULT);
+//    hid_t attri1 = H5Acreate(file_id,"Time",H5T_NATIVE_DOUBLE, attspace_id,H5P_DEFAULT,H5P_DEFAULT);
+
+    cout<<"Antes del write "<<endl;
+
+/*    status = H5Dwrite(dataset_id1, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, dx_plist_id,
+                     T.vector);
+    
+    cout<<" status " <<status<<" -1 "<<endl;
+*/
 
     status = H5Dwrite(dataset_id1, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
                      T.vector);
 
+
     status = H5Dwrite(dataset_id2, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT,
                      meshx.vector);
 
+/*    status = H5Dwrite(dataset_id2, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, dx_plist_id,
+                     meshx.vector);
+*/
+                     cout<<" status " <<status<<" -1 "<<endl;
+
+
+
     double tiempo=3.5;
     
-    status = H5Awrite(attri1, H5T_NATIVE_DOUBLE, &tiempo);
+  //  status = H5Awrite(attri1, H5T_NATIVE_DOUBLE, &tiempo);
 
    /* End access to the dataset and release resources used by it. */
 
-    status = H5Aclose(attri1);
+  //  status = H5Aclose(attri1);
 
    status = H5Dclose(dataset_id1);
 

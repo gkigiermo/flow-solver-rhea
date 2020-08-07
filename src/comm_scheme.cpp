@@ -2646,6 +2646,44 @@ void comm_scheme::create_global_iters()
     iter_glob_ind[_ENDZ_] = iter_common[_INNER_][_ENDZ_] + offz + 1;
 
 
+
+    if(iter_glob_ind[_INIX_] == 0)
+        iter_slab[_INIX_] = 0;
+    else
+        iter_slab[_INIX_] = 1;
+
+
+    if(iter_glob_ind[_ENDX_] ==  (dom->getGNx() + 1) )
+      iter_slab[_ENDX_] = lNx-1;
+    else
+      iter_slab[_ENDX_] = lNx-2;
+ 
+    if(iter_glob_ind[_INIY_] == 0)
+        iter_slab[_INIY_] = 0;
+    else 
+        iter_slab[_INIY_] = 1;
+ 
+    if(iter_glob_ind[_ENDY_] ==  (dom->getGNy() + 1) )
+        iter_slab[_ENDY_] = lNy-1;
+    else
+        iter_slab[_ENDY_] = lNy-2;
+
+
+    if(iter_glob_ind[_INIZ_] == 0)
+        iter_slab[_INIZ_] = 0;
+    else
+        iter_slab[_INIZ_] = 1;
+
+    if(iter_glob_ind[_ENDZ_] ==  (dom->getGNz() + 1) )
+        iter_slab[_ENDZ_] = lNz-1;
+    else
+        iter_slab[_ENDZ_] = lNz-2;
+
+
+
+
+
+
     cout<<" Globals "<<rank<<" offz "<<offz<<endl;
     cout<<" "<<iter_glob_ind[_INIX_] <<endl;
     cout<<" "<<iter_glob_ind[_ENDX_] <<endl;
