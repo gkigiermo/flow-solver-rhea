@@ -2,6 +2,7 @@
 
 comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
 {
+    mymesh = dom;
 
     MPI_Comm_dup(MPI_COMM_WORLD, &RHEA_3DCOMM);
     MPI_Comm_rank(RHEA_3DCOMM, &rank);
@@ -2653,7 +2654,7 @@ void comm_scheme::create_global_iters()
         iter_slab[_INIX_] = 1;
 
 
-    if(iter_glob_ind[_ENDX_] ==  (dom->getGNx() + 1) )
+    if(iter_glob_ind[_ENDX_] ==  (mymesh->getGNx() + 1) )
       iter_slab[_ENDX_] = lNx-1;
     else
       iter_slab[_ENDX_] = lNx-2;
@@ -2663,7 +2664,7 @@ void comm_scheme::create_global_iters()
     else 
         iter_slab[_INIY_] = 1;
  
-    if(iter_glob_ind[_ENDY_] ==  (dom->getGNy() + 1) )
+    if(iter_glob_ind[_ENDY_] ==  (mymesh->getGNy() + 1) )
         iter_slab[_ENDY_] = lNy-1;
     else
         iter_slab[_ENDY_] = lNy-2;
@@ -2674,12 +2675,34 @@ void comm_scheme::create_global_iters()
     else
         iter_slab[_INIZ_] = 1;
 
-    if(iter_glob_ind[_ENDZ_] ==  (dom->getGNz() + 1) )
+    if(iter_glob_ind[_ENDZ_] ==  (mymesh->getGNz() + 1) )
         iter_slab[_ENDZ_] = lNz-1;
     else
         iter_slab[_ENDZ_] = lNz-2;
 
+    //
+    if(iter_glob_ind[_INIX_] == 0)
+        offslab_x = offx;
+    else
+        offslab_x = offx + 1;
 
+    if(iter_glob_ind[_INIY_] == 0)
+        offslab_y = offy;
+    else
+        offslab_y = offy + 1;
+
+
+    if(iter_glob_ind[_INIZ_] == 0)
+        offslab_z = offz;
+    else
+        offslab_z = offz + 1;
+
+
+    lenslabx = iter_slab[_ENDX_] -  iter_slab[_INIX_] + 1; 
+    lenslaby = iter_slab[_ENDY_] -  iter_slab[_INIY_] + 1; 
+    lenslabz = iter_slab[_ENDZ_] -  iter_slab[_INIZ_] + 1; 
+
+    lenslab = lenslabx*lenslaby*lenslabz;
 
 
 

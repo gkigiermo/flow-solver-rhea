@@ -5,7 +5,7 @@ OBJ=src/*.cpp
 OUT= test1
 
 all:
-	$(CC) heat_h5.cpp $(OBJ) -o $(OUT) $(CFLAGS)
+	$(CC) heat_h5_hyper.cpp $(OBJ) -o $(OUT) $(CFLAGS)
 
 clean:
 	rm  src/*.o *.info

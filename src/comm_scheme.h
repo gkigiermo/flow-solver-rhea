@@ -43,9 +43,20 @@ class comm_scheme{
 
         int iter_glob_ind[6];
 
+        int iter_slab[6];
 
+        int offslab_x;
+        int offslab_y;
+        int offslab_z;
+
+        int lenslabx;
+        int lenslaby;
+        int lenslabz;
+
+        int lenslab;
 
     protected:
+        domain* mymesh;
         int rank;
         int np;
         MPI_Comm RHEA_3DCOMM;
