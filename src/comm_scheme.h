@@ -29,8 +29,8 @@ class comm_scheme{
         int getOffy(){return offy;};
         int getOffz(){return offz;};
 
-
-
+        
+        domain* getMesh(){return mymesh; };
 
 
         // Basic iterators to move on the domain

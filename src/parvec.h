@@ -10,15 +10,15 @@ using namespace std;
 class parvec{
     public:
         parvec(){};
-        parvec(comm_scheme*);
+        parvec(comm_scheme*,char const*);
         void update();
         void update_simple();
         void fillEdgeCornerBoundaries();
         double& operator[](int);
         void operator= (double);
 
-        void setTopology(comm_scheme* topo);
-
+        void setTopology(comm_scheme* topo, char const* );
+        char* printName(){return fieldName;};
 
         double* vector;
         int size;
@@ -31,6 +31,7 @@ class parvec{
     protected:
 
         comm_scheme* mydomain;
+        char  fieldName[30];
 };
 
 #endif

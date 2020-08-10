@@ -1,6 +1,6 @@
 #include "parvec.h"
 
-parvec :: parvec(comm_scheme* topo)
+parvec :: parvec(comm_scheme* topo, char const* auxName)
 {
     size = topo->getSize();
     vector = new double[size];
@@ -11,10 +11,13 @@ parvec :: parvec(comm_scheme* topo)
     fin_y = topo->iter_common[_INNER_][_ENDY_] ;
     fin_z = topo->iter_common[_INNER_][_ENDZ_] ;
 
-    mydomain = topo;   
+    mydomain = topo;  
+
+    sprintf(fieldName,"%s",auxName);
+
 }
 
-void parvec::setTopology(comm_scheme* topo) {
+void parvec::setTopology(comm_scheme* topo, char const * auxName) {
 
     size = topo->getSize();
     vector = new double[size];
@@ -26,6 +29,9 @@ void parvec::setTopology(comm_scheme* topo) {
     fin_z = topo->iter_common[_INNER_][_ENDZ_] ;
 
     mydomain = topo;   
+
+    sprintf(fieldName,"%s",auxName);
+
 
 }
 
