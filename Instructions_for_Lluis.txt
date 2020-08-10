@@ -1,0 +1,30 @@
+Finalmente termine instalando openmpi y h5 por mi mismo.
+Creo que cuando instalé el h5 de nuevo para que tenga soporte mpi
+el brew se lió, y por eso me sacaba ese error raro al finalizar.
+
+Para OpenMPI use este
+
+https://wiki.helsinki.fi/display/HUGG/Open+MPI+install+on+Mac+OS+X
+
+Para HDF5 usé este
+https://gist.github.com/kentwait/280aa20e9d8f2c8737b2bec4a49b7c92
+
+
+Como tenía ese ordering raro el H5, lo que he hecho es guardarlo en orden
+inverso (z,y,x)
+
+De esa forma al mirarlo con h5dump se ve correctamente.
+Para caso de lectura y escritura da igual, ya que al leerse y escribirse en el
+mismo orden no afecta. En cualquier caso suma los halos o ghosts al dominio
+global.
+                            X,Y,Z                     Z,Y,X
+Osea un caso en que quieres 4,4,1 en el output tendrá 3,6,6 .
+Esto podemos ver de cambiarlo después,sólo lo dejé así porque es más fácil de
+revisar a ojo.
+
+En el código he dejado comentarios de como usar la clase printer ( que
+seguramente renombraremos por algo mas como IOmanager o algo asi)
+
+
+
+
