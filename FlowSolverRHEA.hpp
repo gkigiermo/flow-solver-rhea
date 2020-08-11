@@ -128,8 +128,8 @@ class FlowSolverRHEA {
         /// Calculate viscous fluxes
         void calculateViscousFluxes();
 
-        /// Sum viscous and viscous fluxes
-        void sumInviscidViscousFluxes();
+        /// Sum inviscid & viscous fluxes, and source terms
+        void sumInviscidViscousFluxesSourceTerms();
 
         /// Advance conserved variables in time
         void timeAdvanceConservedVariables();
