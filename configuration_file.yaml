@@ -19,9 +19,6 @@ problem_parameters:
    L_z: 1.0                            # Size of domain in z-direction [m]
    current_time: 0.0                   # Current time [s]
    final_time: 1000.0                  # Final time [s]
-   output_data_file: output_data.h5    # Name of output data [-]
-   restart_data_file: restart_data.h5  # Name of restart data [-]
-   use_restart: FALSE                  # Use restart to initialize problem
 
 
 ##### COMPUTATIONAL PARAMETERS #####
@@ -29,27 +26,14 @@ computational_parameters:
    num_grid_x: 64                      # Number of internal grid points in the x-direction
    num_grid_y: 64                      # Number of internal grid points in the y-direction
    num_grid_z: 64                      # Number of internal grid points in the z-direction
+   # Stretching factors: x = L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
+   # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
+   A_x: 0.0                            # Stretching factor in x-direction
+   A_y: -1.915                         # Stretching factor in y-direction
+   A_z: 0.0                            # Stretching factor in z-direction
    CFL: 0.9                            # CFL coefficient
    current_time_iter: 0                # Current time iteration
    final_time_iter: 1000000            # Final time iteration
-   output_iter: 100                    # Output data every given number of iterations
-
-
-##### SPATIAL DISCRETIZATION #####
-spatial_discretization:
-   ## Evenly-spaced (dummy variable) cell centroids
-   #eta_x: ( i - 0.5 )/num_grid_x
-   #eta_y: ( j - 0.5 )/num_grid_y
-   #eta_z: ( k - 0.5 )/num_grid_z
-   # Stretching factors: x = L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
-   # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
-   A_x: 0.0                             # Stretching factor in x-direction
-   A_y: -1.915                          # Stretching factor in y-direction
-   A_z: 0.0                             # Stretching factor in z-direction
-   ## Unevenly-spaced (stretched) cell centroids
-   #grid_x: x_0 + L_x*eta_x + A_x*( 0.5*L_x - L_x*eta_x )*( 1.0 - eta_x )*eta_x
-   #grid_y: y_0 + L_y*eta_y + A_y*( 0.5*L_y - L_y*eta_y )*( 1.0 - eta_y )*eta_y
-   #grid_z: z_0 + L_z*eta_z + A_z*( 0.5*L_z - L_z*eta_z )*( 1.0 - eta_z )*eta_z
 
 
 ##### BOUNDARY CONDITIONS #####
@@ -91,6 +75,15 @@ boundary_conditions:
    north_bc_T: 0.0                      # North boundary condition T value/flux
    back_bc_T: 0.0                       # Back boundary condition T value/flux
    front_bc_T: 0.0                      # Front boundary condition T value/flux
+
+
+##### WRITE/READ PARAMETERS #####
+write_read_parameters:
+   output_data_file: output_data       # Name of output data file [-]
+   output_frequency_iter: 100          # Data output iteration frequency
+   use_restart: FALSE                  # Use restart to initialize problem
+   restart_data_file_iter: 1000        # Restart data file iteration [-]
+
 
 ##### PARALLELIZATION SCHEME #####
 parallelization_scheme:

@@ -18,7 +18,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     rk_order = 3;
 
     /// Construct (initialize) computational domain
-    mesh = new domain(L_x, L_y, L_z, x_0, y_0, z_0, RHEA_NX, RHEA_NY, RHEA_NZ);
+    mesh = new domain(L_x, L_y, L_z, x_0, y_0, z_0, A_x, A_y, A_z, RHEA_NX, RHEA_NY, RHEA_NZ);
 
     /// Add boundary conditions to computational domain
     mesh->updateBocos(bocos_type);
@@ -35,77 +35,94 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     _lNz_ = topo->getlNz();
 
     /// Set parallel topology of mesh coordinates
-    x_field.setTopology(topo);
-    y_field.setTopology(topo);
-    z_field.setTopology(topo);
+    x_field.setTopology(topo,"x [m]");
+    y_field.setTopology(topo,"y [m]");
+    z_field.setTopology(topo,"z [m]");
 	
     /// Set parallel topology of primitive, conserved and thermodynamic variables	
-    rho_field.setTopology(topo);
-    u_field.setTopology(topo);
-    v_field.setTopology(topo);
-    w_field.setTopology(topo);
-    E_field.setTopology(topo);
-    rhou_field.setTopology(topo);
-    rhov_field.setTopology(topo);
-    rhow_field.setTopology(topo);
-    rhoE_field.setTopology(topo);
-    P_field.setTopology(topo);
-    T_field.setTopology(topo);
-    sos_field.setTopology(topo);
+    rho_field.setTopology(topo,"rho [kg/m3]");
+    u_field.setTopology(topo,"u [m/s]");
+    v_field.setTopology(topo,"v [m/s]");
+    w_field.setTopology(topo,"w [m/s]");
+    E_field.setTopology(topo,"E [J/kg]");
+    rhou_field.setTopology(topo,"rhou [kg/m2s]");
+    rhov_field.setTopology(topo,"rhov [kg/m2s]");
+    rhow_field.setTopology(topo,"rhow [kg/m2s]");
+    rhoE_field.setTopology(topo,"rhoE [J/m3]");
+    P_field.setTopology(topo,"P [Pa]");
+    T_field.setTopology(topo,"T [K]");
+    sos_field.setTopology(topo,"sos [m/s]");
 
     /// Set parallel topology of time-integration variables	
-    rho_0_field.setTopology(topo);
-    rhou_0_field.setTopology(topo);
-    rhov_0_field.setTopology(topo);
-    rhow_0_field.setTopology(topo);
-    rhoE_0_field.setTopology(topo);    
+    rho_0_field.setTopology(topo,"rho_0 [kg/m3]");
+    rhou_0_field.setTopology(topo,"rhou_0 [kg/m2s]");
+    rhov_0_field.setTopology(topo,"rhov_0 [kg/m2s]");
+    rhow_0_field.setTopology(topo,"rhow_0 [kg/m2s]");
+    rhoE_0_field.setTopology(topo,"rhoE_0 [J/m3]");    
 
     /// Set parallel topology of time-integration fluxes	
-    rho_rk1_flux.setTopology(topo);
-    rho_rk2_flux.setTopology(topo);
-    rho_rk3_flux.setTopology(topo);
-    rhou_rk1_flux.setTopology(topo);
-    rhou_rk2_flux.setTopology(topo);
-    rhou_rk3_flux.setTopology(topo);    
-    rhov_rk1_flux.setTopology(topo);
-    rhov_rk2_flux.setTopology(topo);
-    rhov_rk3_flux.setTopology(topo);    
-    rhow_rk1_flux.setTopology(topo);
-    rhow_rk2_flux.setTopology(topo);
-    rhow_rk3_flux.setTopology(topo);
-    rhoE_rk1_flux.setTopology(topo);
-    rhoE_rk2_flux.setTopology(topo);
-    rhoE_rk3_flux.setTopology(topo);
+    rho_rk1_flux.setTopology(topo,"rho_rk1 [kg/m3s]");
+    rho_rk2_flux.setTopology(topo,"rho_rk2 [kg/m3s]");
+    rho_rk3_flux.setTopology(topo,"rho_rk3 [kg/m3s]");
+    rhou_rk1_flux.setTopology(topo,"rhou_rk1 [kg/m2s2]");
+    rhou_rk2_flux.setTopology(topo,"rhou_rk2 [kg/m2s2]");
+    rhou_rk3_flux.setTopology(topo,"rhou_rk3 [kg/m2s2]");    
+    rhov_rk1_flux.setTopology(topo,"rhov_rk1 [kg/m2s2]");
+    rhov_rk2_flux.setTopology(topo,"rhov_rk2 [kg/m2s2]");
+    rhov_rk3_flux.setTopology(topo,"rhov_rk3 [kg/m2s2]");    
+    rhow_rk1_flux.setTopology(topo,"rhow_rk1 [kg/m2s2]");
+    rhow_rk2_flux.setTopology(topo,"rhow_rk2 [kg/m2s2]");
+    rhow_rk3_flux.setTopology(topo,"rhow_rk3 [kg/m2s2]");
+    rhoE_rk1_flux.setTopology(topo,"rhoE_rk1 [J/m3s]");
+    rhoE_rk2_flux.setTopology(topo,"rhoE_rk2 [J/m3s]");
+    rhoE_rk3_flux.setTopology(topo,"rhoE_rk3 [J/m3s]");
 
     /// Set parallel topology of inviscid fluxes	
-    rho_inv_flux.setTopology(topo);
-    rhou_inv_flux.setTopology(topo);
-    rhov_inv_flux.setTopology(topo);
-    rhow_inv_flux.setTopology(topo);
-    rhoE_inv_flux.setTopology(topo);
+    rho_inv_flux.setTopology(topo,"rho_inv [kg/m3s]");
+    rhou_inv_flux.setTopology(topo,"rhou_inv [kg/m2s2]");
+    rhov_inv_flux.setTopology(topo,"rhov_inv [kg/m2s2]");
+    rhow_inv_flux.setTopology(topo,"rhow_inv [kg/m2s2]");
+    rhoE_inv_flux.setTopology(topo,"rhoE_inv [J/m3s]");
 
     /// Set parallel topology of viscous fluxes	
-    rhou_vis_flux.setTopology(topo);
-    rhov_vis_flux.setTopology(topo);
-    rhow_vis_flux.setTopology(topo);
-    rhoE_vis_flux.setTopology(topo);
+    rhou_vis_flux.setTopology(topo,"rhou_vis [kg/m2s2]");
+    rhov_vis_flux.setTopology(topo,"rhov_vis [kg/m2s2]");
+    rhow_vis_flux.setTopology(topo,"rhow_vis [kg/m2s2]");
+    rhoE_vis_flux.setTopology(topo,"rhoE_vis [J/m3s]");
 
     /// Set parallel topology of source terms
-    f_rhou_field.setTopology(topo);
-    f_rhov_field.setTopology(topo);
-    f_rhow_field.setTopology(topo);
-    f_rhoE_field.setTopology(topo);
+    f_rhou_field.setTopology(topo,"f_rhou [kg/m2s2]");
+    f_rhov_field.setTopology(topo,"f_rhov [kg/m2s2]");
+    f_rhow_field.setTopology(topo,"f_rhow [kg/m2s2]");
+    f_rhoE_field.setTopology(topo,"f_rhoE [J/m3s]");
 
     /// Fill x, y and z fields
     this->fillMeshCoordinateFields();
+
+    /// Construct (initialize) HDF5 writer/reader
+    char char_array[output_data_file.length()+1]; 
+    strcpy(char_array,output_data_file.c_str());
+    hdf5_data = new printer(topo,char_array);
+    hdf5_data->addField(&x_field);
+    hdf5_data->addField(&y_field);
+    hdf5_data->addField(&z_field);
+    hdf5_data->addField(&rho_field);
+    hdf5_data->addField(&u_field);
+    hdf5_data->addField(&v_field);
+    hdf5_data->addField(&w_field);
+    hdf5_data->addField(&E_field);
+    hdf5_data->addField(&P_field);
+    hdf5_data->addField(&T_field);
+    hdf5_data->addField(&sos_field);
 
 };
 
 FlowSolverRHEA::~FlowSolverRHEA() {
 
-    /// Free mesh, topo and bocos
+    /// Free mesh, topo, hdf5_data and bocos
     if(mesh != NULL) free(mesh);	
     if(topo != NULL) free(topo);
+    if(hdf5_data != NULL) free(hdf5_data);
     free(bocos_type);	
     free(bocos_u);	
     free(bocos_v);	
@@ -129,27 +146,26 @@ void FlowSolverRHEA::readConfigurationFile() {
 
     /// Problem parameters
     const YAML::Node & problem_parameters = configuration["problem_parameters"];
-    x_0               = problem_parameters["x_0"].as<double>();
-    y_0               = problem_parameters["y_0"].as<double>();
-    z_0               = problem_parameters["z_0"].as<double>();
-    L_x               = problem_parameters["L_x"].as<double>();
-    L_y               = problem_parameters["L_y"].as<double>();
-    L_z               = problem_parameters["L_z"].as<double>();
-    current_time      = problem_parameters["current_time"].as<double>();
-    final_time        = problem_parameters["final_time"].as<double>();
-    output_data_file  = problem_parameters["output_data_file"].as<string>();
-    restart_data_file = problem_parameters["restart_data_file"].as<string>();
-    use_restart       = problem_parameters["use_restart"].as<bool>();
+    x_0          = problem_parameters["x_0"].as<double>();
+    y_0          = problem_parameters["y_0"].as<double>();
+    z_0          = problem_parameters["z_0"].as<double>();
+    L_x          = problem_parameters["L_x"].as<double>();
+    L_y          = problem_parameters["L_y"].as<double>();
+    L_z          = problem_parameters["L_z"].as<double>();
+    current_time = problem_parameters["current_time"].as<double>();
+    final_time   = problem_parameters["final_time"].as<double>();
 
     /// Computational parameters
     const YAML::Node & computational_parameters = configuration["computational_parameters"];
     num_grid_x        = computational_parameters["num_grid_x"].as<int>();
     num_grid_y        = computational_parameters["num_grid_y"].as<int>();
     num_grid_z        = computational_parameters["num_grid_z"].as<int>();
+    A_x               = computational_parameters["A_x"].as<double>();
+    A_y               = computational_parameters["A_y"].as<double>();
+    A_z               = computational_parameters["A_z"].as<double>();
     CFL               = computational_parameters["CFL"].as<double>();
     current_time_iter = computational_parameters["current_time_iter"].as<int>();
     final_time_iter   = computational_parameters["final_time_iter"].as<int>();
-    output_iter       = computational_parameters["output_iter"].as<int>();
 
     /// Boundary conditions
     const YAML::Node & boundary_conditons = configuration["boundary_conditons"];
@@ -189,6 +205,13 @@ void FlowSolverRHEA::readConfigurationFile() {
     bocos_T[_NORTH_]    = boundary_conditons["north_bc_T"].as<double>();
     bocos_T[_BACK_]     = boundary_conditons["back_bc_T"].as<double>();
     bocos_T[_FRONT_]    = boundary_conditons["front_bc_T"].as<double>();
+
+    /// Write/read file parameters
+    const YAML::Node & write_read_parameters = configuration["write_read_parameters"];
+    output_data_file       = write_read_parameters["output_data_file"].as<string>();
+    output_frequency_iter  = write_read_parameters["output_frequency_iter"].as<int>();
+    use_restart            = write_read_parameters["use_restart"].as<bool>();
+    restart_data_file_iter = write_read_parameters["restart_data_file_iter"].as<int>();
 
     /// Parallelization scheme
     const YAML::Node & parallelization_scheme = configuration["parallelization_scheme"];
@@ -246,27 +269,21 @@ void FlowSolverRHEA::setInitialConditions() {
 
 void FlowSolverRHEA::initializeFromRestart() {
 
-    // This method needs to be modified according to HDF5 restart_data_file !!
-
-    /// All (inner & boundary) points: u, v, w, P and T
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                u_field[I1D(i,j,k)] = 0.0;
-                v_field[I1D(i,j,k)] = 0.0;
-                w_field[I1D(i,j,k)] = 0.0;
-                P_field[I1D(i,j,k)] = 0.0;
-                T_field[I1D(i,j,k)] = 0.0;
-            }
-        }
-    }
+    /// Read from file to restart solver (HDF5 data)
+    hdf5_data->read(restart_data_file_iter);
 
     /// Update halo values
+    x_field.update();
+    y_field.update();
+    z_field.update();
+    rho_field.update();
     u_field.update();
     v_field.update();
     w_field.update();
+    E_field.update();
     P_field.update();
     T_field.update();
+    sos_field.update();
 
 };
 
@@ -1371,46 +1388,8 @@ void FlowSolverRHEA::timeAdvanceConservedVariables() {
 
 void FlowSolverRHEA::outputCurrentStateData() {
 
-    // This method needs to be implemented using HDF5!
-   
-    /// Obtain MPI information
-    int my_rank, world_size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
- 
-    /// Open output data file
-    ofstream output_file(output_data_file);
-
-    /// Header string
-    if(my_rank == 0) output_file << "#x [m],y [m],z [m],rho [kg/m3],u [m/s],v [m/s],w [m/s],E [J/kg],P [Pa],T [K],sos [m/s]" << endl;
-
-    /// All (inner & boundary) points: x, y, z, rho, u, v, w, E, P, T, sos
-    for(int p = 0; p < world_size; p++) {
-        /// Serialize writing to file
-        if(my_rank == p) {
-            for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
-                for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
-                    for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                        output_file << mesh->x[i] << ","; 
-                        output_file << mesh->y[j] << ","; 
-                        output_file << mesh->z[k] << ","; 
-                        output_file << rho_field[I1D(i,j,k)] << ","; 
-                        output_file << u_field[I1D(i,j,k)] << ","; 
-                        output_file << v_field[I1D(i,j,k)] << ","; 
-                        output_file << w_field[I1D(i,j,k)] << ","; 
-                        output_file << E_field[I1D(i,j,k)] << ","; 
-                        output_file << P_field[I1D(i,j,k)] << ","; 
-                        output_file << T_field[I1D(i,j,k)] << ","; 
-                        output_file << sos_field[I1D(i,j,k)] << endl; 
-                    }
-                }
-            }
-        }
-        MPI_Barrier(MPI_COMM_WORLD);
-    }
-
-    /// Close output data file
-    output_file.close();
+    /// Write to file current solver state (HDF5 data)
+    hdf5_data->write(current_time_iter);
 
 };
 
@@ -1436,6 +1415,9 @@ int main(int argc, char** argv) {
 
         /// Set initial conditions
         flow_solver_RHEA.setInitialConditions();
+    
+        /// Initialize thermodynamics
+        flow_solver_RHEA.initializeThermodynamics();
 
     } else {
 
@@ -1443,9 +1425,6 @@ int main(int argc, char** argv) {
         flow_solver_RHEA.initializeFromRestart();
 
     }
-
-    /// Initialize thermodynamics
-    flow_solver_RHEA.initializeThermodynamics();
 
     /// Calculate conserved variables from primitive variables
     flow_solver_RHEA.primitiveToConservedVariables();
@@ -1470,7 +1449,7 @@ int main(int argc, char** argv) {
         }
 
         /// Output current state data to file (if criterion satisfied)
-        if(flow_solver_RHEA.getCurrentTimeIteration()%flow_solver_RHEA.getOutputIteration() == 0) flow_solver_RHEA.outputCurrentStateData();
+        if(flow_solver_RHEA.getCurrentTimeIteration()%flow_solver_RHEA.getOutputIterationFrequency() == 0) flow_solver_RHEA.outputCurrentStateData();
 
         /// Runge-Kutta time-integration steps
         flow_solver_RHEA.setCurrentRungeKuttaStep( 1 );

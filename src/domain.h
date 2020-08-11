@@ -7,7 +7,7 @@ using namespace std;
 class domain{
     public:
         domain(){};
-        domain(double, double, double,double, double,double, int, int, int);
+        domain(double, double, double,double, double,double, double, double, double, int, int, int);
         
         void printDomain();
         void updateBocos(int b[6]);
@@ -71,7 +71,10 @@ class domain{
         double y_0;
         double z_0;
 
-
+        // Stretching factors
+        double A_x;
+        double A_y;
+        double A_z;
 
         void calculateGlobalGrid();
 };

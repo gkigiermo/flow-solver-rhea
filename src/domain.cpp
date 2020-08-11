@@ -1,6 +1,6 @@
 #include "domain.h"
 
-domain::domain(double sizex, double sizey, double sizez, double orig_x, double orig_y, double orig_z, int ncellsx, int ncellsy, int ncellsz)
+domain::domain(double sizex, double sizey, double sizez, double orig_x, double orig_y, double orig_z, double stretch_x, double stretch_y, double stretch_z, int ncellsx, int ncellsy, int ncellsz)
 {
     gNx=ncellsx;
     gNy=ncellsy;
@@ -29,6 +29,10 @@ domain::domain(double sizex, double sizey, double sizez, double orig_x, double o
     y_0 = orig_y;
     z_0 = orig_z;
 
+    A_x = stretch_x;
+    A_y = stretch_y;
+    A_z = stretch_z;
+
     // Position of the Global Cells
     globx = new double[gNx + 2];
     globy = new double[gNy + 2];
@@ -40,10 +44,6 @@ domain::domain(double sizex, double sizey, double sizez, double orig_x, double o
 
 void domain::calculateGlobalGrid()
 {
-
-    double A_x = 0.0;
-    double A_y = 0.0; //-1.915;
-    double A_z = 0.0;
 
     double eta_x, eta_y, eta_z;
 

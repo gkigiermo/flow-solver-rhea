@@ -13,6 +13,7 @@
 #include "src/domain.h"
 #include "src/comm_scheme.h"
 #include "src/parvec.h"
+#include "src/printer.h"
 
 ////////// NAMESPACES //////////
 using namespace std;
@@ -60,23 +61,22 @@ class FlowSolverRHEA {
 	////////// GET FUNCTIONS //////////
         inline double getCurrentTime() { return( current_time ); };
         inline double getFinalTime() { return( final_time ); };
-        inline bool getUseRestart() { return( use_restart ); };
         inline double getTimeStep() { return( delta_t ); };
         inline int getCurrentTimeIteration() { return( current_time_iter ); };
         inline int getFinalTimeIteration() { return( final_time_iter ); };
-        inline int getOutputIteration() { return( output_iter ); };
         inline int getCurrentRungeKuttaStep() { return( rk_step ); };
         inline int getRungeKuttaOrder() { return( rk_order ); };
+        inline int getOutputIterationFrequency() { return( output_frequency_iter ); };
+        inline bool getUseRestart() { return( use_restart ); };
 
 	////////// SET FUNCTIONS //////////
         inline void setCurrentTime(double current_time_) { current_time = current_time_; };
         inline void setFinalTime(double final_time_) { final_time = final_time_; };
-        inline void setUseRestart(bool use_restart_) { use_restart = use_restart_; };
         inline void setTimeStep(double delta_t_) { delta_t = delta_t_; };
         inline void setCurrentTimeIteration(int current_time_iter_) { current_time_iter = current_time_iter_; };
-        inline void setFinalTimeIteration(int final_time_iter_) { final_time_iter = final_time_iter_; };
-        inline void setOutputIteration(int output_iter_) { output_iter = output_iter_; };
         inline void setCurrentRungeKuttaStep(int rk_step_) { rk_step = rk_step_; };
+        inline void setOutputIterationFrequency(int output_frequency_iter_) { output_frequency_iter = output_frequency_iter_; };
+        inline void setUseRestart(bool use_restart_) { use_restart = use_restart_; };
 
 	////////// SOLVER METHODS //////////
 
@@ -156,20 +156,19 @@ class FlowSolverRHEA {
         double L_z;						/// Domain size in z-direction [m]
         double current_time;   					/// Current time [s]
         double final_time;		      			/// Final time [s]
-        string configuration_file;				/// Configuration file (YAML language)	
-        string output_data_file;				/// Output data file (HDF5 format)	
-        string restart_data_file;				/// Restart data file (HDF5 format)	
-        bool use_restart;					/// Use restart file for initialization
+        string configuration_file;				/// Configuration file name (YAML language)	
 
         /// Computational parameters
         int num_grid_x;						/// Number of inner grid points in x-direction
         int num_grid_y;						/// Number of inner grid points in y-direction
         int num_grid_z;						/// Number of inner grid points in z-direction
+        double A_x;						/// Stretching factor in x-direction
+        double A_y;						/// Stretching factor in y-direction
+        double A_z;						/// Stretching factor in z-direction
         double CFL;						/// CFL coefficient
         double delta_t;		      				/// Time step [s]
         int current_time_iter;					/// Current time iteration
         int final_time_iter;					/// Final time iteration
-        int output_iter;					/// Output data every given number of iterations
         int rk_step;						/// Current Runge-Kutta step: 1, 2, 3
         int rk_order;						/// Order of Runge-Kutta method (fixed)
 
@@ -186,6 +185,12 @@ class FlowSolverRHEA {
         double bocos_w[6];					/// Array of boundary conditions w
         double bocos_P[6];					/// Array of boundary conditions P
         double bocos_T[6];					/// Array of boundary conditions T
+
+        /// Write/read file parameters
+        string output_data_file;				/// Output data file name (HDF5 format)	
+        int output_frequency_iter;				/// Data output iteration frequency
+        bool use_restart;					/// Use restart file for initialization
+        int restart_data_file_iter;				/// Restart data file iteration
 
         /// Parallelization scheme
         int np_x;						/// Number of processes in x-direction
@@ -256,9 +261,10 @@ class FlowSolverRHEA {
         parvec f_rhow_field;					/// 3-D field of rhow
         parvec f_rhoE_field;					/// 3-D field of rhoE
 
-	////////// COMPUTATIONAL DOMAIN & PARALLEL TOPOLOGY //////////
+	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY & WRITER/READER //////////
         domain *mesh;						/// Computational mesh
         comm_scheme *topo;					/// Communication scheme (parallel topology)
+        printer *hdf5_data;					/// HDF5 data writer/reader
 
     private:
 

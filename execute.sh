@@ -1,1 +1,1 @@
-mpirun -np 8 --hostfile my-hostfile ./test1
+mpirun -np 4 --hostfile my-hostfile ./test1

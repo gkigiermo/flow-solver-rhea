@@ -26,7 +26,10 @@ int main(int argc, char** argv)
     origen_x = 0.0;
     origen_y = 0.0;
     origen_z = 0.0;
-   
+    double stretch_x,stretch_y,stretch_z;
+    stretch_x = 0.0;
+    stretch_y = 0.0;
+    stretch_z = 0.0;   
 
     double kappa=0.1;
     double dt = 0.001;
@@ -40,7 +43,7 @@ int main(int argc, char** argv)
     bocos[_FRONT_] = _PERIODIC_;
 
     //This is just for testing, later would be read from a file
-    domain dom(Lx, Ly, Lz, origen_x, origen_y, origen_z, RHEA_NX, RHEA_NY, RHEA_NZ);
+    domain dom(Lx, Ly, Lz, origen_x, origen_y, origen_z, stretch_x, stretch_y, stretch_z, RHEA_NX, RHEA_NY, RHEA_NZ);
 
     //To add the boundary conditions,  later would be read from a file
     dom.updateBocos(bocos);
