@@ -5,8 +5,8 @@
 fluid_properties:
    R_specific: 287.058                 # Specific gas constant [J/(kg·K)]
    gamma: 1.4                          # Heat capacity ratio [-]
-   mu: 1.0e-5                          # Dynamic viscosity [Pa·s]
-   kappa: 1.0e-3                       # Thermal conductivity [W/(m·k)]
+   mu: 1.0e-2                          # Dynamic viscosity [Pa·s]
+   kappa: 0.0                          # Thermal conductivity [W/(m·k)]
 
 
 ##### PROBLEM PARAMETERS #####
@@ -14,11 +14,11 @@ problem_parameters:
    x_0: 0.0                            # Domain origin in x-direction [m]
    y_0: 0.0                            # Domain origin in y-direction [m]
    z_0: 0.0                            # Domain origin in z-direction [m]
-   L_x: 1.0                            # Size of domain in x-direction [m]
-   L_y: 1.0                            # Size of domain in y-direction [m]
-   L_z: 1.0                            # Size of domain in z-direction [m]
+   L_x: 12.566370614                   # Size of domain in x-direction [m]
+   L_y: 2.0                            # Size of domain in y-direction [m]
+   L_z: 4.188790205                    # Size of domain in z-direction [m]
    current_time: 0.0                   # Current time [s]
-   final_time: 1000.0                  # Final time [s]
+   final_time: 1.0e6                   # Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####
@@ -33,18 +33,18 @@ computational_parameters:
    A_z: 0.0                            # Stretching factor in z-direction
    CFL: 0.9                            # CFL coefficient
    current_time_iter: 0                # Current time iteration
-   final_time_iter: 1000000            # Final time iteration
+   final_time_iter: 1000000000         # Final time iteration
 
 
 ##### BOUNDARY CONDITIONS #####
 boundary_conditions:
-   # Boundary types: Dirichlet (reflective), Neumann (transmissive), Periodic (cyclic) 
-   west_bc_type: _PERIODIC_             # West boundary condition type
-   east_bc_type: _PERIODIC_             # East boundary condition type
-   south_bc_type: _PERIODIC_            # South boundary condition type
-   north_bc_type: _PERIODIC_            # North boundary condition type
-   back_bc_type: _PERIODIC_             # Back boundary condition type
-   front_bc_type: _PERIODIC_            # Front boundary condition type
+   # Boundary types: DIRICHLET (reflective), NEUMANN (transmissive), PERIODIC (cyclic) 
+   west_bc_type: PERIODIC               # West boundary condition type
+   east_bc_type: PERIODIC               # East boundary condition type
+   south_bc_type: DIRICHLET             # South boundary condition type
+   north_bc_type: DIRICHLET             # North boundary condition type
+   back_bc_type: PERIODIC               # Back boundary condition type
+   front_bc_type: PERIODIC              # Front boundary condition type
    west_bc_u: 0.0                       # West boundary condition u value/flux
    east_bc_u: 0.0                       # East boundary condition u value/flux
    south_bc_u: 0.0                      # South boundary condition u value/flux
@@ -63,30 +63,30 @@ boundary_conditions:
    north_bc_w: 0.0                      # North boundary condition w value/flux
    back_bc_w: 0.0                       # Back boundary condition w value/flux
    front_bc_w: 0.0                      # Front boundary condition w value/flux
-   west_bc_P: 0.0                       # West boundary condition P value/flux
-   east_bc_P: 0.0                       # East boundary condition P value/flux
-   south_bc_P: 0.0                      # South boundary condition P value/flux
-   north_bc_P: 0.0                      # North boundary condition P value/flux
-   back_bc_P: 0.0                       # Back boundary condition P value/flux
-   front_bc_P: 0.0                      # Front boundary condition P value/flux
-   west_bc_T: 0.0                       # West boundary condition T value/flux
-   east_bc_T: 0.0                       # East boundary condition T value/flux
-   south_bc_T: 0.0                      # South boundary condition T value/flux
-   north_bc_T: 0.0                      # North boundary condition T value/flux
-   back_bc_T: 0.0                       # Back boundary condition T value/flux
-   front_bc_T: 0.0                      # Front boundary condition T value/flux
+   west_bc_P: 101325.0                  # West boundary condition P value/flux
+   east_bc_P: 101325.0                  # East boundary condition P value/flux
+   south_bc_P: 101325.0                 # South boundary condition P value/flux
+   north_bc_P: 101325.0                 # North boundary condition P value/flux
+   back_bc_P: 101325.0                  # Back boundary condition P value/flux
+   front_bc_P: 101325.0                 # Front boundary condition P value/flux
+   west_bc_T: 352.977447066             # West boundary condition T value/flux
+   east_bc_T: 352.977447066             # East boundary condition T value/flux
+   south_bc_T: 352.977447066            # South boundary condition T value/flux
+   north_bc_T: 352.977447066            # North boundary condition T value/flux
+   back_bc_T: 352.977447066             # Back boundary condition T value/flux
+   front_bc_T: 352.977447066            # Front boundary condition T value/flux
 
 
 ##### WRITE/READ PARAMETERS #####
 write_read_parameters:
-   output_data_file: output_data       # Name of output data file [-]
-   output_frequency_iter: 100          # Data output iteration frequency
+   output_data_file: channel_flow      # Name of output data file [-]
+   output_frequency_iter: 1000         # Data output iteration frequency
    use_restart: FALSE                  # Use restart to initialize problem
-   restart_data_file_iter: 1000        # Restart data file iteration [-]
+   restart_data_file_iter: 0           # Restart data file iteration [-]
 
 
 ##### PARALLELIZATION SCHEME #####
 parallelization_scheme:
    np_x: 2                              # Number of processes in x-direction
-   np_y: 1                              # Number of processes in y-direction
+   np_y: 2                              # Number of processes in y-direction
    np_z: 1                              # Number of processes in z-direction
