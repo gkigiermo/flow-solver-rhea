@@ -45,10 +45,10 @@ class FlowSolverRHEA {
     ///   - Pressure: P
     ///   - Temperature: T
     ///   - Speed of sound: sos
-
-    /// Thermophysical properties:
     ///   - Specific gas constant: R_specific
     ///   - Ratio of heat capacities: gamma
+
+    /// Thermophysical properties:
     ///   - Dynamic viscosity: mu
     ///   - Thermal conductivity: kappa
  
@@ -119,6 +119,9 @@ class FlowSolverRHEA {
 
         /// Calculate time step satisfying CFL constraint
         void calculateTimeStep();
+
+        /// Calculate thermophysical properties
+        void calculateThermophysicalProperties();
 
         /// Calculate source terms ... needs to be modified/overwritten according to the problem under consideration
         void calculateSourceTerms();
@@ -211,7 +214,7 @@ class FlowSolverRHEA {
         parvec y_field;						/// 3-D field of y-coordinate
         parvec z_field;						/// 3-D field of z-coordinate
 
-        /// Primitive, conserved and thermodynamic variables
+        /// Primitive, conserved, thermodynamic and thermophysical variables
         parvec rho_field;					/// 3-D field of rho
         parvec u_field;						/// 3-D field of u
         parvec v_field;						/// 3-D field of v
@@ -224,6 +227,8 @@ class FlowSolverRHEA {
         parvec P_field;						/// 3-D field of P
         parvec T_field;						/// 3-D field of T
         parvec sos_field;					/// 3-D field of sos
+        parvec mu_field;					/// 3-D field of mu
+        parvec kappa_field;					/// 3-D field of kappa
 
         /// Time-integration variables
         parvec rho_0_field;					/// 3-D previous field of rho
