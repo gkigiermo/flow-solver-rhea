@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <limits>
+#include <iomanip>
 #include <mpi.h>
 #include "yaml-cpp/yaml.h"
 #include "src/parameters.h"
@@ -103,6 +104,12 @@ class FlowSolverRHEA {
 
         /// Calculate thermodynamics from primitive variables
         void calculateThermodynamicsFromPrimitiveVariables();
+
+        /// Calculate point density and internal energy from pressure and temperature
+        void calculatePointDensityInternalEnergyFromPressureTemperature(const double &P, const double &T, double &rho, double &e);
+
+        /// Calculate specific heat capacities
+        void calculateSpecificHeatCapacities(double &c_v, double &c_p);
 
         /// Update boundary values: rho, rhou, rhov, rhow and rhoE
         void updateBoundaries();

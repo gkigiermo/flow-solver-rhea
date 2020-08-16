@@ -3,8 +3,9 @@
 using namespace std;
 
 ////////// FIXED PARAMETERS //////////
-const double epsilon = 1.0e-15;			// Small epsilon number (fixed)
-const double Pi      = 2.0*asin(1.0);		// Pi number (fixed)
+const double epsilon     = 1.0e-15;			// Small epsilon number (fixed)
+const double Pi          = 2.0*asin(1.0);		// Pi number (fixed)
+const int cout_presicion = 5;		                // Output precision (fixed)
 
 ////////// FlowSolverRHEA CLASS //////////
 FlowSolverRHEA::FlowSolverRHEA() {};
@@ -296,9 +297,9 @@ void FlowSolverRHEA::fillMeshCoordinateFields() {
     }
 
     /// Update halo values
-    x_field.update();
-    y_field.update();
-    z_field.update();
+    //x_field.update();
+    //y_field.update();
+    //z_field.update();
 
 };
 
@@ -321,11 +322,11 @@ void FlowSolverRHEA::setInitialConditions() {
     }
 
     /// Update halo values
-    u_field.update();
-    v_field.update();
-    w_field.update();
-    P_field.update();
-    T_field.update();
+    //u_field.update();
+    //v_field.update();
+    //w_field.update();
+    //P_field.update();
+    //T_field.update();
 
 };
 
@@ -335,17 +336,17 @@ void FlowSolverRHEA::initializeFromRestart() {
     hdf5_data->read(restart_data_file_iter);
 
     /// Update halo values
-    x_field.update();
-    y_field.update();
-    z_field.update();
-    rho_field.update();
-    u_field.update();
-    v_field.update();
-    w_field.update();
-    E_field.update();
-    P_field.update();
-    T_field.update();
-    sos_field.update();
+    //x_field.update();
+    //y_field.update();
+    //z_field.update();
+    //rho_field.update();
+    //u_field.update();
+    //v_field.update();
+    //w_field.update();
+    //E_field.update();
+    //P_field.update();
+    //T_field.update();
+    //sos_field.update();
 
 };
 
@@ -373,9 +374,9 @@ void FlowSolverRHEA::initializeThermodynamics() {
     }
 
     /// Update halo values
-    rho_field.update();
-    E_field.update();
-    sos_field.update();
+    //rho_field.update();
+    //E_field.update();
+    //sos_field.update();
 
 };
 
@@ -394,10 +395,10 @@ void FlowSolverRHEA::primitiveToConservedVariables() {
     }
 
     /// Update halo values
-    rhou_field.update();
-    rhov_field.update();
-    rhow_field.update();
-    rhoE_field.update();
+    //rhou_field.update();
+    //rhov_field.update();
+    //rhow_field.update();
+    //rhoE_field.update();
 
 };
 
@@ -416,10 +417,10 @@ void FlowSolverRHEA::conservedToPrimitiveVariables() {
     }
 
     /// Update halo values
-    u_field.update();
-    v_field.update();
-    w_field.update();
-    E_field.update();
+    //u_field.update();
+    //v_field.update();
+    //w_field.update();
+    //E_field.update();
 
 };
 
@@ -451,9 +452,31 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
     }
 
     /// Update halo values
-    P_field.update();
-    T_field.update();
-    sos_field.update();
+    //P_field.update();
+    //T_field.update();
+    //sos_field.update();
+
+};
+
+void FlowSolverRHEA::calculatePointDensityInternalEnergyFromPressureTemperature(const double &P, const double &T, double &rho, double &e) {
+
+    /// Ideal-gas model:
+    /// rho = P/(R_specific*T) is density
+    /// e = P/(rho*(gamma - 1)) is specific internal energy
+
+    rho = P/( R_specific*T );
+    e   = P/( rho*( gamma - 1.0 ) );
+
+};
+
+void FlowSolverRHEA::calculateSpecificHeatCapacities(double &c_v, double &c_p) {
+
+    /// Ideal-gas model:
+    /// c_v = R_specific/(gamma - 1)
+    /// c_p = c_v*gamma
+
+    c_v = R_specific/( gamma - 1.0 );
+    c_p = c_v*gamma;
 
 };
 
@@ -478,11 +501,10 @@ void FlowSolverRHEA::updateBoundaries() {
         w_g  = (  1.0 )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
         w_in = ( -1.0 )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
     }
-    rho_b  = bocos_P[_WEST_]/( R_specific*bocos_T[_WEST_] + epsilon );
+    this->calculatePointDensityInternalEnergyFromPressureTemperature( bocos_P[_WEST_], bocos_T[_WEST_], rho_b, e_b );
     rhou_b = rho_b*bocos_u[_WEST_];
     rhov_b = rho_b*bocos_v[_WEST_];
     rhow_b = rho_b*bocos_w[_WEST_];
-    e_b    = bocos_P[_WEST_]/( rho_b*( gamma - 1.0 ) + epsilon );
     ke_b   = 0.5*( pow( bocos_u[_WEST_], 2.0 ) + pow( bocos_v[_WEST_], 2.0 ) + pow( bocos_w[_WEST_], 2.0 ) );
     rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_WEST_][_INIX_]; i <= topo->iter_bound[_WEST_][_ENDX_]; i++) {
@@ -506,11 +528,10 @@ void FlowSolverRHEA::updateBoundaries() {
         w_g  = (  1.0 )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
         w_in = ( -1.0 )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
     }
-    rho_b  = bocos_P[_EAST_]/( R_specific*bocos_T[_EAST_] + epsilon );
+    this->calculatePointDensityInternalEnergyFromPressureTemperature( bocos_P[_EAST_], bocos_T[_EAST_], rho_b, e_b );
     rhou_b = rho_b*bocos_u[_EAST_];
     rhov_b = rho_b*bocos_v[_EAST_];
     rhow_b = rho_b*bocos_w[_EAST_];
-    e_b    = bocos_P[_EAST_]/( rho_b*( gamma - 1.0 ) + epsilon );
     ke_b   = 0.5*( pow( bocos_u[_EAST_], 2.0 ) + pow( bocos_v[_EAST_], 2.0 ) + pow( bocos_w[_EAST_], 2.0 ) );
     rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_EAST_][_INIX_]; i <= topo->iter_bound[_EAST_][_ENDX_]; i++) {
@@ -534,11 +555,10 @@ void FlowSolverRHEA::updateBoundaries() {
         w_g  = (  1.0 )/( mesh->getGloby(1) - mesh->getGloby(0) );
         w_in = ( -1.0 )/( mesh->getGloby(1) - mesh->getGloby(0) );
     }
-    rho_b  = bocos_P[_SOUTH_]/( R_specific*bocos_T[_SOUTH_] + epsilon );
+    this->calculatePointDensityInternalEnergyFromPressureTemperature( bocos_P[_SOUTH_], bocos_T[_SOUTH_], rho_b, e_b );
     rhou_b = rho_b*bocos_u[_SOUTH_];
     rhov_b = rho_b*bocos_v[_SOUTH_];
     rhow_b = rho_b*bocos_w[_SOUTH_];
-    e_b    = bocos_P[_SOUTH_]/( rho_b*( gamma - 1.0 ) + epsilon );
     ke_b   = 0.5*( pow( bocos_u[_SOUTH_], 2.0 ) + pow( bocos_v[_SOUTH_], 2.0 ) + pow( bocos_w[_SOUTH_], 2.0 ) );
     rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_SOUTH_][_INIX_]; i <= topo->iter_bound[_SOUTH_][_ENDX_]; i++) {
@@ -562,11 +582,10 @@ void FlowSolverRHEA::updateBoundaries() {
         w_g  = (  1.0 )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
         w_in = ( -1.0 )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
     }
-    rho_b  = bocos_P[_NORTH_]/( R_specific*bocos_T[_NORTH_] + epsilon );
+    this->calculatePointDensityInternalEnergyFromPressureTemperature( bocos_P[_NORTH_], bocos_T[_NORTH_], rho_b, e_b );
     rhou_b = rho_b*bocos_u[_NORTH_];
     rhov_b = rho_b*bocos_v[_NORTH_];
     rhow_b = rho_b*bocos_w[_NORTH_];
-    e_b    = bocos_P[_NORTH_]/( rho_b*( gamma - 1.0 ) + epsilon );
     ke_b   = 0.5*( pow( bocos_u[_NORTH_], 2.0 ) + pow( bocos_v[_NORTH_], 2.0 ) + pow( bocos_w[_NORTH_], 2.0 ) );
     rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_NORTH_][_INIX_]; i <= topo->iter_bound[_NORTH_][_ENDX_]; i++) {
@@ -590,11 +609,10 @@ void FlowSolverRHEA::updateBoundaries() {
         w_g  = (  1.0 )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
         w_in = ( -1.0 )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
     }
-    rho_b  = bocos_P[_BACK_]/( R_specific*bocos_T[_BACK_] + epsilon );
+    this->calculatePointDensityInternalEnergyFromPressureTemperature( bocos_P[_BACK_], bocos_T[_BACK_], rho_b, e_b );
     rhou_b = rho_b*bocos_u[_BACK_];
     rhov_b = rho_b*bocos_v[_BACK_];
     rhow_b = rho_b*bocos_w[_BACK_];
-    e_b    = bocos_P[_BACK_]/( rho_b*( gamma - 1.0 ) + epsilon );
     ke_b   = 0.5*( pow( bocos_u[_BACK_], 2.0 ) + pow( bocos_v[_BACK_], 2.0 ) + pow( bocos_w[_BACK_], 2.0 ) );
     rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_BACK_][_INIX_]; i <= topo->iter_bound[_BACK_][_ENDX_]; i++) {
@@ -618,11 +636,10 @@ void FlowSolverRHEA::updateBoundaries() {
         w_g  = (  1.0 )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
         w_in = ( -1.0 )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
     }
-    rho_b  = bocos_P[_FRONT_]/( R_specific*bocos_T[_FRONT_] + epsilon );
+    this->calculatePointDensityInternalEnergyFromPressureTemperature( bocos_P[_FRONT_], bocos_T[_FRONT_], rho_b, e_b );
     rhou_b = rho_b*bocos_u[_FRONT_];
     rhov_b = rho_b*bocos_v[_FRONT_];
     rhow_b = rho_b*bocos_w[_FRONT_];
-    e_b    = bocos_P[_FRONT_]/( rho_b*( gamma - 1.0 ) + epsilon );
     ke_b   = 0.5*( pow( bocos_u[_FRONT_], 2.0 ) + pow( bocos_v[_FRONT_], 2.0 ) + pow( bocos_w[_FRONT_], 2.0 ) );
     rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_FRONT_][_INIX_]; i <= topo->iter_bound[_FRONT_][_ENDX_]; i++) {
@@ -662,11 +679,11 @@ void FlowSolverRHEA::updatePreviousStateConservedVariables() {
     }
 
     /// Update halo values
-    rho_0_field.update();
-    rhou_0_field.update();
-    rhov_0_field.update();
-    rhow_0_field.update();
-    rhoE_0_field.update();
+    //rho_0_field.update();
+    //rhou_0_field.update();
+    //rhov_0_field.update();
+    //rhow_0_field.update();
+    //rhoE_0_field.update();
 
 };
 
@@ -683,8 +700,8 @@ void FlowSolverRHEA::calculateTimeStep() {
     /// NASA Contractor Report 187603, 1991.
 
     /// Calculate specific heat capacities
-    const double c_v = R_specific/( gamma - 1.0 );
-    const double c_p = c_v*gamma;
+    double c_v, c_p;
+    this->calculateSpecificHeatCapacities( c_v, c_p );
 
     /// Calculate Prandtl (Pr) number
     double Pr = gamma;
@@ -1462,7 +1479,7 @@ void FlowSolverRHEA::timeAdvanceConservedVariables() {
 void FlowSolverRHEA::outputCurrentStateData() {
 
     /// Write to file current solver state (HDF5 data)
-    hdf5_data->write(current_time_iter);
+//    hdf5_data->write(current_time_iter);
 
 };
 
@@ -1476,6 +1493,9 @@ int main(int argc, char** argv) {
     int my_rank, world_size;
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    /// Set output (cout) precision
+    cout.precision( cout_presicion );
 
     /// Start RHEA simulation
     if(my_rank == 0) cout << "RHEA: START SIMULATION" << endl;
@@ -1507,7 +1527,7 @@ int main(int argc, char** argv) {
     flow_solver_RHEA.updatePreviousStateConservedVariables();
 
     /// Iterate flow solver RHEA in time
-    for(int time_iter = flow_solver_RHEA.getCurrentTimeIteration(); time_iter <= flow_solver_RHEA.getFinalTimeIteration(); time_iter++) {
+    for(int time_iter = flow_solver_RHEA.getCurrentTimeIteration(); time_iter < flow_solver_RHEA.getFinalTimeIteration(); time_iter++) {
 
         /// Calculate time step
         flow_solver_RHEA.calculateTimeStep();
@@ -1518,8 +1538,8 @@ int main(int argc, char** argv) {
         /// Print time iteration information
         if(my_rank == 0) {
             cout << "Time iteration " << flow_solver_RHEA.getCurrentTimeIteration() << ": " 
-                 << "time = " << flow_solver_RHEA.getCurrentTime() << " [s], "
-                 << "time-step = " << flow_solver_RHEA.getTimeStep() << " [s]" << endl;
+                 << "time = " << scientific << flow_solver_RHEA.getCurrentTime() << " [s], "
+                 << "time-step = " << scientific << flow_solver_RHEA.getTimeStep() << " [s]" << endl;
         }
 
         /// Output current state data to file (if criterion satisfied)
@@ -1567,6 +1587,13 @@ int main(int argc, char** argv) {
         if(flow_solver_RHEA.getCurrentTime() >= flow_solver_RHEA.getFinalTime() ) break;
 
     }
+
+    /// Print time advancement information
+    if(my_rank == 0) {
+        cout << "Time advancement completed -> " 
+             << "iteration = " << flow_solver_RHEA.getCurrentTimeIteration() << ", "
+             << "time = " << scientific << flow_solver_RHEA.getCurrentTime() << " [s]" << endl;
+        }
 
     /// Output current state data to file
     flow_solver_RHEA.outputCurrentStateData();

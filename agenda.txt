@@ -1,7 +1,7 @@
 RHEA DEVELOPMENT AGENDA:
 
-- 
-- 
+- Fix problem with HDF5 writing 
+- Incorporate time (in seconds) in HDF5 datasets
 
 - ...
 
