@@ -1183,9 +1183,9 @@ void FlowSolverRHEA::calculateViscousFluxes() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 /// Geometric stuff
-                delta_x = 0.5*( mesh->x[i+1] - mesh->x[i-1] ); 
-                delta_y = 0.5*( mesh->y[j+1] - mesh->y[j-1] ); 
-                delta_z = 0.5*( mesh->z[k+1] - mesh->z[k-1] );
+                delta_x = mesh->x[i+1] - mesh->x[i-1]; 
+                delta_y = mesh->y[j+1] - mesh->y[j-1]; 
+                delta_z = mesh->z[k+1] - mesh->z[k-1];
                 /// Divergence of tau tensor terms
                 div_tau_xx  = ( 2.0/delta_x )*( 2.0*mu_field[I1D(i,j,k)]*( ( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] ) )
                                                                          - ( ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) ) ) );
