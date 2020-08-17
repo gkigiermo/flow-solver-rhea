@@ -10,6 +10,7 @@ RHEA DEVELOPMENT AGENDA:
 - Change class name parameters to GlobalParameters?
 - Change *.h to hpp to make it c++ standard
 - Problem running with 1 cpu
+- Question from Lluis to Willy: Halo updates are not encessary in timeAdvanceConservedVariables, right?
 - Parallel scheme has to be introduced via FlowSolverRHEA?
 - Remove _DEBUG_, _lNx_, _lNy_, _lNz_ from FlowSolverRHEA 
 - Rethink/homogenize global parameters (e.g., RHEA_NX, _PERIODIC_, _WEST_, _ALL_)

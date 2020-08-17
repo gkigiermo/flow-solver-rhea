@@ -275,7 +275,7 @@ void FlowSolverRHEA::readConfigurationFile() {
 
 void FlowSolverRHEA::fillMeshCoordinateFields() {
 
-    /// All (inner & boundary) points: x, y and z
+    /// All (inner, boundary & halo) points: x, y and z
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -297,7 +297,7 @@ void FlowSolverRHEA::setInitialConditions() {
 
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
-    /// All (inner & boundary) points: u, v, w, P and T
+    /// All (inner, boundary & halo) points: u, v, w, P and T
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -351,7 +351,7 @@ void FlowSolverRHEA::initializeThermodynamics() {
     /// E = e + ke is total energy
     /// sos = sqrt(gamma*P/rho) is speed of sound
 
-    /// All (inner & boundary) points: rho, e, ke, E and sos
+    /// All (inner, boundary & halo) points: rho, e, ke, E and sos
     double e, ke;
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
@@ -374,7 +374,7 @@ void FlowSolverRHEA::initializeThermodynamics() {
 
 void FlowSolverRHEA::primitiveToConservedVariables() {
 
-    /// All (inner & boundary) points: rhou, rhov, rhow and rhoE
+    /// All (inner, boundary & halo) points: rhou, rhov, rhow and rhoE
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -396,7 +396,7 @@ void FlowSolverRHEA::primitiveToConservedVariables() {
 
 void FlowSolverRHEA::conservedToPrimitiveVariables() {
 
-    /// All (inner & boundary) points: u, v, w and E
+    /// All (inner, boundary & halo) points: u, v, w and E
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -426,7 +426,7 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
     /// T = e/c_v is temperature
     /// sos = sqrt(gamma*P/rho) is speed of sound
 
-    /// All (inner & boundary) points: ke, e, P, T and sos
+    /// All (inner, boundary & halo) points: ke, e, P, T and sos
     double c_v, ke, e;
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
@@ -648,17 +648,17 @@ void FlowSolverRHEA::updateBoundaries() {
     }
 
     /// Update halo values
-    rho_0_field.update();
-    rhou_0_field.update();
-    rhov_0_field.update();
-    rhow_0_field.update();
-    rhoE_0_field.update();
+    rho_field.update();
+    rhou_field.update();
+    rhov_field.update();
+    rhow_field.update();
+    rhoE_field.update();
 
 };
 
 void FlowSolverRHEA::updatePreviousStateConservedVariables() {
 
-    /// All (inner & boundary) points: rho_0, rhou_0 rhov_0, rhow_0 and rhoE_0
+    /// All (inner, boundary & halo) points: rho_0, rhou_0 rhov_0, rhow_0 and rhoE_0
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -739,7 +739,7 @@ void FlowSolverRHEA::calculateThermophysicalProperties() {
     
     /// Constant thermophysical properties model introduced via configuration file
 
-    /// All (inner & boundary) points: mu and kappa
+    /// All (inner, boundary & halo) points: mu and kappa
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -774,10 +774,10 @@ void FlowSolverRHEA::calculateSourceTerms() {
     }
 
     /// Update halo values
-    f_rhou_field.update();
-    f_rhov_field.update();
-    f_rhow_field.update();
-    f_rhoE_field.update();
+    //f_rhou_field.update();
+    //f_rhov_field.update();
+    //f_rhow_field.update();
+    //f_rhoE_field.update();
 
 };
 
@@ -1160,11 +1160,11 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
     }
 
     /// Update halo values
-    rho_inv_flux.update();
-    rhou_inv_flux.update();
-    rhov_inv_flux.update();
-    rhow_inv_flux.update();
-    rhoE_inv_flux.update();
+    //rho_inv_flux.update();
+    //rhou_inv_flux.update();
+    //rhov_inv_flux.update();
+    //rhow_inv_flux.update();
+    //rhoE_inv_flux.update();
 
 };
 
@@ -1327,10 +1327,10 @@ void FlowSolverRHEA::calculateViscousFluxes() {
     }
 
     /// Update halo values
-    rhou_vis_flux.update();
-    rhov_vis_flux.update();
-    rhow_vis_flux.update();
-    rhoE_vis_flux.update();
+    //rhou_vis_flux.update();
+    //rhov_vis_flux.update();
+    //rhow_vis_flux.update();
+    //rhoE_vis_flux.update();
 
 };
 
@@ -1357,11 +1357,11 @@ void FlowSolverRHEA::sumInviscidViscousFluxesSourceTerms() {
         }
 
         /// Update halo values
-        rho_rk1_flux.update();
-        rhou_rk1_flux.update();
-        rhov_rk1_flux.update();
-        rhow_rk1_flux.update();
-        rhoE_rk1_flux.update();
+        //rho_rk1_flux.update();
+        //rhou_rk1_flux.update();
+        //rhov_rk1_flux.update();
+        //rhow_rk1_flux.update();
+        //rhoE_rk1_flux.update();
 
     }
 
@@ -1386,11 +1386,11 @@ void FlowSolverRHEA::sumInviscidViscousFluxesSourceTerms() {
         }
 
         /// Update halo values
-        rho_rk2_flux.update();
-        rhou_rk2_flux.update();
-        rhov_rk2_flux.update();
-        rhow_rk2_flux.update();
-        rhoE_rk2_flux.update();
+        //rho_rk2_flux.update();
+        //rhou_rk2_flux.update();
+        //rhov_rk2_flux.update();
+        //rhow_rk2_flux.update();
+        //rhoE_rk2_flux.update();
 
     }
 
@@ -1415,11 +1415,11 @@ void FlowSolverRHEA::sumInviscidViscousFluxesSourceTerms() {
         }
 
         /// Update halo values
-        rho_rk3_flux.update();
-        rhou_rk3_flux.update();
-        rhov_rk3_flux.update();
-        rhow_rk3_flux.update();
-        rhoE_rk3_flux.update();
+        //rho_rk3_flux.update();
+        //rhou_rk3_flux.update();
+        //rhov_rk3_flux.update();
+        //rhow_rk3_flux.update();
+        //rhoE_rk3_flux.update();
 
     }
 
@@ -1481,11 +1481,11 @@ void FlowSolverRHEA::timeAdvanceConservedVariables() {
     }
 
     /// Update halo values
-    rho_field.update();
-    rhou_field.update();
-    rhov_field.update();
-    rhow_field.update();
-    rhoE_field.update();
+    //rho_field.update();
+    //rhou_field.update();
+    //rhov_field.update();
+    //rhow_field.update();
+    //rhoE_field.update();
 
 };
 
