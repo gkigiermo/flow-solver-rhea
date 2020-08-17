@@ -84,16 +84,16 @@ class FlowSolverRHEA {
         /// Read configuration (input) file written in YAML language
         void readConfigurationFile();
 
-        /// Fill x, y and z mesh coordinate fields (HDF5 data)
+        /// Fill x, y and z mesh coordinate fields (input/output data)
         void fillMeshCoordinateFields();
 
         /// Set initial conditions: u, v, w, P and T ... needs to be modified/overwritten according to the problem under consideration
         void setInitialConditions();
 
-        /// Initialize from restart file: u, v, w, P and T
+        /// Initialize from restart file: x, y, z, rho, u, v, w, E, P, T, sos, mu and kappa
         void initializeFromRestart();
 
-        /// Initialize thermodynamic state: rho, e, ke, E and sos
+        /// Initialize thermodynamic state: rho, E and sos
         void initializeThermodynamics();
 
         /// Calculate conserved variables from primitive variables: variable -> rho*variable
@@ -209,7 +209,7 @@ class FlowSolverRHEA {
 
 	////////// SOLVER (PARALLEL) VARIABLES //////////
 	
-        /// Mesh coordinates (HDF5 data)
+        /// Mesh coordinates (input/output data)
         parvec x_field;						/// 3-D field of x-coordinate
         parvec y_field;						/// 3-D field of y-coordinate
         parvec z_field;						/// 3-D field of z-coordinate
@@ -275,8 +275,8 @@ class FlowSolverRHEA {
 
 	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY & WRITER/READER //////////
         domain *mesh;						/// Computational mesh
-        comm_scheme *topo;					/// Communication scheme (parallel topology)
-        printer *hdf5_data;					/// HDF5 data writer/reader
+        comm_scheme *topo;					/// Parallel topology
+        printer *writer_reader;					/// Data writer/reader
 
     private:
 

@@ -12,7 +12,7 @@ FlowSolverRHEA::FlowSolverRHEA() {};
 
 FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configuration_file(name_configuration_file) {
 
-    /// Read configuration (input) file written in YAML language
+    /// Read configuration (input) file
     this->readConfigurationFile();
 	
     /// Set value of fixed variables
@@ -21,10 +21,10 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     /// Construct (initialize) computational domain
     mesh = new domain(L_x, L_y, L_z, x_0, y_0, z_0, A_x, A_y, A_z, RHEA_NX, RHEA_NY, RHEA_NZ);
 
-    /// Add boundary conditions to computational domain
+    /// Set boundary conditions to computational domain
     mesh->updateBocos(bocos_type);
 
-    /// Construct (initialize) communication scheme
+    /// Construct (initialize) parallel topology (communication scheme)
     topo = new comm_scheme(mesh, np_x, np_y, np_z);
     //if(topo->getRank() == 0) mesh->printDomain();
     //for(int p = 0; p < np_x*np_y*np_z; p++) topo->printCommSchemeToFile(p);
@@ -102,32 +102,32 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     /// Fill x, y and z fields
     this->fillMeshCoordinateFields();
 
-    /// Construct (initialize) HDF5 writer/reader
+    /// Construct (initialize) writer/reader
     char char_array[output_data_file.length()+1]; 
     strcpy(char_array,output_data_file.c_str());
-    hdf5_data = new printer(topo,char_array);
-    hdf5_data->addField(&x_field);
-    hdf5_data->addField(&y_field);
-    hdf5_data->addField(&z_field);
-    hdf5_data->addField(&rho_field);
-    hdf5_data->addField(&u_field);
-    hdf5_data->addField(&v_field);
-    hdf5_data->addField(&w_field);
-    hdf5_data->addField(&E_field);
-    hdf5_data->addField(&P_field);
-    hdf5_data->addField(&T_field);
-    hdf5_data->addField(&sos_field);
-    hdf5_data->addField(&mu_field);
-    hdf5_data->addField(&kappa_field);
+    writer_reader = new printer(topo,char_array);
+    writer_reader->addField(&x_field);
+    writer_reader->addField(&y_field);
+    writer_reader->addField(&z_field);
+    writer_reader->addField(&rho_field);
+    writer_reader->addField(&u_field);
+    writer_reader->addField(&v_field);
+    writer_reader->addField(&w_field);
+    writer_reader->addField(&E_field);
+    writer_reader->addField(&P_field);
+    writer_reader->addField(&T_field);
+    writer_reader->addField(&sos_field);
+    writer_reader->addField(&mu_field);
+    writer_reader->addField(&kappa_field);
 
 };
 
 FlowSolverRHEA::~FlowSolverRHEA() {
 
-    /// Free mesh, topo, hdf5_data and bocos
+    /// Free mesh, topo, writer_reader and bocos
     if(mesh != NULL) free(mesh);	
     if(topo != NULL) free(topo);
-    if(hdf5_data != NULL) free(hdf5_data);
+    if(writer_reader != NULL) free(writer_reader);
     free(bocos_type);	
     free(bocos_u);	
     free(bocos_v);	
@@ -241,36 +241,22 @@ void FlowSolverRHEA::readConfigurationFile() {
     } else {
         cout << "Front boundary condition not available!" << endl;
     }
-    bocos_u[_WEST_]  = boundary_conditons["west_bc_u"].as<double>();
-    bocos_u[_EAST_]  = boundary_conditons["east_bc_u"].as<double>();
-    bocos_u[_SOUTH_] = boundary_conditons["south_bc_u"].as<double>();
-    bocos_u[_NORTH_] = boundary_conditons["north_bc_u"].as<double>();
-    bocos_u[_BACK_]  = boundary_conditons["back_bc_u"].as<double>();
-    bocos_u[_FRONT_] = boundary_conditons["front_bc_u"].as<double>();
-    bocos_v[_WEST_]  = boundary_conditons["west_bc_v"].as<double>();
-    bocos_v[_EAST_]  = boundary_conditons["east_bc_v"].as<double>();
-    bocos_v[_SOUTH_] = boundary_conditons["south_bc_v"].as<double>();
-    bocos_v[_NORTH_] = boundary_conditons["north_bc_v"].as<double>();
-    bocos_v[_BACK_]  = boundary_conditons["back_bc_v"].as<double>();
-    bocos_v[_FRONT_] = boundary_conditons["front_bc_v"].as<double>();
-    bocos_w[_WEST_]  = boundary_conditons["west_bc_w"].as<double>();
-    bocos_w[_EAST_]  = boundary_conditons["east_bc_w"].as<double>();
-    bocos_w[_SOUTH_] = boundary_conditons["south_bc_w"].as<double>();
-    bocos_w[_NORTH_] = boundary_conditons["north_bc_w"].as<double>();
-    bocos_w[_BACK_]  = boundary_conditons["back_bc_w"].as<double>();
-    bocos_w[_FRONT_] = boundary_conditons["front_bc_w"].as<double>();
-    bocos_P[_WEST_]  = boundary_conditons["west_bc_P"].as<double>();
-    bocos_P[_EAST_]  = boundary_conditons["east_bc_P"].as<double>();
-    bocos_P[_SOUTH_] = boundary_conditons["south_bc_P"].as<double>();
-    bocos_P[_NORTH_] = boundary_conditons["north_bc_P"].as<double>();
-    bocos_P[_BACK_]  = boundary_conditons["back_bc_P"].as<double>();
-    bocos_P[_FRONT_] = boundary_conditons["front_bc_P"].as<double>();
-    bocos_T[_WEST_]  = boundary_conditons["west_bc_T"].as<double>();
-    bocos_T[_EAST_]  = boundary_conditons["east_bc_T"].as<double>();
-    bocos_T[_SOUTH_] = boundary_conditons["south_bc_T"].as<double>();
-    bocos_T[_NORTH_] = boundary_conditons["north_bc_T"].as<double>();
-    bocos_T[_BACK_]  = boundary_conditons["back_bc_T"].as<double>();
-    bocos_T[_FRONT_] = boundary_conditons["front_bc_T"].as<double>();
+    /// Values/fluxes
+    bocos_u[_WEST_]  = boundary_conditons["west_bc_u"].as<double>();  bocos_u[_EAST_]  = boundary_conditons["east_bc_u"].as<double>();
+    bocos_u[_SOUTH_] = boundary_conditons["south_bc_u"].as<double>(); bocos_u[_NORTH_] = boundary_conditons["north_bc_u"].as<double>();
+    bocos_u[_BACK_]  = boundary_conditons["back_bc_u"].as<double>();  bocos_u[_FRONT_] = boundary_conditons["front_bc_u"].as<double>();
+    bocos_v[_WEST_]  = boundary_conditons["west_bc_v"].as<double>();  bocos_v[_EAST_]  = boundary_conditons["east_bc_v"].as<double>();
+    bocos_v[_SOUTH_] = boundary_conditons["south_bc_v"].as<double>(); bocos_v[_NORTH_] = boundary_conditons["north_bc_v"].as<double>();
+    bocos_v[_BACK_]  = boundary_conditons["back_bc_v"].as<double>();  bocos_v[_FRONT_] = boundary_conditons["front_bc_v"].as<double>();
+    bocos_w[_WEST_]  = boundary_conditons["west_bc_w"].as<double>();  bocos_w[_EAST_]  = boundary_conditons["east_bc_w"].as<double>();
+    bocos_w[_SOUTH_] = boundary_conditons["south_bc_w"].as<double>(); bocos_w[_NORTH_] = boundary_conditons["north_bc_w"].as<double>();
+    bocos_w[_BACK_]  = boundary_conditons["back_bc_w"].as<double>();  bocos_w[_FRONT_] = boundary_conditons["front_bc_w"].as<double>();
+    bocos_P[_WEST_]  = boundary_conditons["west_bc_P"].as<double>();  bocos_P[_EAST_]  = boundary_conditons["east_bc_P"].as<double>();
+    bocos_P[_SOUTH_] = boundary_conditons["south_bc_P"].as<double>(); bocos_P[_NORTH_] = boundary_conditons["north_bc_P"].as<double>();
+    bocos_P[_BACK_]  = boundary_conditons["back_bc_P"].as<double>();  bocos_P[_FRONT_] = boundary_conditons["front_bc_P"].as<double>();
+    bocos_T[_WEST_]  = boundary_conditons["west_bc_T"].as<double>();  bocos_T[_EAST_]  = boundary_conditons["east_bc_T"].as<double>();
+    bocos_T[_SOUTH_] = boundary_conditons["south_bc_T"].as<double>(); bocos_T[_NORTH_] = boundary_conditons["north_bc_T"].as<double>();
+    bocos_T[_BACK_]  = boundary_conditons["back_bc_T"].as<double>();  bocos_T[_FRONT_] = boundary_conditons["front_bc_T"].as<double>();
 
     /// Write/read file parameters
     const YAML::Node & write_read_parameters = configuration["write_read_parameters"];
@@ -336,8 +322,8 @@ void FlowSolverRHEA::setInitialConditions() {
 
 void FlowSolverRHEA::initializeFromRestart() {
 
-    /// Read from file to restart solver (HDF5 data)
-    hdf5_data->read(restart_data_file_iter);
+    /// Read from file to restart solver
+    writer_reader->read(restart_data_file_iter);
 
     /// Update halo values
     x_field.update();
@@ -351,6 +337,8 @@ void FlowSolverRHEA::initializeFromRestart() {
     P_field.update();
     T_field.update();
     sos_field.update();
+    mu_field.update();
+    kappa_field.update();
 
 };
 
@@ -1503,8 +1491,8 @@ void FlowSolverRHEA::timeAdvanceConservedVariables() {
 
 void FlowSolverRHEA::outputCurrentStateData() {
 
-    /// Write to file current solver state (HDF5 data)
-    hdf5_data->write(current_time_iter);
+    /// Write to file current solver state
+    writer_reader->write(current_time_iter);
 
 };
 
