@@ -1,6 +1,6 @@
-#include "parvec.h"
+#include "DistributedArray.hpp"
 
-parvec :: parvec(comm_scheme* topo, char const* auxName)
+DistributedArray::DistributedArray(ParallelTopology* topo, char const* auxName)
 {
     size = topo->getSize();
     vector = new double[size];
@@ -17,7 +17,7 @@ parvec :: parvec(comm_scheme* topo, char const* auxName)
 
 }
 
-void parvec::setTopology(comm_scheme* topo, char const * auxName) {
+void DistributedArray::setTopology(ParallelTopology* topo, char const * auxName) {
 
     size = topo->getSize();
     vector = new double[size];
@@ -35,26 +35,26 @@ void parvec::setTopology(comm_scheme* topo, char const * auxName) {
 
 }
 
-void parvec::update()
+void DistributedArray::update()
 {
     mydomain->update(vector);
 
     fillEdgeCornerBoundaries();
 }
 
-void parvec::update_simple()
+void DistributedArray::update_simple()
 {
     mydomain->update_simple(vector);
     fillEdgeCornerBoundaries();
 }
 
 
-double& parvec::operator[](int idx)
+double& DistributedArray::operator[](int idx)
 {
     return vector[idx];
 }
 
-void parvec::operator=(double val)
+void DistributedArray::operator=(double val)
 {
     for(int l = 0; l < size; l++)
         vector[l] = val;
@@ -65,7 +65,7 @@ void parvec::operator=(double val)
 
 
 
-void parvec::fillEdgeCornerBoundaries() {
+void DistributedArray::fillEdgeCornerBoundaries() {
 
     int _lNx_ = mydomain->getlNx();
     int _lNy_ = mydomain->getlNy();

@@ -1,6 +1,6 @@
 #include "ParallelTopology.hpp"
 
-comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
+ParallelTopology::ParallelTopology(ComputationalDomain* dom, int nprocsx, int nprocsy, int nprocsz)
 {
     mymesh = dom;
 
@@ -16,7 +16,7 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
 
     if( np != npx*npy*npz ){
 
-        cout<<"Mismatched in the domain partition and number of procs launched"<<endl;
+        cout<<"Mismatched in the ComputationalDomain partition and number of procs launched"<<endl;
         MPI_Abort(RHEA_3DCOMM,0);
     }
 
@@ -74,7 +74,7 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
 
 
     //Finding surface neighbours
-    //By default there is no connection with other sub-domains
+    //By default there is no connection with other sub-ComputationalDomains
     for(int nb = 0 ; nb < 26 ; nb++)
         neighb[nb] = _NO_NEIGHBOUR_;
 
@@ -236,7 +236,7 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
     create_complex_comm_arrays();
 }
 
-void comm_scheme::exchange_2nd_level_neighbour_info()
+void ParallelTopology::exchange_2nd_level_neighbour_info()
 {
     int pack[6];
     
@@ -322,7 +322,7 @@ void comm_scheme::exchange_2nd_level_neighbour_info()
 }
 
 
-void comm_scheme::find_extra_neighbours()
+void ParallelTopology::find_extra_neighbours()
 {
 
 // Lineal neighbours 
@@ -547,7 +547,7 @@ void comm_scheme::find_extra_neighbours()
 }
 
 
-void comm_scheme::printCommScheme(int proc)
+void ParallelTopology::printCommScheme(int proc)
 {
 
     if(rank==proc){
@@ -562,7 +562,7 @@ void comm_scheme::printCommScheme(int proc)
     MPI_Barrier(RHEA_3DCOMM);
 }
 
-void comm_scheme::printCommSchemeToFile(int proc)
+void ParallelTopology::printCommSchemeToFile(int proc)
 {
     char filename[100];
     sprintf(filename,"topo-%d.info",rank);
@@ -599,7 +599,7 @@ void comm_scheme::printCommSchemeToFile(int proc)
             myfile<<" INI_X  "<<iter_common[_INNER_][_INIX_]<<" END_X "<<iter_common[_INNER_][_ENDX_]<<endl;
             myfile<<" INI_Y  "<<iter_common[_INNER_][_INIY_]<<" END_Y "<<iter_common[_INNER_][_ENDY_]<<endl;
             myfile<<" INI_Z  "<<iter_common[_INNER_][_INIZ_]<<" END_Z "<<iter_common[_INNER_][_ENDZ_]<<endl;
-            myfile<<" Total domain iterators: "<<endl;
+            myfile<<" Total ComputationalDomain iterators: "<<endl;
             myfile<<" INI_X  "<<iter_common[_ALL_][_INIX_]<<" END_X "<<iter_common[_ALL_][_ENDX_]<<endl;
             myfile<<" INI_Y  "<<iter_common[_ALL_][_INIY_]<<" END_Y "<<iter_common[_ALL_][_ENDY_]<<endl;
             myfile<<" INI_Z  "<<iter_common[_ALL_][_INIZ_]<<" END_Z "<<iter_common[_ALL_][_ENDZ_]<<endl;
@@ -711,7 +711,7 @@ void comm_scheme::printCommSchemeToFile(int proc)
 
 
 /* This part assumes halo size 1*/
-void comm_scheme::create_common_iters()
+void ParallelTopology::create_common_iters()
 {
     // By default non halos are created
     for(int bd=_INNER_; bd<= _ALL_; bd++)
@@ -745,7 +745,7 @@ void comm_scheme::create_common_iters()
 
 
 /* This part assumes halo size 1*/
-void comm_scheme::create_basic_bound_iters()
+void ParallelTopology::create_basic_bound_iters()
 {
     // By default non halos are created
     for(int bd=_WEST_; bd<= _EAST_N_F_; bd++)
@@ -820,7 +820,7 @@ void comm_scheme::create_basic_bound_iters()
     }
 }
     
-void comm_scheme::create_complex_bound_iters(){
+void ParallelTopology::create_complex_bound_iters(){
 
     // 2nd Level (lines)
     //WEST SOUTH
@@ -1035,7 +1035,7 @@ void comm_scheme::create_complex_bound_iters(){
 
 /* This part assumes halo size 1*/
 /* This rarely will be used */
-void comm_scheme::create_halo_iters()
+void ParallelTopology::create_halo_iters()
 {
     // By default non halos are created
     for(int bd=_WEST_; bd<= _EAST_N_F_; bd++)
@@ -1110,7 +1110,7 @@ void comm_scheme::create_halo_iters()
     }
 }
 
-void comm_scheme::create_complex_halo_iters()
+void ParallelTopology::create_complex_halo_iters()
 {
 
     //2nd Level Halos (lines)
@@ -1324,7 +1324,7 @@ void comm_scheme::create_complex_halo_iters()
 
 
 /* This part assumes halo size 1*/
-void comm_scheme::create_toRecv_iters()
+void ParallelTopology::create_toRecv_iters()
 {
 
     for(int bd=_WEST_; bd<= _EAST_N_F_; bd++)
@@ -1400,7 +1400,7 @@ void comm_scheme::create_toRecv_iters()
 }
 
 
-void comm_scheme::create_complex_toRecv_iters()
+void ParallelTopology::create_complex_toRecv_iters()
 {
     //2nd Level Halos (lines)
     //WEST SOUTH
@@ -1614,7 +1614,7 @@ void comm_scheme::create_complex_toRecv_iters()
 }
 
 /* This part assumes halo size 1*/
-void comm_scheme::create_toSend_iters()
+void ParallelTopology::create_toSend_iters()
 {
 
     for(int bd=_WEST_; bd<= _EAST_N_F_; bd++)
@@ -1689,7 +1689,7 @@ void comm_scheme::create_toSend_iters()
 
 }
 
-void comm_scheme::create_complex_toSend_iters()
+void ParallelTopology::create_complex_toSend_iters()
 {
 
 
@@ -2637,7 +2637,7 @@ void comm_scheme::create_complex_toSend_iters()
 }
 
 
-void comm_scheme::create_global_iters()
+void ParallelTopology::create_global_iters()
 {
     
     iter_glob_ind[_INIX_] = iter_common[_INNER_][_INIX_] + offx - 1;
@@ -2722,7 +2722,7 @@ void comm_scheme::create_global_iters()
 
 }
 
-void comm_scheme::create_comm_arrays()
+void ParallelTopology::create_comm_arrays()
 {
     //Size of the faces
 
@@ -2752,7 +2752,7 @@ void comm_scheme::create_comm_arrays()
  
 }
 
-void comm_scheme::create_complex_comm_arrays()
+void ParallelTopology::create_complex_comm_arrays()
 {
 
     len_1Dx = lNx-2;
@@ -2819,14 +2819,14 @@ void comm_scheme::create_complex_comm_arrays()
 
 
 }
-void comm_scheme::update(double *vec)
+void ParallelTopology::update(double *vec)
 {
     pack(vec);
     halo_exchange();
     unpack(vec);
 }
 
-void comm_scheme::update_simple(double *vec)
+void ParallelTopology::update_simple(double *vec)
 {
     pack_simple(vec);
     halo_exchange_simple();
@@ -2834,7 +2834,7 @@ void comm_scheme::update_simple(double *vec)
 }
 
 
-void comm_scheme::pack_simple(double *vec)
+void ParallelTopology::pack_simple(double *vec)
 {
 
     //WEST
@@ -2904,7 +2904,7 @@ void comm_scheme::pack_simple(double *vec)
 }
 
 
-void comm_scheme::pack(double *vec)
+void ParallelTopology::pack(double *vec)
 {
 
     //WEST
@@ -3175,7 +3175,7 @@ void comm_scheme::pack(double *vec)
 }
 
 
-void comm_scheme::unpack_simple(double *vec)
+void ParallelTopology::unpack_simple(double *vec)
 {
     //WEST
     int l=0;
@@ -3238,7 +3238,7 @@ void comm_scheme::unpack_simple(double *vec)
             }
 }
 
-void comm_scheme::unpack(double *vec)
+void ParallelTopology::unpack(double *vec)
 {
     //WEST
     int l=0;
@@ -3505,7 +3505,7 @@ void comm_scheme::unpack(double *vec)
 }
 
 
-void comm_scheme :: halo_exchange_simple()
+void ParallelTopology :: halo_exchange_simple()
 {
 
     MPI_Request req_s[6];
@@ -3572,7 +3572,7 @@ void comm_scheme :: halo_exchange_simple()
 }
 
 
-void comm_scheme :: halo_exchange()
+void ParallelTopology :: halo_exchange()
 {
 
     MPI_Request req_s[26];

@@ -1,13 +1,13 @@
-#ifndef _domain_
-#define _domain_
+#ifndef _ComputationalDomain_
+#define _ComputationalDomain_
 #include <iostream>
-#include "parameters.h"
+#include "MacroParameters.hpp"
 using namespace std;
 
-class domain{
+class ComputationalDomain{
     public:
-        domain(){};
-        domain(double, double, double,double, double,double, double, double, double, int, int, int);
+        ComputationalDomain(){};
+        ComputationalDomain(double, double, double,double, double,double, double, double, double, int, int, int);
         
         void printDomain();
         void setBocos(int b[6]);
@@ -61,7 +61,7 @@ class domain{
         double *globy;
         double *globz;
 
-        //Dimensions of the domain
+        //Dimensions of the ComputationalDomain
         double L_x;
         double L_y;
         double L_z;

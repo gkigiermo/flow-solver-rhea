@@ -1,6 +1,6 @@
-#include "domain.h"
+#include "ComputationalDomain.hpp"
 
-domain::domain(double sizex, double sizey, double sizez, double orig_x, double orig_y, double orig_z, double stretch_x, double stretch_y, double stretch_z, int ncellsx, int ncellsy, int ncellsz)
+ComputationalDomain::ComputationalDomain(double sizex, double sizey, double sizez, double orig_x, double orig_y, double orig_z, double stretch_x, double stretch_y, double stretch_z, int ncellsx, int ncellsy, int ncellsz)
 {
     gNx=ncellsx;
     gNy=ncellsy;
@@ -42,7 +42,7 @@ domain::domain(double sizex, double sizey, double sizez, double orig_x, double o
     calculateGlobalGrid();
 }
 
-void domain::calculateGlobalGrid()
+void ComputationalDomain::calculateGlobalGrid()
 {
 
     double eta_x, eta_y, eta_z;
@@ -100,7 +100,7 @@ void domain::calculateGlobalGrid()
         }
    }
 }
-void domain::calculateLocalGrid(int lNx, int lNy, int lNz)
+void ComputationalDomain::calculateLocalGrid(int lNx, int lNy, int lNz)
 {
 
     x = new double[lNx];
@@ -112,7 +112,7 @@ void domain::calculateLocalGrid(int lNx, int lNy, int lNz)
     Nz=lNz;
 }
 
-void domain::printDomain()
+void ComputationalDomain::printDomain()
 {
 
 /*    cout<<" Domain x "<<endl;
@@ -162,7 +162,7 @@ void domain::printDomain()
 
 }   
 
-void domain::setBocos(int b[6])
+void ComputationalDomain::setBocos(int b[6])
 {
     bc[_WEST_]  = b[_WEST_];
     bc[_EAST_]  = b[_EAST_];

@@ -1,23 +1,23 @@
-#ifndef _parvec_
-#define _parvec_
+#ifndef _DistributedArray_
+#define _DistributedArray_
 
 #include <iostream>
-#include "parameters.h"
-#include "comm_scheme.h"
+#include "MacroParameters.hpp"
+#include "ParallelTopology.hpp"
 
 using namespace std;
 
-class parvec{
+class DistributedArray{
     public:
-        parvec(){};
-        parvec(comm_scheme*,char const*);
+        DistributedArray(){};
+        DistributedArray(ParallelTopology*,char const*);
         void update();
         void update_simple();
         void fillEdgeCornerBoundaries();
         double& operator[](int);
         void operator= (double);
 
-        void setTopology(comm_scheme* topo, char const* );
+        void setTopology(ParallelTopology* topo, char const* );
         char* printName(){return fieldName;};
 
         double* vector;
@@ -30,7 +30,7 @@ class parvec{
         int fin_z;
     protected:
 
-        comm_scheme* mydomain;
+        ParallelTopology* mydomain;
         char  fieldName[30];
 };
 

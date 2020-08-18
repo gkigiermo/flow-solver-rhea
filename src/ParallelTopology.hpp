@@ -1,19 +1,19 @@
-#ifndef _comm_scheme_
-#define _comm_scheme_
+#ifndef _ParallelTopology_
+#define _ParallelTopology_
 #include<mpi.h>
 #include<iostream>
 #include<fstream>
 
 
-#include "domain.h"
-#include "parameters.h"
+#include "ComputationalDomain.hpp"
+#include "MacroParameters.hpp"
 
 using namespace std;
 
-class comm_scheme{
+class ParallelTopology{
     
     public:
-        comm_scheme(domain*, int , int ,int );
+        ParallelTopology(ComputationalDomain*, int , int ,int );
         void printCommScheme(int);
         void printCommSchemeToFile(int);
         void update(double*);
@@ -30,10 +30,10 @@ class comm_scheme{
         int getOffz(){return offz;};
 
         
-        domain* getMesh(){return mymesh; };
+        ComputationalDomain* getMesh(){return mymesh; };
 
 
-        // Basic iterators to move on the domain
+        // Basic iterators to move on the ComputationalDomain
 
         int iter_common[2][6]; 
         int iter_bound[26][6];
@@ -56,7 +56,7 @@ class comm_scheme{
         int lenslab;
 
     protected:
-        domain* mymesh;
+        ComputationalDomain* mymesh;
         int rank;
         int np;
         MPI_Comm RHEA_3DCOMM;

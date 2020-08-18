@@ -1,5 +1,6 @@
-#include "printer.h"
-printer::printer(comm_scheme* topo,  char const* outputName)
+#include "ManagerHDF5.hpp"
+
+ManagerHDF5::ManagerHDF5(ParallelTopology* topo,  char const* outputName)
 {
     myTopo = topo;
     sprintf(outname,"%s",outputName);
@@ -39,19 +40,19 @@ printer::printer(comm_scheme* topo,  char const* outputName)
 
 }
 
-void printer::addField(parvec* newfield)
+void ManagerHDF5::addField(DistributedArray* newfield)
 {
     fieldList.push_back(newfield);
 
 }
 
-void printer::printOnScreen()
+void ManagerHDF5::printOnScreen()
 {
     if(myTopo->getRank() == 0){
 
         cout<<"Fields on the output "<<outname<<endl;
 
-        for(std::list<parvec*>::iterator it=fieldList.begin();it!=fieldList.end();++it)
+        for(std::list<DistributedArray*>::iterator it=fieldList.begin();it!=fieldList.end();++it)
         {
 
             cout<<(*it)->printName()<<endl;
@@ -59,7 +60,7 @@ void printer::printOnScreen()
     }
 }
 
-void printer::write(int it, double time)
+void ManagerHDF5::write(int it, double time)
 {
     char filename[100];
 
@@ -91,7 +92,7 @@ void printer::write(int it, double time)
     hid_t memspace_id  = H5Screate_simple(num_dims, dim_lsize, NULL); /*local data space*/
 
      
-    for(std::list<parvec*>::iterator it=fieldList.begin();it!=fieldList.end();++it)
+    for(std::list<DistributedArray*>::iterator it=fieldList.begin();it!=fieldList.end();++it)
     {
 
         hid_t dataset_id1 = H5Dcreate2(file_id,(*it)->printName(), H5T_NATIVE_DOUBLE, filespace_id, 
@@ -137,7 +138,7 @@ void printer::write(int it, double time)
 
 }
 
-void printer::read(int it)
+void ManagerHDF5::read(int it)
 {
     char filename[100];
 
@@ -172,7 +173,7 @@ void printer::read(int it)
      
 
 
-    for(std::list<parvec*>::iterator it=fieldList.begin();it!=fieldList.end();++it)
+    for(std::list<DistributedArray*>::iterator it=fieldList.begin();it!=fieldList.end();++it)
     {
     
         hid_t dataset_id1 = H5Dopen(file_id,(*it)->printName(), H5P_DEFAULT); 

@@ -3,11 +3,11 @@
 #include <mpi.h>
 #include <hdf5.h>
 //#include "h5Cpp.h"
-#include "src/parameters.h"
-#include "src/domain.h"
-#include "src/comm_scheme.h"
-#include "src/parvec.h"
-#include "src/printer.h"
+#include "src/MacroParameters.hpp"
+#include "src/ComputationalDomain.hpp"
+#include "src/ParallelTopology.hpp"
+#include "src/DistributedArray.hpp"
+#include "src/ManagerHDF5.hpp"
 
 using namespace std;
 //using namespace H5;
@@ -43,18 +43,18 @@ int main(int argc, char** argv)
     bocos[_FRONT_] = _PERIODIC_;
 
     //This is just for testing, later would be read from a file
-    domain dom(Lx, Ly, Lz, origen_x, origen_y, origen_z, stretch_x, stretch_y, stretch_z, RHEA_NX, RHEA_NY, RHEA_NZ);
+    ComputationalDomain dom(Lx, Ly, Lz, origen_x, origen_y, origen_z, stretch_x, stretch_y, stretch_z, RHEA_NX, RHEA_NY, RHEA_NZ);
 
     //To add the boundary conditions,  later would be read from a file
     dom.setBocos(bocos);
 
      //Number of procs in x,y,z
     int npx, npy, npz;
-    npx=1;
-    npy=1;
+    npx=2;
+    npy=2;
     npz=1;
 
-    comm_scheme topo(&dom, npx, npy, npz);
+    ParallelTopology topo(&dom, npx, npy, npz);
 
     if(topo.getRank() == 0)
         dom.printDomain();
@@ -66,8 +66,8 @@ int main(int argc, char** argv)
     /* Note that now the parallel vector also include a name as an input */
     /* That name is used to creating the output files */
 
-    parvec T(&topo,"T");
-    parvec Tnew(&topo,"Tnew");
+    DistributedArray T(&topo,"T");
+    DistributedArray Tnew(&topo,"Tnew");
 
 
     int _lNx_ = topo.getlNx();
@@ -83,7 +83,7 @@ int main(int argc, char** argv)
     int maxiter= 20000;
 
 
-    parvec meshx(&topo,"X");
+    DistributedArray meshx(&topo,"X");
 
     for(int i = topo.iter_common[_ALL_][_INIX_]; i <= topo.iter_common[_ALL_][_ENDX_]; i++)
        for(int j =  topo.iter_common[_ALL_][_INIY_]; j <=  topo.iter_common[_ALL_][_ENDY_]; j++)
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
     /* Has input needs the topo and the name of the outputs*/
     /* The topo is used to obtain the info of the hyperslab */
     /* The name is used to create variable output names using the it number */
-    printer output(&topo,"salida");
+    ManagerHDF5 output(&topo,"salida");
 
     /* By default it doesn't store anything*/
     /* Fields that you want to store need to be added explicitely only once */

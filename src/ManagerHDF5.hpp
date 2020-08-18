@@ -1,31 +1,31 @@
-#ifndef _printer_
-#define _printer_
+#ifndef _ManagerHDF5_
+#define _ManagerHDF5_
 
 #include <iostream>
 #include <hdf5.h>
 #include <list>
 
-#include "parameters.h"
-#include "comm_scheme.h"
-#include "parvec.h"
+#include "MacroParameters.hpp"
+#include "ParallelTopology.hpp"
+#include "DistributedArray.hpp"
 using namespace std;
 
 
-class printer{
+class ManagerHDF5{
 
     public:
-        printer(){};
-        printer(comm_scheme*,char const*);
-        void addField(parvec*);
+        ManagerHDF5(){};
+        ManagerHDF5(ParallelTopology*,char const*);
+        void addField(DistributedArray*);
         void printOnScreen();
         void write(int,double);
         void read(int);
     private:
         
-        comm_scheme* myTopo;
+        ParallelTopology* myTopo;
         char outname[50];
 
-        std::list<parvec*> fieldList;
+        std::list<DistributedArray*> fieldList;
 
         int num_dims;
         hsize_t dim_gsize[3];               // dataset dimensions
