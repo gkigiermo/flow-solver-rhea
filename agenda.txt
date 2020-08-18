@@ -1,19 +1,16 @@
 RHEA DEVELOPMENT AGENDA:
 
-- Incorporate time (in seconds) in HDF5 write method
 - Change class name printer to ManagerHDF5?
 - Change class name domain to ComputationalDomain?
 - Change class name comm_scheme to ParallelTopology?
 - Change class name parvec to DistributedArray?
 - Change class name parameters to GlobalParameters?
-- Change *.h to hpp to make it c++ standard
-- Problem running with 1 cpu
-- Question from Lluis to Willy: Halo updates are not necessary in timeAdvanceConservedVariables, right?
+- Change *.h to *.hpp to make it c++ standard
 - Parallel scheme has to be introduced via FlowSolverRHEA?
 - Remove _DEBUG_, _lNx_, _lNy_, _lNz_ from FlowSolverRHEA 
+- Clean output debug information
 - Rethink/homogenize global parameters (e.g., RHEA_NX, _PERIODIC_, _WEST_, _ALL_)
 - Simplify/improve boundary conditions names and input
-- Modify mesh->updateBocos(bocos_type) to mesh->setBocos(bocos_type)
 - Simplify i,j,k for loops notation?
 - Homogenize nomenclature and notation
 - Improve code implementation in all files
@@ -25,9 +22,10 @@ RHEA DEVELOPMENT AGENDA:
 - ...
 
 - Incorporate message that HDF5 labels cannot include special characters
+- Create/check destructors of Willy's classes
 - Improve code implementation in all files
 - Homogenize nomenclature and notation
 - Homogenize and improve layout/aesthetics
-- Check that it compiles with different compilers
+- Check that it compiles and runs with different compilers (gcc, clang, intel, etc)
 - Verify numerics and parallelization with different number of processes (including 1)
 - ...

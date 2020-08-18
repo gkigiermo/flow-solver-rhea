@@ -33,7 +33,7 @@ computational_parameters:
    A_z: 0.0                            # Stretching factor in z-direction
    CFL: 0.9                            # CFL coefficient
    current_time_iter: 0                # Current time iteration
-   final_time_iter: 10                 # Final time iteration
+   final_time_iter: 5                  # Final time iteration
 
 
 ##### BOUNDARY CONDITIONS #####

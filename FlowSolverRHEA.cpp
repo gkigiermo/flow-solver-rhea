@@ -19,7 +19,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     rk_order = 3;
 
     /// Construct (initialize) computational domain
-    mesh = new domain(L_x, L_y, L_z, x_0, y_0, z_0, A_x, A_y, A_z, RHEA_NX, RHEA_NY, RHEA_NZ);
+    mesh = new domain(L_x, L_y, L_z, x_0, y_0, z_0, A_x, A_y, A_z, num_grid_x, num_grid_y, num_grid_z);
 
     /// Set boundary conditions to computational domain
     mesh->setBocos(bocos_type);
@@ -128,12 +128,6 @@ FlowSolverRHEA::~FlowSolverRHEA() {
     if(mesh != NULL) free(mesh);	
     if(topo != NULL) free(topo);
     if(writer_reader != NULL) free(writer_reader);
-    free(bocos_type);	
-    free(bocos_u);	
-    free(bocos_v);	
-    free(bocos_w);	
-    free(bocos_P);	
-    free(bocos_T);	
 
 };
 
@@ -173,70 +167,70 @@ void FlowSolverRHEA::readConfigurationFile() {
     final_time_iter   = computational_parameters["final_time_iter"].as<int>();
 
     /// Boundary conditions
-    string dummy_boco;
+    string dummy_type_boco;
     const YAML::Node & boundary_conditons = configuration["boundary_conditions"];
     /// West
-    dummy_boco = boundary_conditons["west_bc_type"].as<string>();
-    if( dummy_boco == "DIRICHLET" ) {
+    dummy_type_boco = boundary_conditons["west_bc_type"].as<string>();
+    if( dummy_type_boco == "DIRICHLET" ) {
         bocos_type[_WEST_] = _DIRICHLET_;
-    } else if( dummy_boco == "NEUMANN" ) {
+    } else if( dummy_type_boco == "NEUMANN" ) {
         bocos_type[_WEST_] = _NEUMANN_;
-    } else if( dummy_boco == "PERIODIC" ) {
+    } else if( dummy_type_boco == "PERIODIC" ) {
         bocos_type[_WEST_] = _PERIODIC_;
     } else {
         cout << "West boundary condition not available!" << endl;
     }
     /// East
-    dummy_boco = boundary_conditons["east_bc_type"].as<string>();
-    if( dummy_boco == "DIRICHLET" ) {
+    dummy_type_boco = boundary_conditons["east_bc_type"].as<string>();
+    if( dummy_type_boco == "DIRICHLET" ) {
         bocos_type[_EAST_] = _DIRICHLET_;
-    } else if( dummy_boco == "NEUMANN" ) {
+    } else if( dummy_type_boco == "NEUMANN" ) {
         bocos_type[_EAST_] = _NEUMANN_;
-    } else if( dummy_boco == "PERIODIC" ) {
+    } else if( dummy_type_boco == "PERIODIC" ) {
         bocos_type[_EAST_] = _PERIODIC_;
     } else {
         cout << "East boundary condition not available!" << endl;
     }
     /// South
-    dummy_boco = boundary_conditons["south_bc_type"].as<string>();
-    if( dummy_boco == "DIRICHLET" ) {
+    dummy_type_boco = boundary_conditons["south_bc_type"].as<string>();
+    if( dummy_type_boco == "DIRICHLET" ) {
         bocos_type[_SOUTH_] = _DIRICHLET_;
-    } else if( dummy_boco == "NEUMANN" ) {
+    } else if( dummy_type_boco == "NEUMANN" ) {
         bocos_type[_SOUTH_] = _NEUMANN_;
-    } else if( dummy_boco == "PERIODIC" ) {
+    } else if( dummy_type_boco == "PERIODIC" ) {
         bocos_type[_SOUTH_] = _PERIODIC_;
     } else {
         cout << "South boundary condition not available!" << endl;
     }
     /// North
-    dummy_boco = boundary_conditons["north_bc_type"].as<string>();
-    if( dummy_boco == "DIRICHLET" ) {
+    dummy_type_boco = boundary_conditons["north_bc_type"].as<string>();
+    if( dummy_type_boco == "DIRICHLET" ) {
         bocos_type[_NORTH_] = _DIRICHLET_;
-    } else if( dummy_boco == "NEUMANN" ) {
+    } else if( dummy_type_boco == "NEUMANN" ) {
         bocos_type[_NORTH_] = _NEUMANN_;
-    } else if( dummy_boco == "PERIODIC" ) {
+    } else if( dummy_type_boco == "PERIODIC" ) {
         bocos_type[_NORTH_] = _PERIODIC_;
     } else {
         cout << "North boundary condition not available!" << endl;
     }
     /// Back
-    dummy_boco = boundary_conditons["back_bc_type"].as<string>();
-    if( dummy_boco == "DIRICHLET" ) {
+    dummy_type_boco = boundary_conditons["back_bc_type"].as<string>();
+    if( dummy_type_boco == "DIRICHLET" ) {
         bocos_type[_BACK_] = _DIRICHLET_;
-    } else if( dummy_boco == "NEUMANN" ) {
+    } else if( dummy_type_boco == "NEUMANN" ) {
         bocos_type[_BACK_] = _NEUMANN_;
-    } else if( dummy_boco == "PERIODIC" ) {
+    } else if( dummy_type_boco == "PERIODIC" ) {
         bocos_type[_BACK_] = _PERIODIC_;
     } else {
         cout << "Back boundary condition not available!" << endl;
     }
     /// Front
-    dummy_boco = boundary_conditons["front_bc_type"].as<string>();
-    if( dummy_boco == "DIRICHLET" ) {
+    dummy_type_boco = boundary_conditons["front_bc_type"].as<string>();
+    if( dummy_type_boco == "DIRICHLET" ) {
         bocos_type[_FRONT_] = _DIRICHLET_;
-    } else if( dummy_boco == "NEUMANN" ) {
+    } else if( dummy_type_boco == "NEUMANN" ) {
         bocos_type[_FRONT_] = _NEUMANN_;
-    } else if( dummy_boco == "PERIODIC" ) {
+    } else if( dummy_type_boco == "PERIODIC" ) {
         bocos_type[_FRONT_] = _PERIODIC_;
     } else {
         cout << "Front boundary condition not available!" << endl;

@@ -4,7 +4,8 @@ comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
 {
     mymesh = dom;
 
-    MPI_Comm_dup(MPI_COMM_WORLD, &RHEA_3DCOMM);
+    RHEA_3DCOMM = MPI_COMM_WORLD;    
+    //MPI_Comm_dup(MPI_COMM_WORLD, &RHEA_3DCOMM);
     MPI_Comm_rank(RHEA_3DCOMM, &rank);
     MPI_Comm_size(RHEA_3DCOMM, &np);
 

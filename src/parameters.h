@@ -1,8 +1,8 @@
 /*ESTE FICHERO SERA CREADO POR UN PREPROCESS*/
 
-#define RHEA_NX 4
-#define RHEA_NY 4
-#define RHEA_NZ 1
+#define RHEA_NX 16
+#define RHEA_NY 16
+#define RHEA_NZ 16
 
 #define R_INDX(i, j, k, N, M) (k*(N*M) + (j*N) + i)
 
