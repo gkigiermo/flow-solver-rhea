@@ -1,4 +1,4 @@
-#include "comm_scheme.h"
+#include "ParallelTopology.hpp"
 
 comm_scheme::comm_scheme(domain* dom, int nprocsx, int nprocsy, int nprocsz)
 {
