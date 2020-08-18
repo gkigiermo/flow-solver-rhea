@@ -18,7 +18,7 @@ class printer{
         printer(comm_scheme*,char const*);
         void addField(parvec*);
         void printOnScreen();
-        void write(int);
+        void write(int,double);
         void read(int);
     private:
         
@@ -40,6 +40,10 @@ class printer{
         int _lNy_;
         int _lNz_;
 
+        // Variables to store the attribute
+
+        hsize_t array_1D[1];
+        int num_dim1D;
 
 
 

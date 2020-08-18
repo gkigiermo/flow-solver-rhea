@@ -39,7 +39,7 @@ int main(int argc, char** argv)
     domain dom(Lx, Ly, Lz, origen_x, origen_y, origen_z, RHEA_NX, RHEA_NY, RHEA_NZ);
 
     //To add the boundary conditions,  later would be read from a file
-    dom.updateBocos(bocos);
+    dom.setBocos(bocos);
 
      //Number of procs in x,y,z
     int npx, npy, npz;

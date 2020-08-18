@@ -10,7 +10,7 @@ class domain{
         domain(double, double, double,double, double,double, double, double, double, int, int, int);
         
         void printDomain();
-        void updateBocos(int b[6]);
+        void setBocos(int b[6]);
         int getGNx(){return gNx;};
         int getGNy(){return gNy;};
         int getGNz(){return gNz;};

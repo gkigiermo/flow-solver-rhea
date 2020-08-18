@@ -34,7 +34,8 @@ printer::printer(comm_scheme* topo,  char const* outputName)
     _lNy_ = topo->getlNy();
     _lNz_ = topo->getlNz();
 
-
+    num_dim1D = 1;
+    array_1D[0] = 1;
 
 }
 
@@ -58,7 +59,7 @@ void printer::printOnScreen()
     }
 }
 
-void printer::write(int it)
+void printer::write(int it, double time)
 {
     char filename[100];
 
@@ -114,9 +115,21 @@ void printer::write(int it)
 
     }
 
-
    status = H5Sclose(filespace_id);
    status = H5Sclose(memspace_id);
+
+
+   hid_t attspace_id = H5Screate_simple(num_dim1D, array_1D, NULL);
+
+   hid_t attri0 = H5Acreate(file_id,"Iteration",H5T_NATIVE_INT, attspace_id,H5P_DEFAULT,H5P_DEFAULT);
+   status = H5Awrite(attri0, H5T_NATIVE_INT, &it);
+   status = H5Aclose(attri0);
+
+   hid_t attri1 = H5Acreate(file_id,"Time",H5T_NATIVE_DOUBLE, attspace_id,H5P_DEFAULT,H5P_DEFAULT);
+   status = H5Awrite(attri1, H5T_NATIVE_DOUBLE, &time);
+   status = H5Aclose(attri1);
+   status = H5Sclose(attspace_id);
+
 
    status = H5Fclose(file_id); 
 

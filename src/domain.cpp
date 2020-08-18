@@ -162,7 +162,7 @@ void domain::printDomain()
 
 }   
 
-void domain::updateBocos(int b[6])
+void domain::setBocos(int b[6])
 {
     bc[_WEST_]  = b[_WEST_];
     bc[_EAST_]  = b[_EAST_];

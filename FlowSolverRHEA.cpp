@@ -22,7 +22,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     mesh = new domain(L_x, L_y, L_z, x_0, y_0, z_0, A_x, A_y, A_z, RHEA_NX, RHEA_NY, RHEA_NZ);
 
     /// Set boundary conditions to computational domain
-    mesh->updateBocos(bocos_type);
+    mesh->setBocos(bocos_type);
 
     /// Construct (initialize) parallel topology (communication scheme)
     topo = new comm_scheme(mesh, np_x, np_y, np_z);

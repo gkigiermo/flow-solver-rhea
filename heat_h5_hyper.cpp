@@ -46,12 +46,12 @@ int main(int argc, char** argv)
     domain dom(Lx, Ly, Lz, origen_x, origen_y, origen_z, stretch_x, stretch_y, stretch_z, RHEA_NX, RHEA_NY, RHEA_NZ);
 
     //To add the boundary conditions,  later would be read from a file
-    dom.updateBocos(bocos);
+    dom.setBocos(bocos);
 
      //Number of procs in x,y,z
     int npx, npy, npz;
-    npx=2;
-    npy=2;
+    npx=1;
+    npy=1;
     npz=1;
 
     comm_scheme topo(&dom, npx, npy, npz);
@@ -191,7 +191,7 @@ int main(int argc, char** argv)
         /* Suposing you want to save the fields every 2500 steps */
         /* Input of write is the iteration number than later is used to create the name */
         if(it%2500 ==0)
-          output.write(it);
+          output.write(it,dt);
 
  
     }
