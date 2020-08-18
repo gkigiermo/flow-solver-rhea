@@ -18,7 +18,7 @@ class ManagerHDF5{
         ManagerHDF5(ParallelTopology*,char const*);
         void addField(DistributedArray*);
         void printOnScreen();
-        void write(int,double);
+        void write(int,double,bool);
         void read(int);
     private:
         

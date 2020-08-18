@@ -60,7 +60,7 @@ void ManagerHDF5::printOnScreen()
     }
 }
 
-void ManagerHDF5::write(int it, double time)
+void ManagerHDF5::write(int it, double time, bool xdmf_file)
 {
     char filename[100];
 
@@ -134,6 +134,54 @@ void ManagerHDF5::write(int it, double time)
 
    status = H5Fclose(file_id); 
 
+
+   if( xdmf_file ) {
+	   if(myTopo->getRank() == 0 ) {
+		   char filename2[100];
+		   char filename3[100];
+
+
+		   sprintf(filename2,"%s_%d.xdmf",outname,it);
+		   sprintf(filename3,"%s_%d",outname,it);
+
+		   ofstream outfile(filename2);
+
+		   outfile << "<?xml version='1.0' ?>" << endl;
+		   outfile << "<!DOCTYPE Xdmf SYSTEM 'Xdmf.dtd' []>" << endl;
+		   outfile << "<Xdmf Version='2.0'>" << endl;
+		   outfile << "  <Domain> " << endl;
+		   outfile << "    <Grid Name='"<<filename3<<"' GridType='Uniform'>" << endl;
+		   outfile << "      <Topology TopologyType='3DSMesh' Dimensions='"<<dim_gsize[0]<<" "<<dim_gsize[1]<<" "<<dim_gsize[2]<<"'/>" << endl;
+		   outfile << "      <Geometry GeometryType='X_Y_Z'>" << endl;
+		   outfile << "        <DataItem Name='x' Dimensions='"<<dim_gsize[0]<<" "<<dim_gsize[1]<<" "<<dim_gsize[2]<<"' NumberType='Float' Precision='8' Format='HDF'>" << endl;
+		   outfile << "            "<<filename<<":/x" << endl;
+		   outfile << "        </DataItem>" << endl;
+		   outfile << "        <DataItem Name='y' Dimensions='"<<dim_gsize[0]<<" "<<dim_gsize[1]<<" "<<dim_gsize[2]<<"' NumberType='Float' Precision='8' Format='HDF'>" << endl;
+		   outfile << "            "<<filename<<":/y" << endl;
+		   outfile << "        </DataItem>" << endl;
+		   outfile << "        <DataItem Name='z' Dimensions='"<<dim_gsize[0]<<" "<<dim_gsize[1]<<" "<<dim_gsize[2]<<"' NumberType='Float' Precision='8' Format='HDF'>" << endl;
+		   outfile << "            "<<filename<<":/z" << endl;
+		   outfile << "        </DataItem>" << endl;
+		   outfile << "      </Geometry>" << endl;
+		   for(std::list<DistributedArray*>::iterator it=fieldList.begin();it!=fieldList.end();++it) {
+			   if( strcmp((*it)->printName(),"x") != 0 && strcmp((*it)->printName(),"y") != 0 && strcmp((*it)->printName(),"z") != 0 ) {
+				   outfile << "      <Attribute Name='"<<(*it)->printName()<<"' AttributeType='Scalar' Center='Node'>" << endl;
+				   outfile << "        <DataItem Dimensions='"<<dim_gsize[0]<<" "<<dim_gsize[1]<<" "<<dim_gsize[2]<<"' NumberType='Float' Precision='8' Format='HDF'>" << endl;
+				   outfile << "          "<<filename<<":/"<<(*it)->printName() << endl;
+				   outfile << "        </DataItem>" << endl;
+				   outfile << "      </Attribute>" << endl;
+			   }
+		   }
+		   outfile << "    </Grid>" << endl;
+		   outfile << "  </Domain>" << endl;
+		   outfile << "</Xdmf>" << endl;
+
+		   outfile.close();
+
+
+
+	   }
+   }
 
 
 }

@@ -1484,8 +1484,11 @@ void FlowSolverRHEA::timeAdvanceConservedVariables() {
 
 void FlowSolverRHEA::outputCurrentStateData() {
 
+    /// Set true to generate xdmf reader file
+    const bool generate_xdmf = true;
+
     /// Write to file current solver state
-    writer_reader->write(current_time_iter,current_time);
+    writer_reader->write(current_time_iter,current_time,generate_xdmf);
 
 };
 

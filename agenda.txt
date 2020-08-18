@@ -1,15 +1,15 @@
 RHEA DEVELOPMENT AGENDA:
 
-- Open/test HDF5 paraview
-- Create initial gitlab "release" (clean/remove non-essential files, prepare make file, instructions, etc)
-
+- Create initial gitlab "release" (clean/remove non-essential files, prepare Makefile, instructions, etc)
+- Solve run problem bug
 
 
 - ...
 
+- Solve run problem bug
 - Incorporate message that HDF5 labels cannot include special characters
 - Create/check destructors of Willy's classes
-- Create and timers class and use it in the solver
+- Create timers class and use it in the solver
 - Improve code implementation/notation/aesthetics in all files
 - Check that it compiles and runs with different compilers (gcc, clang, intel, etc)
 - Verify numerics and parallelization with different number of processes (including 1)
