@@ -1,12 +1,12 @@
 RHEA DEVELOPMENT AGENDA:
 
-- Create initial gitlab "release" (clean/remove non-essential files, prepare Makefile, instructions, etc)
 - Solve run problem bug
 
 
 - ...
 
 - Solve run problem bug
+- Check heat problem changing direction of axes
 - Incorporate message that HDF5 labels cannot include special characters
 - Create/check destructors of Willy's classes
 - Create timers class and use it in the solver
