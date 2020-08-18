@@ -1,9 +1,5 @@
 /*ESTE FICHERO SERA CREADO POR UN PREPROCESS*/
 
-#define RHEA_NX 16
-#define RHEA_NY 16
-#define RHEA_NZ 16
-
 #define R_INDX(i, j, k, N, M) (k*(N*M) + (j*N) + i)
 
 //Common parameters
@@ -59,7 +55,5 @@
 #define _PERIODIC_  3
 
 #define I1D(i, j, k) ((k)*(_lNx_*_lNy_) + ((j)*_lNx_) + (i))
-
-
 
 #define _NO_NEIGHBOUR_ -1

@@ -19,18 +19,17 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     rk_order = 3;
 
     /// Construct (initialize) computational domain
-    mesh = new domain(L_x, L_y, L_z, x_0, y_0, z_0, A_x, A_y, A_z, num_grid_x, num_grid_y, num_grid_z);
+    mesh = new ComputationalDomain(L_x, L_y, L_z, x_0, y_0, z_0, A_x, A_y, A_z, num_grid_x, num_grid_y, num_grid_z);
 
     /// Set boundary conditions to computational domain
     mesh->setBocos(bocos_type);
 
-    /// Construct (initialize) parallel topology (communication scheme)
-    topo = new comm_scheme(mesh, np_x, np_y, np_z);
+    /// Construct (initialize) parallel topology
+    topo = new ParallelTopology(mesh, np_x, np_y, np_z);
     //if(topo->getRank() == 0) mesh->printDomain();
     //for(int p = 0; p < np_x*np_y*np_z; p++) topo->printCommSchemeToFile(p);
 
-    // The lines below are temporary ... will need to be removed!
-    _DEBUG_ = 0;
+    /// Set local mesh values for I1D macro
     _lNx_ = topo->getlNx();
     _lNy_ = topo->getlNy();
     _lNz_ = topo->getlNz();
@@ -105,7 +104,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     /// Construct (initialize) writer/reader
     char char_array[output_data_file.length()+1]; 
     strcpy(char_array,output_data_file.c_str());
-    writer_reader = new printer(topo,char_array);
+    writer_reader = new ManagerHDF5(topo,char_array);
     writer_reader->addField(&x_field);
     writer_reader->addField(&y_field);
     writer_reader->addField(&z_field);

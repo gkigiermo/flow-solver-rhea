@@ -10,11 +10,11 @@
 #include <iomanip>
 #include <mpi.h>
 #include "yaml-cpp/yaml.h"
-#include "src/parameters.h"
-#include "src/domain.h"
-#include "src/comm_scheme.h"
-#include "src/parvec.h"
-#include "src/printer.h"
+#include "src/MacroParameters.hpp"
+#include "src/ComputationalDomain.hpp"
+#include "src/ParallelTopology.hpp"
+#include "src/DistributedArray.hpp"
+#include "src/ManagerHDF5.hpp"
 
 ////////// NAMESPACES //////////
 using namespace std;
@@ -157,7 +157,7 @@ class FlowSolverRHEA {
         double mu;						/// Dynamic viscosity [Pa·s]
         double kappa;						/// Thermal conductivity [W/(m·k)]       
 
-        /// Problem parameters
+        /// Problem MacroParameters
         double x_0;           	        	 	 	/// Domain origin in x-direction [m]
         double y_0;             	        		/// Domain origin in y-direction [m]
         double z_0;                     			/// Domain origin in z-direction [m]
@@ -168,7 +168,7 @@ class FlowSolverRHEA {
         double final_time;		      			/// Final time [s]
         string configuration_file;				/// Configuration file name (YAML language)	
 
-        /// Computational parameters
+        /// Computational MacroParameters
         int num_grid_x;						/// Number of inner grid points in x-direction
         int num_grid_y;						/// Number of inner grid points in y-direction
         int num_grid_z;						/// Number of inner grid points in z-direction
@@ -182,8 +182,7 @@ class FlowSolverRHEA {
         int rk_step;						/// Current Runge-Kutta step: 1, 2, 3
         int rk_order;						/// Order of Runge-Kutta method (fixed)
 
-        // The lines below are temporary ... will need to be removed!
-        int _DEBUG_;
+        /// Local mesh values for I1D macro
         int _lNx_;
         int _lNy_;
         int _lNz_;
@@ -210,73 +209,73 @@ class FlowSolverRHEA {
 	////////// SOLVER (PARALLEL) VARIABLES //////////
 	
         /// Mesh coordinates (input/output data)
-        parvec x_field;						/// 3-D field of x-coordinate
-        parvec y_field;						/// 3-D field of y-coordinate
-        parvec z_field;						/// 3-D field of z-coordinate
+        DistributedArray x_field;				/// 3-D field of x-coordinate
+        DistributedArray y_field;				/// 3-D field of y-coordinate
+        DistributedArray z_field;				/// 3-D field of z-coordinate
 
         /// Primitive, conserved, thermodynamic and thermophysical variables
-        parvec rho_field;					/// 3-D field of rho
-        parvec u_field;						/// 3-D field of u
-        parvec v_field;						/// 3-D field of v
-        parvec w_field;						/// 3-D field of w
-        parvec E_field;						/// 3-D field of E
-        parvec rhou_field;					/// 3-D field of rhou
-        parvec rhov_field;					/// 3-D field of rhov
-        parvec rhow_field;					/// 3-D field of rhow
-        parvec rhoE_field;					/// 3-D field of rhoE
-        parvec P_field;						/// 3-D field of P
-        parvec T_field;						/// 3-D field of T
-        parvec sos_field;					/// 3-D field of sos
-        parvec mu_field;					/// 3-D field of mu
-        parvec kappa_field;					/// 3-D field of kappa
+        DistributedArray rho_field;				/// 3-D field of rho
+        DistributedArray u_field;				/// 3-D field of u
+        DistributedArray v_field;				/// 3-D field of v
+        DistributedArray w_field;				/// 3-D field of w
+        DistributedArray E_field;				/// 3-D field of E
+        DistributedArray rhou_field;				/// 3-D field of rhou
+        DistributedArray rhov_field;				/// 3-D field of rhov
+        DistributedArray rhow_field;				/// 3-D field of rhow
+        DistributedArray rhoE_field;				/// 3-D field of rhoE
+        DistributedArray P_field;				/// 3-D field of P
+        DistributedArray T_field;				/// 3-D field of T
+        DistributedArray sos_field;				/// 3-D field of sos
+        DistributedArray mu_field;				/// 3-D field of mu
+        DistributedArray kappa_field;				/// 3-D field of kappa
 
         /// Time-integration variables
-        parvec rho_0_field;					/// 3-D previous field of rho
-        parvec rhou_0_field;					/// 3-D previous field of rhou
-        parvec rhov_0_field;					/// 3-D previous field of rhov
-        parvec rhow_0_field;					/// 3-D previous field of rhow
-        parvec rhoE_0_field;					/// 3-D previous field of rhoE
+        DistributedArray rho_0_field;				/// 3-D previous field of rho
+        DistributedArray rhou_0_field;				/// 3-D previous field of rhou
+        DistributedArray rhov_0_field;				/// 3-D previous field of rhov
+        DistributedArray rhow_0_field;				/// 3-D previous field of rhow
+        DistributedArray rhoE_0_field;				/// 3-D previous field of rhoE
 
         /// Time-integration fluxes
-        parvec rho_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rho
-        parvec rho_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rho
-        parvec rho_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rho
-        parvec rhou_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rhou
-        parvec rhou_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rhou
-        parvec rhou_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rhou
-        parvec rhov_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rhov
-        parvec rhov_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rhov
-        parvec rhov_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rhov
-        parvec rhow_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rhow
-        parvec rhow_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rhow
-        parvec rhow_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rhow
-        parvec rhoE_rk1_flux;					/// 3-D Runge-Kutta flux 1 of rhoE
-        parvec rhoE_rk2_flux;					/// 3-D Runge-Kutta flux 2 of rhoE
-        parvec rhoE_rk3_flux;					/// 3-D Runge-Kutta flux 3 of rhoE
+        DistributedArray rho_rk1_flux;				/// 3-D Runge-Kutta flux 1 of rho
+        DistributedArray rho_rk2_flux;				/// 3-D Runge-Kutta flux 2 of rho
+        DistributedArray rho_rk3_flux;				/// 3-D Runge-Kutta flux 3 of rho
+        DistributedArray rhou_rk1_flux;				/// 3-D Runge-Kutta flux 1 of rhou
+        DistributedArray rhou_rk2_flux;				/// 3-D Runge-Kutta flux 2 of rhou
+        DistributedArray rhou_rk3_flux;				/// 3-D Runge-Kutta flux 3 of rhou
+        DistributedArray rhov_rk1_flux;				/// 3-D Runge-Kutta flux 1 of rhov
+        DistributedArray rhov_rk2_flux;				/// 3-D Runge-Kutta flux 2 of rhov
+        DistributedArray rhov_rk3_flux;				/// 3-D Runge-Kutta flux 3 of rhov
+        DistributedArray rhow_rk1_flux;				/// 3-D Runge-Kutta flux 1 of rhow
+        DistributedArray rhow_rk2_flux;				/// 3-D Runge-Kutta flux 2 of rhow
+        DistributedArray rhow_rk3_flux;				/// 3-D Runge-Kutta flux 3 of rhow
+        DistributedArray rhoE_rk1_flux;				/// 3-D Runge-Kutta flux 1 of rhoE
+        DistributedArray rhoE_rk2_flux;				/// 3-D Runge-Kutta flux 2 of rhoE
+        DistributedArray rhoE_rk3_flux;				/// 3-D Runge-Kutta flux 3 of rhoE
 
         /// Inviscid fluxes
-        parvec rho_inv_flux;					/// 3-D inviscid fluxes of rho
-        parvec rhou_inv_flux;					/// 3-D inviscid fluxes of rhou
-        parvec rhov_inv_flux;					/// 3-D inviscid fluxes of rhov
-        parvec rhow_inv_flux;					/// 3-D inviscid fluxes of rhow
-        parvec rhoE_inv_flux;					/// 3-D inviscid fluxes of rhoE
+        DistributedArray rho_inv_flux;				/// 3-D inviscid fluxes of rho
+        DistributedArray rhou_inv_flux;				/// 3-D inviscid fluxes of rhou
+        DistributedArray rhov_inv_flux;				/// 3-D inviscid fluxes of rhov
+        DistributedArray rhow_inv_flux;				/// 3-D inviscid fluxes of rhow
+        DistributedArray rhoE_inv_flux;				/// 3-D inviscid fluxes of rhoE
 
         /// Viscous fluxes
-        parvec rhou_vis_flux;					/// 3-D viscous fluxes of rhou
-        parvec rhov_vis_flux;					/// 3-D viscous fluxes of rhov
-        parvec rhow_vis_flux;					/// 3-D viscous fluxes of rhow
-        parvec rhoE_vis_flux;					/// 3-D viscous fluxes of rhoE
+        DistributedArray rhou_vis_flux;				/// 3-D viscous fluxes of rhou
+        DistributedArray rhov_vis_flux;				/// 3-D viscous fluxes of rhov
+        DistributedArray rhow_vis_flux;				/// 3-D viscous fluxes of rhow
+        DistributedArray rhoE_vis_flux;				/// 3-D viscous fluxes of rhoE
 
         /// Source terms
-        parvec f_rhou_field;					/// 3-D field of rhou
-        parvec f_rhov_field;					/// 3-D field of rhov
-        parvec f_rhow_field;					/// 3-D field of rhow
-        parvec f_rhoE_field;					/// 3-D field of rhoE
+        DistributedArray f_rhou_field;				/// 3-D field of rhou
+        DistributedArray f_rhov_field;				/// 3-D field of rhov
+        DistributedArray f_rhow_field;				/// 3-D field of rhow
+        DistributedArray f_rhoE_field;				/// 3-D field of rhoE
 
 	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY & WRITER/READER //////////
-        domain *mesh;						/// Computational mesh
-        comm_scheme *topo;					/// Parallel topology
-        printer *writer_reader;					/// Data writer/reader
+        ComputationalDomain *mesh;				/// Computational domain
+        ParallelTopology *topo;					/// Parallel topology
+        ManagerHDF5 *writer_reader;				/// HDF5 data writer/reader
 
     private:
 

@@ -20,7 +20,7 @@ ParallelTopology::ParallelTopology(ComputationalDomain* dom, int nprocsx, int np
         MPI_Abort(RHEA_3DCOMM,0);
     }
 
-    cout<<"testing 1"<<endl;
+    //cout<<"testing 1"<<endl;
     MPI_Barrier(MPI_COMM_WORLD);
     int cellsx=dom->getGNx();
     int localNx= cellsx/npx;
@@ -33,7 +33,7 @@ ParallelTopology::ParallelTopology(ComputationalDomain* dom, int nprocsx, int np
 
 
     lNx = lNx + 2;
-    cout<<"testing 2"<<endl;
+    //cout<<"testing 2"<<endl;
     int cellsy=dom->getGNy();
     int localNy= cellsy/npy;
     int divy = cellsy%npy;
@@ -47,7 +47,7 @@ ParallelTopology::ParallelTopology(ComputationalDomain* dom, int nprocsx, int np
 
 
     lNy = lNy + 2;
-    cout<<"testing 3"<<endl;
+    //cout<<"testing 3"<<endl;
     int cellsz=dom->getGNz();
     int localNz= cellsz/npz;
     int divz = cellsz%npz;
@@ -2708,13 +2708,13 @@ void ParallelTopology::create_global_iters()
 
 
 
-    cout<<" Globals "<<rank<<" offz "<<offz<<endl;
-    cout<<" "<<iter_glob_ind[_INIX_] <<endl;
-    cout<<" "<<iter_glob_ind[_ENDX_] <<endl;
-    cout<<" "<<iter_glob_ind[_INIY_] <<endl;
-    cout<<" "<<iter_glob_ind[_ENDY_] <<endl;
-    cout<<" "<<iter_glob_ind[_INIZ_] <<endl;
-    cout<<" "<<iter_glob_ind[_ENDZ_] <<endl;
+    //cout<<" Globals "<<rank<<" offz "<<offz<<endl;
+    //cout<<" "<<iter_glob_ind[_INIX_] <<endl;
+    //cout<<" "<<iter_glob_ind[_ENDX_] <<endl;
+    //cout<<" "<<iter_glob_ind[_INIY_] <<endl;
+    //cout<<" "<<iter_glob_ind[_ENDY_] <<endl;
+    //cout<<" "<<iter_glob_ind[_INIZ_] <<endl;
+    //cout<<" "<<iter_glob_ind[_ENDZ_] <<endl;
 
 
 
