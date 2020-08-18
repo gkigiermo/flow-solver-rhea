@@ -1,9 +1,6 @@
 RHEA DEVELOPMENT AGENDA:
 
-- Fix problem with HDF5 writing 
 - Incorporate time (in seconds) in HDF5 write method
-- Check/finalize HDF5 read in FlowSolverRHEA ... ask Willy
-- Create iterators for hdf5 input/output (inner and boundaries, no halo)
 - Change class name printer to ManagerHDF5?
 - Change class name domain to ComputationalDomain?
 - Change class name comm_scheme to ParallelTopology?
@@ -27,7 +24,7 @@ RHEA DEVELOPMENT AGENDA:
 
 - ...
 
-- Create iterators for hdf5 stuff (inner and boundaries, no halo)
+- Incorporate message that HDF5 labels cannot include special characters
 - Improve code implementation in all files
 - Homogenize nomenclature and notation
 - Homogenize and improve layout/aesthetics

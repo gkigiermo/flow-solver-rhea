@@ -36,68 +36,68 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     _lNz_ = topo->getlNz();
 
     /// Set parallel topology of mesh coordinates
-    x_field.setTopology(topo,"x [m]");
-    y_field.setTopology(topo,"y [m]");
-    z_field.setTopology(topo,"z [m]");
+    x_field.setTopology(topo,"x");
+    y_field.setTopology(topo,"y");
+    z_field.setTopology(topo,"z");
 	
     /// Set parallel topology of primitive, conserved, thermodynamic and thermophysical variables	
-    rho_field.setTopology(topo,"rho [kg/m^3]");
-    u_field.setTopology(topo,"u [m/s]");
-    v_field.setTopology(topo,"v [m/s]");
-    w_field.setTopology(topo,"w [m/s]");
-    E_field.setTopology(topo,"E [J/kg]");
-    rhou_field.setTopology(topo,"rhou [kg/(m^2⋅s)]");
-    rhov_field.setTopology(topo,"rhov [kg/(m^2⋅s)]");
-    rhow_field.setTopology(topo,"rhow [kg/(m^2⋅s)]");
-    rhoE_field.setTopology(topo,"rhoE [J/m^3]");
-    P_field.setTopology(topo,"P [Pa]");
-    T_field.setTopology(topo,"T [K]");
-    sos_field.setTopology(topo,"sos [m/s]");
-    mu_field.setTopology(topo,"mu [Pa·s]");
-    kappa_field.setTopology(topo,"kappa [W/(m⋅K)]");
+    rho_field.setTopology(topo,"rho");
+    u_field.setTopology(topo,"u");
+    v_field.setTopology(topo,"v");
+    w_field.setTopology(topo,"w");
+    E_field.setTopology(topo,"E");
+    rhou_field.setTopology(topo,"rhou");
+    rhov_field.setTopology(topo,"rhov");
+    rhow_field.setTopology(topo,"rhow");
+    rhoE_field.setTopology(topo,"rhoE");
+    P_field.setTopology(topo,"P");
+    T_field.setTopology(topo,"T");
+    sos_field.setTopology(topo,"sos");
+    mu_field.setTopology(topo,"mu");
+    kappa_field.setTopology(topo,"kappa");
 
     /// Set parallel topology of time-integration variables	
-    rho_0_field.setTopology(topo,"rho_0 [kg/m^3]");
-    rhou_0_field.setTopology(topo,"rhou_0 [kg/(m^2⋅s)]");
-    rhov_0_field.setTopology(topo,"rhov_0 [kg/(m^2⋅s)]");
-    rhow_0_field.setTopology(topo,"rhow_0 [kg/(m^2⋅s)]");
-    rhoE_0_field.setTopology(topo,"rhoE_0 [J/m^3]");    
+    rho_0_field.setTopology(topo,"rho_0");
+    rhou_0_field.setTopology(topo,"rhou_0");
+    rhov_0_field.setTopology(topo,"rhov_0");
+    rhow_0_field.setTopology(topo,"rhow_0");
+    rhoE_0_field.setTopology(topo,"rhoE_0");    
 
     /// Set parallel topology of time-integration fluxes	
-    rho_rk1_flux.setTopology(topo,"rho_rk1 [kg/(m^3⋅s)]");
-    rho_rk2_flux.setTopology(topo,"rho_rk2 [kg/(m^3⋅s)]");
-    rho_rk3_flux.setTopology(topo,"rho_rk3 [kg/(m^3⋅s)]");
-    rhou_rk1_flux.setTopology(topo,"rhou_rk1 [kg/(m^2⋅s^2)]");
-    rhou_rk2_flux.setTopology(topo,"rhou_rk2 [kg/(m^2⋅s^2)]");
-    rhou_rk3_flux.setTopology(topo,"rhou_rk3 [kg/(m^2⋅s^2)]");    
-    rhov_rk1_flux.setTopology(topo,"rhov_rk1 [kg/(m^2⋅s^2)]");
-    rhov_rk2_flux.setTopology(topo,"rhov_rk2 [kg/(m^2⋅s^2)]");
-    rhov_rk3_flux.setTopology(topo,"rhov_rk3 [kg/(m^2⋅s^2)]");    
-    rhow_rk1_flux.setTopology(topo,"rhow_rk1 [kg/(m^2⋅s^2)]");
-    rhow_rk2_flux.setTopology(topo,"rhow_rk2 [kg/(m^2⋅s^2)]");
-    rhow_rk3_flux.setTopology(topo,"rhow_rk3 [kg/(m^2⋅s^2)]");
-    rhoE_rk1_flux.setTopology(topo,"rhoE_rk1 [J/(m^3⋅s)]");
-    rhoE_rk2_flux.setTopology(topo,"rhoE_rk2 [J/(m^3⋅s)]");
-    rhoE_rk3_flux.setTopology(topo,"rhoE_rk3 [J/(m^3⋅s)]");
+    rho_rk1_flux.setTopology(topo,"rho_rk1");
+    rho_rk2_flux.setTopology(topo,"rho_rk2");
+    rho_rk3_flux.setTopology(topo,"rho_rk3");
+    rhou_rk1_flux.setTopology(topo,"rhou_rk1");
+    rhou_rk2_flux.setTopology(topo,"rhou_rk2");
+    rhou_rk3_flux.setTopology(topo,"rhou_rk3");    
+    rhov_rk1_flux.setTopology(topo,"rhov_rk1");
+    rhov_rk2_flux.setTopology(topo,"rhov_rk2");
+    rhov_rk3_flux.setTopology(topo,"rhov_rk3");    
+    rhow_rk1_flux.setTopology(topo,"rhow_rk1");
+    rhow_rk2_flux.setTopology(topo,"rhow_rk2");
+    rhow_rk3_flux.setTopology(topo,"rhow_rk3");
+    rhoE_rk1_flux.setTopology(topo,"rhoE_rk1");
+    rhoE_rk2_flux.setTopology(topo,"rhoE_rk2");
+    rhoE_rk3_flux.setTopology(topo,"rhoE_rk3");
 
     /// Set parallel topology of inviscid fluxes	
-    rho_inv_flux.setTopology(topo,"rho_inv [kg/(m^3⋅s)]");
-    rhou_inv_flux.setTopology(topo,"rhou_inv [kg/(m^2⋅s^2)]");
-    rhov_inv_flux.setTopology(topo,"rhov_inv [kg/(m^2⋅s^2)]");
-    rhow_inv_flux.setTopology(topo,"rhow_inv [kg/(m^2⋅s^2)]");
-    rhoE_inv_flux.setTopology(topo,"rhoE_inv [J/(m^3⋅s)]");
+    rho_inv_flux.setTopology(topo,"rho_inv");
+    rhou_inv_flux.setTopology(topo,"rhou_inv");
+    rhov_inv_flux.setTopology(topo,"rhov_inv");
+    rhow_inv_flux.setTopology(topo,"rhow_inv");
+    rhoE_inv_flux.setTopology(topo,"rhoE_inv");
 
     /// Set parallel topology of viscous fluxes	
-    rhou_vis_flux.setTopology(topo,"rhou_vis [kg/(m^2⋅s^2)]");
-    rhov_vis_flux.setTopology(topo,"rhov_vis [kg/(m^2⋅s^2)]");
-    rhow_vis_flux.setTopology(topo,"rhow_vis [kg/(m^2⋅s^2)]");
-    rhoE_vis_flux.setTopology(topo,"rhoE_vis [J/(m^3⋅s)]");
+    rhou_vis_flux.setTopology(topo,"rhou_vis");
+    rhov_vis_flux.setTopology(topo,"rhov_vis");
+    rhow_vis_flux.setTopology(topo,"rhow_vis");
+    rhoE_vis_flux.setTopology(topo,"rhoE_vis");
 
     /// Set parallel topology of source terms
-    f_rhou_field.setTopology(topo,"f_rhou [kg/(m^2⋅s^2)]");
-    f_rhov_field.setTopology(topo,"f_rhov [kg/(m^2⋅s^2)]");
-    f_rhow_field.setTopology(topo,"f_rhow [kg/(m^2⋅s^2)]");
-    f_rhoE_field.setTopology(topo,"f_rhoE [J/(m^3⋅s)]");
+    f_rhou_field.setTopology(topo,"f_rhou");
+    f_rhov_field.setTopology(topo,"f_rhov");
+    f_rhow_field.setTopology(topo,"f_rhow");
+    f_rhoE_field.setTopology(topo,"f_rhoE");
 
     /// Fill x, y and z fields
     this->fillMeshCoordinateFields();
@@ -1492,7 +1492,7 @@ void FlowSolverRHEA::timeAdvanceConservedVariables() {
 void FlowSolverRHEA::outputCurrentStateData() {
 
     /// Write to file current solver state
-    writer_reader->write(current_time_iter);
+    writer_reader->write(current_time_iter,current_time);
 
 };
 
@@ -1511,10 +1511,10 @@ int main(int argc, char** argv) {
     cout.precision( cout_presicion );
 
     /// Start RHEA simulation
-    if(my_rank == 0) cout << "RHEA: START SIMULATION" << endl;
+    if( my_rank == 0 ) cout << "RHEA: START SIMULATION" << endl;
 
     /// Construct flow solver RHEA
-    FlowSolverRHEA flow_solver_RHEA("configuration_file.yaml");
+    FlowSolverRHEA flow_solver_RHEA( "configuration_file.yaml" );
 
     /// Initialize variables from restart file or by setting initial conditions
     if( flow_solver_RHEA.getUseRestart() ) {
@@ -1552,7 +1552,7 @@ int main(int argc, char** argv) {
         }
 
         /// Print time iteration information
-        if(my_rank == 0) {
+        if( my_rank == 0 ) {
             cout << "Time iteration " << flow_solver_RHEA.getCurrentTimeIteration() << ": " 
                  << "time = " << scientific << flow_solver_RHEA.getCurrentTime() << " [s], "
                  << "time-step = " << scientific << flow_solver_RHEA.getTimeStep() << " [s]" << endl;
@@ -1603,12 +1603,12 @@ int main(int argc, char** argv) {
         flow_solver_RHEA.setCurrentTimeIteration( flow_solver_RHEA.getCurrentTimeIteration() + 1 );
 
         /// Check if simulation is completed: current_time > final_time
-        if(flow_solver_RHEA.getCurrentTime() >= flow_solver_RHEA.getFinalTime() ) break;
+        if( flow_solver_RHEA.getCurrentTime() >= flow_solver_RHEA.getFinalTime() ) break;
 
     }
 
     /// Print time advancement information
-    if(my_rank == 0) {
+    if( my_rank == 0 ) {
         cout << "Time advancement completed -> " 
              << "iteration = " << flow_solver_RHEA.getCurrentTimeIteration() << ", "
              << "time = " << scientific << flow_solver_RHEA.getCurrentTime() << " [s]" << endl;
@@ -1620,7 +1620,7 @@ int main(int argc, char** argv) {
     /// Destruct flow solver RHEA ... destructor is called automatically
 
     /// End RHEA simulation
-    if(my_rank == 0) cout << "RHEA: END SIMULATION" << endl;
+    if( my_rank == 0 ) cout << "RHEA: END SIMULATION" << endl;
 
     /// Finalize MPI
     MPI_Finalize();
