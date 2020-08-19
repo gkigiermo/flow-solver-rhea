@@ -2,14 +2,12 @@ RHEA DEVELOPMENT AGENDA:
 
 - Solve run problem bug
 - Check parallel implementation ... 1-cpu run should be equal to 4-cpu run
-- Improve handling of boundary conditions in the configuration file
 
 
 - ...
 
 - Solve run problem bug
 - Check parallel implementation ... 1-cpu run should be equal to 4-cpu run
-- Improve handling of boundary conditions in the configuration file
 - Check heat problem changing direction of axes
 - Incorporate message that HDF5 labels cannot include special characters
 - Create/check destructors of Willy's classes

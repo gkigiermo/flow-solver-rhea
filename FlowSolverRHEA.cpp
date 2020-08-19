@@ -167,9 +167,9 @@ void FlowSolverRHEA::readConfigurationFile() {
 
     /// Boundary conditions
     string dummy_type_boco;
-    const YAML::Node & boundary_conditons = configuration["boundary_conditions"];
+    const YAML::Node & boundary_conditions = configuration["boundary_conditions"];
     /// West
-    dummy_type_boco = boundary_conditons["west_bc_type"].as<string>();
+    dummy_type_boco = boundary_conditions["west_bc"][0].as<string>();
     if( dummy_type_boco == "DIRICHLET" ) {
         bocos_type[_WEST_] = _DIRICHLET_;
     } else if( dummy_type_boco == "NEUMANN" ) {
@@ -179,8 +179,13 @@ void FlowSolverRHEA::readConfigurationFile() {
     } else {
         cout << "West boundary condition not available!" << endl;
     }
+    bocos_u[_WEST_] = boundary_conditions["west_bc"][1].as<double>();
+    bocos_v[_WEST_] = boundary_conditions["west_bc"][2].as<double>();
+    bocos_w[_WEST_] = boundary_conditions["west_bc"][3].as<double>();
+    bocos_P[_WEST_] = boundary_conditions["west_bc"][4].as<double>();
+    bocos_T[_WEST_] = boundary_conditions["west_bc"][5].as<double>();
     /// East
-    dummy_type_boco = boundary_conditons["east_bc_type"].as<string>();
+    dummy_type_boco = boundary_conditions["east_bc"][0].as<string>();
     if( dummy_type_boco == "DIRICHLET" ) {
         bocos_type[_EAST_] = _DIRICHLET_;
     } else if( dummy_type_boco == "NEUMANN" ) {
@@ -190,8 +195,13 @@ void FlowSolverRHEA::readConfigurationFile() {
     } else {
         cout << "East boundary condition not available!" << endl;
     }
+    bocos_u[_EAST_] = boundary_conditions["east_bc"][1].as<double>();
+    bocos_v[_EAST_] = boundary_conditions["east_bc"][2].as<double>();
+    bocos_w[_EAST_] = boundary_conditions["east_bc"][3].as<double>();
+    bocos_P[_EAST_] = boundary_conditions["east_bc"][4].as<double>();
+    bocos_T[_EAST_] = boundary_conditions["east_bc"][5].as<double>();
     /// South
-    dummy_type_boco = boundary_conditons["south_bc_type"].as<string>();
+    dummy_type_boco = boundary_conditions["south_bc"][0].as<string>();
     if( dummy_type_boco == "DIRICHLET" ) {
         bocos_type[_SOUTH_] = _DIRICHLET_;
     } else if( dummy_type_boco == "NEUMANN" ) {
@@ -201,8 +211,13 @@ void FlowSolverRHEA::readConfigurationFile() {
     } else {
         cout << "South boundary condition not available!" << endl;
     }
+    bocos_u[_SOUTH_] = boundary_conditions["south_bc"][1].as<double>();
+    bocos_v[_SOUTH_] = boundary_conditions["south_bc"][2].as<double>();
+    bocos_w[_SOUTH_] = boundary_conditions["south_bc"][3].as<double>();
+    bocos_P[_SOUTH_] = boundary_conditions["south_bc"][4].as<double>();
+    bocos_T[_SOUTH_] = boundary_conditions["south_bc"][5].as<double>();
     /// North
-    dummy_type_boco = boundary_conditons["north_bc_type"].as<string>();
+    dummy_type_boco = boundary_conditions["north_bc"][0].as<string>();
     if( dummy_type_boco == "DIRICHLET" ) {
         bocos_type[_NORTH_] = _DIRICHLET_;
     } else if( dummy_type_boco == "NEUMANN" ) {
@@ -212,8 +227,13 @@ void FlowSolverRHEA::readConfigurationFile() {
     } else {
         cout << "North boundary condition not available!" << endl;
     }
+    bocos_u[_NORTH_] = boundary_conditions["north_bc"][1].as<double>();
+    bocos_v[_NORTH_] = boundary_conditions["north_bc"][2].as<double>();
+    bocos_w[_NORTH_] = boundary_conditions["north_bc"][3].as<double>();
+    bocos_P[_NORTH_] = boundary_conditions["north_bc"][4].as<double>();
+    bocos_T[_NORTH_] = boundary_conditions["north_bc"][5].as<double>();
     /// Back
-    dummy_type_boco = boundary_conditons["back_bc_type"].as<string>();
+    dummy_type_boco = boundary_conditions["back_bc"][0].as<string>();
     if( dummy_type_boco == "DIRICHLET" ) {
         bocos_type[_BACK_] = _DIRICHLET_;
     } else if( dummy_type_boco == "NEUMANN" ) {
@@ -223,8 +243,13 @@ void FlowSolverRHEA::readConfigurationFile() {
     } else {
         cout << "Back boundary condition not available!" << endl;
     }
+    bocos_u[_BACK_] = boundary_conditions["back_bc"][1].as<double>();
+    bocos_v[_BACK_] = boundary_conditions["back_bc"][2].as<double>();
+    bocos_w[_BACK_] = boundary_conditions["back_bc"][3].as<double>();
+    bocos_P[_BACK_] = boundary_conditions["back_bc"][4].as<double>();
+    bocos_T[_BACK_] = boundary_conditions["back_bc"][5].as<double>();
     /// Front
-    dummy_type_boco = boundary_conditons["front_bc_type"].as<string>();
+    dummy_type_boco = boundary_conditions["front_bc"][0].as<string>();
     if( dummy_type_boco == "DIRICHLET" ) {
         bocos_type[_FRONT_] = _DIRICHLET_;
     } else if( dummy_type_boco == "NEUMANN" ) {
@@ -234,22 +259,11 @@ void FlowSolverRHEA::readConfigurationFile() {
     } else {
         cout << "Front boundary condition not available!" << endl;
     }
-    /// Values/fluxes
-    bocos_u[_WEST_]  = boundary_conditons["west_bc_u"].as<double>();  bocos_u[_EAST_]  = boundary_conditons["east_bc_u"].as<double>();
-    bocos_u[_SOUTH_] = boundary_conditons["south_bc_u"].as<double>(); bocos_u[_NORTH_] = boundary_conditons["north_bc_u"].as<double>();
-    bocos_u[_BACK_]  = boundary_conditons["back_bc_u"].as<double>();  bocos_u[_FRONT_] = boundary_conditons["front_bc_u"].as<double>();
-    bocos_v[_WEST_]  = boundary_conditons["west_bc_v"].as<double>();  bocos_v[_EAST_]  = boundary_conditons["east_bc_v"].as<double>();
-    bocos_v[_SOUTH_] = boundary_conditons["south_bc_v"].as<double>(); bocos_v[_NORTH_] = boundary_conditons["north_bc_v"].as<double>();
-    bocos_v[_BACK_]  = boundary_conditons["back_bc_v"].as<double>();  bocos_v[_FRONT_] = boundary_conditons["front_bc_v"].as<double>();
-    bocos_w[_WEST_]  = boundary_conditons["west_bc_w"].as<double>();  bocos_w[_EAST_]  = boundary_conditons["east_bc_w"].as<double>();
-    bocos_w[_SOUTH_] = boundary_conditons["south_bc_w"].as<double>(); bocos_w[_NORTH_] = boundary_conditons["north_bc_w"].as<double>();
-    bocos_w[_BACK_]  = boundary_conditons["back_bc_w"].as<double>();  bocos_w[_FRONT_] = boundary_conditons["front_bc_w"].as<double>();
-    bocos_P[_WEST_]  = boundary_conditons["west_bc_P"].as<double>();  bocos_P[_EAST_]  = boundary_conditons["east_bc_P"].as<double>();
-    bocos_P[_SOUTH_] = boundary_conditons["south_bc_P"].as<double>(); bocos_P[_NORTH_] = boundary_conditons["north_bc_P"].as<double>();
-    bocos_P[_BACK_]  = boundary_conditons["back_bc_P"].as<double>();  bocos_P[_FRONT_] = boundary_conditons["front_bc_P"].as<double>();
-    bocos_T[_WEST_]  = boundary_conditons["west_bc_T"].as<double>();  bocos_T[_EAST_]  = boundary_conditons["east_bc_T"].as<double>();
-    bocos_T[_SOUTH_] = boundary_conditons["south_bc_T"].as<double>(); bocos_T[_NORTH_] = boundary_conditons["north_bc_T"].as<double>();
-    bocos_T[_BACK_]  = boundary_conditons["back_bc_T"].as<double>();  bocos_T[_FRONT_] = boundary_conditons["front_bc_T"].as<double>();
+    bocos_u[_FRONT_] = boundary_conditions["front_bc"][1].as<double>();
+    bocos_v[_FRONT_] = boundary_conditions["front_bc"][2].as<double>();
+    bocos_w[_FRONT_] = boundary_conditions["front_bc"][3].as<double>();
+    bocos_P[_FRONT_] = boundary_conditions["front_bc"][4].as<double>();
+    bocos_T[_FRONT_] = boundary_conditions["front_bc"][5].as<double>();
 
     /// Write/read file parameters
     const YAML::Node & write_read_parameters = configuration["write_read_parameters"];
