@@ -296,7 +296,7 @@ void FlowSolverRHEA::setInitialConditions() {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 double random_number = (double)rand()/(RAND_MAX + 1.0);
                 u_field[I1D(i,j,k)] = random_number*1.0*sin( mesh->x[i] );
-                v_field[I1D(i,j,k)] = random_number*1.0*sin( mesh->y[j] );
+                v_field[I1D(i,j,k)] = 0.0;
                 w_field[I1D(i,j,k)] = random_number*1.0*sin( mesh->z[k] );
                 P_field[I1D(i,j,k)] = 101325.0;
                 T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 1.0*R_specific );
@@ -744,7 +744,7 @@ void FlowSolverRHEA::calculateThermophysicalProperties() {
 
     /// Update halo values
     //mu_field.update();
-    //kappa_field.update()
+    //kappa_field.update();
 
 };
 
@@ -757,7 +757,7 @@ void FlowSolverRHEA::calculateSourceTerms() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 //f_rhou_field[I1D(i,j,k)] = 0.0;
-                f_rhou_field[I1D(i,j,k)] = 1.0;
+                f_rhou_field[I1D(i,j,k)] = -1.0;
                 f_rhov_field[I1D(i,j,k)] = 0.0;
                 f_rhow_field[I1D(i,j,k)] = 0.0;
                 //f_rhoE_field[I1D(i,j,k)] = 0.0;
