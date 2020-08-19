@@ -157,7 +157,7 @@ class FlowSolverRHEA {
         double mu;						/// Dynamic viscosity [Pa·s]
         double kappa;						/// Thermal conductivity [W/(m·k)]       
 
-        /// Problem MacroParameters
+        /// Problem parameters
         double x_0;           	        	 	 	/// Domain origin in x-direction [m]
         double y_0;             	        		/// Domain origin in y-direction [m]
         double z_0;                     			/// Domain origin in z-direction [m]
@@ -168,7 +168,7 @@ class FlowSolverRHEA {
         double final_time;		      			/// Final time [s]
         string configuration_file;				/// Configuration file name (YAML language)	
 
-        /// Computational MacroParameters
+        /// Computational parameters
         int num_grid_x;						/// Number of inner grid points in x-direction
         int num_grid_y;						/// Number of inner grid points in y-direction
         int num_grid_z;						/// Number of inner grid points in z-direction
@@ -198,6 +198,7 @@ class FlowSolverRHEA {
         /// Write/read file parameters
         string output_data_file;				/// Output data file name (HDF5 format)	
         int output_frequency_iter;				/// Data output iteration frequency
+        bool generate_xdmf;					/// Generate xdmf file reader
         bool use_restart;					/// Use restart file for initialization
         int restart_data_file_iter;				/// Restart data file iteration
 

@@ -255,6 +255,7 @@ void FlowSolverRHEA::readConfigurationFile() {
     const YAML::Node & write_read_parameters = configuration["write_read_parameters"];
     output_data_file       = write_read_parameters["output_data_file"].as<string>();
     output_frequency_iter  = write_read_parameters["output_frequency_iter"].as<int>();
+    generate_xdmf          = write_read_parameters["generate_xdmf"].as<bool>();
     use_restart            = write_read_parameters["use_restart"].as<bool>();
     restart_data_file_iter = write_read_parameters["restart_data_file_iter"].as<int>();
 
@@ -1483,9 +1484,6 @@ void FlowSolverRHEA::timeAdvanceConservedVariables() {
 };
 
 void FlowSolverRHEA::outputCurrentStateData() {
-
-    /// Set true to generate xdmf reader file
-    const bool generate_xdmf = true;
 
     /// Write to file current solver state
     writer_reader->write(current_time_iter,current_time,generate_xdmf);
