@@ -4,7 +4,7 @@ using namespace std;
 
 ////////// FIXED PARAMETERS //////////
 const double epsilon     = 1.0e-15;			// Small epsilon number (fixed)
-const double Pi          = 2.0*asin(1.0);		// Pi number (fixed)
+//const double Pi          = 2.0*asin(1.0);		// Pi number (fixed)
 const int cout_presicion = 5;		                // Output precision (fixed)
 
 ////////// FlowSolverRHEA CLASS //////////
@@ -255,6 +255,7 @@ void FlowSolverRHEA::readConfigurationFile() {
     const YAML::Node & write_read_parameters = configuration["write_read_parameters"];
     output_data_file       = write_read_parameters["output_data_file"].as<string>();
     output_frequency_iter  = write_read_parameters["output_frequency_iter"].as<int>();
+    generate_xdmf          = write_read_parameters["generate_xdmf"].as<bool>();
     use_restart            = write_read_parameters["use_restart"].as<bool>();
     restart_data_file_iter = write_read_parameters["restart_data_file_iter"].as<int>();
 
@@ -1171,7 +1172,7 @@ void FlowSolverRHEA::calculateViscousFluxes() {
     /// Inner points: rhou, rhov, rhow and rhoE
     double delta_x, delta_y, delta_z;
     double div_tau_xx, div_tau_xy, div_tau_xz, div_tau_yx, div_tau_yy, div_tau_yz, div_tau_zx, div_tau_zy, div_tau_zz;
-    double div_q, vel_p, vel_m, div_tauuvw_x, div_tauuvw_y, div_tauuvw_z, div_tauuvw, f_rhouvw; 
+    double div_q, vel_p, vel_m, div_tauuvw_x, div_tauuvw_y, div_tauuvw_z, div_tauuvw; 
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -1483,9 +1484,6 @@ void FlowSolverRHEA::timeAdvanceConservedVariables() {
 };
 
 void FlowSolverRHEA::outputCurrentStateData() {
-
-    /// Set true to generate xdmf reader file
-    const bool generate_xdmf = true;
 
     /// Write to file current solver state
     writer_reader->write(current_time_iter,current_time,generate_xdmf);
