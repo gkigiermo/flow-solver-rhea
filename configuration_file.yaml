@@ -80,7 +80,7 @@ boundary_conditions:
 ##### WRITE/READ PARAMETERS #####
 write_read_parameters:
    output_data_file: channel_flow      # Name of output data file
-   output_frequency_iter: 100          # Data output iteration frequency
+   output_frequency_iter: 1000         # Data output iteration frequency
    generate_xdmf: TRUE                 # Generate xdmf file reader
    use_restart: FALSE                  # Use restart to initialize problem
    restart_data_file_iter: 0           # Restart data file iteration
