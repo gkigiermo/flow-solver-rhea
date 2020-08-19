@@ -2744,23 +2744,21 @@ void ParallelTopology::create_comm_arrays()
     if( len_yz != 0 ) {
         pack_send_w = new double [len_yz];    
         pack_send_e = new double [len_yz];    
-    }
+        pack_recv_w = new double [len_yz];    
+        pack_recv_e = new double [len_yz];    
+   }
     if( len_xz != 0 ) {
         pack_send_s = new double [len_xz];    
         pack_send_n = new double [len_xz];    
-    }
+        pack_recv_s = new double [len_xz];    
+        pack_recv_n = new double [len_xz];    
+   }
     if( len_xy != 0 ) {
         pack_send_b = new double [len_xy];    
         pack_send_f = new double [len_xy];    
+        pack_recv_b = new double [len_xy];    
+        pack_recv_f = new double [len_xy];    
     }
-
-    pack_recv_w = new double [len_yz];    
-    pack_recv_e = new double [len_yz];    
-    pack_recv_s = new double [len_xz];    
-    pack_recv_n = new double [len_xz];    
-    pack_recv_b = new double [len_xy];    
-    pack_recv_f = new double [len_xy];    
- 
 }
 
 void ParallelTopology::create_complex_comm_arrays()
@@ -2773,59 +2771,129 @@ void ParallelTopology::create_complex_comm_arrays()
     len_1pt = 1;
 
 // pack send
+    if( neighb[_WEST_S_] != _NO_NEIGHBOUR_ )
+        pack_send_ws = new double [len_1Dz];
 
-    pack_send_ws = new double [len_1Dz];
-    pack_send_wn = new double [len_1Dz];
-    pack_send_wb = new double [len_1Dy];
-    pack_send_wf = new double [len_1Dy];
+    if( neighb[_WEST_N_] != _NO_NEIGHBOUR_ )
+        pack_send_wn = new double [len_1Dz];
 
-    pack_send_es = new double [len_1Dz];
-    pack_send_en = new double [len_1Dz];
-    pack_send_eb = new double [len_1Dy];
-    pack_send_ef = new double [len_1Dy];
+    if( neighb[_WEST_B_] != _NO_NEIGHBOUR_ )
+        pack_send_wb = new double [len_1Dy];
 
-    pack_send_sb = new double [len_1Dx];
-    pack_send_sf = new double [len_1Dx];
-    pack_send_nb = new double [len_1Dx];
-    pack_send_nf = new double [len_1Dx];
+    if( neighb[_WEST_F_] != _NO_NEIGHBOUR_ )
+        pack_send_wf = new double [len_1Dy];
 
-    pack_send_wsb = new double [len_1pt];
-    pack_send_wnb = new double [len_1pt];
-    pack_send_wsf = new double [len_1pt];
-    pack_send_wnf = new double [len_1pt];
+    if( neighb[_EAST_S_] != _NO_NEIGHBOUR_ )
+        pack_send_es = new double [len_1Dz];
 
-    pack_send_esb = new double [len_1pt];
-    pack_send_enb = new double [len_1pt];
-    pack_send_esf = new double [len_1pt];
-    pack_send_enf = new double [len_1pt];
+    if( neighb[_EAST_N_] != _NO_NEIGHBOUR_ )
+        pack_send_en = new double [len_1Dz];
+
+    if( neighb[_EAST_B_] != _NO_NEIGHBOUR_ )
+        pack_send_eb = new double [len_1Dy];
+
+    if( neighb[_EAST_F_] != _NO_NEIGHBOUR_ )
+        pack_send_ef = new double [len_1Dy];
+
+    if( neighb[_SOUTH_B_] != _NO_NEIGHBOUR_ )
+        pack_send_sb = new double [len_1Dx];
+
+    if( neighb[_SOUTH_F_] != _NO_NEIGHBOUR_ )
+        pack_send_sf = new double [len_1Dx];
+
+    if( neighb[_NORTH_B_] != _NO_NEIGHBOUR_ )
+        pack_send_nb = new double [len_1Dx];
+
+    if( neighb[_NORTH_F_] != _NO_NEIGHBOUR_ )
+        pack_send_nf = new double [len_1Dx];
+
+
+    if( neighb[_WEST_S_B_] != _NO_NEIGHBOUR_ )
+        pack_send_wsb = new double [len_1pt];
+
+    if( neighb[_WEST_N_B_] != _NO_NEIGHBOUR_ )
+        pack_send_wnb = new double [len_1pt];
+
+    if( neighb[_WEST_S_F_] != _NO_NEIGHBOUR_ )
+        pack_send_wsf = new double [len_1pt];
+
+    if( neighb[_WEST_N_F_] != _NO_NEIGHBOUR_ )
+        pack_send_wnf = new double [len_1pt];
+
+    if( neighb[_EAST_S_B_] != _NO_NEIGHBOUR_ )
+        pack_send_esb = new double [len_1pt];
+
+    if( neighb[_EAST_N_B_] != _NO_NEIGHBOUR_ )
+        pack_send_enb = new double [len_1pt];
+
+    if( neighb[_EAST_S_F_] != _NO_NEIGHBOUR_ )
+        pack_send_esf = new double [len_1pt];
+
+    if( neighb[_EAST_N_F_] != _NO_NEIGHBOUR_ )
+        pack_send_enf = new double [len_1pt];
 
 
 // pack recv
 
-    pack_recv_ws = new double [len_1Dz];
-    pack_recv_wn = new double [len_1Dz];
-    pack_recv_wb = new double [len_1Dy];
-    pack_recv_wf = new double [len_1Dy];
+    if( neighb[_WEST_S_] != _NO_NEIGHBOUR_ )
+        pack_recv_ws = new double [len_1Dz];
 
-    pack_recv_es = new double [len_1Dz];
-    pack_recv_en = new double [len_1Dz];
-    pack_recv_eb = new double [len_1Dy];
-    pack_recv_ef = new double [len_1Dy];
+    if( neighb[_WEST_N_] != _NO_NEIGHBOUR_ )
+        pack_recv_wn = new double [len_1Dz];
+    
+    if( neighb[_WEST_B_] != _NO_NEIGHBOUR_ )
+        pack_recv_wb = new double [len_1Dy];
+    
+    if( neighb[_WEST_F_] != _NO_NEIGHBOUR_ )
+        pack_recv_wf = new double [len_1Dy];
 
-    pack_recv_sb = new double [len_1Dx];
-    pack_recv_sf = new double [len_1Dx];
-    pack_recv_nb = new double [len_1Dx];
-    pack_recv_nf = new double [len_1Dx];
+    if( neighb[_EAST_S_] != _NO_NEIGHBOUR_ )
+        pack_recv_es = new double [len_1Dz];
 
-    pack_recv_wsb = new double [len_1pt];
-    pack_recv_wnb = new double [len_1pt];
-    pack_recv_wsf = new double [len_1pt];
-    pack_recv_wnf = new double [len_1pt];
+    if( neighb[_EAST_N_] != _NO_NEIGHBOUR_ )
+        pack_recv_en = new double [len_1Dz];
 
-    pack_recv_esb = new double [len_1pt];
-    pack_recv_enb = new double [len_1pt];
-    pack_recv_esf = new double [len_1pt];
-    pack_recv_enf = new double [len_1pt];
+    if( neighb[_EAST_B_] != _NO_NEIGHBOUR_ )
+        pack_recv_eb = new double [len_1Dy];
+
+    if( neighb[_EAST_F_] != _NO_NEIGHBOUR_ )
+        pack_recv_ef = new double [len_1Dy];
+
+    if( neighb[_SOUTH_B_] != _NO_NEIGHBOUR_ )
+        pack_recv_sb = new double [len_1Dx];
+
+    if( neighb[_SOUTH_F_] != _NO_NEIGHBOUR_ )
+        pack_recv_sf = new double [len_1Dx];
+
+    if( neighb[_NORTH_B_] != _NO_NEIGHBOUR_ )
+        pack_recv_nb = new double [len_1Dx];
+
+    if( neighb[_NORTH_F_] != _NO_NEIGHBOUR_ )
+        pack_recv_nf = new double [len_1Dx];
+
+    if( neighb[_WEST_S_B_] != _NO_NEIGHBOUR_ )
+        pack_recv_wsb = new double [len_1pt];
+
+    if( neighb[_WEST_N_B_] != _NO_NEIGHBOUR_ )
+        pack_recv_wnb = new double [len_1pt];
+
+    if( neighb[_WEST_S_F_] != _NO_NEIGHBOUR_ )
+        pack_recv_wsf = new double [len_1pt];
+
+    if( neighb[_WEST_N_F_] != _NO_NEIGHBOUR_ )
+        pack_recv_wnf = new double [len_1pt];
+
+    if( neighb[_EAST_S_B_] != _NO_NEIGHBOUR_ )
+        pack_recv_esb = new double [len_1pt];
+
+    if( neighb[_EAST_N_B_] != _NO_NEIGHBOUR_ )
+        pack_recv_enb = new double [len_1pt];
+
+    if( neighb[_EAST_S_F_] != _NO_NEIGHBOUR_ )
+        pack_recv_esf = new double [len_1pt];
+
+    if( neighb[_EAST_N_F_] != _NO_NEIGHBOUR_ )
+        pack_recv_enf = new double [len_1pt];
 
 
 
