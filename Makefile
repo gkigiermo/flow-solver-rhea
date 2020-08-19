@@ -3,10 +3,14 @@ CC=mpic++
 CFLAGS=-O3 -lhdf5  
 OBJ=src/*.cpp
 OUT= test1
+GUIFLAGS=-Wall -I/Users/goyarzun/DEV/apps/yaml-cpp/include -L/Users/goyarzun/DEV/apps/yaml-cpp/build5/ -lyaml-cpp
+
 
 all:
 #	$(CC) heat_h5_hyper.cpp $(OBJ) -o $(OUT) $(CFLAGS)
-	$(CC) FlowSolverRHEA.cpp -L/usr/local/lib -I/usr/local/include -std=c++0x $(OBJ) -o $(OUT) $(CFLAGS) -lyaml-cpp
+#	$(CC) FlowSolverRHEA.cpp -L/usr/local/lib -I/usr/local/include -std=c++0x $(OBJ) -o $(OUT) $(CFLAGS) -lyaml-cpp
+	$(CC) FlowSolverRHEA.cpp $(GUIFLAGS) -std=c++11 $(OBJ) -o $(OUT) $(CFLAGS)
+
 
 clean:
 	rm  src/*.o *.info

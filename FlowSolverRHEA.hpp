@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
-#include <string>
+#include <string.h>
 #include <limits>
 #include <iomanip>
 #include <mpi.h>

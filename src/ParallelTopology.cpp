@@ -306,19 +306,30 @@ void ParallelTopology::exchange_2nd_level_neighbour_info()
         MPI_Irecv(&info_2nd[off_nb[_FRONT_]], 6, MPI_INT, getNB(_FRONT_), 0, RHEA_3DCOMM, &req_r[_FRONT_]);
 
 
-    if(getNB(_WEST_) != _NO_NEIGHBOUR_ )
+    if(getNB(_WEST_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_WEST_], &stat_r[_WEST_]);
-    if(getNB(_EAST_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_WEST_], &stat_s[_WEST_]);
+    }
+    if(getNB(_EAST_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_EAST_], &stat_r[_EAST_]);
-    if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_EAST_], &stat_s[_EAST_]);
+    }
+    if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_SOUTH_], &stat_r[_SOUTH_]);
-    if(getNB(_NORTH_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_SOUTH_], &stat_s[_SOUTH_]);
+    }
+    if(getNB(_NORTH_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_NORTH_], &stat_r[_NORTH_]);
-    if(getNB(_BACK_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_NORTH_], &stat_s[_NORTH_]);
+    }
+    if(getNB(_BACK_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_BACK_], &stat_r[_BACK_]);
-    if(getNB(_FRONT_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_BACK_], &stat_s[_BACK_]);
+    }
+    if(getNB(_FRONT_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_FRONT_], &stat_r[_FRONT_]);
-
+        MPI_Wait(&req_s[_FRONT_], &stat_s[_FRONT_]);
+    }
 }
 
 
@@ -3554,19 +3565,31 @@ void ParallelTopology :: halo_exchange_simple()
         MPI_Irecv(pack_recv_f, len_xy, MPI_DOUBLE, getNB(_FRONT_), 0, RHEA_3DCOMM, &req_r[_FRONT_]);
 
 
-    if(getNB(_WEST_) != _NO_NEIGHBOUR_ )
+    if(getNB(_WEST_) != _NO_NEIGHBOUR_ ) {
         MPI_Wait(&req_r[_WEST_], &stat_r[_WEST_]);
-    if(getNB(_EAST_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_WEST_], &stat_s[_WEST_]);
+    }
+    if(getNB(_EAST_) != _NO_NEIGHBOUR_ ) {
         MPI_Wait(&req_r[_EAST_], &stat_r[_EAST_]);
-    if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_EAST_], &stat_s[_EAST_]);
+    }
+    if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ ) {
         MPI_Wait(&req_r[_SOUTH_], &stat_r[_SOUTH_]);
-    if(getNB(_NORTH_) != _NO_NEIGHBOUR_ )
-        MPI_Wait(&req_r[_NORTH_], &stat_r[_NORTH_]);
-    if(getNB(_BACK_) != _NO_NEIGHBOUR_ )
-        MPI_Wait(&req_r[_BACK_], &stat_r[_BACK_]);
-    if(getNB(_FRONT_) != _NO_NEIGHBOUR_ )
-        MPI_Wait(&req_r[_FRONT_], &stat_r[_FRONT_]);
+        MPI_Wait(&req_s[_SOUTH_], &stat_s[_SOUTH_]);
+    }
 
+    if(getNB(_NORTH_) != _NO_NEIGHBOUR_ ) {
+        MPI_Wait(&req_r[_NORTH_], &stat_r[_NORTH_]);
+        MPI_Wait(&req_s[_NORTH_], &stat_s[_NORTH_]);
+    }
+    if(getNB(_BACK_) != _NO_NEIGHBOUR_ ) {
+        MPI_Wait(&req_r[_BACK_], &stat_r[_BACK_]);
+        MPI_Wait(&req_s[_BACK_], &stat_s[_BACK_]);
+    }
+    if(getNB(_FRONT_) != _NO_NEIGHBOUR_ ){
+        MPI_Wait(&req_r[_FRONT_], &stat_r[_FRONT_]);
+        MPI_Wait(&req_s[_FRONT_], &stat_s[_FRONT_]);
+    }
 
 
 }
@@ -3742,69 +3765,121 @@ void ParallelTopology :: halo_exchange()
     if(getNB(_EAST_N_F_) != _NO_NEIGHBOUR_ )
         MPI_Irecv(pack_recv_enf, len_1pt, MPI_DOUBLE, getNB(_EAST_N_F_), 0, RHEA_3DCOMM, &req_r[_EAST_N_F_]);
 
+// Wait for the communications to be done
 
-    if(getNB(_WEST_) != _NO_NEIGHBOUR_ )
+    if(getNB(_WEST_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_WEST_], &stat_r[_WEST_]);
-    if(getNB(_EAST_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_WEST_], &stat_s[_WEST_]);
+    }
+    if(getNB(_EAST_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_EAST_], &stat_r[_EAST_]);
-    if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_EAST_], &stat_s[_EAST_]);
+    }
+    if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_SOUTH_], &stat_r[_SOUTH_]);
-    if(getNB(_NORTH_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_SOUTH_], &stat_s[_SOUTH_]);
+    }
+    if(getNB(_NORTH_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_NORTH_], &stat_r[_NORTH_]);
-    if(getNB(_BACK_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_NORTH_], &stat_s[_NORTH_]);
+    }
+    if(getNB(_BACK_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_BACK_], &stat_r[_BACK_]);
-    if(getNB(_FRONT_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_BACK_], &stat_s[_BACK_]);
+    }
+    if(getNB(_FRONT_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_FRONT_], &stat_r[_FRONT_]);
-
+        MPI_Wait(&req_s[_FRONT_], &stat_s[_FRONT_]);
+    }
 //2nd level
 
-    if(getNB(_WEST_S_) != _NO_NEIGHBOUR_ )
+    if(getNB(_WEST_S_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_WEST_S_], &stat_r[_WEST_S_]);
-    if(getNB(_WEST_N_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_WEST_S_], &stat_s[_WEST_S_]);
+    }
+    if(getNB(_WEST_N_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_WEST_N_], &stat_r[_WEST_N_]);
-    if(getNB(_WEST_B_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_WEST_N_], &stat_s[_WEST_N_]);
+    }
+    if(getNB(_WEST_B_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_WEST_B_], &stat_r[_WEST_B_]);
-    if(getNB(_WEST_F_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_WEST_B_], &stat_s[_WEST_B_]);
+    }
+    if(getNB(_WEST_F_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_WEST_F_], &stat_r[_WEST_F_]);
+        MPI_Wait(&req_s[_WEST_F_], &stat_s[_WEST_F_]);
+    }
 
-    if(getNB(_EAST_S_) != _NO_NEIGHBOUR_ )
+    if(getNB(_EAST_S_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_EAST_S_], &stat_r[_EAST_S_]);
-    if(getNB(_EAST_N_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_EAST_S_], &stat_s[_EAST_S_]);
+    }
+    if(getNB(_EAST_N_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_EAST_N_], &stat_r[_EAST_N_]);
-    if(getNB(_EAST_B_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_EAST_N_], &stat_s[_EAST_N_]);
+    }
+    if(getNB(_EAST_B_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_EAST_B_], &stat_r[_EAST_B_]);
-    if(getNB(_EAST_F_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_EAST_B_], &stat_s[_EAST_B_]);
+    }
+    if(getNB(_EAST_F_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_EAST_F_], &stat_r[_EAST_F_]);
+        MPI_Wait(&req_s[_EAST_F_], &stat_s[_EAST_F_]);
+    }
 
-    if(getNB(_SOUTH_B_) != _NO_NEIGHBOUR_ )
+    if(getNB(_SOUTH_B_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_SOUTH_B_], &stat_r[_SOUTH_B_]);
-    if(getNB(_SOUTH_F_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_SOUTH_B_], &stat_s[_SOUTH_B_]);
+    }
+    if(getNB(_SOUTH_F_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_SOUTH_F_], &stat_r[_SOUTH_F_]);
-    if(getNB(_NORTH_B_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_SOUTH_F_], &stat_s[_SOUTH_F_]);
+    }
+    if(getNB(_NORTH_B_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_NORTH_B_], &stat_r[_NORTH_B_]);
-    if(getNB(_NORTH_F_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_NORTH_B_], &stat_s[_NORTH_B_]);
+    }
+    if(getNB(_NORTH_F_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_NORTH_F_], &stat_r[_NORTH_F_]);
+        MPI_Wait(&req_s[_NORTH_F_], &stat_s[_NORTH_F_]);
+    }
 
 
 //3er Level
 
-    if(getNB(_WEST_S_B_) != _NO_NEIGHBOUR_ )
+    if(getNB(_WEST_S_B_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_WEST_S_B_], &stat_r[_WEST_S_B_]);
-    if(getNB(_WEST_N_B_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_WEST_S_B_], &stat_s[_WEST_S_B_]);
+    }
+    if(getNB(_WEST_N_B_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_WEST_N_B_], &stat_r[_WEST_N_B_]);
-    if(getNB(_WEST_S_F_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_WEST_N_B_], &stat_s[_WEST_N_B_]);
+    }
+    if(getNB(_WEST_S_F_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_WEST_S_F_], &stat_r[_WEST_S_F_]);
-    if(getNB(_WEST_N_F_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_WEST_S_F_], &stat_s[_WEST_S_F_]);
+    }
+    if(getNB(_WEST_N_F_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_WEST_N_F_], &stat_r[_WEST_N_F_]);
+        MPI_Wait(&req_s[_WEST_N_F_], &stat_s[_WEST_N_F_]);
+    }
 
-    if(getNB(_EAST_S_B_) != _NO_NEIGHBOUR_ )
+    if(getNB(_EAST_S_B_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_EAST_S_B_], &stat_r[_EAST_S_B_]);
-    if(getNB(_EAST_N_B_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_EAST_S_B_], &stat_s[_EAST_S_B_]);
+    }
+    if(getNB(_EAST_N_B_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_EAST_N_B_], &stat_r[_EAST_N_B_]);
-    if(getNB(_EAST_S_F_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_EAST_N_B_], &stat_s[_EAST_N_B_]);
+    }
+    if(getNB(_EAST_S_F_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_EAST_S_F_], &stat_r[_EAST_S_F_]);
-    if(getNB(_EAST_N_F_) != _NO_NEIGHBOUR_ )
+        MPI_Wait(&req_s[_EAST_S_F_], &stat_s[_EAST_S_F_]);
+    }
+    if(getNB(_EAST_N_F_) != _NO_NEIGHBOUR_ ){
         MPI_Wait(&req_r[_EAST_N_F_], &stat_r[_EAST_N_F_]);
+        MPI_Wait(&req_s[_EAST_N_F_], &stat_s[_EAST_N_F_]);
+    }
 
 
 }
