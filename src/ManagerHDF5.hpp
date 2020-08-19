@@ -4,7 +4,7 @@
 #include <iostream>
 #include <hdf5.h>
 #include <list>
-
+#include <string.h>
 #include "MacroParameters.hpp"
 #include "ParallelTopology.hpp"
 #include "DistributedArray.hpp"
