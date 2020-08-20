@@ -1518,11 +1518,14 @@ int main(int argc, char** argv) {
     /// Set output (cout) precision
     cout.precision( cout_presicion );
 
+    /// Process command line arguments
+    string configuration_file = argv[1];
+
     /// Start RHEA simulation
     if( my_rank == 0 ) cout << "RHEA: START SIMULATION" << endl;
 
     /// Construct flow solver RHEA
-    FlowSolverRHEA flow_solver_RHEA( "configuration_file.yaml" );
+    FlowSolverRHEA flow_solver_RHEA( configuration_file );
 
     /// Initialize variables from restart file or by setting initial conditions
     if( flow_solver_RHEA.getUseRestart() ) {
