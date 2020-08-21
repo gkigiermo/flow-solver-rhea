@@ -105,8 +105,11 @@ class FlowSolverRHEA {
         /// Calculate thermodynamics from primitive variables
         void calculateThermodynamicsFromPrimitiveVariables();
 
+        /// Calculate point pressure and temperature from density and internal energy
+        void calculatePointPressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e);
+
         /// Calculate point density and internal energy from pressure and temperature
-        void calculatePointDensityInternalEnergyFromPressureTemperature(const double &P, const double &T, double &rho, double &e);
+        void calculatePointDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T);
 
         /// Calculate specific heat capacities
         void calculateSpecificHeatCapacities(double &c_v, double &c_p);
@@ -127,7 +130,7 @@ class FlowSolverRHEA {
         void calculateSourceTerms();
 
         /// Calculate waves speed
-        void calculateWavesSpeed(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, double &S_L, double &S_R);
+        void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
 
         /// Calculate HLLC flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
         double calculateHllcFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);

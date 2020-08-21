@@ -309,12 +309,19 @@ void FlowSolverRHEA::setInitialConditions() {
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                double random_number = (double)rand()/(RAND_MAX + 1.0);
-                u_field[I1D(i,j,k)] = random_number*1.0*sin( mesh->x[i] );
-                v_field[I1D(i,j,k)] = 0.0;
-                w_field[I1D(i,j,k)] = random_number*1.0*sin( mesh->z[k] );
-                P_field[I1D(i,j,k)] = 101325.0;
-                T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 1.0*R_specific );
+		if( mesh->x[i] < 0.3 ) {
+                    u_field[I1D(i,j,k)] = 0.75;
+                    v_field[I1D(i,j,k)] = 0.0;
+                    w_field[I1D(i,j,k)] = 0.0;
+                    P_field[I1D(i,j,k)] = 1.0;
+                    T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 1.0*R_specific );
+		} else {
+                    u_field[I1D(i,j,k)] = 0.0;
+                    v_field[I1D(i,j,k)] = 0.0;
+                    w_field[I1D(i,j,k)] = 0.0;
+                    P_field[I1D(i,j,k)] = 0.1;
+                    T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 0.125*R_specific );
+		}
             }
         }
     }
@@ -456,7 +463,21 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
 
 };
 
-void FlowSolverRHEA::calculatePointDensityInternalEnergyFromPressureTemperature(const double &P, const double &T, double &rho, double &e) {
+void FlowSolverRHEA::calculatePointPressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {
+
+    /// Ideal-gas model:
+    /// P = e*rho*(gamma - 1) is pressure
+    /// T = e/c_v is temperature
+
+    double c_v, c_p;
+    this->calculateSpecificHeatCapacities( c_v, c_p );
+
+    P = e*rho*( ( c_p/c_v ) - 1.0 ); 
+    T = e/c_v; 
+
+};
+
+void FlowSolverRHEA::calculatePointDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T) {
 
     /// Ideal-gas model:
     /// rho = P/(R_specific*T) is density
@@ -490,167 +511,247 @@ void FlowSolverRHEA::updateBoundaries() {
     /// w_g is ghost cell weight
     /// w_in is inner cell weight
 
-    /// Declare variables & weights
-    double rho_b, rhou_b, rhov_b, rhow_b, e_b, ke_b, rhoE_b, w_g, w_in;
+    /// Declare weights and ghost & inner values
+    double wg_g, wg_in;
+    double u_g, v_g, w_g, P_g, T_g, rho_g, e_g, ke_g, E_g;
+    double rho_in, u_in, v_in, w_in, E_in, ke_in, e_in, P_in, T_in;
 
     /// West boundary points: rho, rhou, rhov, rhow and rhoE
     if( bocos_type[_WEST_] == _DIRICHLET_ ) {
-        w_g  = ( 1.0 )*( 1.0/2.0 );
-        w_in = ( 1.0 )*( 1.0/2.0 );
+        wg_g  = ( 1.0 )*( 1.0/2.0 );
+        wg_in = ( 1.0 )*( 1.0/2.0 );
     }
     if( bocos_type[_WEST_] == _NEUMANN_ ) {
-        w_g  = (  1.0 )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
-        w_in = ( -1.0 )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
+        wg_g  = (  1.0 )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
+        wg_in = ( -1.0 )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
     }
-    this->calculatePointDensityInternalEnergyFromPressureTemperature( bocos_P[_WEST_], bocos_T[_WEST_], rho_b, e_b );
-    rhou_b = rho_b*bocos_u[_WEST_];
-    rhov_b = rho_b*bocos_v[_WEST_];
-    rhow_b = rho_b*bocos_w[_WEST_];
-    ke_b   = 0.5*( pow( bocos_u[_WEST_], 2.0 ) + pow( bocos_v[_WEST_], 2.0 ) + pow( bocos_w[_WEST_], 2.0 ) );
-    rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_WEST_][_INIX_]; i <= topo->iter_bound[_WEST_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_WEST_][_INIY_]; j <= topo->iter_bound[_WEST_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_WEST_][_INIZ_]; k <= topo->iter_bound[_WEST_][_ENDZ_]; k++) {
-                rho_field[I1D(i,j,k)]  = ( rho_b - w_in*rho_field[I1D(i+1,j,k)] )/w_g;
-                rhou_field[I1D(i,j,k)] = ( rhou_b - w_in*rhou_field[I1D(i+1,j,k)] )/w_g;
-                rhov_field[I1D(i,j,k)] = ( rhov_b - w_in*rhov_field[I1D(i+1,j,k)] )/w_g;
-                rhow_field[I1D(i,j,k)] = ( rhow_b - w_in*rhow_field[I1D(i+1,j,k)] )/w_g;
-                rhoE_field[I1D(i,j,k)] = ( rhoE_b - w_in*rhoE_field[I1D(i+1,j,k)] )/w_g;
+		/// Calculate inner values
+                rho_in = rho_field[I1D(i+1,j,k)]; 
+                u_in   = rhou_field[I1D(i+1,j,k)]/rho_in;
+                v_in   = rhov_field[I1D(i+1,j,k)]/rho_in;
+                w_in   = rhow_field[I1D(i+1,j,k)]/rho_in;
+                E_in   = rhoE_field[I1D(i+1,j,k)]/rho_in;
+                ke_in  = 0.5*( pow( u_in, 2.0 ) + pow( v_in, 2.0 ) + pow( w_in, 2.0 ) ); 
+                e_in   = E_in - ke_in; 
+		/// Calculate ghost primitive variables
+                u_g = ( bocos_u[_WEST_] - wg_in*( u_in ) )/wg_g; 
+                v_g = ( bocos_v[_WEST_] - wg_in*( v_in ) )/wg_g; 
+                w_g = ( bocos_w[_WEST_] - wg_in*( w_in ) )/wg_g; 
+                this->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
+                P_g = ( bocos_P[_WEST_] - wg_in*P_in )/wg_g; 
+                T_g = ( bocos_T[_WEST_] - wg_in*T_in )/wg_g; 
+                this->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                ke_g = 0.5*( pow( u_g, 2.0 ) + pow( v_g, 2.0 ) + pow( w_g, 2.0 ) );
+                E_g  = e_g + ke_g;
+		/// Update ghost conserved variables
+                rho_field[I1D(i,j,k)]  = rho_g;
+                rhou_field[I1D(i,j,k)] = rho_g*u_g;
+                rhov_field[I1D(i,j,k)] = rho_g*v_g;
+                rhow_field[I1D(i,j,k)] = rho_g*w_g;
+                rhoE_field[I1D(i,j,k)] = rho_g*E_g;
             }
         }
     }
 
     /// East boundary points: rho, rhou, rhov, rhow and rhoE
     if( bocos_type[_EAST_] == _DIRICHLET_ ) {
-        w_g  = ( 1.0 )*( 1.0/2.0 );
-        w_in = ( 1.0 )*( 1.0/2.0 );
+        wg_g  = ( 1.0 )*( 1.0/2.0 );
+        wg_in = ( 1.0 )*( 1.0/2.0 );
     }
     if( bocos_type[_EAST_] == _NEUMANN_ ) {
-        w_g  = (  1.0 )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
-        w_in = ( -1.0 )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
+        wg_g  = (  1.0 )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
+        wg_in = ( -1.0 )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
     }
-    this->calculatePointDensityInternalEnergyFromPressureTemperature( bocos_P[_EAST_], bocos_T[_EAST_], rho_b, e_b );
-    rhou_b = rho_b*bocos_u[_EAST_];
-    rhov_b = rho_b*bocos_v[_EAST_];
-    rhow_b = rho_b*bocos_w[_EAST_];
-    ke_b   = 0.5*( pow( bocos_u[_EAST_], 2.0 ) + pow( bocos_v[_EAST_], 2.0 ) + pow( bocos_w[_EAST_], 2.0 ) );
-    rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_EAST_][_INIX_]; i <= topo->iter_bound[_EAST_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_EAST_][_INIY_]; j <= topo->iter_bound[_EAST_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_EAST_][_INIZ_]; k <= topo->iter_bound[_EAST_][_ENDZ_]; k++) {
-                rho_field[I1D(i,j,k)]  = ( rho_b - w_in*rho_field[I1D(i-1,j,k)] )/w_g;
-                rhou_field[I1D(i,j,k)] = ( rhou_b - w_in*rhou_field[I1D(i-1,j,k)] )/w_g;
-                rhov_field[I1D(i,j,k)] = ( rhov_b - w_in*rhov_field[I1D(i-1,j,k)] )/w_g;
-                rhow_field[I1D(i,j,k)] = ( rhow_b - w_in*rhow_field[I1D(i-1,j,k)] )/w_g;
-                rhoE_field[I1D(i,j,k)] = ( rhoE_b - w_in*rhoE_field[I1D(i-1,j,k)] )/w_g;
+		/// Calculate inner values
+                rho_in = rho_field[I1D(i-1,j,k)]; 
+                u_in   = rhou_field[I1D(i-1,j,k)]/rho_in;
+                v_in   = rhov_field[I1D(i-1,j,k)]/rho_in;
+                w_in   = rhow_field[I1D(i-1,j,k)]/rho_in;
+                E_in   = rhoE_field[I1D(i-1,j,k)]/rho_in;
+                ke_in  = 0.5*( pow( u_in, 2.0 ) + pow( v_in, 2.0 ) + pow( w_in, 2.0 ) ); 
+                e_in   = E_in - ke_in; 
+		/// Calculate ghost primitive variables
+                u_g = ( bocos_u[_EAST_] - wg_in*( u_in ) )/wg_g; 
+                v_g = ( bocos_v[_EAST_] - wg_in*( v_in ) )/wg_g; 
+                w_g = ( bocos_w[_EAST_] - wg_in*( w_in ) )/wg_g; 
+                this->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
+                P_g = ( bocos_P[_EAST_] - wg_in*P_in )/wg_g; 
+                T_g = ( bocos_T[_EAST_] - wg_in*T_in )/wg_g; 
+                this->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                ke_g = 0.5*( pow( u_g, 2.0 ) + pow( v_g, 2.0 ) + pow( w_g, 2.0 ) );
+                E_g  = e_g + ke_g;
+		/// Update ghost conserved variables
+                rho_field[I1D(i,j,k)]  = rho_g;
+                rhou_field[I1D(i,j,k)] = rho_g*u_g;
+                rhov_field[I1D(i,j,k)] = rho_g*v_g;
+                rhow_field[I1D(i,j,k)] = rho_g*w_g;
+                rhoE_field[I1D(i,j,k)] = rho_g*E_g;
             }
         }
     }
 
     /// South boundary points: rho, rhou, rhov, rhow and rhoE
     if( bocos_type[_SOUTH_] == _DIRICHLET_ ) {
-        w_g  = ( 1.0 )*( 1.0/2.0 );
-        w_in = ( 1.0 )*( 1.0/2.0 );
+        wg_g  = ( 1.0 )*( 1.0/2.0 );
+        wg_in = ( 1.0 )*( 1.0/2.0 );
     }
     if( bocos_type[_SOUTH_] == _NEUMANN_ ) {
-        w_g  = (  1.0 )/( mesh->getGloby(1) - mesh->getGloby(0) );
-        w_in = ( -1.0 )/( mesh->getGloby(1) - mesh->getGloby(0) );
+        wg_g  = (  1.0 )/( mesh->getGloby(1) - mesh->getGloby(0) );
+        wg_in = ( -1.0 )/( mesh->getGloby(1) - mesh->getGloby(0) );
     }
-    this->calculatePointDensityInternalEnergyFromPressureTemperature( bocos_P[_SOUTH_], bocos_T[_SOUTH_], rho_b, e_b );
-    rhou_b = rho_b*bocos_u[_SOUTH_];
-    rhov_b = rho_b*bocos_v[_SOUTH_];
-    rhow_b = rho_b*bocos_w[_SOUTH_];
-    ke_b   = 0.5*( pow( bocos_u[_SOUTH_], 2.0 ) + pow( bocos_v[_SOUTH_], 2.0 ) + pow( bocos_w[_SOUTH_], 2.0 ) );
-    rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_SOUTH_][_INIX_]; i <= topo->iter_bound[_SOUTH_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_SOUTH_][_INIY_]; j <= topo->iter_bound[_SOUTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_SOUTH_][_INIZ_]; k <= topo->iter_bound[_SOUTH_][_ENDZ_]; k++) {
-                rho_field[I1D(i,j,k)]  = ( rho_b - w_in*rho_field[I1D(i,j+1,k)] )/w_g;
-                rhou_field[I1D(i,j,k)] = ( rhou_b - w_in*rhou_field[I1D(i,j+1,k)] )/w_g;
-                rhov_field[I1D(i,j,k)] = ( rhov_b - w_in*rhov_field[I1D(i,j+1,k)] )/w_g;
-                rhow_field[I1D(i,j,k)] = ( rhow_b - w_in*rhow_field[I1D(i,j+1,k)] )/w_g;
-                rhoE_field[I1D(i,j,k)] = ( rhoE_b - w_in*rhoE_field[I1D(i,j+1,k)] )/w_g;
+		/// Calculate inner values
+                rho_in = rho_field[I1D(i,j+1,k)]; 
+                u_in   = rhou_field[I1D(i,j+1,k)]/rho_in;
+                v_in   = rhov_field[I1D(i,j+1,k)]/rho_in;
+                w_in   = rhow_field[I1D(i,j+1,k)]/rho_in;
+                E_in   = rhoE_field[I1D(i,j+1,k)]/rho_in;
+                ke_in  = 0.5*( pow( u_in, 2.0 ) + pow( v_in, 2.0 ) + pow( w_in, 2.0 ) ); 
+                e_in   = E_in - ke_in; 
+		/// Calculate ghost primitive variables
+                u_g = ( bocos_u[_SOUTH_] - wg_in*( u_in ) )/wg_g; 
+                v_g = ( bocos_v[_SOUTH_] - wg_in*( v_in ) )/wg_g; 
+                w_g = ( bocos_w[_SOUTH_] - wg_in*( w_in ) )/wg_g; 
+                this->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
+                P_g = ( bocos_P[_SOUTH_] - wg_in*P_in )/wg_g; 
+                T_g = ( bocos_T[_SOUTH_] - wg_in*T_in )/wg_g; 
+                this->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                ke_g = 0.5*( pow( u_g, 2.0 ) + pow( v_g, 2.0 ) + pow( w_g, 2.0 ) );
+                E_g  = e_g + ke_g;
+		/// Update ghost conserved variables
+                rho_field[I1D(i,j,k)]  = rho_g;
+                rhou_field[I1D(i,j,k)] = rho_g*u_g;
+                rhov_field[I1D(i,j,k)] = rho_g*v_g;
+                rhow_field[I1D(i,j,k)] = rho_g*w_g;
+                rhoE_field[I1D(i,j,k)] = rho_g*E_g;
             }
         }
     }
 
     /// North boundary points: rho, rhou, rhov, rhow and rhoE
     if( bocos_type[_NORTH_] == _DIRICHLET_ ) {
-        w_g  = ( 1.0 )*( 1.0/2.0 );
-        w_in = ( 1.0 )*( 1.0/2.0 );
+        wg_g  = ( 1.0 )*( 1.0/2.0 );
+        wg_in = ( 1.0 )*( 1.0/2.0 );
     }
     if( bocos_type[_NORTH_] == _NEUMANN_ ) {
-        w_g  = (  1.0 )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
-        w_in = ( -1.0 )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
+        wg_g  = (  1.0 )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
+        wg_in = ( -1.0 )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
     }
-    this->calculatePointDensityInternalEnergyFromPressureTemperature( bocos_P[_NORTH_], bocos_T[_NORTH_], rho_b, e_b );
-    rhou_b = rho_b*bocos_u[_NORTH_];
-    rhov_b = rho_b*bocos_v[_NORTH_];
-    rhow_b = rho_b*bocos_w[_NORTH_];
-    ke_b   = 0.5*( pow( bocos_u[_NORTH_], 2.0 ) + pow( bocos_v[_NORTH_], 2.0 ) + pow( bocos_w[_NORTH_], 2.0 ) );
-    rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_NORTH_][_INIX_]; i <= topo->iter_bound[_NORTH_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_NORTH_][_INIY_]; j <= topo->iter_bound[_NORTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_NORTH_][_INIZ_]; k <= topo->iter_bound[_NORTH_][_ENDZ_]; k++) {
-                rho_field[I1D(i,j,k)]  = ( rho_b - w_in*rho_field[I1D(i,j-1,k)] )/w_g;
-                rhou_field[I1D(i,j,k)] = ( rhou_b - w_in*rhou_field[I1D(i,j-1,k)] )/w_g;
-                rhov_field[I1D(i,j,k)] = ( rhov_b - w_in*rhov_field[I1D(i,j-1,k)] )/w_g;
-                rhow_field[I1D(i,j,k)] = ( rhow_b - w_in*rhow_field[I1D(i,j-1,k)] )/w_g;
-                rhoE_field[I1D(i,j,k)] = ( rhoE_b - w_in*rhoE_field[I1D(i,j-1,k)] )/w_g;
+		/// Calculate inner values
+                rho_in = rho_field[I1D(i,j-1,k)]; 
+                u_in   = rhou_field[I1D(i,j-1,k)]/rho_in;
+                v_in   = rhov_field[I1D(i,j-1,k)]/rho_in;
+                w_in   = rhow_field[I1D(i,j-1,k)]/rho_in;
+                E_in   = rhoE_field[I1D(i,j-1,k)]/rho_in;
+                ke_in  = 0.5*( pow( u_in, 2.0 ) + pow( v_in, 2.0 ) + pow( w_in, 2.0 ) ); 
+                e_in   = E_in - ke_in; 
+		/// Calculate ghost primitive variables
+                u_g = ( bocos_u[_NORTH_] - wg_in*( u_in ) )/wg_g; 
+                v_g = ( bocos_v[_NORTH_] - wg_in*( v_in ) )/wg_g; 
+                w_g = ( bocos_w[_NORTH_] - wg_in*( w_in ) )/wg_g; 
+                this->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
+                P_g = ( bocos_P[_NORTH_] - wg_in*P_in )/wg_g; 
+                T_g = ( bocos_T[_NORTH_] - wg_in*T_in )/wg_g; 
+                this->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                ke_g = 0.5*( pow( u_g, 2.0 ) + pow( v_g, 2.0 ) + pow( w_g, 2.0 ) );
+                E_g  = e_g + ke_g;
+		/// Update ghost conserved variables
+                rho_field[I1D(i,j,k)]  = rho_g;
+                rhou_field[I1D(i,j,k)] = rho_g*u_g;
+                rhov_field[I1D(i,j,k)] = rho_g*v_g;
+                rhow_field[I1D(i,j,k)] = rho_g*w_g;
+                rhoE_field[I1D(i,j,k)] = rho_g*E_g;
             }
         }
     }
 
     /// Back boundary points: rho, rhou, rhov, rhow and rhoE
     if( bocos_type[_BACK_] == _DIRICHLET_ ) {
-        w_g  = ( 1.0 )*( 1.0/2.0 );
-        w_in = ( 1.0 )*( 1.0/2.0 );
+        wg_g  = ( 1.0 )*( 1.0/2.0 );
+        wg_in = ( 1.0 )*( 1.0/2.0 );
     }
     if( bocos_type[_BACK_] == _NEUMANN_ ) {
-        w_g  = (  1.0 )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
-        w_in = ( -1.0 )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
+        wg_g  = (  1.0 )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
+        wg_in = ( -1.0 )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
     }
-    this->calculatePointDensityInternalEnergyFromPressureTemperature( bocos_P[_BACK_], bocos_T[_BACK_], rho_b, e_b );
-    rhou_b = rho_b*bocos_u[_BACK_];
-    rhov_b = rho_b*bocos_v[_BACK_];
-    rhow_b = rho_b*bocos_w[_BACK_];
-    ke_b   = 0.5*( pow( bocos_u[_BACK_], 2.0 ) + pow( bocos_v[_BACK_], 2.0 ) + pow( bocos_w[_BACK_], 2.0 ) );
-    rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_BACK_][_INIX_]; i <= topo->iter_bound[_BACK_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_BACK_][_INIY_]; j <= topo->iter_bound[_BACK_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_BACK_][_INIZ_]; k <= topo->iter_bound[_BACK_][_ENDZ_]; k++) {
-                rho_field[I1D(i,j,k)]  = ( rho_b - w_in*rho_field[I1D(i,j,k+1)] )/w_g;
-                rhou_field[I1D(i,j,k)] = ( rhou_b - w_in*rhou_field[I1D(i,j,k+1)] )/w_g;
-                rhov_field[I1D(i,j,k)] = ( rhov_b - w_in*rhov_field[I1D(i,j,k+1)] )/w_g;
-                rhow_field[I1D(i,j,k)] = ( rhow_b - w_in*rhow_field[I1D(i,j,k+1)] )/w_g;
-                rhoE_field[I1D(i,j,k)] = ( rhoE_b - w_in*rhoE_field[I1D(i,j,k+1)] )/w_g;
+		/// Calculate inner values
+                rho_in = rho_field[I1D(i,j,k+1)]; 
+                u_in   = rhou_field[I1D(i,j,k+1)]/rho_in;
+                v_in   = rhov_field[I1D(i,j,k+1)]/rho_in;
+                w_in   = rhow_field[I1D(i,j,k+1)]/rho_in;
+                E_in   = rhoE_field[I1D(i,j,k+1)]/rho_in;
+                ke_in  = 0.5*( pow( u_in, 2.0 ) + pow( v_in, 2.0 ) + pow( w_in, 2.0 ) ); 
+                e_in   = E_in - ke_in; 
+		/// Calculate ghost primitive variables
+                u_g = ( bocos_u[_BACK_] - wg_in*( u_in ) )/wg_g; 
+                v_g = ( bocos_v[_BACK_] - wg_in*( v_in ) )/wg_g; 
+                w_g = ( bocos_w[_BACK_] - wg_in*( w_in ) )/wg_g; 
+                this->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
+                P_g = ( bocos_P[_BACK_] - wg_in*P_in )/wg_g; 
+                T_g = ( bocos_T[_BACK_] - wg_in*T_in )/wg_g; 
+                this->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                ke_g = 0.5*( pow( u_g, 2.0 ) + pow( v_g, 2.0 ) + pow( w_g, 2.0 ) );
+                E_g  = e_g + ke_g;
+		/// Update ghost conserved variables
+                rho_field[I1D(i,j,k)]  = rho_g;
+                rhou_field[I1D(i,j,k)] = rho_g*u_g;
+                rhov_field[I1D(i,j,k)] = rho_g*v_g;
+                rhow_field[I1D(i,j,k)] = rho_g*w_g;
+                rhoE_field[I1D(i,j,k)] = rho_g*E_g;
             }
         }
     }
 
     /// Front boundary points: rho, rhou, rhov, rhow and rhoE
     if( bocos_type[_FRONT_] == _DIRICHLET_ ) {
-        w_g  = ( 1.0 )*( 1.0/2.0 );
-        w_in = ( 1.0 )*( 1.0/2.0 );
+        wg_g  = ( 1.0 )*( 1.0/2.0 );
+        wg_in = ( 1.0 )*( 1.0/2.0 );
     }
     if( bocos_type[_FRONT_] == _NEUMANN_ ) {
-        w_g  = (  1.0 )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
-        w_in = ( -1.0 )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
+        wg_g  = (  1.0 )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
+        wg_in = ( -1.0 )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
     }
-    this->calculatePointDensityInternalEnergyFromPressureTemperature( bocos_P[_FRONT_], bocos_T[_FRONT_], rho_b, e_b );
-    rhou_b = rho_b*bocos_u[_FRONT_];
-    rhov_b = rho_b*bocos_v[_FRONT_];
-    rhow_b = rho_b*bocos_w[_FRONT_];
-    ke_b   = 0.5*( pow( bocos_u[_FRONT_], 2.0 ) + pow( bocos_v[_FRONT_], 2.0 ) + pow( bocos_w[_FRONT_], 2.0 ) );
-    rhoE_b = rho_b*( e_b + ke_b );
     for(int i = topo->iter_bound[_FRONT_][_INIX_]; i <= topo->iter_bound[_FRONT_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_FRONT_][_INIY_]; j <= topo->iter_bound[_FRONT_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_FRONT_][_INIZ_]; k <= topo->iter_bound[_FRONT_][_ENDZ_]; k++) {
-                rho_field[I1D(i,j,k)]  = ( rho_b - w_in*rho_field[I1D(i,j,k-1)] )/w_g;
-                rhou_field[I1D(i,j,k)] = ( rhou_b - w_in*rhou_field[I1D(i,j,k-1)] )/w_g;
-                rhov_field[I1D(i,j,k)] = ( rhov_b - w_in*rhov_field[I1D(i,j,k-1)] )/w_g;
-                rhow_field[I1D(i,j,k)] = ( rhow_b - w_in*rhow_field[I1D(i,j,k-1)] )/w_g;
-                rhoE_field[I1D(i,j,k)] = ( rhoE_b - w_in*rhoE_field[I1D(i,j,k-1)] )/w_g;
+		/// Calculate inner values
+                rho_in = rho_field[I1D(i,j,k-1)]; 
+                u_in   = rhou_field[I1D(i,j,k-1)]/rho_in;
+                v_in   = rhov_field[I1D(i,j,k-1)]/rho_in;
+                w_in   = rhow_field[I1D(i,j,k-1)]/rho_in;
+                E_in   = rhoE_field[I1D(i,j,k-1)]/rho_in;
+                ke_in  = 0.5*( pow( u_in, 2.0 ) + pow( v_in, 2.0 ) + pow( w_in, 2.0 ) ); 
+                e_in   = E_in - ke_in; 
+		/// Calculate ghost primitive variables
+                u_g = ( bocos_u[_FRONT_] - wg_in*( u_in ) )/wg_g; 
+                v_g = ( bocos_v[_FRONT_] - wg_in*( v_in ) )/wg_g; 
+                w_g = ( bocos_w[_FRONT_] - wg_in*( w_in ) )/wg_g; 
+                this->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
+                P_g = ( bocos_P[_FRONT_] - wg_in*P_in )/wg_g; 
+                T_g = ( bocos_T[_FRONT_] - wg_in*T_in )/wg_g; 
+                this->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                ke_g = 0.5*( pow( u_g, 2.0 ) + pow( v_g, 2.0 ) + pow( w_g, 2.0 ) );
+                E_g  = e_g + ke_g;
+		/// Update ghost conserved variables
+                rho_field[I1D(i,j,k)]  = rho_g;
+                rhou_field[I1D(i,j,k)] = rho_g*u_g;
+                rhov_field[I1D(i,j,k)] = rho_g*v_g;
+                rhow_field[I1D(i,j,k)] = rho_g*w_g;
+                rhoE_field[I1D(i,j,k)] = rho_g*E_g;
             }
         }
     }
@@ -771,12 +872,12 @@ void FlowSolverRHEA::calculateSourceTerms() {
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                //f_rhou_field[I1D(i,j,k)] = 0.0;
-                f_rhou_field[I1D(i,j,k)] = -1.0;
+                f_rhou_field[I1D(i,j,k)] = 0.0;
+                //f_rhou_field[I1D(i,j,k)] = -1.0;
                 f_rhov_field[I1D(i,j,k)] = 0.0;
                 f_rhow_field[I1D(i,j,k)] = 0.0;
-                //f_rhoE_field[I1D(i,j,k)] = 0.0;
-                f_rhoE_field[I1D(i,j,k)] = ( -1.0 )*( f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)] );
+                f_rhoE_field[I1D(i,j,k)] = 0.0;
+                //f_rhoE_field[I1D(i,j,k)] = ( -1.0 )*( f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)] );
             }
         }
     }
@@ -789,7 +890,7 @@ void FlowSolverRHEA::calculateSourceTerms() {
 
 };
 
-void FlowSolverRHEA::calculateWavesSpeed(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, double &S_L, double &S_R) {
+void FlowSolverRHEA::calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R) {
 
     /// HLLC approximate Riemann solver:
     /// E. F. Toro.
@@ -820,7 +921,7 @@ double FlowSolverRHEA::calculateHllcFlux(const double &F_L, const double &F_R, c
     /// Springer, 2009.
 
     double S_L, S_R;
-    this->calculateWavesSpeed( rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R, S_L, S_R );
+    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
     double S_star   = ( P_R - P_L + rho_L*u_L*( S_L - u_L ) - rho_R*u_R*( S_R - u_R ) )/( rho_L*( S_L - u_L ) - rho_R*( S_R - u_R ) );
     double U_star_L = rho_L*( ( S_L - u_L )/( S_L - S_star ) );
     double U_star_R = rho_R*( ( S_R - u_R )/( S_R - S_star ) );

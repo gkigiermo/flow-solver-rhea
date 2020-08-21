@@ -2,6 +2,7 @@ RHEA DEVELOPMENT AGENDA:
 
 - Solve run problem bug
 - Check parallel implementation ... 1-cpu run should be equal to 4-cpu run
+- RHEA fails with mesh 100x1x1 ... malloc_consolidate(): invalid chunk size
 
 
 - ...
@@ -9,6 +10,7 @@ RHEA DEVELOPMENT AGENDA:
 - Solve run problem bug
 - Check parallel implementation ... 1-cpu run should be equal to 4-cpu run
 - Check heat problem changing direction of axes
+- RHEA fails with mesh 100x1x1 ... malloc_consolidate(): invalid chunk size
 - Incorporate message that HDF5 labels cannot include special characters
 - Create/check destructors of Willy's classes
 - Create timers class and use it in the solver
