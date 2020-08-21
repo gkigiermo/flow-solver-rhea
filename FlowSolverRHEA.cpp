@@ -622,6 +622,7 @@ void FlowSolverRHEA::updateBoundaries() {
                 w_g = ( bocos_w[_SOUTH_] - wg_in*w_in )/wg_g; 
                 this->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
                 P_g = ( bocos_P[_SOUTH_] - wg_in*P_in )/wg_g; 
+                P_g = ( bocos_P[_SOUTH_] - wg_in*P_in )/wg_g; 
                 T_g = ( bocos_T[_SOUTH_] - wg_in*T_in )/wg_g; 
                 this->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( pow( u_g, 2.0 ) + pow( v_g, 2.0 ) + pow( w_g, 2.0 ) );
