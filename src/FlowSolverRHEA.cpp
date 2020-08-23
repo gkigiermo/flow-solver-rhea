@@ -313,8 +313,8 @@ void FlowSolverRHEA::setInitialConditions() {
                 u_field[I1D(i,j,k)] = 0.0;
                 v_field[I1D(i,j,k)] = 0.0;
                 w_field[I1D(i,j,k)] = 0.0;
-                P_field[I1D(i,j,k)] = 101325.0;
-                T_field[I1D(i,j,k)] = 300.0;
+                P_field[I1D(i,j,k)] = 0.0;
+                T_field[I1D(i,j,k)] = 0.0;
             }
         }
     }
@@ -1709,27 +1709,3 @@ void FlowSolverRHEA::execute() {
     if( my_rank == 0 ) cout << "RHEA: END SIMULATION" << endl;
 
 };
-
-
-
-////////// MAIN //////////
-int main(int argc, char** argv) {
-
-    /// Initialize MPI
-    MPI_Init(&argc, &argv);
-
-    /// Process command line arguments
-    string configuration_file = argv[1];
-
-    /// Construct flow solver RHEA
-    FlowSolverRHEA flow_solver_RHEA( configuration_file );
-
-    /// Execute flow solver RHEA
-    flow_solver_RHEA.execute();
-
-    /// Destruct flow solver RHEA ... destructor is called automatically
-
-    /// Finalize MPI
-    MPI_Finalize();
-
-}

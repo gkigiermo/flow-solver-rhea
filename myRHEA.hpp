@@ -8,7 +8,7 @@
 using namespace std;
 
 ////////// myRHEA CLASS //////////
-class myRHEA : FlowSolverRHEA {
+class myRHEA : public FlowSolverRHEA {
    
     public:
 

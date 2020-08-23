@@ -60,22 +60,8 @@ class FlowSolverRHEA {
         virtual ~FlowSolverRHEA();				/// Destructor
 
 	////////// GET FUNCTIONS //////////
-        inline double getCurrentTime() { return( current_time ); };
-        inline double getFinalTime() { return( final_time ); };
-        inline double getTimeStep() { return( delta_t ); };
-        inline int getCurrentTimeIteration() { return( current_time_iter ); };
-        inline int getFinalTimeIteration() { return( final_time_iter ); };
-        inline int getRungeKuttaOrder() { return( rk_order ); };
-        inline int getOutputIterationFrequency() { return( output_frequency_iter ); };
-        inline bool getUseRestart() { return( use_restart ); };
 
 	////////// SET FUNCTIONS //////////
-        inline void setCurrentTime(double current_time_) { current_time = current_time_; };
-        inline void setFinalTime(double final_time_) { final_time = final_time_; };
-        inline void setTimeStep(double delta_t_) { delta_t = delta_t_; };
-        inline void setCurrentTimeIteration(int current_time_iter_) { current_time_iter = current_time_iter_; };
-        inline void setOutputIterationFrequency(int output_frequency_iter_) { output_frequency_iter = output_frequency_iter_; };
-        inline void setUseRestart(bool use_restart_) { use_restart = use_restart_; };
 
 	////////// SOLVER METHODS //////////
         
@@ -89,7 +75,7 @@ class FlowSolverRHEA {
         void fillMeshCoordinateFields();
 
         /// Set initial conditions: u, v, w, P and T ... needs to be modified/overwritten according to the problem under consideration
-        void setInitialConditions();
+        virtual void setInitialConditions();
 
         /// Initialize from restart file: x, y, z, rho, u, v, w, E, P, T, sos, mu and kappa
         void initializeFromRestart();
@@ -128,7 +114,7 @@ class FlowSolverRHEA {
         void calculateThermophysicalProperties();
 
         /// Calculate rhou, rhov, rhow and rhoE source terms ... needs to be modified/overwritten according to the problem under consideration
-        void calculateSourceTerms();
+        virtual void calculateSourceTerms();
 
         /// Calculate waves speed
         void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);

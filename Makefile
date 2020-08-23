@@ -8,9 +8,9 @@ GUIFLAGS=-Wall -I/Users/goyarzun/DEV/apps/yaml-cpp/include -L/Users/goyarzun/DEV
 
 all:
 #	$(CC) heat_h5_hyper.cpp $(OBJ) -o $(OUT) $(CFLAGS)
-	$(CC) FlowSolverRHEA.cpp -L/usr/local/lib -I/usr/local/include -std=c++0x $(OBJ) -o $(OUT) $(CFLAGS) -lyaml-cpp
-#	$(CC) FlowSolverRHEA.cpp $(GUIFLAGS) -std=c++11 $(OBJ) -o $(OUT) $(CFLAGS)
-#	$(CC) FlowSolverRHEA.cpp $(OBJ) -L/usr/lib/x86_64-linux-gnu/hdf5/openmpi -I/usr/include/hdf5/openmpi -o $(OUT) $(CFLAGS) -lyaml-cpp
+#	$(CC) myRHEA.cpp -L/usr/local/lib -I/usr/local/include -std=c++0x $(OBJ) -o $(OUT) $(CFLAGS) -lyaml-cpp
+#	$(CC) myRHEA.cpp $(GUIFLAGS) -std=c++11 $(OBJ) -o $(OUT) $(CFLAGS)
+	$(CC) myRHEA.cpp $(OBJ) -L/usr/lib/x86_64-linux-gnu/hdf5/openmpi -I/usr/include/hdf5/openmpi -o $(OUT) $(CFLAGS) -lyaml-cpp
 
 clean:
 	rm $(OUT)
