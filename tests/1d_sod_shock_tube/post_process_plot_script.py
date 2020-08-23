@@ -15,7 +15,7 @@ plt.rcParams['text.latex.preamble'] = [ r'\usepackage{amsmath}', r'\usepackage{a
 
 
 ### Open data file
-data_file = h5py.File( 'sod_test_60.h5', 'r' )
+data_file = h5py.File( '1d_sod_shock_tube_60.h5', 'r' )
 #list( data_file.keys() )
 x_data     = data_file['x'][0,0,:];     x_data     = np.asarray( x_data.flatten() )
 y_data     = data_file['y'][0,0,:];     y_data     = np.asarray( y_data.flatten() )
