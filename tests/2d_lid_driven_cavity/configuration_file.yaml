@@ -43,8 +43,8 @@ computational_parameters:
 
 ##### BOUNDARY CONDITIONS #####
 boundary_conditions:
-   # For each boundary [west (x), east (x), south (y), north (y), back (z), front (z)], type and u, v, w, P and T values/fluxes are needed
-   # Boundary types: DIRICHLET (provide value), NEUMANN (provide flux), PERIODIC (value/flux not needed)
+   # For each boundary [west (x), east (x), south (y), north (y), back (z), front (z)], type and u, v, w, P and T values/derivative are needed
+   # Boundary types: DIRICHLET (provide value), NEUMANN (provide derivative), PERIODIC (value/derivative not needed)
    west_bc: ['DIRICHLET', 0.0, 0.0, 0.0, 101325.0, 352.977447066]	# West boundary condition
    east_bc: ['DIRICHLET', 0.0, 0.0, 0.0, 101325.0, 352.977447066]	# East boundary condition
    south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, 101325.0, 352.977447066]      # South boundary condition
