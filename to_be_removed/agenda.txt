@@ -3,6 +3,8 @@ RHEA DEVELOPMENT AGENDA:
 - Solve run problem bug
 - Check parallel implementation ... 1-cpu run should be equal to 4-cpu run
 - RHEA fails with mesh 100x1x1 ... malloc_consolidate(): invalid chunk size
+- RHEA fails when mesh in one direction is only one cell
+- Problem with lid-driven cavity whwn using two Dirichlet bocos
 - Prepare gitlab project to be released (permissions, files, etc)
 
 - ...
@@ -11,6 +13,8 @@ RHEA DEVELOPMENT AGENDA:
 - Check parallel implementation ... 1-cpu run should be equal to 4-cpu run
 - Check heat problem changing direction of axes
 - RHEA fails with mesh 100x1x1 ... malloc_consolidate(): invalid chunk size
+- RHEA fails when mesh in one direction is only one cell
+- Problem with lid-driven cavity whwn using two Dirichlet bocos
 - Prepare gitlab project to be released (permissions, files, etc)
 - Incorporate message that HDF5 labels cannot include special characters
 - Create/check destructors of Willy's classes
