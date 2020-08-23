@@ -6,18 +6,13 @@ using namespace std;
 const double Pi = 2.0*asin( 1.0 );
 
 /// PROBLEM PARAMETERS ///
-const double Re_tau  = 180.0;				/// Friction Reynolds number
-const double delta   = 1.0;				/// Channel half-height
-const double rho_ref = 1.0;				/// Reference density	
-const double P_ref   = 101325.0;			/// Reference pressure
-const double u_tau   = 1.0;				/// Friction velocity
-const double tau_w   = rho_ref*u_tau*u_tau;		/// Wall shear stress
-const double nu      = u_tau*delta/Re_tau;		/// Kinematic viscosity	
-const double Re_b    = pow( Re_tau/0.09, 1.0/0.88 );	/// Bulk (approximated) Reynolds number
-const double u_b     = nu*Re_b/( 2.0*delta );		/// Bulk (approximated) velocity
-const double L_x     = 4.0*Pi*delta;			/// Streamwise length
-const double L_y     = 2.0*delta;			/// Wall-normal height
-const double L_z     = 4.0*Pi*delta/3.0;		/// Spanwise width
+const double gamma_0 = 1.4;					/// Reference ratio of heat capacities
+const double Re_0    = Pi;					/// Reynolds number
+const double Ma_0    = ( 1.0e-2 )/sqrt( gamma_0 );		/// Mach number
+const double rho_0   = 1.0;					/// Reference density	
+const double U_0     = 1.0;					/// Reference velocity
+const double mu_0    = rho_0*U_0*Pi/Re_0;			/// Dynamic viscosity	
+const double P_0     = ( rho_0/gamma_0 )*pow( U_0/Ma_0, 2.0 );	/// Reference pressure
 
 ////////// myRHEA CLASS //////////
 
@@ -29,12 +24,11 @@ void myRHEA::setInitialConditions() {
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                double sign_x = ( mesh->y[j] > delta ) ? 1.0 : -1.0;
-                u_field[I1D(i,j,k)] = sign_x*u_b*sin( mesh->x[i]/L_x );
-                v_field[I1D(i,j,k)] = u_tau*sin( mesh->y[j]/L_y );
-                w_field[I1D(i,j,k)] = u_tau*sin( mesh->z[k]/L_z );
-                P_field[I1D(i,j,k)] = P_ref;
-                T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_ref*R_specific );
+                u_field[I1D(i,j,k)] = U_0*( sin( mesh->x[i] )*cos( mesh->y[j] ) );
+                v_field[I1D(i,j,k)] = ( -1.0 )*U_0*( cos( mesh->x[i] )*sin( mesh->y[j] ) );
+                w_field[I1D(i,j,k)] = 0.0;
+                P_field[I1D(i,j,k)] = P_0 - ( rho_0*U_0*U_0/4.0 )*( cos( 2.0*mesh->x[i] ) + cos( 2.0*mesh->y[j] ) );
+                T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_0*R_specific );
             }
         }
     }
@@ -49,10 +43,10 @@ void myRHEA::calculateSourceTerms() {
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                f_rhou_field[I1D(i,j,k)] = ( -1.0 )*tau_w/delta;
+                f_rhou_field[I1D(i,j,k)] = 0.0;
                 f_rhov_field[I1D(i,j,k)] = 0.0;
                 f_rhow_field[I1D(i,j,k)] = 0.0;
-                f_rhoE_field[I1D(i,j,k)] = ( -1.0 )*( f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)] );
+                f_rhoE_field[I1D(i,j,k)] = 0.0;
             }
         }
     }

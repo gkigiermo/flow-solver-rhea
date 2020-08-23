@@ -185,19 +185,19 @@ def spatial_discretization( grid ):
                     grid[i][j][k][0] = x_0 - ( L_x*eta_x + A_x*( 0.5*L_x - L_x*eta_x )*( 1.0 - eta_x )*eta_x )
                 if( grid[i][j][k][0] > ( x_0 + L_x ) ):
                     eta_x = ( num_grid_x - 0.5 )/num_grid_x
-                    grid[i][j][k][0] = 2.0*L_x - ( L_x*eta_x + A_x*( 0.5*L_x - L_x*eta_x )*( 1.0 - eta_x )*eta_x )
+                    grid[i][j][k][0] = x_0 + 2.0*L_x - ( L_x*eta_x + A_x*( 0.5*L_x - L_x*eta_x )*( 1.0 - eta_x )*eta_x )
                 if( grid[i][j][k][1] < y_0 ):
                     eta_y = ( 1.0 - 0.5 )/num_grid_y
                     grid[i][j][k][1] = y_0 - ( L_y*eta_y + A_y*( 0.5*L_y - L_y*eta_y )*( 1.0 - eta_y )*eta_y )
                 if( grid[i][j][k][1] > ( y_0 + L_y ) ):
                     eta_y = ( num_grid_y - 0.5 )/num_grid_y
-                    grid[i][j][k][1] = 2.0*L_y - ( L_y*eta_y + A_y*( 0.5*L_y - L_y*eta_y )*( 1.0 - eta_y )*eta_y )
+                    grid[i][j][k][1] = y_0 + 2.0*L_y - ( L_y*eta_y + A_y*( 0.5*L_y - L_y*eta_y )*( 1.0 - eta_y )*eta_y )
                 if( grid[i][j][k][2] < z_0 ):
                     eta_z = ( 1.0 - 0.5 )/num_grid_z
                     grid[i][j][k][2] = z_0 - ( L_z*eta_z + A_z*( 0.5*L_z - L_z*eta_z )*( 1.0 - eta_z )*eta_z )
                 if( grid[i][j][k][2] > ( z_0 + L_z ) ):
                     eta_z = ( num_grid_z - 0.5 )/num_grid_z
-                    grid[i][j][k][2] = 2.0*L_z - ( L_z*eta_z + A_z*( 0.5*L_z - L_z*eta_z )*( 1.0 - eta_z )*eta_z )
+                    grid[i][j][k][2] = z_0 + 2.0*L_z - ( L_z*eta_z + A_z*( 0.5*L_z - L_z*eta_z )*( 1.0 - eta_z )*eta_z )
     #print( grid )
 
 

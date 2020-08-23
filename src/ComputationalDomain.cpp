@@ -60,7 +60,7 @@ void ComputationalDomain::calculateGlobalGrid()
         }
         if( i == gNx + 1 ){
             eta_x = ( gNx - 0.5 )/gNx;
-            globx[i] = 2.0*L_x - ( L_x*eta_x + A_x*( 0.5*L_x - L_x*eta_x )*( 1.0 - eta_x )*eta_x );
+            globx[i] = x_0 + 2.0*L_x - ( L_x*eta_x + A_x*( 0.5*L_x - L_x*eta_x )*( 1.0 - eta_x )*eta_x );
         }
     }
 
@@ -77,7 +77,7 @@ void ComputationalDomain::calculateGlobalGrid()
         }
         if( j == gNy + 1 ){
             eta_y = ( gNy - 0.5 )/gNy;
-            globy[j] = 2.0*L_y - ( L_y*eta_y + A_y*( 0.5*L_y - L_y*eta_y )*( 1.0 - eta_y )*eta_y );
+            globy[j] = y_0 + 2.0*L_y - ( L_y*eta_y + A_y*( 0.5*L_y - L_y*eta_y )*( 1.0 - eta_y )*eta_y );
         }
    }
 
@@ -96,7 +96,7 @@ void ComputationalDomain::calculateGlobalGrid()
         }
         if( k == gNz + 1 ){
             eta_z = ( gNz - 0.5 )/gNz;
-            globz[k] = 2.0*L_z - ( L_z*eta_z + A_z*( 0.5*L_z - L_z*eta_z )*( 1.0 - eta_z )*eta_z );
+            globz[k] = z_0 + 2.0*L_z - ( L_z*eta_z + A_z*( 0.5*L_z - L_z*eta_z )*( 1.0 - eta_z )*eta_z );
         }
    }
 }
