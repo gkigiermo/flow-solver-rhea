@@ -10,11 +10,11 @@
 #include <iomanip>
 #include <mpi.h>
 #include "yaml-cpp/yaml.h"
-#include "src/MacroParameters.hpp"
-#include "src/ComputationalDomain.hpp"
-#include "src/ParallelTopology.hpp"
-#include "src/DistributedArray.hpp"
-#include "src/ManagerHDF5.hpp"
+#include "MacroParameters.hpp"
+#include "ComputationalDomain.hpp"
+#include "ParallelTopology.hpp"
+#include "DistributedArray.hpp"
+#include "ManagerHDF5.hpp"
 
 ////////// NAMESPACES //////////
 using namespace std;
@@ -65,7 +65,6 @@ class FlowSolverRHEA {
         inline double getTimeStep() { return( delta_t ); };
         inline int getCurrentTimeIteration() { return( current_time_iter ); };
         inline int getFinalTimeIteration() { return( final_time_iter ); };
-        inline int getCurrentRungeKuttaStep() { return( rk_step ); };
         inline int getRungeKuttaOrder() { return( rk_order ); };
         inline int getOutputIterationFrequency() { return( output_frequency_iter ); };
         inline bool getUseRestart() { return( use_restart ); };
@@ -75,11 +74,13 @@ class FlowSolverRHEA {
         inline void setFinalTime(double final_time_) { final_time = final_time_; };
         inline void setTimeStep(double delta_t_) { delta_t = delta_t_; };
         inline void setCurrentTimeIteration(int current_time_iter_) { current_time_iter = current_time_iter_; };
-        inline void setCurrentRungeKuttaStep(int rk_step_) { rk_step = rk_step_; };
         inline void setOutputIterationFrequency(int output_frequency_iter_) { output_frequency_iter = output_frequency_iter_; };
         inline void setUseRestart(bool use_restart_) { use_restart = use_restart_; };
 
 	////////// SOLVER METHODS //////////
+        
+	/// Execute (aggregated method) RHEA
+        void execute();
 
         /// Read configuration (input) file written in YAML language
         void readConfigurationFile();
@@ -126,7 +127,7 @@ class FlowSolverRHEA {
         /// Calculate thermophysical properties
         void calculateThermophysicalProperties();
 
-        /// Calculate source terms ... needs to be modified/overwritten according to the problem under consideration
+        /// Calculate rhou, rhov, rhow and rhoE source terms ... needs to be modified/overwritten according to the problem under consideration
         void calculateSourceTerms();
 
         /// Calculate waves speed
@@ -142,10 +143,10 @@ class FlowSolverRHEA {
         void calculateViscousFluxes();
 
         /// Sum inviscid & viscous fluxes, and source terms
-        void sumInviscidViscousFluxesSourceTerms();
+        void sumInviscidViscousFluxesSourceTerms(const int &rk_step);
 
         /// Advance conserved variables in time
-        void timeAdvanceConservedVariables();
+        void timeAdvanceConservedVariables(const int &rk_step);
 
         /// Output current solver state data
         void outputCurrentStateData();
@@ -182,7 +183,6 @@ class FlowSolverRHEA {
         double delta_t;		      				/// Time step [s]
         int current_time_iter;					/// Current time iteration
         int final_time_iter;					/// Final time iteration
-        int rk_step;						/// Current Runge-Kutta step: 1, 2, 3
         int rk_order;						/// Order of Runge-Kutta method (fixed)
 
         /// Local mesh values for I1D macro

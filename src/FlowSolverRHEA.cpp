@@ -8,6 +8,7 @@ const double epsilon     = 1.0e-15;			// Small epsilon number (fixed)
 const int cout_presicion = 5;		                // Output precision (fixed)
 
 ////////// FlowSolverRHEA CLASS //////////
+
 FlowSolverRHEA::FlowSolverRHEA() {};
 
 FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configuration_file(name_configuration_file) {
@@ -309,19 +310,11 @@ void FlowSolverRHEA::setInitialConditions() {
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-		if( mesh->x[i] < 0.3 ) {
-                    u_field[I1D(i,j,k)] = 0.75;
-                    v_field[I1D(i,j,k)] = 0.0;
-                    w_field[I1D(i,j,k)] = 0.0;
-                    P_field[I1D(i,j,k)] = 1.0;
-                    T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 1.0*R_specific );
-		} else {
-                    u_field[I1D(i,j,k)] = 0.0;
-                    v_field[I1D(i,j,k)] = 0.0;
-                    w_field[I1D(i,j,k)] = 0.0;
-                    P_field[I1D(i,j,k)] = 0.1;
-                    T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 0.125*R_specific );
-		}
+                u_field[I1D(i,j,k)] = 0.0;
+                v_field[I1D(i,j,k)] = 0.0;
+                w_field[I1D(i,j,k)] = 0.0;
+                P_field[I1D(i,j,k)] = 101325.0;
+                T_field[I1D(i,j,k)] = 300.0;
             }
         }
     }
@@ -874,7 +867,6 @@ void FlowSolverRHEA::calculateSourceTerms() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 f_rhou_field[I1D(i,j,k)] = 0.0;
-                //f_rhou_field[I1D(i,j,k)] = -1.0;
                 f_rhov_field[I1D(i,j,k)] = 0.0;
                 f_rhow_field[I1D(i,j,k)] = 0.0;
                 f_rhoE_field[I1D(i,j,k)] = 0.0;
@@ -1444,7 +1436,7 @@ void FlowSolverRHEA::calculateViscousFluxes() {
 
 };
 
-void FlowSolverRHEA::sumInviscidViscousFluxesSourceTerms() {
+void FlowSolverRHEA::sumInviscidViscousFluxesSourceTerms(const int &rk_step) {
 
     /// First Runge-Kutta step
     if(rk_step == 1) {
@@ -1535,7 +1527,7 @@ void FlowSolverRHEA::sumInviscidViscousFluxesSourceTerms() {
 
 };
 
-void FlowSolverRHEA::timeAdvanceConservedVariables() {
+void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_step) {
 
     /// Explicit third-order strong-stability-preserving Runge-Kutta (SSP-RK3) method:
     /// S. Gottlieb, C.-W. Shu & E. Tadmor.
@@ -1606,13 +1598,8 @@ void FlowSolverRHEA::outputCurrentStateData() {
 
 };
 
+void FlowSolverRHEA::execute() {
 
-
-////////// MAIN //////////
-int main(int argc, char** argv) {
-
-    /// Initialize MPI
-    MPI_Init(&argc, &argv);
     int my_rank, world_size;
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -1620,120 +1607,127 @@ int main(int argc, char** argv) {
     /// Set output (cout) precision
     cout.precision( cout_presicion );
 
-    /// Process command line arguments
-    string configuration_file = argv[1];
-
     /// Start RHEA simulation
     if( my_rank == 0 ) cout << "RHEA: START SIMULATION" << endl;
 
-    /// Construct flow solver RHEA
-    FlowSolverRHEA flow_solver_RHEA( configuration_file );
-
     /// Initialize variables from restart file or by setting initial conditions
-    if( flow_solver_RHEA.getUseRestart() ) {
+    if( use_restart ) {
 
         /// Initialize from restart file
-        flow_solver_RHEA.initializeFromRestart();
+        this->initializeFromRestart();
 
 
     } else {
 
         /// Set initial conditions
-        flow_solver_RHEA.setInitialConditions();
+        this->setInitialConditions();
     
         /// Initialize thermodynamics
-        flow_solver_RHEA.initializeThermodynamics();
+        this->initializeThermodynamics();
 
         /// Calculate thermophysical properties
-        flow_solver_RHEA.calculateThermophysicalProperties();
+        this->calculateThermophysicalProperties();
 
     }
 
     /// Calculate conserved variables from primitive variables
-    flow_solver_RHEA.primitiveToConservedVariables();
+    this->primitiveToConservedVariables();
 
     /// Update previous state of conserved variables
-    flow_solver_RHEA.updatePreviousStateConservedVariables();
+    this->updatePreviousStateConservedVariables();    
 
     /// Iterate flow solver RHEA in time
-    for(int time_iter = flow_solver_RHEA.getCurrentTimeIteration(); time_iter < flow_solver_RHEA.getFinalTimeIteration(); time_iter++) {
+    for(int time_iter = current_time_iter; time_iter < final_time_iter; time_iter++) {
 
         /// Calculate time step
-        flow_solver_RHEA.calculateTimeStep();
-        if( ( flow_solver_RHEA.getCurrentTime() + flow_solver_RHEA.getTimeStep() ) > flow_solver_RHEA.getFinalTime() ) {
-            flow_solver_RHEA.setTimeStep( flow_solver_RHEA.getFinalTime() - flow_solver_RHEA.getCurrentTime() );
-        }
+        this->calculateTimeStep();
+        if( ( current_time + delta_t ) > final_time ) delta_t = final_time - current_time;
 
         /// Print time iteration information
         if( my_rank == 0 ) {
-            cout << "Time iteration " << flow_solver_RHEA.getCurrentTimeIteration() << ": " 
-                 << "time = " << scientific << flow_solver_RHEA.getCurrentTime() << " [s], "
-                 << "time-step = " << scientific << flow_solver_RHEA.getTimeStep() << " [s]" << endl;
+            cout << "Time iteration " << current_time_iter << ": " 
+                 << "time = " << scientific << current_time << " [s], "
+                 << "time-step = " << scientific << delta_t << " [s]" << endl;
         }
 
         /// Output current state data to file (if criterion satisfied)
-        if(flow_solver_RHEA.getCurrentTimeIteration()%flow_solver_RHEA.getOutputIterationFrequency() == 0) flow_solver_RHEA.outputCurrentStateData();
+        if( current_time_iter%output_frequency_iter == 0 ) this->outputCurrentStateData();
 
         /// Runge-Kutta time-integration steps
-        flow_solver_RHEA.setCurrentRungeKuttaStep( 1 );
-        for(int rk_step = flow_solver_RHEA.getCurrentRungeKuttaStep(); rk_step <= flow_solver_RHEA.getRungeKuttaOrder(); rk_step++) {
+        for(int rk_step = 1; rk_step <= rk_order; rk_step++) {
 
             /// Calculate thermophysical properties
-            flow_solver_RHEA.calculateThermophysicalProperties();
+            this->calculateThermophysicalProperties();
 
             /// Calculate source terms
-            flow_solver_RHEA.calculateSourceTerms();
+            this->calculateSourceTerms();
 
             /// Calculate inviscid and viscous fluxes
-            flow_solver_RHEA.calculateInviscidFluxes();
-            flow_solver_RHEA.calculateViscousFluxes();
+            this->calculateInviscidFluxes();
+            this->calculateViscousFluxes();
 
             /// Sum inviscid & viscous fluxes, and source terms (right-hand side)
-            flow_solver_RHEA.sumInviscidViscousFluxesSourceTerms();
+            this->sumInviscidViscousFluxesSourceTerms(rk_step);
 
             /// Advance conserved variables in time
-            flow_solver_RHEA.timeAdvanceConservedVariables();
+            this->timeAdvanceConservedVariables(rk_step);
 
             /// Update boundary values
-            flow_solver_RHEA.updateBoundaries();
+            this->updateBoundaries();
 
             /// Calculate primitive variables from conserved variables
-            flow_solver_RHEA.conservedToPrimitiveVariables();
+            this->conservedToPrimitiveVariables();
 
             /// Calculate thermodynamics from primitive variables
-            flow_solver_RHEA.calculateThermodynamicsFromPrimitiveVariables();
-
-            /// Update Runge-Kutta step
-            flow_solver_RHEA.setCurrentRungeKuttaStep( flow_solver_RHEA.getCurrentRungeKuttaStep() + 1 );
+            this->calculateThermodynamicsFromPrimitiveVariables();
 
         }
 
         /// Update previous state of conserved variables
-        flow_solver_RHEA.updatePreviousStateConservedVariables();
+        this->updatePreviousStateConservedVariables();
 
         /// Update time and time iteration
-        flow_solver_RHEA.setCurrentTime( flow_solver_RHEA.getCurrentTime() + flow_solver_RHEA.getTimeStep() );
-        flow_solver_RHEA.setCurrentTimeIteration( flow_solver_RHEA.getCurrentTimeIteration() + 1 );
+        current_time += delta_t;
+        current_time_iter += 1;
 
         /// Check if simulation is completed: current_time > final_time
-        if( flow_solver_RHEA.getCurrentTime() >= flow_solver_RHEA.getFinalTime() ) break;
+        if( current_time >= final_time ) break;
 
     }
 
     /// Print time advancement information
     if( my_rank == 0 ) {
         cout << "Time advancement completed -> " 
-             << "iteration = " << flow_solver_RHEA.getCurrentTimeIteration() << ", "
-             << "time = " << scientific << flow_solver_RHEA.getCurrentTime() << " [s]" << endl;
+             << "iteration = " << current_time_iter << ", "
+             << "time = " << scientific << current_time << " [s]" << endl;
         }
 
     /// Output current state data to file
-    flow_solver_RHEA.outputCurrentStateData();
-
-    /// Destruct flow solver RHEA ... destructor is called automatically
+    this->outputCurrentStateData();
 
     /// End RHEA simulation
     if( my_rank == 0 ) cout << "RHEA: END SIMULATION" << endl;
+
+};
+
+
+
+////////// MAIN //////////
+int main(int argc, char** argv) {
+
+    /// Initialize MPI
+    MPI_Init(&argc, &argv);
+
+    /// Process command line arguments
+    string configuration_file = argv[1];
+
+    /// Construct flow solver RHEA
+    FlowSolverRHEA flow_solver_RHEA( configuration_file );
+
+    /// Execute flow solver RHEA
+    flow_solver_RHEA.execute();
+
+    /// Destruct flow solver RHEA ... destructor is called automatically
 
     /// Finalize MPI
     MPI_Finalize();
