@@ -2,13 +2,6 @@
 
 using namespace std;
 
-/// PROBLEM PARAMETERS ///
-const double Re_L  = 100.0;			/// Reynolds number
-const double rho_0 = 1.0;			/// Reference density	
-const double L     = 1.0;			/// Cavity size
-const double u_l   = 1.0;			/// Lid velocity
-const double P_0   = 101325.0;			/// Reference pressure
-const double nu    = u_l*L/Re_L;		/// Kinematic viscosity	
 
 ////////// myRHEA CLASS //////////
 
@@ -20,11 +13,19 @@ void myRHEA::setInitialConditions() {
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                u_field[I1D(i,j,k)] = 0.0;
-                v_field[I1D(i,j,k)] = 0.0;
-                w_field[I1D(i,j,k)] = 0.0;
-                P_field[I1D(i,j,k)] = P_0;
-                T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_0*R_specific );
+		if( mesh->x[i] < 0.3 ) {
+                    u_field[I1D(i,j,k)] = 0.75;
+                    v_field[I1D(i,j,k)] = 0.0;
+                    w_field[I1D(i,j,k)] = 0.0;
+                    P_field[I1D(i,j,k)] = 1.0;
+                    T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 1.0*R_specific );
+		} else {
+                    u_field[I1D(i,j,k)] = 0.0;
+                    v_field[I1D(i,j,k)] = 0.0;
+                    w_field[I1D(i,j,k)] = 0.0;
+                    P_field[I1D(i,j,k)] = 0.1;
+                    T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 0.125*R_specific );
+		}		
             }
         }
     }
