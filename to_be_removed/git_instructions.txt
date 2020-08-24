@@ -1,0 +1,7 @@
+- COMMIT CHNAGES:
+git commit -m "message"
+git add file
+git commit -m "message"
+git fetch
+git merge origin master
+git push
