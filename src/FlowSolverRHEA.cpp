@@ -531,12 +531,12 @@ void FlowSolverRHEA::updateBoundaries() {
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
                 e_in   = E_in - ke_in; 
 		/// Calculate ghost primitive variables
-                u_g = bocos_u[_WEST_]/wg_g - ( wg_in/wg_g )*u_in;
-                v_g = bocos_v[_WEST_]/wg_g - ( wg_in/wg_g )*v_in;
-                w_g = bocos_w[_WEST_]/wg_g - ( wg_in/wg_g )*w_in;
+                u_g = ( bocos_u[_WEST_] - wg_in*u_in )/wg_g;
+                v_g = ( bocos_v[_WEST_] - wg_in*v_in )/wg_g;
+                w_g = ( bocos_w[_WEST_] - wg_in*w_in )/wg_g;
                 this->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
-                P_g = bocos_P[_WEST_]/wg_g - ( wg_in/wg_g )*P_in;
-                T_g = bocos_T[_WEST_]/wg_g - ( wg_in/wg_g )*T_in;
+                P_g = ( bocos_P[_WEST_] - wg_in*P_in )/wg_g;
+                T_g = ( bocos_T[_WEST_] - wg_in*T_in )/wg_g;
                 this->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
@@ -571,12 +571,12 @@ void FlowSolverRHEA::updateBoundaries() {
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
                 e_in   = E_in - ke_in; 
 		/// Calculate ghost primitive variables
-                u_g = bocos_u[_EAST_]/wg_g - ( wg_in/wg_g )*u_in;
-                v_g = bocos_v[_EAST_]/wg_g - ( wg_in/wg_g )*v_in;
-                w_g = bocos_w[_EAST_]/wg_g - ( wg_in/wg_g )*w_in;
+                u_g = ( bocos_u[_EAST_] - wg_in*u_in )/wg_g;
+                v_g = ( bocos_v[_EAST_] - wg_in*v_in )/wg_g;
+                w_g = ( bocos_w[_EAST_] - wg_in*w_in )/wg_g;
                 this->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
-                P_g = bocos_P[_EAST_]/wg_g - ( wg_in/wg_g )*P_in;
-                T_g = bocos_T[_EAST_]/wg_g - ( wg_in/wg_g )*T_in; 
+                P_g = ( bocos_P[_EAST_] - wg_in*P_in )/wg_g;
+                T_g = ( bocos_T[_EAST_] - wg_in*T_in )/wg_g; 
                 this->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
@@ -611,12 +611,12 @@ void FlowSolverRHEA::updateBoundaries() {
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
                 e_in   = E_in - ke_in; 
 		/// Calculate ghost primitive variables
-                u_g = bocos_u[_SOUTH_]/wg_g - ( wg_in/wg_g )*u_in;
-                v_g = bocos_v[_SOUTH_]/wg_g - ( wg_in/wg_g )*v_in;
-                w_g = bocos_w[_SOUTH_]/wg_g - ( wg_in/wg_g )*w_in;
+                u_g = ( bocos_u[_SOUTH_] - wg_in*u_in )/wg_g;
+                v_g = ( bocos_v[_SOUTH_] - wg_in*v_in )/wg_g;
+                w_g = ( bocos_w[_SOUTH_] - wg_in*w_in )/wg_g;
                 this->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
-                P_g = bocos_P[_SOUTH_]/wg_g - ( wg_in/wg_g )*P_in;
-                T_g = bocos_T[_SOUTH_]/wg_g - ( wg_in/wg_g )*T_in;
+                P_g = ( bocos_P[_SOUTH_] - wg_in*P_in )/wg_g;
+                T_g = ( bocos_T[_SOUTH_] - wg_in*T_in )/wg_g;
                 this->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
@@ -651,12 +651,12 @@ void FlowSolverRHEA::updateBoundaries() {
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
                 e_in   = E_in - ke_in; 
 		/// Calculate ghost primitive variables
-                u_g = bocos_u[_NORTH_]/wg_g - ( wg_in/wg_g )*u_in;
-                v_g = bocos_v[_NORTH_]/wg_g - ( wg_in/wg_g )*v_in;
-                w_g = bocos_w[_NORTH_]/wg_g - ( wg_in/wg_g )*w_in;
+                u_g = ( bocos_u[_NORTH_] - wg_in*u_in )/wg_g;
+                v_g = ( bocos_v[_NORTH_] - wg_in*v_in )/wg_g;
+                w_g = ( bocos_w[_NORTH_] - wg_in*w_in )/wg_g;
                 this->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
-                P_g = bocos_P[_NORTH_]/wg_g - ( wg_in/wg_g )*P_in;
-                T_g = bocos_T[_NORTH_]/wg_g - ( wg_in/wg_g )*T_in; 
+                P_g = ( bocos_P[_NORTH_] - wg_in*P_in )/wg_g;
+                T_g = ( bocos_T[_NORTH_] - wg_in*T_in )/wg_g; 
                 this->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
@@ -691,12 +691,12 @@ void FlowSolverRHEA::updateBoundaries() {
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
                 e_in   = E_in - ke_in; 
 		/// Calculate ghost primitive variables
-                u_g = bocos_u[_BACK_]/wg_g - ( wg_in/wg_g )*u_in;
-                v_g = bocos_v[_BACK_]/wg_g - ( wg_in/wg_g )*v_in;
-                w_g = bocos_w[_BACK_]/wg_g - ( wg_in/wg_g )*w_in;
+                u_g = ( bocos_u[_BACK_] - wg_in*u_in )/wg_g;
+                v_g = ( bocos_v[_BACK_] - wg_in*v_in )/wg_g;
+                w_g = ( bocos_w[_BACK_] - wg_in*w_in )/wg_g;
                 this->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
-                P_g = bocos_P[_BACK_]/wg_g - ( wg_in/wg_g )*P_in;
-                T_g = bocos_T[_BACK_]/wg_g - ( wg_in/wg_g )*T_in; 
+                P_g = ( bocos_P[_BACK_] - wg_in*P_in )/wg_g;
+                T_g = ( bocos_T[_BACK_] - wg_in*T_in )/wg_g; 
                 this->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
@@ -731,12 +731,12 @@ void FlowSolverRHEA::updateBoundaries() {
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
                 e_in   = E_in - ke_in; 
 		/// Calculate ghost primitive variables
-                u_g = bocos_u[_FRONT_]/wg_g - ( wg_in/wg_g )*u_in;
-                v_g = bocos_v[_FRONT_]/wg_g - ( wg_in/wg_g )*v_in;
-                w_g = bocos_w[_FRONT_]/wg_g - ( wg_in/wg_g )*w_in;
+                u_g = ( bocos_u[_FRONT_] - wg_in*u_in )/wg_g;
+                v_g = ( bocos_v[_FRONT_] - wg_in*v_in )/wg_g;
+                w_g = ( bocos_w[_FRONT_] - wg_in*w_in )/wg_g;
                 this->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
-                P_g = bocos_P[_FRONT_]/wg_g - ( wg_in/wg_g )*P_in;
-                T_g = bocos_T[_FRONT_]/wg_g - ( wg_in/wg_g )*T_in; 
+                P_g = ( bocos_P[_FRONT_] - wg_in*P_in )/wg_g;
+                T_g = ( bocos_T[_FRONT_] - wg_in*T_in )/wg_g; 
                 this->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
