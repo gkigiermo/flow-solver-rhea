@@ -1,23 +1,17 @@
 RHEA DEVELOPMENT AGENDA:
 
 - Solve run problem bug
-- Check parallel implementation ... 1-cpu run should be equal to 4-cpu run
-- RHEA fails with mesh 100x1x1 ... malloc_consolidate(): invalid chunk size
-- RHEA fails when mesh in one direction is only one cell
-- Problem with lid-driven cavity whwn using two Dirichlet bocos
-- xdfm output creates two cells when 1 inner cell is set ... should output 3?
+- Problem with lid-driven cavity when using two Dirichlet bocos
+- Incorporate crash message in main if configuration file is not given via command line
 - Prepare gitlab project to be released (permissions, files, etc)
 
 - ...
 
 - Solve run problem bug
-- Check parallel implementation ... 1-cpu run should be equal to 4-cpu run
-- Check heat problem changing direction of axes
-- RHEA fails with mesh 100x1x1 ... malloc_consolidate(): invalid chunk size
-- RHEA fails when mesh in one direction is only one cell
-- Problem with lid-driven cavity whwn using two Dirichlet bocos
-- xdfm output creates two cells when 1 inner cell is set ... should output 3?
+- Problem with lid-driven cavity when using two Dirichlet bocos
+- Incorporate crash message in main if configuration file is not given via command line
 - Prepare gitlab project to be released (permissions, files, etc)
+- Check heat problem changing direction of axes
 - Incorporate message that HDF5 labels cannot include special characters
 - Create/check destructors of Willy's classes
 - Create timers class and use it in the solver
