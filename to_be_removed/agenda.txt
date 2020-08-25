@@ -1,14 +1,12 @@
 RHEA DEVELOPMENT AGENDA:
 
-- Solve run problem bug
-- Problem with lid-driven cavity when using two Dirichlet bocos
+- Solve run problem bug (it may be connected to very small meshes)
 - Incorporate crash message in main if configuration file is not given via command line
 - Prepare gitlab project to be released (permissions, files, etc)
 
 - ...
 
-- Solve run problem bug
-- Problem with lid-driven cavity when using two Dirichlet bocos
+- Solve run problem bug (it may be connected to very small meshes)
 - Incorporate crash message in main if configuration file is not given via command line
 - Prepare gitlab project to be released (permissions, files, etc)
 - Check heat problem changing direction of axes
