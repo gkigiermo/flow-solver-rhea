@@ -22,7 +22,6 @@ problem_parameters:
    L_x: 6.283185307                    					# Size of domain in x-direction [m]
    L_y: 6.283185307                    					# Size of domain in y-direction [m]
    L_z: 0.1                         					# Size of domain in z-direction [m]
-   current_time: 0.0                   					# Current time [s]
    final_time: 0.5                   					# Final time [s]
 
 
@@ -37,7 +36,6 @@ computational_parameters:
    A_y: 0.0             					        # Stretching factor in y-direction
    A_z: 0.0                       					# Stretching factor in z-direction
    CFL: 0.9                  					        # CFL coefficient
-   current_time_iter: 0   					        # Current time iteration
    final_time_iter: 100000            					# Final time iteration
 
 
@@ -55,11 +53,11 @@ boundary_conditions:
 
 ##### WRITE/READ PARAMETERS #####
 write_read_parameters:
-   output_data_file: '2d_viscous_taylor_green_vortex'			# Name of output data file
+   output_data_file_name: '2d_viscous_taylor_green_vortex'		# Name of output data file
    output_frequency_iter: 1000         					# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
-   restart_data_file_iter: 0          	 				# Restart data file iteration
+   restart_data_file: 'restart_data_file.h5' 				# Restart data file
 
 
 ##### PARALLELIZATION SCHEME #####

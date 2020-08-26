@@ -67,7 +67,13 @@ int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);
 
     /// Process command line arguments
-    string configuration_file = argv[1];
+    string configuration_file;
+    if( argc >= 2 ) {
+        configuration_file = argv[1];
+    } else {
+        cout << "Proper usage: RHEA.exe configuration_file.yaml" << endl;
+        MPI_Abort( 1 );
+    }
 
     /// Construct my RHEA
     myRHEA my_RHEA( configuration_file );
@@ -79,5 +85,8 @@ int main(int argc, char** argv) {
 
     /// Finalize MPI
     MPI_Finalize();
+
+    /// Return exit code of program
+    return 0;
 
 }

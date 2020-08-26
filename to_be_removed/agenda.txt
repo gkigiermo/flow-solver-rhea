@@ -2,7 +2,6 @@ RHEA DEVELOPMENT AGENDA:
 
 - Solve run problem bug (it may be connected to very small meshes) ... Willy
 - Create timers class and use it in the solver ... Willy & Lluis
-- Incorporate crash message in main if configuration file is not given via command line ... Lluis
 - Clean and organize Makefile ... Willy/Lluis
 - Prepare gitlab project to be released (permissions, files, etc) ... Lluis
 

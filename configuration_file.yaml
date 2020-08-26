@@ -1,16 +1,16 @@
 # RHEA's CONFIGURATION FILE (YAML LANGUAGE)
 #
-# 2D Lid-driven cavity problem (Re_L = 100):
-# U. Ghia, K. N. Ghia, C. T. Shin.
-# High-Re solutions for incompressible flow using the Navier-Stokes equations and a multi-grid method.
-# Journal of Computational Physics, 48, 387-411, 1982.
+# 1D Sod shock tube problem (modified test 1):
+# E. F. Toro.
+# Riemann solvers and numerical methods for fluid dynamics.
+# Springer, 2009.
 ---
 
 ##### FLUID PROPERTIES #####
 fluid_properties:
    R_specific: 287.058                 					# Specific gas constant [J/(kg·K)]
    gamma: 1.4                          					# Heat capacity ratio [-]
-   mu: 0.01                     					# Dynamic viscosity [Pa·s]
+   mu: 0.0                          					# Dynamic viscosity [Pa·s]
    kappa: 0.0                          					# Thermal conductivity [W/(m·k)]
 
 
@@ -19,51 +19,49 @@ problem_parameters:
    x_0: 0.0                            					# Domain origin in x-direction [m]
    y_0: 0.0                            					# Domain origin in y-direction [m]
    z_0: 0.0                           					# Domain origin in z-direction [m]
-   L_x: 1.0                        					# Size of domain in x-direction [m]
-   L_y: 1.0                           					# Size of domain in y-direction [m]
-   L_z: 0.1                         					# Size of domain in z-direction [m]
-   current_time: 0.0                   					# Current time [s]
-   final_time: 1.0e6                   					# Final time [s]
+   L_x: 1.0                      					# Size of domain in x-direction [m]
+   L_y: 0.01                           					# Size of domain in y-direction [m]
+   L_z: 0.01                    					# Size of domain in z-direction [m]
+   final_time: 0.2                   					# Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####
 computational_parameters:
-   num_grid_x: 128                     					# Number of internal grid points in the x-direction
-   num_grid_y: 128                     					# Number of internal grid points in the y-direction
+   num_grid_x: 100                     					# Number of internal grid points in the x-direction
+   num_grid_y: 1                      					# Number of internal grid points in the y-direction
    num_grid_z: 1                     					# Number of internal grid points in the z-direction
    # Stretching factors: x = x_0 + L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
    # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
    A_x: 0.0                 					        # Stretching factor in x-direction
-   A_y: 0.0             					        # Stretching factor in y-direction
+   A_y: 0.0              					        # Stretching factor in y-direction
    A_z: 0.0                       					# Stretching factor in z-direction
-   CFL: 0.5                  					        # CFL coefficient
-   current_time_iter: 0   					        # Current time iteration
-   final_time_iter: 1000000            					# Final time iteration
+   CFL: 0.9                  					        # CFL coefficient
+   final_time_iter: 1000            					# Final time iteration
 
 
 ##### BOUNDARY CONDITIONS #####
 boundary_conditions:
    # For each boundary [west (x), east (x), south (y), north (y), back (z), front (z)], type and u, v, w, P and T values/derivatives are needed
    # Boundary types: DIRICHLET (provide value), NEUMANN (provide derivative), PERIODIC (value/derivative not needed)
-   west_bc: ['DIRICHLET', 0.0, 0.0, 0.0, 101325.0, 352.977447066]	# West boundary condition
-   east_bc: ['DIRICHLET', 0.0, 0.0, 0.0, 101325.0, 352.977447066]	# East boundary condition
-   south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, 101325.0, 352.977447066]      # South boundary condition
-   north_bc: ['DIRICHLET', 1.0, 0.0, 0.0, 101325.0, 352.977447066]     	# North boundary condition
+   west_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]			# West boundary condition
+   east_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]			# East boundary condition
+   south_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]       	        # South boundary condition
+   north_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]               	# North boundary condition
    back_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Back boundary condition
    front_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Front boundary condition
 
 
 ##### WRITE/READ PARAMETERS #####
 write_read_parameters:
-   output_data_file: '2d_lid_driven_cavity'  				# Name of output data file
+   output_data_file_name: '1d_sod_shock_tube'				# Name of output data file
    output_frequency_iter: 1000         					# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
-   restart_data_file_iter: 0          	 				# Restart data file iteration
+   restart_data_file: 'restart_data_file.h5' 				# Restart data file
 
 
 ##### PARALLELIZATION SCHEME #####
 parallelization_scheme:
-   np_x: 2                             					# Number of processes in x-direction
-   np_y: 2                             					# Number of processes in y-direction
+   np_x: 4                             					# Number of processes in x-direction
+   np_y: 1                             					# Number of processes in y-direction
    np_z: 1                             					# Number of processes in z-direction
