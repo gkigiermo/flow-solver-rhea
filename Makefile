@@ -1,17 +1,26 @@
-CC=mpic++
-#CFLAGS=-O3 -L/usr/local/Cellar/hdf5/1.12.0_1/lib/ -lhdf5_cpp -I/usr/local/Cellar/hdf5/1.12.0_1/include 
-CFLAGS=-O3 -lhdf5  
-OBJ=src/*.cpp
-OUT=RHEA.exe
-GUIFLAGS=-Wall -I/Users/goyarzun/DEV/apps/yaml-cpp/include -L/Users/goyarzun/DEV/apps/yaml-cpp/build5/ -lyaml-cpp
+EXECUTABLE   = RHEA.exe
+MAIN         = myRHEA.cpp
+SRC_DIR      = ./src
+CXX          = mpic++
+CXXFLAGS     = -O3 -Wall -std=c++0x
+INC_LIB_YAML = -L/usr/local/lib
+INC_DIR_YAML = -I/usr/local/include
+INC_LIB_HDF5 = 
+INC_DIR_HDF5 = 
+LDFLAGS      = -lyaml-cpp -lhdf5
 
 
-all:
-#	$(CC) heat_h5_hyper.cpp $(OBJ) -o $(OUT) $(CFLAGS)
-#	$(CC) myRHEA.cpp -L/usr/local/lib -I/usr/local/include -std=c++0x $(OBJ) -o $(OUT) $(CFLAGS) -lyaml-cpp
-	$(CC) myRHEA.cpp $(GUIFLAGS) -std=c++11 $(OBJ) -o $(OUT) $(CFLAGS)
-#	$(CC) myRHEA.cpp $(OBJ) -L/usr/lib/x86_64-linux-gnu/hdf5/openmpi -I/usr/include/hdf5/openmpi -o $(OUT) $(CFLAGS) -lyaml-cpp
 
+# !! THE LINES BELOW SHOULD NOT BE MODIFIED !! #
+
+OBJS = $(SRC_DIR)/*.cpp
+INC_LIB = $(INC_LIB_YAML) $(INC_LIB_HDF5)
+INC_DIR = $(INC_DIR_YAML) $(INC_DIR_HDF5)
+
+$(EXECUTABLE): $(OBJS)
+	$(CXX) $(MAIN) $(CXXFLAGS) $(OBJS) -o $@ $(INC_LIB) $(INC_DIR) $(LDFLAGS)
+
+.PHONY: clean
 clean:
-	rm $(OUT)
+	$(RM) $(EXECUTABLE)
 
