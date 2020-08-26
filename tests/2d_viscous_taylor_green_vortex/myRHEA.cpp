@@ -3,15 +3,15 @@
 using namespace std;
 
 /// Pi number
-const double Pi = 2.0*asin( 1.0 );
+//const double Pi = 2.0*asin( 1.0 );
 
 /// PROBLEM PARAMETERS ///
 const double gamma_0 = 1.4;					/// Reference ratio of heat capacities
-const double Re_0    = Pi;					/// Reynolds number
+//const double Re_0    = Pi;					/// Reynolds number
 const double Ma_0    = ( 1.0e-2 )/sqrt( gamma_0 );		/// Mach number
 const double rho_0   = 1.0;					/// Reference density	
 const double U_0     = 1.0;					/// Reference velocity
-const double mu_0    = rho_0*U_0*Pi/Re_0;			/// Dynamic viscosity	
+//const double mu_0    = rho_0*U_0*Pi/Re_0;			/// Dynamic viscosity	
 const double P_0     = ( rho_0/gamma_0 )*pow( U_0/Ma_0, 2.0 );	/// Reference pressure
 
 ////////// myRHEA CLASS //////////

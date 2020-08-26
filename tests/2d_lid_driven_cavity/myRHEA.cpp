@@ -3,12 +3,12 @@
 using namespace std;
 
 /// PROBLEM PARAMETERS ///
-const double Re_L  = 100.0;			/// Reynolds number
+//const double Re_L  = 100.0;			/// Reynolds number
 const double rho_0 = 1.0;			/// Reference density	
-const double L     = 1.0;			/// Cavity size
-const double u_l   = 1.0;			/// Lid velocity
+//const double L     = 1.0;			/// Cavity size
+//const double u_l   = 1.0;			/// Lid velocity
 const double P_0   = 101325.0;			/// Reference pressure
-const double nu    = u_l*L/Re_L;		/// Kinematic viscosity	
+//const double nu    = u_l*L/Re_L;		/// Kinematic viscosity	
 
 ////////// myRHEA CLASS //////////
 

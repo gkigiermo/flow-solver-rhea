@@ -29,10 +29,10 @@ void myRHEA::setInitialConditions() {
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                double sign_x = ( mesh->y[j] > delta ) ? 1.0 : -1.0;
-                u_field[I1D(i,j,k)] = sign_x*u_b*sin( mesh->x[i]/L_x );
-                v_field[I1D(i,j,k)] = u_tau*sin( mesh->y[j]/L_y );
-                w_field[I1D(i,j,k)] = u_tau*sin( mesh->z[k]/L_z );
+                double random_number = (double) rand()/RAND_MAX;
+                u_field[I1D(i,j,k)] = random_number**u_b*sin( 2.0*Pi*mesh->x[i]/( L_x );
+                v_field[I1D(i,j,k)] = random_number*u_tau*sin( 2.0*Pi*mesh->y[j]/( L_y );
+                w_field[I1D(i,j,k)] = random_number*u_tau*sin( 2.0*Pi*mesh->z[k]/( L_z );
                 P_field[I1D(i,j,k)] = P_ref;
                 T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_ref*R_specific );
             }

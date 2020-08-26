@@ -1,10 +1,6 @@
 RHEA DEVELOPMENT AGENDA:
 
 - Solve run problem bug (it may be connected to very small meshes) ... Willy
-- Create timers class and use it in the solver ... Willy & Lluis
-- Modify ManagerHDF5 according to last changes in constructor, write, read ... Willy & Lluis
-- Clean and organize Makefile ... Willy/Lluis
-- Prepare gitlab project to be released (permissions, files, etc) ... Lluis & Willy
 
 - ...
 
