@@ -122,6 +122,9 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     writer_reader->addField(&mu_field);
     writer_reader->addField(&kappa_field);
 
+    writer_reader->addAttributeDouble( "Time");
+    writer_reader->addAttributeInt( "Iteration" );
+
     /// Construct (initialize) timers
     timers = new ParallelTimer();
     timers->createTimer( "time_iteration_loop" );
@@ -351,11 +354,13 @@ void FlowSolverRHEA::setInitialConditions() {
 };
 
 void FlowSolverRHEA::initializeFromRestart() {
-
+    char char_restart_data_file[ restart_data_file.length() + 1 ]; 
+    strcpy( char_restart_data_file,restart_data_file.c_str() );
+ 
     /// Read from file to restart solver: data, time and time iteration
-    writer_reader->read( restart_data_file );
-    current_time      = writer_reader->getAttribute( "Time" );
-    current_time_iter = writer_reader->getAttribute( "Iteration" );
+    writer_reader->read( char_restart_data_file );
+    current_time      = writer_reader->getAttributeDouble( "Time" );
+    current_time_iter = writer_reader->getAttributeInt( "Iteration" );
 
     /// Update halo values
     x_field.update();
@@ -1808,7 +1813,7 @@ void FlowSolverRHEA::execute() {
     timers->stop( "time_iteration_loop" );
 
     /// Print timers information
-    if( print_timers ) timer->printTimers();
+    if( print_timers ) timers->printTimers();
 
     /// Print time advancement information
     if( my_rank == 0 ) {

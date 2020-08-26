@@ -111,3 +111,54 @@ void ParallelTimer::printTimer(string str)
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
+void ParallelTimer::printTimers()
+{
+
+    if( rank == 0) {
+        map<string, double[10]>::iterator it_d;
+        for (it_d = time_array.begin(); it_d != time_array.end(); it_d++)
+        {
+            cout<<endl;
+            cout<<"Timer : "<<it_d->first<<endl;
+            cout<<"------------------------------"<<endl;
+            cout<<"Last Time Max     :"<<it_d->second[3]<<endl;
+            cout<<"Accum. Time Max   :"<<it_d->second[7]<<endl;
+            cout<<"------------------------------"<<endl;
+        }
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+
+}
+
+void ParallelTimer::printTimers(string str)
+{
+
+
+
+
+    if( rank == 0) {
+        char filename[100];
+        sprintf(filename,"%s",str.c_str());
+
+        ofstream outfile;
+
+        outfile.open(filename,std::ofstream::app);
+
+
+        map<string, double[10]>::iterator it_d;
+        for (it_d = time_array.begin(); it_d != time_array.end(); it_d++)
+        {
+            outfile<<endl;
+            outfile<<"Timer : "<<it_d->first<<endl;
+            outfile<<"------------------------------"<<endl;
+            outfile<<"Last Time Max     :"<<it_d->second[3]<<endl;
+            outfile<<"Accum. Time Max   :"<<it_d->second[7]<<endl;
+            outfile<<"------------------------------"<<endl;
+        }
+
+        outfile.close();
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+
+}
+

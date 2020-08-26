@@ -2,6 +2,7 @@
 #define _ParallelTimer_
 #include<mpi.h>
 #include<iostream>
+#include<fstream>
 #include<map>
 #include<string>
 #include<stdlib.h>
@@ -28,6 +29,8 @@ class ParallelTimer{
         double getAccumulatedMinTime(string str){ return time_array[str][8];};
         double getAccumulatedAvgTime(string str){ return time_array[str][9];};
 
+        void   printTimers(); 
+        void   printTimers(string); 
         void   printTimer(string str); 
         void   printTimerFull(string str); 
 

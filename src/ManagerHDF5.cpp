@@ -1,9 +1,11 @@
 #include "ManagerHDF5.hpp"
 
-ManagerHDF5::ManagerHDF5(ParallelTopology* topo,  char const* outputName)
+ManagerHDF5::ManagerHDF5(ParallelTopology* topo,  char const* outputName,bool _gen_xdmf)
 {
     myTopo = topo;
     sprintf(outname,"%s",outputName);
+
+    gen_xdmf = _gen_xdmf;
 
     //To Generate the hdf5 file
     num_dims = 3;
@@ -60,7 +62,7 @@ void ManagerHDF5::printOnScreen()
     }
 }
 
-void ManagerHDF5::write(int it, double time, bool xdmf_file)
+void ManagerHDF5::write(int it ) //, double time, bool xdmf_file)
 {
     char filename[100];
 
@@ -75,6 +77,7 @@ void ManagerHDF5::write(int it, double time, bool xdmf_file)
 
     hid_t       file_id;   /* file identifier */
     herr_t      status;
+
 
     file_id = H5Fcreate(filename, H5F_ACC_TRUNC, H5P_DEFAULT, fa_plist_id);
 
@@ -119,23 +122,42 @@ void ManagerHDF5::write(int it, double time, bool xdmf_file)
    status = H5Sclose(filespace_id);
    status = H5Sclose(memspace_id);
 
-
+   if(status < 0)
+   {
+       cout<<" ERROR Writing HDF5 file"<<endl;
+       MPI_Abort(MPI_COMM_WORLD,666);
+   }
    hid_t attspace_id = H5Screate_simple(num_dim1D, array_1D, NULL);
 
-   hid_t attri0 = H5Acreate(file_id,"Iteration",H5T_NATIVE_INT, attspace_id,H5P_DEFAULT,H5P_DEFAULT);
-   status = H5Awrite(attri0, H5T_NATIVE_INT, &it);
-   status = H5Aclose(attri0);
+   char attribute_name[100];
 
-   hid_t attri1 = H5Acreate(file_id,"Time",H5T_NATIVE_DOUBLE, attspace_id,H5P_DEFAULT,H5P_DEFAULT);
-   status = H5Awrite(attri1, H5T_NATIVE_DOUBLE, &time);
-   status = H5Aclose(attri1);
+
+   map<string, int>::iterator it_i;
+   for (it_i = iattrib.begin(); it_i != iattrib.end(); it_i++)
+   {
+ 
+       sprintf(attribute_name,"%s",(it_i->first).c_str());
+       hid_t attri0 = H5Acreate(file_id,attribute_name,H5T_NATIVE_INT, attspace_id,H5P_DEFAULT,H5P_DEFAULT);
+       status = H5Awrite(attri0, H5T_NATIVE_INT, &(it_i->second));
+       status = H5Aclose(attri0);
+   }
+
+   map<string, double>::iterator it_d;
+   for (it_d = dattrib.begin(); it_d != dattrib.end(); it_d++)
+   {
+    
+       sprintf(attribute_name,"%s",(it_d->first).c_str());
+       hid_t attri1 = H5Acreate(file_id,attribute_name,H5T_NATIVE_DOUBLE, attspace_id,H5P_DEFAULT,H5P_DEFAULT);
+       status = H5Awrite(attri1, H5T_NATIVE_DOUBLE, &(it_d->second));
+       status = H5Aclose(attri1);
+   }
+
    status = H5Sclose(attspace_id);
 
 
    status = H5Fclose(file_id); 
 
-
-   if( xdmf_file ) {
+   if( gen_xdmf ) {
 	   if(myTopo->getRank() == 0 ) {
 		   char filename2[100];
 		   char filename3[100];
@@ -186,11 +208,11 @@ void ManagerHDF5::write(int it, double time, bool xdmf_file)
 
 }
 
-void ManagerHDF5::read(int it)
+void ManagerHDF5::read( char const* inputName)
 {
     char filename[100];
-
-    sprintf(filename,"%s_%d.h5",outname,it);
+    
+    sprintf(filename,"%s",inputName);
 
     hid_t fa_plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
@@ -245,9 +267,42 @@ void ManagerHDF5::read(int it)
 
     }
 
-
    status = H5Sclose(filespace_id);
    status = H5Sclose(memspace_id);
+
+   if(status < 0)
+   {
+       cout<<" ERROR Reading HDF5 file"<<endl;
+       MPI_Abort(MPI_COMM_WORLD,666);
+   }
+
+
+   hid_t attspace_id = H5Screate_simple(num_dim1D, array_1D, NULL);
+
+   char attribute_name[100];
+
+
+   map<string, int>::iterator it_i;
+   for (it_i = iattrib.begin(); it_i != iattrib.end(); it_i++)
+   {
+       sprintf(attribute_name,"%s",(it_i->first).c_str());
+       hid_t attri0 = H5Aopen(file_id,attribute_name,H5P_DEFAULT);
+       status = H5Aread(attri0, H5T_NATIVE_INT, &(it_i->second));
+       status = H5Aclose(attri0);
+   }
+
+   map<string, double>::iterator it_d;
+   for (it_d = dattrib.begin(); it_d != dattrib.end(); it_d++)
+   {
+       sprintf(attribute_name,"%s",(it_i->first).c_str());
+       hid_t attri1 = H5Aopen(file_id,attribute_name,H5T_NATIVE_DOUBLE);
+       status = H5Aread(attri1, H5T_NATIVE_DOUBLE, &(it_d->second));
+       status = H5Aclose(attri1);
+   }
+
+
+   status = H5Sclose(attspace_id);
+
 
    status = H5Fclose(file_id); 
 
