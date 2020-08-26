@@ -14,17 +14,8 @@ double ParallelTimer::getTime_cpu()
 
 void ParallelTimer::createTimer(string str)
 {
-   time_array[str][0] = 0.0;
-   time_array[str][1] = 0.0;
-   time_array[str][2] = 0.0;
-   time_array[str][3] = 0.0;
-   time_array[str][4] = 0.0;
-   time_array[str][5] = 0.0;
-   time_array[str][6] = 0.0;
-   time_array[str][7] = 0.0;
-   time_array[str][8] = 0.0;
-   time_array[str][9] = 0.0;
 
+   time_array[str].resize(10,0.0);
    checker[str] = false;
    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 }
@@ -115,7 +106,7 @@ void ParallelTimer::printTimers()
 {
 
     if( rank == 0) {
-        map<string, double[10]>::iterator it_d;
+        map<string, vector<double>>::iterator it_d;
         for (it_d = time_array.begin(); it_d != time_array.end(); it_d++)
         {
             cout<<endl;
@@ -145,7 +136,7 @@ void ParallelTimer::printTimers(string str)
         outfile.open(filename,std::ofstream::app);
 
 
-        map<string, double[10]>::iterator it_d;
+        map<string, vector<double>>::iterator it_d;
         for (it_d = time_array.begin(); it_d != time_array.end(); it_d++)
         {
             outfile<<endl;

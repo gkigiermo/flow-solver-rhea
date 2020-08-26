@@ -8,6 +8,7 @@
 #include<stdlib.h>
 #include<time.h>
 #include<sys/time.h>
+#include<vector>
 
 using namespace std;
 
@@ -39,7 +40,7 @@ class ParallelTimer{
     private:
         //             0      1      2      3    4    5       6         7         8         9
         //double [10] start, stop, ltime,  max, min, avg, accum_time, acc_max, acc_min, accum_avg
-        map<string, double[10]> time_array;
+        map<string, vector<double>> time_array;
         map<string, bool> checker;
         double getTime_cpu();
         int rank;        
