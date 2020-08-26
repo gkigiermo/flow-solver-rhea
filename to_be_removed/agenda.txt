@@ -1,8 +1,10 @@
 RHEA DEVELOPMENT AGENDA:
 
-- Solve run problem bug (it may be connected to very small meshes)
-- Incorporate crash message in main if configuration file is not given via command line
-- Prepare gitlab project to be released (permissions, files, etc)
+- Solve run problem bug (it may be connected to very small meshes) ... Willy
+- Create timers class and use it in the solver ... Willy & Lluis
+- Incorporate crash message in main if configuration file is not given via command line ... Lluis
+- Clean and organize Makefile ... Willy/Lluis
+- Prepare gitlab project to be released (permissions, files, etc) ... Lluis
 
 - ...
 
@@ -13,6 +15,7 @@ RHEA DEVELOPMENT AGENDA:
 - Incorporate message that HDF5 labels cannot include special characters
 - Create/check destructors of Willy's classes
 - Create timers class and use it in the solver
+- Implement regression tests using gitlab machinery
 - Improve code implementation/notation/aesthetics in all files
 - Check that it compiles and runs with different compilers (gcc, clang, intel, etc)
 - Verify numerics and parallelization with different number of processes (including 1)
