@@ -108,6 +108,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     char char_array[ output_data_file_name.length() + 1 ]; 
     strcpy( char_array,output_data_file_name.c_str() );
     writer_reader = new ManagerHDF5( topo, char_array, generate_xdmf );
+    writer_reader->addAttributeDouble( "Time");
+    writer_reader->addAttributeInt( "Iteration" );
     writer_reader->addField(&x_field);
     writer_reader->addField(&y_field);
     writer_reader->addField(&z_field);
@@ -121,9 +123,6 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     writer_reader->addField(&sos_field);
     writer_reader->addField(&mu_field);
     writer_reader->addField(&kappa_field);
-
-    writer_reader->addAttributeDouble( "Time");
-    writer_reader->addAttributeInt( "Iteration" );
 
     /// Construct (initialize) timers
     timers = new ParallelTimer();
@@ -298,6 +297,7 @@ void FlowSolverRHEA::readConfigurationFile() {
     /// Timers information
     const YAML::Node & timers_information = configuration["timers_information"];
     print_timers = timers_information["print_timers"].as<bool>();
+    timers_information_file = timers_information["timers_information_file"].as<string>();
 
     /// Parallelization scheme
     const YAML::Node & parallelization_scheme = configuration["parallelization_scheme"];
@@ -354,10 +354,10 @@ void FlowSolverRHEA::setInitialConditions() {
 };
 
 void FlowSolverRHEA::initializeFromRestart() {
+
+    /// Read from file to restart solver: data, time and time iteration
     char char_restart_data_file[ restart_data_file.length() + 1 ]; 
     strcpy( char_restart_data_file,restart_data_file.c_str() );
- 
-    /// Read from file to restart solver: data, time and time iteration
     writer_reader->read( char_restart_data_file );
     current_time      = writer_reader->getAttributeDouble( "Time" );
     current_time_iter = writer_reader->getAttributeInt( "Iteration" );
@@ -1813,7 +1813,7 @@ void FlowSolverRHEA::execute() {
     timers->stop( "time_iteration_loop" );
 
     /// Print timers information
-    if( print_timers ) timers->printTimers();
+    if( print_timers ) timers->printTimers( timers_information_file );
 
     /// Print time advancement information
     if( my_rank == 0 ) {

@@ -198,6 +198,7 @@ class FlowSolverRHEA {
 
         /// Timers information
         bool print_timers;					/// Print timers information
+        string timers_information_file;				/// Timers information file
 
         /// Parallelization scheme
         int np_x;						/// Number of processes in x-direction
