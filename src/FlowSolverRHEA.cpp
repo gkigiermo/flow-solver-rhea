@@ -16,8 +16,10 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     /// Read configuration (input) file
     this->readConfigurationFile();
 	
-    /// Set value of fixed variables
-    rk_order = 3;
+    /// Set value of selected variables
+    rk_order = 3;		/// Runge-Kutta order (fixed value)
+    current_time = 0.0;		/// Current time (restart will overwrite it)
+    current_time_iter = 0;	/// Current time iteration (restart will overwrite it)
 
     /// Construct (initialize) computational domain
     mesh = new ComputationalDomain(L_x, L_y, L_z, x_0, y_0, z_0, A_x, A_y, A_z, num_grid_x, num_grid_y, num_grid_z);
@@ -103,9 +105,9 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     this->fillMeshCoordinateFields();
 
     /// Construct (initialize) writer/reader
-    char char_array[output_data_file.length()+1]; 
-    strcpy(char_array,output_data_file.c_str());
-    writer_reader = new ManagerHDF5(topo,char_array);
+    char char_array[ output_data_file_name.length() + 1 ]; 
+    strcpy( char_array,output_data_file_name.c_str() );
+    writer_reader = new ManagerHDF5( topo, char_array, generate_xdmf );
     writer_reader->addField(&x_field);
     writer_reader->addField(&y_field);
     writer_reader->addField(&z_field);
@@ -151,7 +153,6 @@ void FlowSolverRHEA::readConfigurationFile() {
     L_x          = problem_parameters["L_x"].as<double>();
     L_y          = problem_parameters["L_y"].as<double>();
     L_z          = problem_parameters["L_z"].as<double>();
-    current_time = problem_parameters["current_time"].as<double>();
     final_time   = problem_parameters["final_time"].as<double>();
 
     /// Computational parameters
@@ -163,7 +164,6 @@ void FlowSolverRHEA::readConfigurationFile() {
     A_y               = computational_parameters["A_y"].as<double>();
     A_z               = computational_parameters["A_z"].as<double>();
     CFL               = computational_parameters["CFL"].as<double>();
-    current_time_iter = computational_parameters["current_time_iter"].as<int>();
     final_time_iter   = computational_parameters["final_time_iter"].as<int>();
 
     /// Boundary conditions
@@ -268,11 +268,11 @@ void FlowSolverRHEA::readConfigurationFile() {
 
     /// Write/read file parameters
     const YAML::Node & write_read_parameters = configuration["write_read_parameters"];
-    output_data_file       = write_read_parameters["output_data_file"].as<string>();
-    output_frequency_iter  = write_read_parameters["output_frequency_iter"].as<int>();
-    generate_xdmf          = write_read_parameters["generate_xdmf"].as<bool>();
-    use_restart            = write_read_parameters["use_restart"].as<bool>();
-    restart_data_file_iter = write_read_parameters["restart_data_file_iter"].as<int>();
+    output_data_file_name = write_read_parameters["output_data_file_name"].as<string>();
+    output_frequency_iter = write_read_parameters["output_frequency_iter"].as<int>();
+    generate_xdmf         = write_read_parameters["generate_xdmf"].as<bool>();
+    use_restart           = write_read_parameters["use_restart"].as<bool>();
+    restart_data_file     = write_read_parameters["restart_data_file"].as<string>();
 
     /// Parallelization scheme
     const YAML::Node & parallelization_scheme = configuration["parallelization_scheme"];
@@ -330,8 +330,10 @@ void FlowSolverRHEA::setInitialConditions() {
 
 void FlowSolverRHEA::initializeFromRestart() {
 
-    /// Read from file to restart solver
-    writer_reader->read(restart_data_file_iter);
+    /// Read from file to restart solver: data, time and time iteration
+    writer_reader->read( restart_data_file );
+    current_time      = writer_reader->getAttribute( "Time" );
+    current_time_iter = writer_reader->getAttribute( "Iteration" );
 
     /// Update halo values
     x_field.update();
@@ -347,7 +349,7 @@ void FlowSolverRHEA::initializeFromRestart() {
     sos_field.update();
     mu_field.update();
     kappa_field.update();
-
+    
 };
 
 void FlowSolverRHEA::initializeThermodynamics() {
@@ -1593,8 +1595,10 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_step) {
 
 void FlowSolverRHEA::outputCurrentStateData() {
 
-    /// Write to file current solver state
-    writer_reader->write(current_time_iter,current_time,generate_xdmf);
+    /// Write to file current solver state, time and time iteration
+    writer_reader->setAttribute( "Time", current_time );
+    writer_reader->setAttribute( "Iteration", current_time_iter );
+    writer_reader->write( current_time_iter );
 
 };
 

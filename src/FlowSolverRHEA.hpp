@@ -60,8 +60,12 @@ class FlowSolverRHEA {
         virtual ~FlowSolverRHEA();				/// Destructor
 
 	////////// GET FUNCTIONS //////////
+        inline double getCurrentTime() { return( current_time ); };
+        inline int getCurrentTimeIteration() { return( current_time_iter ); };
 
 	////////// SET FUNCTIONS //////////
+        inline void setCurrentTime(double current_time_) { current_time = current_time_; };
+        inline void setCurrentTimeIteration(int current_time_iter_) { current_time_iter = current_time_iter_; };
 
 	////////// SOLVER METHODS //////////
         
@@ -185,11 +189,11 @@ class FlowSolverRHEA {
         double bocos_T[6];					/// Array of boundary conditions T
 
         /// Write/read file parameters
-        string output_data_file;				/// Output data file name (HDF5 format)	
+        string output_data_file_name;				/// Output data file name (HDF5 format)	
         int output_frequency_iter;				/// Data output iteration frequency
         bool generate_xdmf;					/// Generate xdmf file reader
         bool use_restart;					/// Use restart file for initialization
-        int restart_data_file_iter;				/// Restart data file iteration
+        string restart_data_file;				/// Restart data file
 
         /// Parallelization scheme
         int np_x;						/// Number of processes in x-direction
