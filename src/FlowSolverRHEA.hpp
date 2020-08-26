@@ -15,6 +15,7 @@
 #include "ParallelTopology.hpp"
 #include "DistributedArray.hpp"
 #include "ManagerHDF5.hpp"
+#include "ParallelTimer.hpp"
 
 ////////// NAMESPACES //////////
 using namespace std;
@@ -195,6 +196,9 @@ class FlowSolverRHEA {
         bool use_restart;					/// Use restart file for initialization
         string restart_data_file;				/// Restart data file
 
+        /// Timers information
+        bool print_timers;					/// Print timers information
+
         /// Parallelization scheme
         int np_x;						/// Number of processes in x-direction
         int np_y;						/// Number of processes in y-direction
@@ -266,10 +270,11 @@ class FlowSolverRHEA {
         DistributedArray f_rhow_field;				/// 3-D field of rhow
         DistributedArray f_rhoE_field;				/// 3-D field of rhoE
 
-	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY & WRITER/READER //////////
+	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER & PARALLEL TIMER //////////
         ComputationalDomain *mesh;				/// Computational domain
         ParallelTopology *topo;					/// Parallel topology
         ManagerHDF5 *writer_reader;				/// HDF5 data writer/reader
+        ParallelTimer *timers;					/// Parallel timer
 
     private:
 

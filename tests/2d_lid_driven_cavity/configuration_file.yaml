@@ -60,6 +60,12 @@ write_read_parameters:
    restart_data_file: 'restart_data_file.h5' 				# Restart data file
 
 
+##### TIMERS INFORMATION #####
+timers_information:
+   print_timers: 'TRUE'               					# Print timers information
+   timers_information_file: 'timers_information_file.txt'		# Timers information file
+
+
 ##### PARALLELIZATION SCHEME #####
 parallelization_scheme:
    np_x: 2                             					# Number of processes in x-direction

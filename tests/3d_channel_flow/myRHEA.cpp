@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
         configuration_file = argv[1];
     } else {
         cout << "Proper usage: RHEA.exe configuration_file.yaml" << endl;
-        MPI_Abort( 1 );
+        MPI_Abort( MPI_COMM_WORLD, 1 );
     }
 
     /// Construct my RHEA

@@ -122,14 +122,32 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     writer_reader->addField(&mu_field);
     writer_reader->addField(&kappa_field);
 
+    /// Construct (initialize) timers
+    timers = new ParallelTimer();
+    timers->createTimer( "time_iteration_loop" );
+    timers->createTimer( "calculate_time_step" );
+    timers->createTimer( "output_solver_state" );
+    timers->createTimer( "rk_iteration_loop" );
+    timers->createTimer( "calculate_thermophysical_properties" );
+    timers->createTimer( "calculate_inviscid_fluxes" );
+    timers->createTimer( "calculate_viscous_fluxes" );
+    timers->createTimer( "calculate_source_terms" );
+    timers->createTimer( "sum_inviscid_viscous_fluxes_source_terms" );
+    timers->createTimer( "time_advance_conserved_variables" );
+    timers->createTimer( "update_boundaries" );
+    timers->createTimer( "conserved_to_primitive_variables" );
+    timers->createTimer( "calculate_thermodynamics_from_primitive_variables" );
+    timers->createTimer( "update_previous_state_conserved_variables" );
+
 };
 
 FlowSolverRHEA::~FlowSolverRHEA() {
 
-    /// Free mesh, topo, writer_reader and bocos
-    if(mesh != NULL) free(mesh);	
-    if(topo != NULL) free(topo);
-    if(writer_reader != NULL) free(writer_reader);
+    /// Free mesh, topo, writer_reader and timers
+    if( mesh != NULL ) free( mesh );	
+    if( topo != NULL ) free( topo );
+    if( writer_reader != NULL ) free( writer_reader );
+    if( timers != NULL ) free( timers );
 
 };
 
@@ -273,6 +291,10 @@ void FlowSolverRHEA::readConfigurationFile() {
     generate_xdmf         = write_read_parameters["generate_xdmf"].as<bool>();
     use_restart           = write_read_parameters["use_restart"].as<bool>();
     restart_data_file     = write_read_parameters["restart_data_file"].as<string>();
+
+    /// Timers information
+    const YAML::Node & timers_information = configuration["timers_information"];
+    print_timers = timers_information["print_timers"].as<bool>();
 
     /// Parallelization scheme
     const YAML::Node & parallelization_scheme = configuration["parallelization_scheme"];
@@ -1639,13 +1661,25 @@ void FlowSolverRHEA::execute() {
 
     /// Update previous state of conserved variables
     this->updatePreviousStateConservedVariables();    
+    
+    /// Start timer: time_iteration_loop
+    timers->start( "time_iteration_loop" );
 
     /// Iterate flow solver RHEA in time
     for(int time_iter = current_time_iter; time_iter < final_time_iter; time_iter++) {
 
+        /// Start timer: calculate_time_step
+        timers->start( "calculate_time_step" );
+
         /// Calculate time step
         this->calculateTimeStep();
         if( ( current_time + delta_t ) > final_time ) delta_t = final_time - current_time;
+
+        /// Stop timer: calculate_time_step
+        timers->stop( "calculate_time_step" );
+
+        /// Start timer: output_solver_state
+        timers->start( "output_solver_state" );
 
         /// Print time iteration information
         if( my_rank == 0 ) {
@@ -1657,35 +1691,103 @@ void FlowSolverRHEA::execute() {
         /// Output current state data to file (if criterion satisfied)
         if( current_time_iter%output_frequency_iter == 0 ) this->outputCurrentStateData();
 
+        /// Stop timer: output_solver_state
+        timers->stop( "output_solver_state" );
+
+        /// Start timer: rk_iteration_loop
+        timers->start( "rk_iteration_loop" );
+
         /// Runge-Kutta time-integration steps
         for(int rk_step = 1; rk_step <= rk_order; rk_step++) {
+
+            /// Start timer: calculate_thermophysical_properties
+            timers->start( "calculate_thermophysical_properties" );
 
             /// Calculate thermophysical properties
             this->calculateThermophysicalProperties();
 
+            /// Stop timer: calculate_thermophysical_properties
+            timers->stop( "calculate_thermophysical_properties" );
+
+            /// Start timer: calculate_inviscid_fluxes
+            timers->start( "calculate_inviscid_fluxes" );
+
+            /// Calculate inviscid fluxes
+            this->calculateInviscidFluxes();
+
+            /// Stop timer: calculate_inviscid_fluxes
+            timers->stop( "calculate_inviscid_fluxes" );
+
+            /// Start timer: calculate_viscous_fluxes
+            timers->start( "calculate_viscous_fluxes" );
+
+            /// Calculate viscous fluxes
+            this->calculateViscousFluxes();
+
+            /// Stop timer: calculate_viscous_fluxes
+            timers->stop( "calculate_viscous_fluxes" );
+
+            /// Start timer: calculate_source_terms
+            timers->start( "calculate_source_terms" );
+
             /// Calculate source terms
             this->calculateSourceTerms();
 
-            /// Calculate inviscid and viscous fluxes
-            this->calculateInviscidFluxes();
-            this->calculateViscousFluxes();
+            /// Stop timer: calculate_source_terms
+            timers->stop( "calculate_source_terms" );
+
+            /// Start timer: sum_inviscid_viscous_fluxes_source_terms
+            timers->start( "sum_inviscid_viscous_fluxes_source_terms" );
 
             /// Sum inviscid & viscous fluxes, and source terms (right-hand side)
             this->sumInviscidViscousFluxesSourceTerms(rk_step);
 
+            /// Stop timer: sum_inviscid_viscous_fluxes_source_terms
+            timers->stop( "sum_inviscid_viscous_fluxes_source_terms" );
+
+            /// Start timer: time_advance_conserved_variables
+            timers->start( "time_advance_conserved_variables" );
+
             /// Advance conserved variables in time
             this->timeAdvanceConservedVariables(rk_step);
+
+            /// Stop timer: time_advance_conserved_variables
+            timers->stop( "time_advance_conserved_variables" );
+
+            /// Start timer: update_boundaries
+            timers->start( "update_boundaries" );
 
             /// Update boundary values
             this->updateBoundaries();
 
+            /// Stop timer: update_boundaries
+            timers->stop( "update_boundaries" );
+
+            /// Start timer: conserved_to_primitive_variables
+            timers->start( "conserved_to_primitive_variables" );
+
             /// Calculate primitive variables from conserved variables
             this->conservedToPrimitiveVariables();
+
+            /// Stop timer: conserved_to_primitive_variables
+            timers->stop( "conserved_to_primitive_variables" );
+
+            /// Start timer: calculate_thermodynamics_from_primitive_variables
+            timers->start( "calculate_thermodynamics_from_primitive_variables" );
 
             /// Calculate thermodynamics from primitive variables
             this->calculateThermodynamicsFromPrimitiveVariables();
 
+            /// Stop timer: calculate_thermodynamics_from_primitive_variables
+            timers->stop( "calculate_thermodynamics_from_primitive_variables" );
+
         }
+
+        /// Stop timer: rk_iteration_loop
+        timers->stop( "rk_iteration_loop" );
+
+        /// Start timer: update_previous_state_conserved_variables
+        timers->start( "update_previous_state_conserved_variables" );
 
         /// Update previous state of conserved variables
         this->updatePreviousStateConservedVariables();
@@ -1697,7 +1799,16 @@ void FlowSolverRHEA::execute() {
         /// Check if simulation is completed: current_time > final_time
         if( current_time >= final_time ) break;
 
+        /// Stop timer: update_previous_state_conserved_variables
+        timers->stop( "update_previous_state_conserved_variables" );
+
     }
+
+    /// Stop timer: time_iteration_loop
+    timers->stop( "time_iteration_loop" );
+
+    /// Print timers information
+    if( print_timers ) timer->printTimers();
 
     /// Print time advancement information
     if( my_rank == 0 ) {
