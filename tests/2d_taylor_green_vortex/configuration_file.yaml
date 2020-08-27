@@ -53,7 +53,7 @@ boundary_conditions:
 
 ##### WRITE/READ PARAMETERS #####
 write_read_parameters:
-   output_data_file_name: '2d_viscous_taylor_green_vortex'		# Name of output data file
+   output_data_file_name: '2d_taylor_green_vortex'			# Name of output data file
    output_frequency_iter: 1000         					# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem

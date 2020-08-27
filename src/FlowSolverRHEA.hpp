@@ -116,7 +116,7 @@ class FlowSolverRHEA {
         void calculateTimeStep();
 
         /// Calculate thermophysical properties
-        void calculateThermophysicalProperties();
+        virtual void calculateThermophysicalProperties();
 
         /// Calculate rhou, rhov, rhow and rhoE source terms ... needs to be modified/overwritten according to the problem under consideration
         virtual void calculateSourceTerms();
