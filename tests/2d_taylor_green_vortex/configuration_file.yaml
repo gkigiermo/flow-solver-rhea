@@ -8,6 +8,8 @@
 
 ##### FLUID PROPERTIES #####
 fluid_properties:
+   # Thermodynamic models: IDEAL_GAS
+   thermodynamic_model: 'IDEAL_GAS'			  		# Thermodynamic model
    R_specific: 287.058                 					# Specific gas constant [J/(kg·K)]
    gamma: 1.4                          					# Heat capacity ratio [-]
    mu: 1.0                           					# Dynamic viscosity [Pa·s]

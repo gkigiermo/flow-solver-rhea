@@ -11,6 +11,7 @@
 #include <mpi.h>
 #include "yaml-cpp/yaml.h"
 #include "MacroParameters.hpp"
+#include "ThermodynamicModels.hpp"
 #include "ComputationalDomain.hpp"
 #include "ParallelTopology.hpp"
 #include "DistributedArray.hpp"
@@ -97,15 +98,6 @@ class FlowSolverRHEA {
         /// Calculate thermodynamics from primitive variables
         void calculateThermodynamicsFromPrimitiveVariables();
 
-        /// Calculate point pressure and temperature from density and internal energy
-        void calculatePointPressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e);
-
-        /// Calculate point density and internal energy from pressure and temperature
-        void calculatePointDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T);
-
-        /// Calculate specific heat capacities
-        void calculateSpecificHeatCapacities(double &c_v, double &c_p);
-
         /// Update boundary values: rho, rhou, rhov, rhow and rhoE
         void updateBoundaries();
 
@@ -147,8 +139,7 @@ class FlowSolverRHEA {
         ////////// SOLVER PARAMETERS //////////
 	
         /// Fluid properties 
-        double R_specific;					/// Specific gas constant [J/(kg·K)]
-        double gamma;						/// Heat capacity ratio [-]
+        string thermodynamic_model;				/// Thermodynamic model
         double mu;						/// Dynamic viscosity [Pa·s]
         double kappa;						/// Thermal conductivity [W/(m·k)]       
 
@@ -271,7 +262,8 @@ class FlowSolverRHEA {
         DistributedArray f_rhow_field;				/// 3-D field of rhow
         DistributedArray f_rhoE_field;				/// 3-D field of rhoE
 
-	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER & PARALLEL TIMER //////////
+	////////// THERMODYNAMIC MODEL, COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER & PARALLEL TIMER //////////
+        BaseThermodynamicModel *thermodynamics;		/// Thermodynamic model
         ComputationalDomain *mesh;				/// Computational domain
         ParallelTopology *topo;					/// Parallel topology
         ManagerHDF5 *writer_reader;				/// HDF5 data writer/reader

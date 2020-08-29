@@ -1,16 +1,18 @@
 # RHEA's CONFIGURATION FILE (YAML LANGUAGE)
 #
-# 3D channel flow problem (Re_tau = 180):
-# R. D. Moser, J. Kim, N. N. Mansour.
-# Direct numerical simulation of turbulent channel flow up to Re_tau = 590.
-# Physics of Fluids, 11, 943-945, 1999.
+# 2D Riemann initial value problem (configuration 3):
+# C.-W. Schulz-Rinne.
+# Classification of the Riemann problem for two-dimensional gas dynamics.
+# SIAM Journal on Mathematical Analysis, 24, 76-88, 1993.
 ---
 
 ##### FLUID PROPERTIES #####
 fluid_properties:
+   # Thermodynamic models: IDEAL_GAS
+   thermodynamic_model: 'IDEAL_GAS'			  		# Thermodynamic model
    R_specific: 287.058                 					# Specific gas constant [J/(kg·K)]
    gamma: 1.4                          					# Heat capacity ratio [-]
-   mu: 0.005555556                     					# Dynamic viscosity [Pa·s]
+   mu: 0.0                          					# Dynamic viscosity [Pa·s]
    kappa: 0.0                          					# Thermal conductivity [W/(m·k)]
 
 
@@ -19,45 +21,45 @@ problem_parameters:
    x_0: 0.0                            					# Domain origin in x-direction [m]
    y_0: 0.0                            					# Domain origin in y-direction [m]
    z_0: 0.0                           					# Domain origin in z-direction [m]
-   L_x: 12.566370614                   					# Size of domain in x-direction [m]
-   L_y: 2.0                           					# Size of domain in y-direction [m]
-   L_z: 4.188790205                    					# Size of domain in z-direction [m]
-   final_time: 1.0e6                   					# Final time [s]
+   L_x: 1.0                      					# Size of domain in x-direction [m]
+   L_y: 1.0                           					# Size of domain in y-direction [m]
+   L_z: 0.01                    					# Size of domain in z-direction [m]
+   final_time: 0.8                   					# Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####
 computational_parameters:
-   num_grid_x: 256                     					# Number of internal grid points in the x-direction
-   num_grid_y: 128                     					# Number of internal grid points in the y-direction
-   num_grid_z: 128                     					# Number of internal grid points in the z-direction
+   num_grid_x: 400                     					# Number of internal grid points in the x-direction
+   num_grid_y: 400                     					# Number of internal grid points in the y-direction
+   num_grid_z: 1                     					# Number of internal grid points in the z-direction
    # Stretching factors: x = x_0 + L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
    # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
    A_x: 0.0                 					        # Stretching factor in x-direction
-   A_y: -0.75             					        # Stretching factor in y-direction
+   A_y: 0.0              					        # Stretching factor in y-direction
    A_z: 0.0                       					# Stretching factor in z-direction
    CFL: 0.9                  					        # CFL coefficient
-   final_time_iter: 1000000            					# Final time iteration
+   final_time_iter: 1000            					# Final time iteration
 
 
 ##### BOUNDARY CONDITIONS #####
 boundary_conditions:
    # For each boundary [west (x), east (x), south (y), north (y), back (z), front (z)], type and u, v, w, P and T values/derivatives are needed
    # Boundary types: DIRICHLET (provide value), NEUMANN (provide derivative), PERIODIC (value/derivative not needed)
-   west_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# West boundary condition
-   east_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# East boundary condition
-   south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, 101325.0, 352.977447066]      # South boundary condition
-   north_bc: ['DIRICHLET', 0.0, 0.0, 0.0, 101325.0, 352.977447066]     	# North boundary condition
+   west_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]			# West boundary condition
+   east_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]			# East boundary condition
+   south_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]       	        # South boundary condition
+   north_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]               	# North boundary condition
    back_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Back boundary condition
    front_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Front boundary condition
 
 
 ##### WRITE/READ PARAMETERS #####
 write_read_parameters:
-   output_data_file_name: '3d_channel_flow'  				# Name of output data file
+   output_data_file_name: '2d_riemann_problem'				# Name of output data file
    output_frequency_iter: 1000         					# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
-   restart_data_file: 'restart_data_file.h5' 				# Restart data file
+   restart_data_file: 'restart_data_file.h5'				# Restart data file
 
 
 ##### TIMERS INFORMATION #####
