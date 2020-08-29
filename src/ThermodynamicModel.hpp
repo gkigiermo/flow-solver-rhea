@@ -12,6 +12,8 @@ using namespace std;
 
 ////////// CLASS DECLARATION //////////
 class BaseThermodynamicModel;				/// Base thermodynamic model
+class IdealGasModel;					/// Ideal-gas thermodynamic model
+class StiffenedGasModel;				/// Stiffened-gas thermodynamic model
 
 ////////// FUNCTION DECLARATION //////////
 
@@ -101,6 +103,51 @@ class IdealGasModel : public BaseThermodynamicModel {
     protected:
 
         ////////// PARAMETERS //////////
+
+    private:
+
+};
+
+
+////////// StiffenedGasModel CLASS //////////
+class StiffenedGasModel : public BaseThermodynamicModel {
+   
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        StiffenedGasModel();							/// Default constructor
+        StiffenedGasModel(const string configuration_file);			/// Parametrized constructor
+        virtual ~StiffenedGasModel();						/// Destructor
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+        
+        /// Read configuration (input) file written in YAML language
+        void readConfigurationFile();
+
+        /// Calculate point pressure and temperature from density and internal energy
+        void calculatePointPressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e);
+
+        /// Calculate point density and internal energy from pressure and temperature
+        void calculatePointDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T);
+
+        /// Calculate point specific heat capacities
+        void calculatePointSpecificHeatCapacities(double &c_v_, double &c_p);
+
+        /// Calculate point speed of sound
+        double calculatePointSoundSpeed(const double &rho, const double &P, const double &T);
+
+    protected:
+
+        ////////// PARAMETERS //////////
+
+        /// Thermodynamic properties
+        double P_inf;						/// Pressure infinity (liquid stiffnes) [Pa]
+        double e_0;						/// Internal energy zero point [J/kg]
+        double c_v;						/// Specific isochoric heat capacity [J/(kg·K)]
 
     private:
 

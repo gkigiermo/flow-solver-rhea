@@ -24,6 +24,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     /// Construct (initialize) thermodynamic model
     if( thermodynamic_model == "IDEAL_GAS" ) {
         thermodynamics = new IdealGasModel(configuration_file);
+    } else if( thermodynamic_model == "STIFFENED_GAS" ) {
+        thermodynamics = new StiffenedGasModel(configuration_file);
     } else {
         cout << "Thermodynamic model not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -882,15 +884,16 @@ void FlowSolverRHEA::calculateWavesSpeed(double &S_L, double &S_R, const double 
 
     double c_v, c_p;
     thermodynamics->calculatePointSpecificHeatCapacities( c_v, c_p );
+    double gamma = c_p/c_v;
 
     double rho_bar = 0.5*( rho_L + rho_R );
     double a_bar   = 0.5*( a_L + a_R );
     double P_pvrs  = 0.5*( P_L + P_R ) - 0.5*( u_R - u_L )*rho_bar*a_bar;
     double P_star  = max( 0.0, P_pvrs );
     double q_L     = 1.0;
-    if(P_star > P_L) q_L = sqrt( 1.0 + ( ( ( c_p/c_v ) + 1.0 )/( 2.0*( c_p/c_v ) ) )*( ( P_star/P_L ) - 1.0 ) );
+    if(P_star > P_L) q_L = sqrt( 1.0 + ( ( gamma + 1.0 )/( 2.0*gamma ) )*( ( P_star/P_L ) - 1.0 ) );
     double q_R     = 1.0;
-    if(P_star > P_R) q_R = sqrt( 1.0 + ( ( ( c_p/c_v ) + 1.0 )/( 2.0*( c_p/c_v ) ) )*( ( P_star/P_R ) - 1.0 ) );
+    if(P_star > P_R) q_R = sqrt( 1.0 + ( ( gamma + 1.0 )/( 2.0*gamma ) )*( ( P_star/P_R ) - 1.0 ) );
     S_L = u_L - a_L*q_L;
     S_R = u_R + a_R*q_R;
 

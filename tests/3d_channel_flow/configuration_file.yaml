@@ -8,10 +8,13 @@
 
 ##### FLUID PROPERTIES #####
 fluid_properties:
-   # Thermodynamic models: IDEAL_GAS
+   # Thermodynamic models: IDEAL_GAS (provide R_specific, gamma), STIFFENED_GAS (provide R_specific, gamma, P_inf, e_0, c_v)
    thermodynamic_model: 'IDEAL_GAS'			  		# Thermodynamic model
    R_specific: 287.058                 					# Specific gas constant [J/(kg·K)]
    gamma: 1.4                          					# Heat capacity ratio [-]
+   P_inf: 0.0                         					# Pressure infinity (liquid stiffness) [Pa]
+   e_0: 0.0                         					# Internal energy zero point [J/kg]
+   c_v: 0.0                         					# Specific isochoric heat capacity [J/(kg·K)]
    mu: 0.005555556                     					# Dynamic viscosity [Pa·s]
    kappa: 0.0                          					# Thermal conductivity [W/(m·k)]
 
