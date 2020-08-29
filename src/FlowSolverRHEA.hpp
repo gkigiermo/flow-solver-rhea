@@ -11,7 +11,7 @@
 #include <mpi.h>
 #include "yaml-cpp/yaml.h"
 #include "MacroParameters.hpp"
-#include "ThermodynamicModels.hpp"
+#include "ThermodynamicModel.hpp"
 #include "ComputationalDomain.hpp"
 #include "ParallelTopology.hpp"
 #include "DistributedArray.hpp"
