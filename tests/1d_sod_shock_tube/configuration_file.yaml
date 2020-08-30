@@ -8,13 +8,20 @@
 
 ##### FLUID PROPERTIES #####
 fluid_properties:
-   # Thermodynamic models: IDEAL_GAS (provide R_specific, gamma), STIFFENED_GAS (provide R_specific, gamma, P_inf, e_0, c_v)
+   # Thermodynamic models: IDEAL_GAS (provide R_specific, gamma), STIFFENED_GAS (provide R_specific, gamma, P_inf, e_0, c_v),
+   # PENG_ROBINSON (provide R_specific, molecular_weight, acentric_factor, critical temperature, critical pressure, critical molar volume, NASA 7-coefficient polynomial)
    thermodynamic_model: 'IDEAL_GAS'			  		# Thermodynamic model
    R_specific: 287.058                 					# Specific gas constant [J/(kg·K)]
    gamma: 1.4                          					# Heat capacity ratio [-]
    P_inf: 0.0                         					# Pressure infinity (liquid stiffness) [Pa]
    e_0: 0.0                         					# Internal energy zero point [J/kg]
    c_v: 0.0                         					# Specific isochoric heat capacity [J/(kg·K)]
+   molecular_weight: 0.0               					# Molecular weight [kg/mol]
+   acentric_factor: 0.0               					# Acentric factor [-]
+   critical_temperature: 0.0           					# Critical temperature [K]
+   critical_pressure: 0.0           					# Critical pressure [Pa]
+   critical_molar_volume: 0.0          					# Critical molar volume [m3/mol]
+   NASA_coefficients: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]	# NASA 7-coefficient polynomial (15 values)
    mu: 0.0                          					# Dynamic viscosity [Pa·s]
    kappa: 0.0                          					# Thermal conductivity [W/(m·k)]
 

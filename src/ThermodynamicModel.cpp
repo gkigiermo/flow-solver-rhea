@@ -76,6 +76,15 @@ void IdealGasModel::calculateSpecificHeatCapacities(double &c_v, double &c_p) {
 
 };
 
+double IdealGasModel::calculateHeatCapacitiesRatio() {
+
+    /// Ideal-gas model:
+    /// gamma = c_p/c_v
+
+    return( gamma );
+
+};
+
 double IdealGasModel::calculateSoundSpeed(const double &rho, const double &P, const double &T) {
 
     /// Ideal-gas model:
@@ -148,6 +157,15 @@ void StiffenedGasModel::calculateSpecificHeatCapacities(double &c_v_, double &c_
 
 };
 
+double StiffenedGasModel::calculateHeatCapacitiesRatio() {
+
+    /// Stiffened-gas model:
+    /// gamma = c_p/c_v
+
+    return( gamma );
+
+};
+
 double StiffenedGasModel::calculateSoundSpeed(const double &rho, const double &P, const double &T) {
 
     /// Stiffened-gas model:
@@ -169,6 +187,15 @@ PengRobinsonModel::PengRobinsonModel(const string configuration_file) : BaseTher
     /// Read configuration (input) file
     this->readConfigurationFile();
 
+    /// Calculate value of selected variables
+    eos_b  = 0.077796*( R_universal*critical_temperature/critical_pressure );
+    eos_ac = 0.457236*( pow( R_universal*critical_temperature, 2.0 )/critical_pressure );
+    if( acentric_factor > 0.49 ) {
+    	eos_kappa = 0.379642 + 1.48503*acentric_factor - 0.164423*pow( acentric_factor, 2.0 ) + 0.016666*pow( acentric_factor, 3.0 );
+    } else {
+	eos_kappa = 0.37464 + 1.54226*acentric_factor - 0.26992*pow( acentric_factor, 2.0 );
+    }
+
 };
 
 PengRobinsonModel::~PengRobinsonModel() {};
@@ -180,28 +207,38 @@ void PengRobinsonModel::readConfigurationFile() {
 
     /// Fluid properties
     const YAML::Node & fluid_properties = configuration["fluid_properties"];
-    R_specific = fluid_properties["R_specific"].as<double>();
+    R_specific            = fluid_properties["R_specific"].as<double>();
+    molecular_weight      = fluid_properties["molecular_weight"].as<double>();
+    acentric_factor       = fluid_properties["acentric_factor"].as<double>();
+    critical_temperature  = fluid_properties["critical_temperature"].as<double>();
+    critical_pressure     = fluid_properties["critical_pressure"].as<double>();
+    critical_molar_volume = fluid_properties["critical_molar_volume"].as<double>();
+    NASA_coefficients[0]  = fluid_properties["NASA_coefficients"][0].as<double>();
+    NASA_coefficients[1]  = fluid_properties["NASA_coefficients"][1].as<double>();
+    NASA_coefficients[2]  = fluid_properties["NASA_coefficients"][2].as<double>();
+    NASA_coefficients[3]  = fluid_properties["NASA_coefficients"][3].as<double>();
+    NASA_coefficients[4]  = fluid_properties["NASA_coefficients"][4].as<double>();
+    NASA_coefficients[5]  = fluid_properties["NASA_coefficients"][5].as<double>();
+    NASA_coefficients[6]  = fluid_properties["NASA_coefficients"][6].as<double>();
+    NASA_coefficients[7]  = fluid_properties["NASA_coefficients"][7].as<double>();
+    NASA_coefficients[8]  = fluid_properties["NASA_coefficients"][8].as<double>();
+    NASA_coefficients[9]  = fluid_properties["NASA_coefficients"][9].as<double>();
+    NASA_coefficients[10] = fluid_properties["NASA_coefficients"][10].as<double>();
+    NASA_coefficients[11] = fluid_properties["NASA_coefficients"][11].as<double>();
+    NASA_coefficients[12] = fluid_properties["NASA_coefficients"][12].as<double>();
+    NASA_coefficients[13] = fluid_properties["NASA_coefficients"][13].as<double>();
+    NASA_coefficients[14] = fluid_properties["NASA_coefficients"][14].as<double>();
 
 };
 
 void PengRobinsonModel::calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {
 
-    /// Peng-Robinson model:
-    /// D. Y. Peng, D. B. Robinson.
-    /// A new two-constant equation of state.
-    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
-    
     P = 1.0/0.0; 
     T = 1.0/0.0;
 
 };
 
 void PengRobinsonModel::calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T) {
-
-    /// Peng-Robinson model:
-    /// D. Y. Peng, D. B. Robinson.
-    /// A new two-constant equation of state.
-    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
 
     e   = 1.0/0.0;
     rho = 1.0/0.0;
@@ -210,25 +247,104 @@ void PengRobinsonModel::calculateDensityInternalEnergyFromPressureTemperature(do
 
 void PengRobinsonModel::calculateSpecificHeatCapacities(double &c_v, double &c_p) {
 
-    /// Peng-Robinson model:
-    /// D. Y. Peng, D. B. Robinson.
-    /// A new two-constant equation of state.
-    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
-
     c_v = 1.0/0.0;
     c_p = 1.0/0.0;
 
 };
 
-double PengRobinsonModel::calculateSoundSpeed(const double &rho, const double &P, const double &T) {
+double PengRobinsonModel::calculateHeatCapacitiesRatio() {
 
-    /// Peng-Robinson model:
-    /// D. Y. Peng, D. B. Robinson.
-    /// A new two-constant equation of state.
-    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+    double gamma = 1.0/0.0;
+
+    return( gamma );
+
+};
+
+double PengRobinsonModel::calculateSoundSpeed(const double &rho, const double &P, const double &T) {
 
     double sos = 1.0/0.0;
 
     return( sos );
 
 };
+
+double PengRobinsonModel::calculate_eos_a(const double &T) {
+
+    /// Peng-Robinson model:
+    /// D. Y. Peng, D. B. Robinson.
+    /// A new two-constant equation of state.
+    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+
+    double eos_a = 0.457236*( pow( R_universal*critical_temperature, 2.0 )/critical_pressure )*pow( 1.0 + eos_kappa*( 1.0 - sqrt( T/critical_temperature ) ), 2.0 );
+
+    return( eos_a );
+
+};
+
+double PengRobinsonModel::calculate_eos_a_first_derivative(const double &T) {
+   
+    /// Peng-Robinson model:
+    /// D. Y. Peng, D. B. Robinson.
+    /// A new two-constant equation of state.
+    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+ 
+    double eos_a_first_derivative = eos_kappa*eos_ac*( ( eos_kappa/critical_temperature ) - ( ( 1.0 + eos_kappa )/sqrt( T*critical_temperature ) ) );
+
+    return( eos_a_first_derivative );
+
+};
+
+double PengRobinsonModel::calculate_eos_a_second_derivative(const double &T) {
+
+    /// Peng-Robinson model:
+    /// D. Y. Peng, D. B. Robinson.
+    /// A new two-constant equation of state.
+    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+
+    double eos_a_second_derivative = ( eos_kappa*eos_ac*( 1.0 + eos_kappa ) )/( 2.0*sqrt( pow( T, 3.0 )*critical_temperature ) );
+
+    return( eos_a_second_derivative );
+
+};
+
+double PengRobinsonModel::calculate_Z(const double &P, const double &T, const double &v) {
+
+    double Z = ( P*v )/( R_universal*T );
+
+    return( Z );
+
+};
+
+double PengRobinsonModel::calculate_A(const double &P, const double &T) {
+
+    double eos_a = calculate_eos_a( T );
+
+    double A = ( eos_a*P )/pow( R_universal*T, 2.0 );
+
+    return( A );
+
+};
+
+double PengRobinsonModel::calculate_B(const double &P, const double &T) {
+
+    double B = ( eos_b*P )/( R_universal*T );
+
+    return( B );
+
+};
+
+double PengRobinsonModel::calculate_M(const double &Z, const double &B) {
+
+    double M = ( Z*Z + 2.0*B*Z - B*B )/( Z - B );
+
+    return( M );
+
+};
+
+double PengRobinsonModel::calculate_N(const double &eos_a_first_derivative, const double &B) {
+
+    double N = eos_a_first_derivative*( B/( eos_b*R_universal ) );
+
+    return( N );
+
+}; 

@@ -151,6 +151,11 @@ void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double>
 
 void NewtonRaphson::lubksb(vector< vector<double> > &a, vector<int> &indx, vector<double> &b) {
 
+    /// Newton-Raphson method using approximated derivatives:
+    /// W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery.
+    /// Numerical recipes in C++.
+    /// Cambridge University Press, 2001.
+
     int i,ii=0,ip,j;
     double sum;
 
@@ -175,6 +180,11 @@ void NewtonRaphson::lubksb(vector< vector<double> > &a, vector<int> &indx, vecto
 };
 
 void NewtonRaphson::ludcmp(vector< vector<double> > &a, vector<int> &indx, double &d) {
+
+    /// Newton-Raphson method using approximated derivatives:
+    /// W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery.
+    /// Numerical recipes in C++.
+    /// Cambridge University Press, 2001.
 
     const double TINY=1.0e-20;
     int i,imax,j,k;
@@ -227,6 +237,11 @@ void NewtonRaphson::ludcmp(vector< vector<double> > &a, vector<int> &indx, doubl
 };
 
 void NewtonRaphson::fdjac(vector<double> &x, vector< vector<double> > &df) {
+
+    /// Newton-Raphson method using approximated derivatives:
+    /// W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery.
+    /// Numerical recipes in C++.
+    /// Cambridge University Press, 2001.
 
     // Update fvec
     function_vector(x,fvec);
@@ -292,6 +307,11 @@ void NewtonRaphson::fdjac(vector<double> &x, vector< vector<double> > &df) {
 }
 
 double NewtonRaphson::fmin(vector<double> &x) {
+
+    /// Newton-Raphson method using approximated derivatives:
+    /// W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery.
+    /// Numerical recipes in C++.
+    /// Cambridge University Press, 2001.
 
     int i;
     double sum;

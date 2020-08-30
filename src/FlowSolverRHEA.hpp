@@ -165,7 +165,7 @@ class FlowSolverRHEA {
         double delta_t;		      				/// Time step [s]
         int current_time_iter;					/// Current time iteration
         int final_time_iter;					/// Final time iteration
-        int rk_order;						/// Order of Runge-Kutta method (fixed)
+        int rk_order = 3;					/// Order of Runge-Kutta method (fixed)
 
         /// Local mesh values for I1D macro
         int _lNx_;

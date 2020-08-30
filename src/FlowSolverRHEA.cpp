@@ -17,7 +17,6 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     this->readConfigurationFile();
 	
     /// Set value of selected variables
-    rk_order = 3;		/// Runge-Kutta order (fixed value)
     current_time = 0.0;		/// Current time (restart will overwrite it)
     current_time_iter = 0;	/// Current time iteration (restart will overwrite it)
 
@@ -884,9 +883,7 @@ void FlowSolverRHEA::calculateWavesSpeed(double &S_L, double &S_R, const double 
     /// Riemann solvers and numerical methods for fluid dynamics.
     /// Springer, 2009.
 
-    double c_v, c_p;
-    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p );
-    double gamma = c_p/c_v;
+    double gamma = thermodynamics->calculateHeatCapacitiesRatio();
 
     double rho_bar = 0.5*( rho_L + rho_R );
     double a_bar   = 0.5*( a_L + a_R );
