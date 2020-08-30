@@ -12,7 +12,7 @@ fluid_properties:
    # PENG_ROBINSON (provide R_specific, molecular_weight, acentric_factor, critical temperature, critical pressure, critical molar volume, NASA 7-coefficient polynomial)
    thermodynamic_model: 'IDEAL_GAS'			  		# Thermodynamic model
    R_specific: 287.058                 					# Specific gas constant [J/(kg·K)]
-   gamma: 1.4                          					# Heat capacity ratio [-]
+   gamma: 1.4                          					# Heat capacity ratio (ideal-gas) [-]
    P_inf: 0.0                         					# Pressure infinity (liquid stiffness) [Pa]
    e_0: 0.0                         					# Internal energy zero point [J/kg]
    c_v: 0.0                         					# Specific isochoric heat capacity [J/(kg·K)]

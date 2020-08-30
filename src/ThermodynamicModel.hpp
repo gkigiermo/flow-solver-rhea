@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
+#include <mpi.h>
 #include "yaml-cpp/yaml.h"
 #include "RootFindingMinimization.hpp"
 
@@ -48,13 +49,13 @@ class BaseThermodynamicModel {
         virtual void calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T) {};
 
         /// Calculate specific heat capacities
-        virtual void calculateSpecificHeatCapacities(double &c_v, double &c_p) {};
+        virtual void calculateSpecificHeatCapacities(double &c_v, double &c_p, const double &P, const double &T, const double &rho) {};
 
         /// Calculate heat capacities ratio
-        virtual double calculateHeatCapacitiesRatio() = 0;
+        virtual double calculateHeatCapacitiesRatio(const double &P, const double &rho) = 0;
 
         /// Calculate speed of sound
-        virtual double calculateSoundSpeed(const double &rho, const double &P, const double &T) = 0;
+        virtual double calculateSoundSpeed(const double &P, const double &T, const double &rho) = 0;
 
     protected:
 
@@ -98,20 +99,20 @@ class IdealGasModel : public BaseThermodynamicModel {
         void calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T);
 
         /// Calculate specific heat capacities
-        void calculateSpecificHeatCapacities(double &c_v, double &c_p);
+        void calculateSpecificHeatCapacities(double &c_v, double &c_p, const double &P, const double &T, const double &rho);
 
         /// Calculate heat capacities ratio
-        virtual double calculateHeatCapacitiesRatio();
+        virtual double calculateHeatCapacitiesRatio(const double &P, const double &rho);
 
         /// Calculate speed of sound
-        double calculateSoundSpeed(const double &rho, const double &P, const double &T);
+        double calculateSoundSpeed(const double &P, const double &T, const double &rho);
 
     protected:
 
         ////////// PARAMETERS //////////
 
         /// Thermodynamic properties
-        double gamma;						/// Heat capacities ratio [-]
+        double gamma;						/// Heat capacities ratio (ideal-gas) [-]
 
     private:
 
@@ -144,13 +145,13 @@ class StiffenedGasModel : public BaseThermodynamicModel {
         void calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T);
 
         /// Calculate specific heat capacities
-        void calculateSpecificHeatCapacities(double &c_v_, double &c_p);
+        void calculateSpecificHeatCapacities(double &c_v_, double &c_p, const double &P, const double &T, const double &rho);
 
         /// Calculate heat capacities ratio
-        virtual double calculateHeatCapacitiesRatio();
+        virtual double calculateHeatCapacitiesRatio(const double &P, const double &rho);
 
         /// Calculate speed of sound
-        double calculateSoundSpeed(const double &rho, const double &P, const double &T);
+        double calculateSoundSpeed(const double &P, const double &T, const double &rho);
 
     protected:
 
@@ -193,13 +194,13 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         void calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T);
 
         /// Calculate specific heat capacities
-        void calculateSpecificHeatCapacities(double &c_v, double &c_p);
+        void calculateSpecificHeatCapacities(double &c_v, double &c_p, const double &P, const double &T, const double &rho);
 
         /// Calculate heat capacities ratio
-        virtual double calculateHeatCapacitiesRatio();
+        virtual double calculateHeatCapacitiesRatio(const double &P, const double &rho);
 
         /// Calculate speed of sound
-        double calculateSoundSpeed(const double &rho, const double &P, const double &T);
+        double calculateSoundSpeed(const double &P, const double &T, const double &rho);
 
         /// Calculate attractive-forces a coefficient
         double calculate_eos_a(const double &T);
@@ -219,6 +220,27 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         double calculate_M(const double &Z, const double &B);
         double calculate_N(const double &eos_a_first_derivative, const double &B);
 
+        /// Calculate standard thermodynamic variables from NASA 7-coefficient polynomial
+        double calculateMolarStdCpFromNASApolynomials(const double &T);
+        double calculateMolarStdEnthalpyFromNASApolynomials(const double &T);
+
+        /// Calculate high-pressure departure functions
+        double calculateDepartureFunctionMolarCp(const double &P, const double &T, const double &v);
+        double calculateDepartureFunctionMolarCv(const double &P, const double &T, const double &v);
+        double calculateDepartureFunctionMolarEnthalpy(const double &P, const double &T, const double &v);
+
+        /// Calculate temperature from pressure and molar volume
+        double calculateTemperatureFromPressureMolarVolume(const double &P, const double &v);
+
+        /// Calculate thermodynamic derivatives
+        double calculateDPDTConstantMolarVolume(const double &T, const double &v);
+        double calculateDPDvConstantTemperature(const double &T, const double &v);
+
+        /// Calculate expansivity & compressibility
+        double calculateExpansivity(const double &T, const double &v);
+        double calculateIsothermalCompressibility(const double &T, const double &v);
+        double calculateIsentropicCompressibility(const double &P, const double &T, const double &v);
+
     protected:
 
         ////////// PARAMETERS //////////
@@ -232,13 +254,16 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         double critical_molar_volume;				/// Critical molar volume [m3/mol]
         double NASA_coefficients[15];				/// NASA 7-coefficient polynomial
 
-        /// Equation of state (EoS) properties
+        /// Equation of state (EoS) parameters
         double eos_d1 = 2.0;					/// EoS constant coefficient (fixed)
         double eos_d2 = -1.0;					/// EoS constant coefficient (fixed)
         //double eos_a;						/// EoS attractive-forces coefficient
         double eos_b;						/// EoS finite-pack-volume coefficient
         double eos_ac, eos_kappa;				/// EoS dimensionless parameters
 
+        /// Aitken's delta-squared process parameters
+        int max_aitken_iter              = 100;			/// Maximum number of iterations
+        double aitken_relative_tolerance = 1.0e-5;		/// Relative tolerance
 
     private:
 

@@ -65,7 +65,7 @@ void IdealGasModel::calculateDensityInternalEnergyFromPressureTemperature(double
 
 };
 
-void IdealGasModel::calculateSpecificHeatCapacities(double &c_v, double &c_p) {
+void IdealGasModel::calculateSpecificHeatCapacities(double &c_v, double &c_p, const double &P, const double &T, const double &rho) {
 
     /// Ideal-gas model:
     /// c_v = R_specific/(gamma - 1)
@@ -76,7 +76,7 @@ void IdealGasModel::calculateSpecificHeatCapacities(double &c_v, double &c_p) {
 
 };
 
-double IdealGasModel::calculateHeatCapacitiesRatio() {
+double IdealGasModel::calculateHeatCapacitiesRatio(const double &P, const double &rho) {
 
     /// Ideal-gas model:
     /// gamma = c_p/c_v
@@ -85,7 +85,7 @@ double IdealGasModel::calculateHeatCapacitiesRatio() {
 
 };
 
-double IdealGasModel::calculateSoundSpeed(const double &rho, const double &P, const double &T) {
+double IdealGasModel::calculateSoundSpeed(const double &P, const double &T, const double &rho) {
 
     /// Ideal-gas model:
     /// sos = sqrt(gamma*P/rho) is speed of sound
@@ -147,7 +147,7 @@ void StiffenedGasModel::calculateDensityInternalEnergyFromPressureTemperature(do
 
 };
 
-void StiffenedGasModel::calculateSpecificHeatCapacities(double &c_v_, double &c_p) {
+void StiffenedGasModel::calculateSpecificHeatCapacities(double &c_v_, double &c_p, const double &P, const double &T, const double &rho) {
 
     /// Stiffened-gas model:
     /// c_p = c_v*gamma
@@ -157,7 +157,7 @@ void StiffenedGasModel::calculateSpecificHeatCapacities(double &c_v_, double &c_
 
 };
 
-double StiffenedGasModel::calculateHeatCapacitiesRatio() {
+double StiffenedGasModel::calculateHeatCapacitiesRatio(const double &P, const double &rho) {
 
     /// Stiffened-gas model:
     /// gamma = c_p/c_v
@@ -166,7 +166,7 @@ double StiffenedGasModel::calculateHeatCapacitiesRatio() {
 
 };
 
-double StiffenedGasModel::calculateSoundSpeed(const double &rho, const double &P, const double &T) {
+double StiffenedGasModel::calculateSoundSpeed(const double &P, const double &T, const double &rho) {
 
     /// Stiffened-gas model:
     /// sos = sqrt(gamma*(P+P_inf)/rho) is speed of sound
@@ -245,24 +245,38 @@ void PengRobinsonModel::calculateDensityInternalEnergyFromPressureTemperature(do
 
 };
 
-void PengRobinsonModel::calculateSpecificHeatCapacities(double &c_v, double &c_p) {
+void PengRobinsonModel::calculateSpecificHeatCapacities(double &c_v, double &c_p, const double &P, const double &T, const double &rho) {
 
-    c_v = 1.0/0.0;
-    c_p = 1.0/0.0;
+    double v           = molecular_weight/rho;
+    double std_bar_c_p = this->calculateMolarStdCpFromNASApolynomials( T );
+    double std_bar_c_v = std_bar_c_p - R_universal;
+
+    c_v = ( 1.0/molecular_weight )*( std_bar_c_v + this->calculateDepartureFunctionMolarCv( P, T, v ) );
+    c_p = ( 1.0/molecular_weight )*( std_bar_c_p + this->calculateDepartureFunctionMolarCp( P, T, v ) );
 
 };
 
-double PengRobinsonModel::calculateHeatCapacitiesRatio() {
+double PengRobinsonModel::calculateHeatCapacitiesRatio(const double &P, const double &rho) {
 
-    double gamma = 1.0/0.0;
+    double v           = molecular_weight/rho;
+    double T           = this->calculateTemperatureFromPressureMolarVolume( P, v );
+    double std_bar_c_p = this->calculateMolarStdCpFromNASApolynomials( T );
+    double std_bar_c_v = std_bar_c_p - R_universal;
+
+    double c_v = ( 1.0/molecular_weight )*( std_bar_c_v + this->calculateDepartureFunctionMolarCv( P, T, v ) );
+    double c_p = ( 1.0/molecular_weight )*( std_bar_c_p + this->calculateDepartureFunctionMolarCp( P, T, v ) );
+
+    double gamma = c_p/c_v;
 
     return( gamma );
 
 };
 
-double PengRobinsonModel::calculateSoundSpeed(const double &rho, const double &P, const double &T) {
+double PengRobinsonModel::calculateSoundSpeed(const double &P, const double &T, const double &rho) {
 
-    double sos = 1.0/0.0;
+    double v = molecular_weight/rho;
+
+    double sos = sqrt( 1.0/( rho*this->calculateIsentropicCompressibility( P, T, v ) ) );
 
     return( sos );
 
@@ -347,4 +361,199 @@ double PengRobinsonModel::calculate_N(const double &eos_a_first_derivative, cons
 
     return( N );
 
-}; 
+};
+
+double PengRobinsonModel::calculateMolarStdCpFromNASApolynomials(const double &T) {
+
+    double std_bar_c_p = 0.0;
+
+    if( ( T >= 200.0 ) && ( T < 1000.0 ) ) {
+        std_bar_c_p = R_universal*( NASA_coefficients[7] + NASA_coefficients[8]*T + NASA_coefficients[9]*pow( T, 2.0 ) + NASA_coefficients[10]*pow( T, 3.0 ) + NASA_coefficients[11]*pow( T, 4.0 ) );
+    } else if( ( T >= 1000.0 ) && ( T < 6000.0 ) ) {
+        std_bar_c_p = R_universal*( NASA_coefficients[0] + NASA_coefficients[1]*T + NASA_coefficients[2]*pow( T, 2.0 ) + NASA_coefficients[3]*pow( T, 3.0 ) + NASA_coefficients[4]*pow( T, 4.0 ) );
+    } else if ( T < 200 ) {
+        // Assume constant temperature below T = 200 K	    
+        double T_min = 200.0;	    
+        
+        std_bar_c_p = R_universal*( NASA_coefficients[7] + NASA_coefficients[8]*T_min + NASA_coefficients[9]*pow( T_min, 2.0 ) + NASA_coefficients[10]*pow( T_min, 3.0 ) + NASA_coefficients[11]*pow( T_min, 4.0 ) );
+    } else {
+        cout << endl << "NASA 7-coefficient polynomials for std bar c_p. T = " << T << " is above 6000 K." << endl << endl;
+        MPI_Abort( MPI_COMM_WORLD, 1 );
+    }
+
+    return( std_bar_c_p );
+
+};
+
+double PengRobinsonModel::calculateMolarStdEnthalpyFromNASApolynomials(const double &T) {
+
+    double std_bar_h = 0.0;
+
+    if( (T >= 200.0 ) && ( T < 1000.0 ) ) {
+	//std_bar_h = R_universal*T*( NASA_coefficients[7] + NASA_coefficients[8]*T/2.0 + NASA_coefficients[9]*pow( T, 2.0 )/3.0 + NASA_coefficients[10]*pow( T, 3.0 )/4.0 + NASA_coefficients[11]*pow( T, 4.0 )/5.0 + NASA_coefficients[12]/T) - R_universal*NASA_coefficients[14];
+	std_bar_h = R_universal*T*( NASA_coefficients[7] + NASA_coefficients[8]*T/2.0 + NASA_coefficients[9]*pow( T, 2.0 )/3.0 + NASA_coefficients[10]*pow( T, 3.0 )/4.0 + NASA_coefficients[11]*pow( T, 4.0 )/5.0 + NASA_coefficients[12]/T );
+    } else if( ( T >= 1000.0 ) && ( T < 6000.0 ) ) {
+	//std_bar_h = R_universal*T*( NASA_coefficients[0] + NASA_coefficients[1]*T/2.0 + NASA_coefficients[2]*pow( T, 2.0 )/3.0 + NASA_coefficients[3]*pow( T, 3.0 )/4.0 + NASA_coefficients[4]*pow( T, 4.0 )/5.0 + NASA_coefficients[5]/T ) - R_universal*NASA_coefficients[14];
+	std_bar_h = R_universal*T*( NASA_coefficients[0] + NASA_coefficients[1]*T/2.0 + NASA_coefficients[2]*pow( T, 2.0 )/3.0 + NASA_coefficients[3]*pow( T, 3.0 )/4.0 + NASA_coefficients[4]*pow( T, 4.0 )/5.0 + NASA_coefficients[5]/T );
+    } else if( T < 200.0 ) {
+	// Assume linear interpolation from T = 200 K 
+        double T_min = 200.0;
+	    
+	//double std_bar_h_min   = R_universal*T_min*( NASA_coefficients[7] + NASA_coefficients[8]*T_min/2.0 + NASA_coefficients[9]*pow( T_min, 2.0 )/3.0 + NASA_coefficients[10]*pow( T_min, 3.0 )/4.0 + NASA_coefficients[11]*pow( T_min, 4.0 )/5.0 + NASA_coefficients[12]/T_min ) - R_universal*NASA_coefficients[14];
+	double std_bar_h_min   = R_universal*T_min*( NASA_coefficients[7] + NASA_coefficients[8]*T_min/2.0 + NASA_coefficients[9]*pow( T_min, 2.0 )/3.0 + NASA_coefficients[10]*pow( T_min, 3.0 )/4.0 + NASA_coefficients[11]*pow( T_min, 4.0 )/5.0 + NASA_coefficients[12]/T_min );
+	double std_bar_h_slope = R_universal*( NASA_coefficients[7] + NASA_coefficients[8]*T_min + NASA_coefficients[9]*pow( T_min, 2.0 ) + NASA_coefficients[10]*pow( T_min, 3.0 ) + NASA_coefficients[11]*pow( T_min, 4.0 ) );
+
+	std_bar_h = std_bar_h_min + std_bar_h_slope*( T - T_min );
+    } else {
+	cout << endl << "NASA 7-coefficient polynomials for std bar h. T = " << T << " is above 6000 K." << endl << endl;
+        MPI_Abort( MPI_COMM_WORLD, 1 );
+    }
+
+    return( std_bar_h );
+
+};
+
+double PengRobinsonModel::calculateDepartureFunctionMolarCp(const double &P, const double &T, const double &v) {
+
+    /// Peng-Robinson model:
+    /// D. Y. Peng, D. B. Robinson.
+    /// A new two-constant equation of state.
+    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+
+    double eos_a_first_derivative  = this->calculate_eos_a_first_derivative( T );
+    double eos_a_second_derivative = this->calculate_eos_a_second_derivative( T );
+    double Z                       = this->calculate_Z( P, T, v );
+    double A                       = this->calculate_A( P, T );
+    double B                       = this->calculate_B( P, T );
+    double M                       = this->calculate_M( Z, B );
+    double N                       = this->calculate_N( eos_a_first_derivative, B );
+
+    double Delta_bar_c_p = ( ( R_universal*pow( M - N ,2.0 ) )/( pow( M, 2.0 ) - 2.0*A*( Z + B ) ) ) - ( ( T*eos_a_second_derivative )/( 2.0*sqrt(2.0)*eos_b ) )*log( ( Z + ( 1.0 - sqrt( 2.0 ) )*B )/( Z + ( 1.0 + sqrt( 2.0 ) )*B ) ) - R_universal; 
+
+    return( Delta_bar_c_p );
+  
+};
+
+double PengRobinsonModel::calculateDepartureFunctionMolarCv(const double &P, const double &T, const double &v) {
+
+    /// Peng-Robinson model:
+    /// D. Y. Peng, D. B. Robinson.
+    /// A new two-constant equation of state.
+    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+
+    double eos_a_second_derivative = this->calculate_eos_a_second_derivative( T );
+    double Z                       = this->calculate_Z( P, T, v );
+    double B                       = this->calculate_B( P, T );
+
+    double Delta_bar_c_v = ( -1.0 )*( ( T*eos_a_second_derivative )/( 2.0*sqrt( 2.0 )*eos_b ) )*log( ( Z + ( 1.0 - sqrt( 2.0 ) )*B )/( Z + ( 1.0 + sqrt( 2.0 ) )*B ) );
+
+    return( Delta_bar_c_v );
+  
+  };
+
+double PengRobinsonModel::calculateDepartureFunctionMolarEnthalpy(const double &P, const double &T, const double &v) {
+
+    /// Peng-Robinson model:
+    /// D. Y. Peng, D. B. Robinson.
+    /// A new two-constant equation of state.
+    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+
+    double eos_a                  = this->calculate_eos_a( T );
+    double eos_a_first_derivative = this->calculate_eos_a_first_derivative( T );
+    double Z                      = this->calculate_Z( P, T, v );
+    double B                      = this->calculate_B( P, T );
+
+    double Delta_bar_h = R_universal*T*( Z - 1.0 ) + ( ( eos_a - eos_a_first_derivative*T )/( 2.0*sqrt( 2.0 )*eos_b ) )*log( ( Z + ( 1.0 - sqrt( 2.0 ) )*B )/( Z + ( 1.0 + sqrt( 2.0 ) )*B ) );
+
+    return( Delta_bar_h );
+  
+};
+
+double PengRobinsonModel::calculateTemperatureFromPressureMolarVolume(const double &P, const double &v) {
+
+    /// Numerical Recipes in C++, Second Edition.
+    /// W.H. Press, S.A. Teulosky, W.T. Vetterling, B.P. Flannery.
+    /// 5.1 Series and Their Convergence: Aitken’s delta-squared process.
+
+    // Initial temperature guess using ideal-gas model
+    double T = P*v/R_universal;
+
+    /// Aitken’s delta-squared process:
+    double x_0 = T, x_1, x_2, denominator;
+    for(int iter = 0; iter < max_aitken_iter; iter++) { 
+        x_1 = ( (v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_0 )/( pow( v, 2.0 ) + 2.0*eos_b*v - pow( eos_b, 2.0 ) ) ) );
+        x_2 = ( (v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_1 )/( pow( v, 2.0 ) + 2.0*eos_b*v - pow( eos_b, 2.0 ) ) ) );
+
+        denominator = x_2 - 2.0*x_1 + x_0;
+        T = x_2 - ( pow( x_2 - x_1, 2.0 ) )/denominator;
+    
+        if( abs( ( T - x_2 )/ T ) < aitken_relative_tolerance ) break;	/// If the result is within tolerance, leave the loop!
+        x_0 = T;							/// Otherwise, update x_0 to iterate again ...                 
+    }
+
+    return( T );
+
+};
+
+double PengRobinsonModel::calculateDPDTConstantMolarVolume(const double &T, const double &v) {
+
+    /// Peng-Robinson model:
+    /// D. Y. Peng, D. B. Robinson.
+    /// A new two-constant equation of state.
+    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+
+    double eos_a_first_derivative = this->calculate_eos_a_first_derivative( T );
+
+    double dP_dT_const_v = ( R_universal/( v - eos_b ) ) - ( eos_a_first_derivative/( v*v + 2.0*v*eos_b - eos_b*eos_b ) );
+
+    return( dP_dT_const_v );
+  
+};
+
+double PengRobinsonModel::calculateDPDvConstantTemperature(const double &T, const double &v) {
+
+    /// Peng-Robinson model:
+    /// D. Y. Peng, D. B. Robinson.
+    /// A new two-constant equation of state.
+    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+
+    double eos_a = this->calculate_eos_a( T );
+    
+    double dP_dv_const_T = ( -1.0 )*( ( R_universal*T )/pow( v - eos_b, 2.0 ) ) + ( eos_a*( 2.0*v + 2.0*eos_b ) )/pow( pow( v, 2.0 ) + 2.0*v*eos_b - pow( eos_b, 2.0 ), 2.0 );
+
+    return( dP_dv_const_T );
+  
+};  
+
+double PengRobinsonModel::calculateExpansivity(const double &T, const double &v) {
+
+    double dP_dT_const_v = this->calculateDPDTConstantMolarVolume( T, v );
+    double dP_dv_const_T = this->calculateDPDvConstantTemperature( T, v );
+
+    double expansivity = ( -1.0 )*( dP_dT_const_v/( v*dP_dv_const_T ) );
+
+    return( expansivity );
+  
+};
+
+double PengRobinsonModel::calculateIsothermalCompressibility(const double &T, const double &v) {
+
+    double dP_dv_const_T = this->calculateDPDvConstantTemperature( T, v );
+
+    double isothermal_compressibility = ( -1.0 )/( v*dP_dv_const_T );
+
+    return( isothermal_compressibility );
+  
+};  
+
+double PengRobinsonModel::calculateIsentropicCompressibility(const double &P, const double &T, const double &v) {
+
+    double isothermal_compressibility = this->calculateIsothermalCompressibility( T, v );
+    double expansivity                = this->calculateExpansivity( T, v );
+    double bar_c_p                    = this->calculateMolarStdCpFromNASApolynomials( T ) + this->calculateDepartureFunctionMolarCp( P, T, v );
+      
+    double isentropic_compressibility = ( isothermal_compressibility - ( ( v*T*pow( expansivity, 2.0 ) )/bar_c_p ) );
+    
+    return( isentropic_compressibility );
+  
+};

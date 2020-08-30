@@ -409,7 +409,7 @@ void FlowSolverRHEA::initializeThermodynamics() {
                 rho_field[I1D(i,j,k)] = rho;
                 ke                    = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) );
                 E_field[I1D(i,j,k)]   = e + ke;
-                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( rho_field[I1D(i,j,k)], P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
+                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
             }
         }
     }
@@ -477,7 +477,7 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
                 thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P, T, rho_field[I1D(i,j,k)], e );
                 P_field[I1D(i,j,k)]   = P; 
                 T_field[I1D(i,j,k)]   = T; 
-                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( rho_field[I1D(i,j,k)], P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
+                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
             }
         }
     }
@@ -798,7 +798,7 @@ void FlowSolverRHEA::calculateTimeStep() {
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p );
+                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
                 /// Prandtl (Pr) number
                 Pr = c_p/c_v;
                 if(kappa_field[I1D(i,j,k)] > epsilon) Pr = c_p*mu_field[I1D(i,j,k)]/kappa_field[I1D(i,j,k)];
@@ -883,9 +883,9 @@ void FlowSolverRHEA::calculateWavesSpeed(double &S_L, double &S_R, const double 
     /// Riemann solvers and numerical methods for fluid dynamics.
     /// Springer, 2009.
 
-    double gamma = thermodynamics->calculateHeatCapacitiesRatio();
-
+    double P_bar   = 0.5*( P_L + P_R );
     double rho_bar = 0.5*( rho_L + rho_R );
+    double gamma   = thermodynamics->calculateHeatCapacitiesRatio( P_bar, rho_bar );	// !!This has to be checked for PENG_ROBINSON!!
     double a_bar   = 0.5*( a_L + a_R );
     double P_pvrs  = 0.5*( P_L + P_R ) - 0.5*( u_R - u_L )*rho_bar*a_bar;
     double P_star  = max( 0.0, P_pvrs );
