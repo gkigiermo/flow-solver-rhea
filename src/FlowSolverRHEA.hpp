@@ -263,7 +263,7 @@ class FlowSolverRHEA {
         DistributedArray f_rhoE_field;				/// 3-D field of rhoE
 
 	////////// THERMODYNAMIC MODEL, COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER & PARALLEL TIMER //////////
-        BaseThermodynamicModel *thermodynamics;		/// Thermodynamic model
+        BaseThermodynamicModel *thermodynamics;			/// Thermodynamic model
         ComputationalDomain *mesh;				/// Computational domain
         ParallelTopology *topo;					/// Parallel topology
         ManagerHDF5 *writer_reader;				/// HDF5 data writer/reader

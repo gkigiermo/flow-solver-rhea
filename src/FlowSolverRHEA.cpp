@@ -26,6 +26,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
         thermodynamics = new IdealGasModel(configuration_file);
     } else if( thermodynamic_model == "STIFFENED_GAS" ) {
         thermodynamics = new StiffenedGasModel(configuration_file);
+    } else if( thermodynamic_model == "PENG_ROBINSON" ) {
+        thermodynamics = new PengRobinsonModel(configuration_file);
     } else {
         cout << "Thermodynamic model not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -404,11 +406,11 @@ void FlowSolverRHEA::initializeThermodynamics() {
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                thermodynamics->calculatePointDensityInternalEnergyFromPressureTemperature( rho, e, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
+                thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho, e, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
                 rho_field[I1D(i,j,k)] = rho;
                 ke                    = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) );
                 E_field[I1D(i,j,k)]   = e + ke;
-                sos_field[I1D(i,j,k)] = thermodynamics->calculatePointSoundSpeed( rho_field[I1D(i,j,k)], P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
+                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( rho_field[I1D(i,j,k)], P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
             }
         }
     }
@@ -473,10 +475,10 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 ke                    = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
                 e                     = E_field[I1D(i,j,k)] - ke;
-                thermodynamics->calculatePointPressureTemperatureFromDensityInternalEnergy( P, T, rho_field[I1D(i,j,k)], e );
+                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P, T, rho_field[I1D(i,j,k)], e );
                 P_field[I1D(i,j,k)]   = P; 
                 T_field[I1D(i,j,k)]   = T; 
-                sos_field[I1D(i,j,k)] = thermodynamics->calculatePointSoundSpeed( rho_field[I1D(i,j,k)], P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
+                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( rho_field[I1D(i,j,k)], P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
             }
         }
     }
@@ -526,10 +528,10 @@ void FlowSolverRHEA::updateBoundaries() {
                 u_g = ( bocos_u[_WEST_] - wg_in*u_in )/wg_g;
                 v_g = ( bocos_v[_WEST_] - wg_in*v_in )/wg_g;
                 w_g = ( bocos_w[_WEST_] - wg_in*w_in )/wg_g;
-                thermodynamics->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
+                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
                 P_g = ( bocos_P[_WEST_] - wg_in*P_in )/wg_g;
                 T_g = ( bocos_T[_WEST_] - wg_in*T_in )/wg_g;
-                thermodynamics->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
 		/// Update ghost conserved variables
@@ -566,10 +568,10 @@ void FlowSolverRHEA::updateBoundaries() {
                 u_g = ( bocos_u[_EAST_] - wg_in*u_in )/wg_g;
                 v_g = ( bocos_v[_EAST_] - wg_in*v_in )/wg_g;
                 w_g = ( bocos_w[_EAST_] - wg_in*w_in )/wg_g;
-                thermodynamics->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
+                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
                 P_g = ( bocos_P[_EAST_] - wg_in*P_in )/wg_g;
                 T_g = ( bocos_T[_EAST_] - wg_in*T_in )/wg_g; 
-                thermodynamics->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
 		/// Update ghost conserved variables
@@ -606,10 +608,10 @@ void FlowSolverRHEA::updateBoundaries() {
                 u_g = ( bocos_u[_SOUTH_] - wg_in*u_in )/wg_g;
                 v_g = ( bocos_v[_SOUTH_] - wg_in*v_in )/wg_g;
                 w_g = ( bocos_w[_SOUTH_] - wg_in*w_in )/wg_g;
-                thermodynamics->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
+                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
                 P_g = ( bocos_P[_SOUTH_] - wg_in*P_in )/wg_g;
                 T_g = ( bocos_T[_SOUTH_] - wg_in*T_in )/wg_g;
-                thermodynamics->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
 		/// Update ghost conserved variables
@@ -646,10 +648,10 @@ void FlowSolverRHEA::updateBoundaries() {
                 u_g = ( bocos_u[_NORTH_] - wg_in*u_in )/wg_g;
                 v_g = ( bocos_v[_NORTH_] - wg_in*v_in )/wg_g;
                 w_g = ( bocos_w[_NORTH_] - wg_in*w_in )/wg_g;
-                thermodynamics->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
+                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
                 P_g = ( bocos_P[_NORTH_] - wg_in*P_in )/wg_g;
                 T_g = ( bocos_T[_NORTH_] - wg_in*T_in )/wg_g; 
-                thermodynamics->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
 		/// Update ghost conserved variables
@@ -686,10 +688,10 @@ void FlowSolverRHEA::updateBoundaries() {
                 u_g = ( bocos_u[_BACK_] - wg_in*u_in )/wg_g;
                 v_g = ( bocos_v[_BACK_] - wg_in*v_in )/wg_g;
                 w_g = ( bocos_w[_BACK_] - wg_in*w_in )/wg_g;
-                thermodynamics->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
+                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
                 P_g = ( bocos_P[_BACK_] - wg_in*P_in )/wg_g;
                 T_g = ( bocos_T[_BACK_] - wg_in*T_in )/wg_g; 
-                thermodynamics->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
 		/// Update ghost conserved variables
@@ -726,10 +728,10 @@ void FlowSolverRHEA::updateBoundaries() {
                 u_g = ( bocos_u[_FRONT_] - wg_in*u_in )/wg_g;
                 v_g = ( bocos_v[_FRONT_] - wg_in*v_in )/wg_g;
                 w_g = ( bocos_w[_FRONT_] - wg_in*w_in )/wg_g;
-                thermodynamics->calculatePointPressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
+                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
                 P_g = ( bocos_P[_FRONT_] - wg_in*P_in )/wg_g;
                 T_g = ( bocos_T[_FRONT_] - wg_in*T_in )/wg_g; 
-                thermodynamics->calculatePointDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
 		/// Update ghost conserved variables
@@ -797,7 +799,7 @@ void FlowSolverRHEA::calculateTimeStep() {
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                thermodynamics->calculatePointSpecificHeatCapacities( c_v, c_p );
+                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p );
                 /// Prandtl (Pr) number
                 Pr = c_p/c_v;
                 if(kappa_field[I1D(i,j,k)] > epsilon) Pr = c_p*mu_field[I1D(i,j,k)]/kappa_field[I1D(i,j,k)];
@@ -883,7 +885,7 @@ void FlowSolverRHEA::calculateWavesSpeed(double &S_L, double &S_R, const double 
     /// Springer, 2009.
 
     double c_v, c_p;
-    thermodynamics->calculatePointSpecificHeatCapacities( c_v, c_p );
+    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p );
     double gamma = c_p/c_v;
 
     double rho_bar = 0.5*( rho_L + rho_R );

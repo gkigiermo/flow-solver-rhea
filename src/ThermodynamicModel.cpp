@@ -39,7 +39,7 @@ void IdealGasModel::readConfigurationFile() {
 
 };
 
-void IdealGasModel::calculatePointPressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {
+void IdealGasModel::calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {
 
     /// Ideal-gas model:
     /// P = e*rho*(gamma - 1) is pressure
@@ -52,7 +52,7 @@ void IdealGasModel::calculatePointPressureTemperatureFromDensityInternalEnergy(d
 
 };
 
-void IdealGasModel::calculatePointDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T) {
+void IdealGasModel::calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T) {
 
     /// Ideal-gas model:
     /// rho = P/( e*( gamma - 1.0 ) ) is density
@@ -65,7 +65,7 @@ void IdealGasModel::calculatePointDensityInternalEnergyFromPressureTemperature(d
 
 };
 
-void IdealGasModel::calculatePointSpecificHeatCapacities(double &c_v, double &c_p) {
+void IdealGasModel::calculateSpecificHeatCapacities(double &c_v, double &c_p) {
 
     /// Ideal-gas model:
     /// c_v = R_specific/(gamma - 1)
@@ -76,7 +76,7 @@ void IdealGasModel::calculatePointSpecificHeatCapacities(double &c_v, double &c_
 
 };
 
-double IdealGasModel::calculatePointSoundSpeed(const double &rho, const double &P, const double &T) {
+double IdealGasModel::calculateSoundSpeed(const double &rho, const double &P, const double &T) {
 
     /// Ideal-gas model:
     /// sos = sqrt(gamma*P/rho) is speed of sound
@@ -116,7 +116,7 @@ void StiffenedGasModel::readConfigurationFile() {
 
 };
 
-void StiffenedGasModel::calculatePointPressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {
+void StiffenedGasModel::calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {
 
     /// Stiffened-gas model:
     /// P = (e - e_0)*rho*(gamma - 1) - gamma*P_inf is pressure
@@ -127,7 +127,7 @@ void StiffenedGasModel::calculatePointPressureTemperatureFromDensityInternalEner
 
 };
 
-void StiffenedGasModel::calculatePointDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T) {
+void StiffenedGasModel::calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T) {
 
     /// Stiffened-gas model:
     /// rho = P_inf/(e - e_0 - c_v*T) is density
@@ -138,7 +138,7 @@ void StiffenedGasModel::calculatePointDensityInternalEnergyFromPressureTemperatu
 
 };
 
-void StiffenedGasModel::calculatePointSpecificHeatCapacities(double &c_v_, double &c_p) {
+void StiffenedGasModel::calculateSpecificHeatCapacities(double &c_v_, double &c_p) {
 
     /// Stiffened-gas model:
     /// c_p = c_v*gamma
@@ -148,12 +148,86 @@ void StiffenedGasModel::calculatePointSpecificHeatCapacities(double &c_v_, doubl
 
 };
 
-double StiffenedGasModel::calculatePointSoundSpeed(const double &rho, const double &P, const double &T) {
+double StiffenedGasModel::calculateSoundSpeed(const double &rho, const double &P, const double &T) {
 
     /// Stiffened-gas model:
     /// sos = sqrt(gamma*(P+P_inf)/rho) is speed of sound
 
     double sos = sqrt( gamma*( P + P_inf )/rho );
+
+    return( sos );
+
+};
+
+
+////////// PengRobinsonModel CLASS //////////
+
+PengRobinsonModel::PengRobinsonModel() : BaseThermodynamicModel() {};
+        
+PengRobinsonModel::PengRobinsonModel(const string configuration_file) : BaseThermodynamicModel(configuration_file) {
+
+    /// Read configuration (input) file
+    this->readConfigurationFile();
+
+};
+
+PengRobinsonModel::~PengRobinsonModel() {};
+
+void PengRobinsonModel::readConfigurationFile() {
+
+    /// Create YAML object
+    YAML::Node configuration = YAML::LoadFile(configuration_file);
+
+    /// Fluid properties
+    const YAML::Node & fluid_properties = configuration["fluid_properties"];
+    R_specific = fluid_properties["R_specific"].as<double>();
+
+};
+
+void PengRobinsonModel::calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {
+
+    /// Peng-Robinson model:
+    /// D. Y. Peng, D. B. Robinson.
+    /// A new two-constant equation of state.
+    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+    
+    P = 1.0/0.0; 
+    T = 1.0/0.0;
+
+};
+
+void PengRobinsonModel::calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T) {
+
+    /// Peng-Robinson model:
+    /// D. Y. Peng, D. B. Robinson.
+    /// A new two-constant equation of state.
+    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+
+    e   = 1.0/0.0;
+    rho = 1.0/0.0;
+
+};
+
+void PengRobinsonModel::calculateSpecificHeatCapacities(double &c_v, double &c_p) {
+
+    /// Peng-Robinson model:
+    /// D. Y. Peng, D. B. Robinson.
+    /// A new two-constant equation of state.
+    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+
+    c_v = 1.0/0.0;
+    c_p = 1.0/0.0;
+
+};
+
+double PengRobinsonModel::calculateSoundSpeed(const double &rho, const double &P, const double &T) {
+
+    /// Peng-Robinson model:
+    /// D. Y. Peng, D. B. Robinson.
+    /// A new two-constant equation of state.
+    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+
+    double sos = 1.0/0.0;
 
     return( sos );
 
