@@ -34,6 +34,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
 
     if( transport_coefficients_model == "CONSTANT" ) {
         transport_coefficients = new ConstantTransportCoefficients( configuration_file );
+    } else if( transport_coefficients_model == "HIGH_PRESSURE" ) {
+        transport_coefficients = new HighPressureTransportCoefficients( configuration_file );
     } else {
         cout << "Transport coefficients model not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -856,8 +858,8 @@ void FlowSolverRHEA::calculateTransportCoefficients() {
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                mu_field[I1D(i,j,k)]    = transport_coefficients->calculateDynamicViscosity( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
-                kappa_field[I1D(i,j,k)] = transport_coefficients->calculateThermalConductivity( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
+                mu_field[I1D(i,j,k)]    = transport_coefficients->calculateDynamicViscosity( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                kappa_field[I1D(i,j,k)] = transport_coefficients->calculateThermalConductivity( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
             }
         }
     }
