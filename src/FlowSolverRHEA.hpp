@@ -12,6 +12,7 @@
 #include "yaml-cpp/yaml.h"
 #include "MacroParameters.hpp"
 #include "ThermodynamicModel.hpp"
+#include "TransportCoefficients.hpp"
 #include "ComputationalDomain.hpp"
 #include "ParallelTopology.hpp"
 #include "DistributedArray.hpp"
@@ -50,7 +51,7 @@ class FlowSolverRHEA {
     ///   - Specific gas constant: R_specific
     ///   - Ratio of heat capacities: gamma
 
-    /// Thermophysical properties:
+    /// Transport coefficients:
     ///   - Dynamic viscosity: mu
     ///   - Thermal conductivity: kappa
  
@@ -107,8 +108,8 @@ class FlowSolverRHEA {
         /// Calculate time step satisfying CFL constraint
         void calculateTimeStep();
 
-        /// Calculate thermophysical properties
-        virtual void calculateThermophysicalProperties();
+        /// Calculate transport coefficients
+        void calculateTransportCoefficients();
 
         /// Calculate rhou, rhov, rhow and rhoE source terms ... needs to be modified/overwritten according to the problem under consideration
         virtual void calculateSourceTerms();
@@ -140,8 +141,7 @@ class FlowSolverRHEA {
 	
         /// Fluid properties 
         string thermodynamic_model;				/// Thermodynamic model
-        double mu;						/// Dynamic viscosity [Pa·s]
-        double kappa;						/// Thermal conductivity [W/(m·k)]       
+        string transport_coefficients_model;			/// Transport coefficients model
 
         /// Problem parameters
         double x_0;           	        	 	 	/// Domain origin in x-direction [m]
@@ -262,8 +262,9 @@ class FlowSolverRHEA {
         DistributedArray f_rhow_field;				/// 3-D field of rhow
         DistributedArray f_rhoE_field;				/// 3-D field of rhoE
 
-	////////// THERMODYNAMIC MODEL, COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER & PARALLEL TIMER //////////
+	////////// THERMODYNAMIC MODEL, TRANSPORT COEFFICIENTS, COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER & PARALLEL TIMER //////////
         BaseThermodynamicModel *thermodynamics;			/// Thermodynamic model
+        BaseTransportCoefficients *transport_coefficients;	/// Transport coefficients
         ComputationalDomain *mesh;				/// Computational domain
         ParallelTopology *topo;					/// Parallel topology
         ManagerHDF5 *writer_reader;				/// HDF5 data writer/reader

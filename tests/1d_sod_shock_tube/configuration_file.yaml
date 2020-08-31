@@ -22,6 +22,8 @@ fluid_properties:
    critical_pressure: 0.0           					# Critical pressure [Pa]
    critical_molar_volume: 0.0          					# Critical molar volume [m3/mol]
    NASA_coefficients: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]	# NASA 7-coefficient polynomial (15 values)
+   # Transport coefficients models: CONSTANT (provide mu, kappa)
+   transport_coefficients_model: 'CONSTANT'		  		# Transport coefficients model
    mu: 0.0                          					# Dynamic viscosity [Pa·s]
    kappa: 0.0                          					# Thermal conductivity [W/(m·k)]
 

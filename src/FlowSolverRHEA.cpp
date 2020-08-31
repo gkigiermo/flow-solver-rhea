@@ -22,13 +22,20 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
 
     /// Construct (initialize) thermodynamic model
     if( thermodynamic_model == "IDEAL_GAS" ) {
-        thermodynamics = new IdealGasModel(configuration_file);
+        thermodynamics = new IdealGasModel( configuration_file );
     } else if( thermodynamic_model == "STIFFENED_GAS" ) {
-        thermodynamics = new StiffenedGasModel(configuration_file);
+        thermodynamics = new StiffenedGasModel( configuration_file );
     } else if( thermodynamic_model == "PENG_ROBINSON" ) {
-        thermodynamics = new PengRobinsonModel(configuration_file);
+        thermodynamics = new PengRobinsonModel( configuration_file );
     } else {
         cout << "Thermodynamic model not available!" << endl;
+        MPI_Abort( MPI_COMM_WORLD, 1 );
+    }
+
+    if( transport_coefficients_model == "CONSTANT" ) {
+        transport_coefficients = new ConstantTransportCoefficients( configuration_file );
+    } else {
+        cout << "Transport coefficients model not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
     }
 
@@ -156,8 +163,9 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
 
 FlowSolverRHEA::~FlowSolverRHEA() {
 
-    /// Free thermodynamics, mesh, topo, writer_reader and timers
+    /// Free thermodynamics, transport_coefficients, mesh, topo, writer_reader and timers
     if( thermodynamics != NULL ) free( thermodynamics );
+    if( transport_coefficients != NULL ) free( transport_coefficients );
     if( mesh != NULL ) free( mesh );	
     if( topo != NULL ) free( topo );
     if( writer_reader != NULL ) free( writer_reader );
@@ -172,11 +180,8 @@ void FlowSolverRHEA::readConfigurationFile() {
 
     /// Fluid properties
     const YAML::Node & fluid_properties = configuration["fluid_properties"];
-    thermodynamic_model = fluid_properties["thermodynamic_model"].as<string>();
-    //R_specific          = fluid_properties["R_specific"].as<double>();
-    //gamma             = fluid_properties["gamma"].as<double>();
-    mu                  = fluid_properties["mu"].as<double>();
-    kappa               = fluid_properties["kappa"].as<double>();
+    thermodynamic_model          = fluid_properties["thermodynamic_model"].as<string>();
+    transport_coefficients_model = fluid_properties["transport_coefficients_model"].as<string>();
 
     /// Problem parameters
     const YAML::Node & problem_parameters = configuration["problem_parameters"];
@@ -831,16 +836,14 @@ void FlowSolverRHEA::calculateTimeStep() {
 
 };
 
-void FlowSolverRHEA::calculateThermophysicalProperties() {
+void FlowSolverRHEA::calculateTransportCoefficients() {
     
-    /// Constant thermophysical properties model introduced via configuration file
-
     /// All (inner, boundary & halo) points: mu and kappa
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                mu_field[I1D(i,j,k)]    = mu;
-                kappa_field[I1D(i,j,k)] = kappa;
+                mu_field[I1D(i,j,k)]    = transport_coefficients->calculateDynamicViscosity( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
+                kappa_field[I1D(i,j,k)] = transport_coefficients->calculateThermalConductivity( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
             }
         }
     }
@@ -1619,8 +1622,8 @@ void FlowSolverRHEA::execute() {
         /// Initialize thermodynamics
         this->initializeThermodynamics();
 
-        /// Calculate thermophysical properties
-        this->calculateThermophysicalProperties();
+        /// Calculate transport coefficients
+        this->calculateTransportCoefficients();
 
     }
 
@@ -1671,8 +1674,8 @@ void FlowSolverRHEA::execute() {
             /// Start timer: calculate_thermophysical_properties
             timers->start( "calculate_thermophysical_properties" );
 
-            /// Calculate thermophysical properties
-            this->calculateThermophysicalProperties();
+            /// Calculate transport coefficients
+            this->calculateTransportCoefficients();
 
             /// Stop timer: calculate_thermophysical_properties
             timers->stop( "calculate_thermophysical_properties" );
