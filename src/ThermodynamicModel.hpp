@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <cmath>
 #include <iostream>
+#include <complex>
 #include <mpi.h>
 #include "yaml-cpp/yaml.h"
 #include "RootFindingMinimization.hpp"
@@ -102,7 +103,7 @@ class IdealGasModel : public BaseThermodynamicModel {
         void calculateSpecificHeatCapacities(double &c_v, double &c_p, const double &P, const double &T, const double &rho);
 
         /// Calculate heat capacities ratio
-        virtual double calculateHeatCapacitiesRatio(const double &P, const double &rho);
+        double calculateHeatCapacitiesRatio(const double &P, const double &rho);
 
         /// Calculate speed of sound
         double calculateSoundSpeed(const double &P, const double &T, const double &rho);
@@ -148,7 +149,7 @@ class StiffenedGasModel : public BaseThermodynamicModel {
         void calculateSpecificHeatCapacities(double &c_v_, double &c_p, const double &P, const double &T, const double &rho);
 
         /// Calculate heat capacities ratio
-        virtual double calculateHeatCapacitiesRatio(const double &P, const double &rho);
+        double calculateHeatCapacitiesRatio(const double &P, const double &rho);
 
         /// Calculate speed of sound
         double calculateSoundSpeed(const double &P, const double &T, const double &rho);
@@ -179,8 +180,10 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         virtual ~PengRobinsonModel();						/// Destructor
 
 	////////// GET FUNCTIONS //////////
+        inline double getMolecularWeight() { return( molecular_weight ); };
 
 	////////// SET FUNCTIONS //////////
+        inline void setMolecularWeight(double molecular_weight_) { molecular_weight = molecular_weight_; };
 
 	////////// METHODS //////////
         
@@ -197,10 +200,16 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         void calculateSpecificHeatCapacities(double &c_v, double &c_p, const double &P, const double &T, const double &rho);
 
         /// Calculate heat capacities ratio
-        virtual double calculateHeatCapacitiesRatio(const double &P, const double &rho);
+        double calculateHeatCapacitiesRatio(const double &P, const double &rho);
 
         /// Calculate speed of sound
         double calculateSoundSpeed(const double &P, const double &T, const double &rho);
+
+        /// Calculate pressure from temperature and density
+        double calculatePressureFromTemperatureDensity(const double &T, const double &rho);
+
+        /// Calculate molar internal energy from pressure, temperature and molar volume
+        double calculateMolarInternalEnergyFromPressureTemperatureMolarVolume(const double &P, const double &T, const double &v);
 
         /// Calculate attractive-forces a coefficient
         double calculate_eos_a(const double &T);
@@ -241,6 +250,67 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         double calculateIsothermalCompressibility(const double &T, const double &v);
         double calculateIsentropicCompressibility(const double &P, const double &T, const double &v);
 
+        /// Calculate roots of cubic polynomial
+        void calculateRootsCubicPolynomial(complex<double> &root_1, complex<double> &root_2, complex<double> &root_3, double &a, double &b, double &c, double &d);
+
+    private:
+
+        /// Newton-Raphson solver nested class used to obtain P & T from rho & e
+        class NR_P_T_from_rho_e : public NewtonRaphson { 
+
+            public:
+
+            ////////// CONSTRUCTORS & DESTRUCTOR //////////
+            NR_P_T_from_rho_e(vector<double> &fvec_, PengRobinsonModel &pr_model_) : NewtonRaphson(fvec_), pr_model(pr_model_) {};	/// Parametrized constructor
+            virtual ~NR_P_T_from_rho_e() {};												/// Destructor
+
+	    ////////// METHODS //////////
+
+            /// Set external (enclosing class) parameters
+            void setExternalParameters(const double &rho_, const double &e_, const double &P_norm_, const double &T_norm_) {
+
+                target_v     = pr_model.getMolecularWeight()/rho_;
+                target_bar_e = pr_model.getMolecularWeight()*e_;
+                P_norm       = P_norm_;
+                T_norm       = T_norm_;
+
+            };
+
+            /// Evaluates the functions (residuals) in position x
+            void function_vector(vector<double> &x, vector<double> &fx) {
+
+                /// Set state to x
+                double P = x[0]*P_norm;		// Unnormalize pressure
+                double T = x[1]*T_norm;		// Unnormalize temperature
+        
+                /// For single-component systems:
+                /// P will not oscillate for supercritical thermodynamic states
+                /// P will oscillate for subcritical thermodynamic states
+                /// ... small oscillations close to the critical point (slightly subcritical)
+                /// ... large oscillations far from the critical point (notably subcritical) -> in that case, use two-phase solver
+                double target_rho  = pr_model.getMolecularWeight()/target_v;
+                double P_guess     = pr_model.calculatePressureFromTemperatureDensity( T, target_rho );
+                double bar_e_guess = pr_model.calculateMolarInternalEnergyFromPressureTemperatureMolarVolume( P, T, target_v );
+        
+                /// Compute fx (residuals)
+                fx[0] = P - P_guess;			/// no need to normalize, the solver will do it internally
+                fx[1] = target_bar_e - bar_e_guess;	/// no need to normalize, the solver will do it internally
+        
+            };
+      
+            ////////// PARAMETERS //////////
+
+	    /// External (enclosing) parameters
+            double target_v;			/// External (enclosing class) target molar volume
+            double target_bar_e;		/// External (enclosing class) target molar internal energy
+            double P_norm;			/// External (enclosing class) pressure normalization
+            double T_norm;			/// External (enclosing class) temperature normalization
+
+	    /// External (enclosing) class
+            PengRobinsonModel &pr_model;	/// Reference to PengRobinsonModel (enclosing) class
+ 
+        };
+
     protected:
 
         ////////// PARAMETERS //////////
@@ -255,15 +325,21 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         double NASA_coefficients[15];				/// NASA 7-coefficient polynomial
 
         /// Equation of state (EoS) parameters
-        double eos_d1 = 2.0;					/// EoS constant coefficient (fixed)
-        double eos_d2 = -1.0;					/// EoS constant coefficient (fixed)
         //double eos_a;						/// EoS attractive-forces coefficient
         double eos_b;						/// EoS finite-pack-volume coefficient
         double eos_ac, eos_kappa;				/// EoS dimensionless parameters
 
         /// Aitken's delta-squared process parameters
         int max_aitken_iter              = 100;			/// Maximum number of iterations
-        double aitken_relative_tolerance = 1.0e-5;		/// Relative tolerance
+        double aitken_relative_tolerance = 1.0e-8;		/// Relative tolerance
+
+        /// Newton-Raphson solver parameters
+        int max_nr_iter              = 100;			/// Maximum number of iterations
+        double nr_relative_tolerance = 1.0e-8;			/// Relative tolerance
+        bool nr_sing                 = false;			/// At run time, output Newton-Raphson information about intermediate steps
+        NR_P_T_from_rho_e *nr_PT_solver;			/// Pointer to NR_P_T_from_rho_e
+        vector<double> nr_PT_unknowns;				/// NR_P_T_from_rho_e unknowns: P & T
+        vector<double> nr_PT_r_vec;				/// NR_P_T_from_rho_e vector of functions residuals
 
     private:
 

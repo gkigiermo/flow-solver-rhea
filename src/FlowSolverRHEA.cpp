@@ -479,6 +479,8 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 ke                    = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
                 e                     = E_field[I1D(i,j,k)] - ke;
+                P = P_field[I1D(i,j,k)];	/// Initial pressure guess
+                T = T_field[I1D(i,j,k)]; 	/// Initial temperature guess
                 thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P, T, rho_field[I1D(i,j,k)], e );
                 P_field[I1D(i,j,k)]   = P; 
                 T_field[I1D(i,j,k)]   = T; 
@@ -521,6 +523,8 @@ void FlowSolverRHEA::updateBoundaries() {
         for(int j = topo->iter_bound[_WEST_][_INIY_]; j <= topo->iter_bound[_WEST_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_WEST_][_INIZ_]; k <= topo->iter_bound[_WEST_][_ENDZ_]; k++) {
 		/// Calculate inner values
+                P_in   = P_field[I1D(i+1,j,k)];		/// Initial pressure guess
+                T_in   = T_field[I1D(i+1,j,k)];		/// Initial temperature guess
                 rho_in = rho_field[I1D(i+1,j,k)]; 
                 u_in   = rhou_field[I1D(i+1,j,k)]/rho_in;
                 v_in   = rhov_field[I1D(i+1,j,k)]/rho_in;
@@ -561,6 +565,8 @@ void FlowSolverRHEA::updateBoundaries() {
         for(int j = topo->iter_bound[_EAST_][_INIY_]; j <= topo->iter_bound[_EAST_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_EAST_][_INIZ_]; k <= topo->iter_bound[_EAST_][_ENDZ_]; k++) {
 		/// Calculate inner values
+                P_in   = P_field[I1D(i-1,j,k)];		/// Initial pressure guess
+                T_in   = T_field[I1D(i-1,j,k)];		/// Initial temperature guess
                 rho_in = rho_field[I1D(i-1,j,k)]; 
                 u_in   = rhou_field[I1D(i-1,j,k)]/rho_in;
                 v_in   = rhov_field[I1D(i-1,j,k)]/rho_in;
@@ -601,6 +607,8 @@ void FlowSolverRHEA::updateBoundaries() {
         for(int j = topo->iter_bound[_SOUTH_][_INIY_]; j <= topo->iter_bound[_SOUTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_SOUTH_][_INIZ_]; k <= topo->iter_bound[_SOUTH_][_ENDZ_]; k++) {
 		/// Calculate inner values
+                P_in   = P_field[I1D(i,j+1,k)];		/// Initial pressure guess
+                T_in   = T_field[I1D(i,j+1,k)];		/// Initial temperature guess
                 rho_in = rho_field[I1D(i,j+1,k)]; 
                 u_in   = rhou_field[I1D(i,j+1,k)]/rho_in;
                 v_in   = rhov_field[I1D(i,j+1,k)]/rho_in;
@@ -641,6 +649,8 @@ void FlowSolverRHEA::updateBoundaries() {
         for(int j = topo->iter_bound[_NORTH_][_INIY_]; j <= topo->iter_bound[_NORTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_NORTH_][_INIZ_]; k <= topo->iter_bound[_NORTH_][_ENDZ_]; k++) {
 		/// Calculate inner values
+                P_in   = P_field[I1D(i,j-1,k)];		/// Initial pressure guess
+                T_in   = T_field[I1D(i,j-1,k)];		/// Initial temperature guess
                 rho_in = rho_field[I1D(i,j-1,k)]; 
                 u_in   = rhou_field[I1D(i,j-1,k)]/rho_in;
                 v_in   = rhov_field[I1D(i,j-1,k)]/rho_in;
@@ -681,6 +691,8 @@ void FlowSolverRHEA::updateBoundaries() {
         for(int j = topo->iter_bound[_BACK_][_INIY_]; j <= topo->iter_bound[_BACK_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_BACK_][_INIZ_]; k <= topo->iter_bound[_BACK_][_ENDZ_]; k++) {
 		/// Calculate inner values
+                P_in   = P_field[I1D(i,j,k+1)];		/// Initial pressure guess
+                T_in   = T_field[I1D(i,j,k+1)];		/// Initial temperature guess
                 rho_in = rho_field[I1D(i,j,k+1)]; 
                 u_in   = rhou_field[I1D(i,j,k+1)]/rho_in;
                 v_in   = rhov_field[I1D(i,j,k+1)]/rho_in;
@@ -721,6 +733,8 @@ void FlowSolverRHEA::updateBoundaries() {
         for(int j = topo->iter_bound[_FRONT_][_INIY_]; j <= topo->iter_bound[_FRONT_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_FRONT_][_INIZ_]; k <= topo->iter_bound[_FRONT_][_ENDZ_]; k++) {
 		/// Calculate inner values
+                P_in   = P_field[I1D(i,j,k-1)];		/// Initial pressure guess
+                T_in   = T_field[I1D(i,j,k-1)];		/// Initial temperature guess
                 rho_in = rho_field[I1D(i,j,k-1)]; 
                 u_in   = rhou_field[I1D(i,j,k-1)]/rho_in;
                 v_in   = rhov_field[I1D(i,j,k-1)]/rho_in;

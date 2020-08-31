@@ -196,9 +196,19 @@ PengRobinsonModel::PengRobinsonModel(const string configuration_file) : BaseTher
 	eos_kappa = 0.37464 + 1.54226*acentric_factor - 0.26992*pow( acentric_factor, 2.0 );
     }
 
+    /// Construct (initialize) nr_PT_solver
+    nr_PT_unknowns.resize( 2, 0.0 );
+    nr_PT_r_vec.resize( nr_PT_unknowns.size(), 0.0 );
+    nr_PT_solver = new NR_P_T_from_rho_e( nr_PT_r_vec, *this );
+
 };
 
-PengRobinsonModel::~PengRobinsonModel() {};
+PengRobinsonModel::~PengRobinsonModel() {
+
+    /// Free nr_PT_solver
+    if( nr_PT_solver != NULL ) free( nr_PT_solver );
+
+};
 
 void PengRobinsonModel::readConfigurationFile() {
 
@@ -233,15 +243,39 @@ void PengRobinsonModel::readConfigurationFile() {
 
 void PengRobinsonModel::calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {
 
-    P = 1.0/0.0; 
-    T = 1.0/0.0;
+    double P_norm   = critical_pressure;	/// Set pressure normalization factor
+    double T_norm   = critical_temperature;	/// Set temperature normalization factor
+    double nr_f     = -1.0;			/// Newton-Raphson residual value
+    int nr_num_iter = 0;			/// Number of iterations required to obtain the solution
+
+    /// Calculate P & T from rho & e by means of a Newton-Raphson solver
+    nr_PT_unknowns[0] = P/P_norm;										/// Initialize unknown with previous pressure (normalized)
+    nr_PT_unknowns[1] = T/T_norm;										/// Initialize unknown with previous temperature (normalized)
+    nr_PT_solver->setExternalParameters( rho, e, P_norm, T_norm );						/// Set parameters of the solver
+    nr_PT_solver->solve( nr_f, nr_PT_unknowns, max_nr_iter, nr_num_iter, nr_sing, nr_relative_tolerance );	/// Newton-Raphson solver 
+    P = nr_PT_unknowns[0]*P_norm;										/// Update P & T from Newton-Raphson solver (unnormalized)
+    T = nr_PT_unknowns[1]*T_norm;
 
 };
 
 void PengRobinsonModel::calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T) {
 
-    e   = 1.0/0.0;
-    rho = 1.0/0.0;
+    /// Auxiliar parameters
+    double eos_a  = this->calculate_eos_a( T );
+    double eos_en = P*eos_b + R_universal*T;
+    double a      = P;
+    double b      = P*2.0*eos_b - eos_en;
+    double c      = P*( -1.0 )*eos_b*eos_b - eos_en*2.0*eos_b + eos_a;
+    double d      = ( -1.0 )*eos_b*( eos_a + eos_en*( -1.0 )*eos_b );
+
+    /// Cubic solve to calculate rho
+    complex<double> v_1, v_2, v_3;
+    this->calculateRootsCubicPolynomial( v_1, v_2, v_3, a, b, c, d );
+    rho = molecular_weight/real( v_1 );		/// First root is always real
+
+    /// Calculate e
+    double v = molecular_weight/rho;
+    e        = ( 1.0/molecular_weight )*this->calculateMolarInternalEnergyFromPressureTemperatureMolarVolume( P, T, v );
 
 };
 
@@ -279,6 +313,24 @@ double PengRobinsonModel::calculateSoundSpeed(const double &P, const double &T, 
     double sos = sqrt( 1.0/( rho*this->calculateIsentropicCompressibility( P, T, v ) ) );
 
     return( sos );
+
+};
+
+double PengRobinsonModel::calculatePressureFromTemperatureDensity(const double &T, const double &rho) {
+
+    double v = molecular_weight/rho;
+
+    double P = R_universal*T/( v - eos_b ) - this->calculate_eos_a( T )/( v*v + 2.0*eos_b*v - eos_b*eos_b );
+
+    return( P );
+
+};
+
+double PengRobinsonModel::calculateMolarInternalEnergyFromPressureTemperatureMolarVolume(const double &P, const double &T, const double &v) {
+
+    double bar_e = this->calculateMolarStdEnthalpyFromNASApolynomials( T ) + this->calculateDepartureFunctionMolarEnthalpy( P, T, v ) - P*v;
+
+    return( bar_e );
 
 };
 
@@ -556,4 +608,73 @@ double PengRobinsonModel::calculateIsentropicCompressibility(const double &P, co
     
     return( isentropic_compressibility );
   
+};
+        
+void PengRobinsonModel::calculateRootsCubicPolynomial(complex<double> &root_1, complex<double> &root_2, complex<double> &root_3, double &a, double &b, double &c, double &d) {
+
+    if( a == 0 ) {	/// End if a == 0
+        cout << "The coefficient of the cube of x is 0. Please use the utility for a SECOND degree quadratic. No further action taken." << endl;
+        return;
+    }
+    if( d == 0 ) {	/// End if d == 0
+        cout << "One root is 0. Now divide through by x and use the utility for a SECOND degree quadratic to solve the resulting equation for the other two roots. No further action taken." << endl;
+        return;
+    }
+
+    b /= a;
+    c /= a;
+    d /= a;
+
+    double disc, q, r, dum1, s, t, term1, r13;
+    q = (3.0*c - (b*b))/9.0;
+    r = -(27.0*d) + b*(9.0*c - 2.0*(b*b));
+    r /= 54.0;
+    disc = q*q*q + r*r;
+
+    root_1.imag( 0 );	/// The first root is always real
+    term1 = (b/3.0);
+
+    if( disc > 0 ) {	/// One root real, two are complex
+        s = r + sqrt(disc);
+        s = ((s < 0) ? -pow(-s, (1.0/3.0)) : pow(s, (1.0/3.0)));
+        t = r - sqrt(disc);
+        t = ((t < 0) ? -pow(-t, (1.0/3.0)) : pow(t, (1.0/3.0)));
+        root_1.real( -term1 + s + t );
+        term1 += (s + t)/2.0;
+        root_2.real( -term1 );
+        root_3.real( -term1 );
+        term1 = sqrt(3.0)*(-t + s)/2;
+        root_2.imag( term1 );
+        root_3.imag( -term1 );
+        return;
+    }	/// End if (disc > 0)
+
+    cout << endl;
+    cout << "The PengRobinsonModel::calculateRootsCubicPolynomial has found more than one real root." << endl;
+    cout << "Vapor-liquid equilibrium conditions must be solved." << endl;
+    cout << "Another option is to avoid calculating rho from P and T." << endl;
+    cout << endl;
+
+    /// The remaining options are all real
+    root_2.imag( 0 );
+    root_3.imag( 0 );
+    if(disc == 0) {	/// All roots real, at least two are equal
+        r13 = ((r < 0) ? -pow(-r,(1.0/3.0)) : pow(r,(1.0/3.0)));
+        root_1.real( -term1 + 2.0*r13 );
+        root_2.real( -(r13 + term1) );
+        root_3.real( -(r13 + term1) );
+        return;
+    }	/// End if (disc == 0)
+
+    /// Only option left is that all roots are real and unequal (to get here, q < 0)
+    q = -q;
+    dum1 = q*q*q;
+    dum1 = acos(r/sqrt(dum1));
+    r13 = 2.0*sqrt(q);
+    root_1.real( -term1 + r13*cos(dum1/3.0) );
+    root_2.real( -term1 + r13*cos((dum1 + 2.0*3.141592654)/3.0) );
+    root_3.real( -term1 + r13*cos((dum1 + 4.0*3.141592654)/3.0) );
+
+    return;
+
 };
