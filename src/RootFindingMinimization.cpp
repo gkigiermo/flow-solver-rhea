@@ -19,7 +19,7 @@ BaseRootFindingMinimization::~BaseRootFindingMinimization() {};
 
 NewtonRaphson::NewtonRaphson(vector<double> &fvec_) : BaseRootFindingMinimization(), fvec(fvec_) {
 
-  for( int i = 0; i < fvec.size(); i++ ) {
+  for( int i = 0; i < int( fvec.size() ); i++ ) {
     norm_inv.push_back( 1.0 );
   }
 
@@ -39,16 +39,17 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
     //const double EPS=numeric_limits<double>::epsilon();
     const double EPS=tolerance;
     //const double TOLF=1.0e-8, TOLX=EPS, STPMX=100.0, TOLMIN=1.0e-12;
-    const double TOLF=EPS, TOLX=EPS, STPMX=100.0;
+    const double TOLF=EPS, TOLX=EPS;
     int i;
-    double d,f,fold,stpmax,sum,temp,test;
+    //double d,f,fold,stpmax,sum,temp,test;
+    double d,sum,temp,test;
 
     int n=xmin.size();
     vector<int> indx(n);
     vector<double> p(n),xold(n);
     vector < vector < double > > fjac(n,vector<double> (n));
 
-    f=fmin(xmin);
+    //f=fmin(xmin);
     test=0.0;
     for(i=0;i<n;i++) {
       if(fabs(fvec[i]) > test) fxmin = test=fabs(fvec[i]);
@@ -58,11 +59,11 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
     }
     sum=0.0;
     for(i=0;i<n;i++) sum += SQR(xmin[i]);
-    stpmax=STPMX*max(sqrt(sum),double(n));
+    //stpmax=STPMX*max(sqrt(sum),double(n));
     for(iter=0;iter<MAXITS;iter++) {
       fdjac(xmin,fjac);
       for(i=0;i<n;i++) xold[i]=xmin[i];
-      fold=f;
+      //fold=f;
       for(i=0;i<n;i++) p[i] = -fvec[i];
       ludcmp(fjac,indx,d);
       lubksb(fjac,indx,p);
@@ -187,7 +188,7 @@ void NewtonRaphson::ludcmp(vector< vector<double> > &a, vector<int> &indx, doubl
     /// Cambridge University Press, 2001.
 
     const double TINY=1.0e-20;
-    int i,imax,j,k;
+    int i,j,k,imax=0;
     double big,dum,sum,temp;
 
     int n=a.size();
