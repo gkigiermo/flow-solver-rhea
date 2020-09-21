@@ -2,10 +2,15 @@
 
 using namespace std;
 
+
+////////// COMPILATION DIRECTIVES //////////
+#define _PRESSURE_BASED_WAVE_SPEED_ESTIMATES_ 0		/// Select approach for estimating wave speeds
+
 ////////// FIXED PARAMETERS //////////
-const double epsilon     = 1.0e-15;			// Small epsilon number (fixed)
-//const double Pi          = 2.0*asin(1.0);		// Pi number (fixed)
-const int cout_presicion = 5;		                // Output precision (fixed)
+const double epsilon     = 1.0e-15;			/// Small epsilon number (fixed)
+//const double Pi          = 2.0*asin(1.0);		/// Pi number (fixed)
+const int cout_presicion = 5;		                /// Output precision (fixed)
+
 
 ////////// FlowSolverRHEA CLASS //////////
 
@@ -897,14 +902,15 @@ void FlowSolverRHEA::calculateSourceTerms() {
 
 void FlowSolverRHEA::calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R) {
 
-    /// HLLC approximate Riemann solver:
-    /// E. F. Toro.
-    /// Riemann solvers and numerical methods for fluid dynamics.
-    /// Springer, 2009.
+#if _PRESSURE_BASED_WAVE_SPEED_ESTIMATES_
+    /// Pressure-based wave speed estimates: ... recommended by E. F. Toro, but not sure if applicable to non-ideal gas themodynamics
+    /// E. F. Toro, M. Spruce, W. Speares.
+    /// Restoration of the contact surface in the HLL–Riemann solver.
+    /// Shock Waves, 4, 25-34, 1994.
 
     double P_bar   = 0.5*( P_L + P_R );
     double rho_bar = 0.5*( rho_L + rho_R );
-    double gamma   = thermodynamics->calculateHeatCapacitiesRatio( P_bar, rho_bar );	// !!This has to be checked for PENG_ROBINSON!!
+    double gamma   = thermodynamics->calculateHeatCapacitiesRatio( P_bar, rho_bar );
     double a_bar   = 0.5*( a_L + a_R );
     double P_pvrs  = 0.5*( P_L + P_R ) - 0.5*( u_R - u_L )*rho_bar*a_bar;
     double P_star  = max( 0.0, P_pvrs );
@@ -914,15 +920,24 @@ void FlowSolverRHEA::calculateWavesSpeed(double &S_L, double &S_R, const double 
     if(P_star > P_R) q_R = sqrt( 1.0 + ( ( gamma + 1.0 )/( 2.0*gamma ) )*( ( P_star/P_R ) - 1.0 ) );
     S_L = u_L - a_L*q_L;
     S_R = u_R + a_R*q_R;
+#else
+    /// Direct wave speed estimates:
+    /// S. F. Davis.
+    /// Simplified second-order Godunov-type methods.
+    /// SIAM Journal on Scientific and Statistical Computing, 9, 445-473, 1988.
+
+    S_L = min( u_L - a_L, u_R - a_R );
+    S_R = max( u_L + a_L, u_R + a_R );
+#endif
 
 };
 
 double FlowSolverRHEA::calculateHllcFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
-    /// HLLC approximate Riemann solver:
-    /// E. F. Toro.
-    /// Riemann solvers and numerical methods for fluid dynamics.
-    /// Springer, 2009.
+    /// Pressure-based wave speed estimates: ... recommended by E. F. Toro, but not sure if applicable to non-ideal gas themodynamics
+    /// E. F. Toro, M. Spruce, W. Speares.
+    /// Restoration of the contact surface in the HLL–Riemann solver.
+    /// Shock Waves, 4, 25-34, 1994.
 
     double S_L, S_R;
     this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
