@@ -36,9 +36,6 @@ void myRHEA::setInitialConditions() {
                 w_field[I1D(i,j,k)] = u_b*( random_number - 0.5 );
                 P_field[I1D(i,j,k)] = P_ref;
                 T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_ref*thermodynamics->getSpecificGasConstant() );
-
-cout << mesh->y[j]*u_tau/nu << endl;
-
             }
         }
     }
