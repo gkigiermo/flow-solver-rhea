@@ -26,17 +26,19 @@ void myRHEA::setInitialConditions() {
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
     /// All (inner, boundary & halo) points: u, v, w, P and T
-    double sign_x, random_number;
+    double random_number;
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                sign_x = ( mesh->y[j] > delta ) ? 1.0 : -1.0;
                 random_number = (double) rand()/RAND_MAX;
-                u_field[I1D(i,j,k)] = random_number*sign_x*u_b*sin( 2.0*Pi*mesh->x[i]/L_x );
-                v_field[I1D(i,j,k)] = random_number*u_b*sin( 2.0*Pi*mesh->y[j]/L_y );
-                w_field[I1D(i,j,k)] = random_number*u_b*sin( 2.0*Pi*mesh->z[k]/L_z );
+                u_field[I1D(i,j,k)] = u_b*( random_number - 0.5 );
+                v_field[I1D(i,j,k)] = u_b*( random_number - 0.5 );
+                w_field[I1D(i,j,k)] = u_b*( random_number - 0.5 );
                 P_field[I1D(i,j,k)] = P_ref;
                 T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_ref*thermodynamics->getSpecificGasConstant() );
+
+cout << mesh->y[j]*u_tau/nu << endl;
+
             }
         }
     }
