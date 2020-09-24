@@ -3,7 +3,7 @@
 using namespace std;
 
 /// Pi number
-const double Pi = 2.0*asin( 1.0 );
+//const double Pi = 2.0*asin( 1.0 );
 
 /// PROBLEM PARAMETERS ///
 const double Re_tau  = 180.0;				/// Friction Reynolds number
@@ -15,9 +15,9 @@ const double tau_w   = rho_ref*u_tau*u_tau;		/// Wall shear stress
 const double nu      = u_tau*delta/Re_tau;		/// Kinematic viscosity	
 const double Re_b    = pow( Re_tau/0.09, 1.0/0.88 );	/// Bulk (approximated) Reynolds number
 const double u_b     = nu*Re_b/( 2.0*delta );		/// Bulk (approximated) velocity
-const double L_x     = 4.0*Pi*delta;			/// Streamwise length
-const double L_y     = 2.0*delta;			/// Wall-normal height
-const double L_z     = 4.0*Pi*delta/3.0;		/// Spanwise width
+//const double L_x     = 4.0*Pi*delta;			/// Streamwise length
+//const double L_y     = 2.0*delta;			/// Wall-normal height
+//const double L_z     = 4.0*Pi*delta/3.0;		/// Spanwise width
 
 ////////// myRHEA CLASS //////////
 
@@ -26,17 +26,15 @@ void myRHEA::setInitialConditions() {
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
     /// All (inner, boundary & halo) points: u, v, w, P and T
-    double sign_x, sign_y, sign_z, random_number;
+    double random_number, y_dist;
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                sign_x = ( mesh->x[i] > 0.5*L_x ) ? 1.0 : -1.0;
-                sign_y = ( mesh->y[j] > 0.5*L_y ) ? 1.0 : -1.0;
-                sign_z = ( mesh->z[k] > 0.5*L_z ) ? 1.0 : -1.0;
                 random_number = (double) rand()/RAND_MAX;
-                u_field[I1D(i,j,k)] = sign_y*sign_z*u_b*random_number*sin( 2.0*4.0*Pi*mesh->x[i]/L_x );
-                v_field[I1D(i,j,k)] = sign_x*sign_z*u_b*( random_number - 0.5 );
-                w_field[I1D(i,j,k)] = sign_x*sign_y*u_b*( random_number - 0.5 );
+                y_dist        = max( 1.0e-10, min( mesh->y[j], 2.0*delta - mesh->y[j] ) );
+                u_field[I1D(i,j,k)] = ( 1.0 + 1.0e-1*( random_number - 0.5 ) )*( u_tau*( ( 1.0/0.41 )*log( y_dist*u_tau/nu ) + 5.2 ) );
+                v_field[I1D(i,j,k)] = ( random_number - 0.5 )*u_b;
+                w_field[I1D(i,j,k)] = ( random_number - 0.5 )*u_b;
                 P_field[I1D(i,j,k)] = P_ref;
                 T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_ref*thermodynamics->getSpecificGasConstant() );
             }
