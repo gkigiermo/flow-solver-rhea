@@ -17,7 +17,7 @@ const double Re_b    = pow( Re_tau/0.09, 1.0/0.88 );	/// Bulk (approximated) Rey
 const double u_b     = nu*Re_b/( 2.0*delta );		/// Bulk (approximated) velocity
 const double L_x     = 4.0*Pi*delta;			/// Streamwise length
 const double L_y     = 2.0*delta;			/// Wall-normal height
-const double L_z     = 4.0*Pi*delta/3.0;		/// Spanwise width
+//const double L_z     = 4.0*Pi*delta/3.0;		/// Spanwise width
 
 ////////// myRHEA CLASS //////////
 
@@ -26,14 +26,13 @@ void myRHEA::setInitialConditions() {
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
     /// All (inner, boundary & halo) points: u, v, w, P and T
-    double random_number, sign_y;
+    double random_number;
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 random_number = (double) rand()/RAND_MAX;
-                sign_y        = ( mesh->y[j] > 0.5*L_y ) ? 1.0 : -1.0;
-                u_field[I1D(i,j,k)] = sign_y*random_number*u_b*( 1.0 + sin( 4.0*Pi*mesh->x[i]/L_x ) )*( 1.0 + sin( 4.0*Pi*mesh->z[k]/L_z ) );
-                v_field[I1D(i,j,k)] = ( random_number - 0.5 )*u_b;
+                u_field[I1D(i,j,k)] = u_b*( sin( 4.0*Pi*( mesh->x[i] - 0.5*L_x )/L_x )*cos( 2.0*Pi*( mesh->y[j] - 0.5*L_y )/L_y ) );
+                v_field[I1D(i,j,k)] = ( -1.0 )*u_b*( cos( 4.0*Pi*( mesh->x[i] - 0.5*L_x )/L_x )*sin( 2.0*Pi*( mesh->y[j] - 0.5*L_y )/L_y ) );
                 w_field[I1D(i,j,k)] = ( random_number - 0.5 )*u_b;
                 P_field[I1D(i,j,k)] = P_ref;
                 T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_ref*thermodynamics->getSpecificGasConstant() );
