@@ -31,9 +31,9 @@ void myRHEA::setInitialConditions() {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 random_number = (double) rand()/RAND_MAX;
-                u_field[I1D(i,j,k)] = u_b*( sin( 4.0*Pi*( mesh->x[i] - 0.5*L_x )/L_x )*cos( 2.0*Pi*( mesh->y[j] - 0.5*L_y )/L_y ) );
-                v_field[I1D(i,j,k)] = ( -1.0 )*u_b*( cos( 4.0*Pi*( mesh->x[i] - 0.5*L_x )/L_x )*sin( 2.0*Pi*( mesh->y[j] - 0.5*L_y )/L_y ) );
-                w_field[I1D(i,j,k)] = ( random_number - 0.5 )*u_b;
+                u_field[I1D(i,j,k)] = sin( 0.5*Pi )*random_number*u_b*( sin( 4.0*Pi*( mesh->x[i] - 0.5*L_x )/L_x )*cos( 2.0*Pi*( mesh->y[j] - 0.5*L_y )/L_y ) );
+                v_field[I1D(i,j,k)] = ( -1.0 )*random_number*u_b*( cos( 4.0*Pi*( mesh->x[i] - 0.5*L_x )/L_x )*sin( 2.0*Pi*( mesh->y[j] - 0.5*L_y )/L_y ) );
+                w_field[I1D(i,j,k)] = sin( 0.5*Pi )*random_number*u_b*( sin( 4.0*Pi*( mesh->x[i] - 0.5*L_x )/L_x )*cos( 2.0*Pi*( mesh->y[j] - 0.5*L_y )/L_y ) );
                 P_field[I1D(i,j,k)] = P_ref;
                 T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_ref*thermodynamics->getSpecificGasConstant() );
             }
