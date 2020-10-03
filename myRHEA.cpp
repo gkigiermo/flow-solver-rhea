@@ -6,7 +6,7 @@ using namespace std;
 //const double Pi = 2.0*asin( 1.0 );
 
 /// PROBLEM PARAMETERS ///
-const double Re_tau  = 100.0;				/// Friction Reynolds number
+const double Re_tau  = 180.0;				/// Friction Reynolds number
 const double delta   = 1.0;				/// Channel half-height
 const double rho_ref = 1.0;				/// Reference density	
 const double P_ref   = 101325.0;			/// Reference pressure

@@ -3,6 +3,12 @@ MAIN         = myRHEA.cpp
 SRC_DIR      = ./src
 CXX          = mpic++
 CXXFLAGS     = -O3 -Wall -std=c++0x
+# MAC - OS X
+#INC_LIB_YAML = -L/usr/local/lib
+#INC_DIR_YAML = -I/usr/local/include
+#INC_LIB_HDF5 = 
+#INC_DIR_HDF5 = 
+# UBUNTU - LINUX
 INC_LIB_YAML =
 INC_DIR_YAML =
 INC_LIB_HDF5 = -L/usr/lib/x86_64-linux-gnu/hdf5/openmpi 
