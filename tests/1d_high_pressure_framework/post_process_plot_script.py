@@ -34,7 +34,7 @@ ke_data    = 0.5*( u_data*u_data + v_data*v_data + w_data*w_data )
 e_data     = E_data - ke_data
 
 ### Open NIST file
-T_nist, P_nist, rho_nist, V_nist, e_nist, h_nist, s_nist, cv_nist, cp_nist, sos_nist, JT_nist, mu_nist, kappa_nist = np.loadtxt( 'nitrogen_4MPa_0-1000K.csv', delimiter=',', unpack = 'True' )
+T_nist, P_nist, rho_nist, V_nist, e_nist, h_nist, s_nist, cv_nist, cp_nist, sos_nist, JT_nist, mu_nist, kappa_nist = np.loadtxt( 'nist_nitrogen_4MPa_0-1000K.csv', delimiter=',', unpack = 'True' )
 
 
 ### Plot density vs. temperature
