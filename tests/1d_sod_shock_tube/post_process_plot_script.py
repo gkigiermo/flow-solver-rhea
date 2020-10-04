@@ -40,7 +40,7 @@ e_data     = E_data - ke_data
 plt.clf()
 
 # Read & Plot data
-plt.scatter( x_data, rho_data, s = 25, facecolors = 'none', edgecolors = 'black', label = r'$\textrm{RHEA}$' )
+plt.plot( x_data, rho_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
 plt.xlim( 0.0, 1.0 )
@@ -64,7 +64,7 @@ plt.savefig( 'density_vs_x_direction.eps', format = 'eps', bbox_inches = 'tight'
 plt.clf()
 
 # Read & Plot data
-plt.scatter( x_data, u_data, s = 25, facecolors = 'none', edgecolors = 'black', label = r'$\textrm{RHEA}$' )
+plt.plot( x_data, u_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
 plt.xlim( 0.0, 1.0 )
@@ -88,7 +88,7 @@ plt.savefig( 'u_velocity_vs_x_direction.eps', format = 'eps', bbox_inches = 'tig
 plt.clf()
 
 # Read & Plot data
-plt.scatter( x_data, P_data, s = 25, facecolors = 'none', edgecolors = 'black', label = r'$\textrm{RHEA}$' )
+plt.plot( x_data, P_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
 plt.xlim( 0.0, 1.0 )
@@ -112,7 +112,7 @@ plt.savefig( 'pressure_vs_x_direction.eps', format = 'eps', bbox_inches = 'tight
 plt.clf()
 
 # Read & Plot data
-plt.scatter( x_data, e_data, s = 25, facecolors = 'none', edgecolors = 'black', label = r'$\textrm{RHEA}$' )
+plt.plot( x_data, e_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
 plt.xlim( 0.0, 1.0 )
