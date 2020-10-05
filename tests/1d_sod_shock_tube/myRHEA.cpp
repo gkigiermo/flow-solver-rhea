@@ -13,8 +13,8 @@ void myRHEA::setInitialConditions() {
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-		if( mesh->x[i] < 0.3 ) {
-                    u_field[I1D(i,j,k)] = 0.75;
+		if( mesh->x[i] < 0.5 ) {
+                    u_field[I1D(i,j,k)] = 0.0;
                     v_field[I1D(i,j,k)] = 0.0;
                     w_field[I1D(i,j,k)] = 0.0;
                     P_field[I1D(i,j,k)] = 1.0;

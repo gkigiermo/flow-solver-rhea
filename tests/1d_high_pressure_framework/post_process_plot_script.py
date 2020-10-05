@@ -44,7 +44,7 @@ plt.clf()
 
 # Read & Plot data
 plt.scatter( T_nist, rho_nist, s = 25, facecolors = 'none', edgecolors = 'black', label = r'$\textrm{NIST}$' )
-plt.plot( T_data, rho_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
+plt.plot( T_data, rho_data, linestyle = '--', color = 'firebrick', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
 plt.tick_params(axis = 'both', top = True, bottom = True, right = 'True', left = 'True', direction = 'inout')
@@ -68,7 +68,7 @@ plt.clf()
 
 # Read & Plot data
 plt.scatter( T_nist, e_nist, s = 25, facecolors = 'none', edgecolors = 'black', label = r'$\textrm{NIST}$' )
-plt.plot( T_data, e_data/1.0e3 + ( 387.676 - 76.809 ), linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
+plt.plot( T_data, e_data/1.0e3 + ( 387.676 - 76.809 ), linestyle = '--', color = 'firebrick', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
 plt.tick_params(axis = 'both', top = True, bottom = True, right = 'True', left = True, direction = 'inout')
@@ -92,7 +92,7 @@ plt.clf()
 
 # Read & Plot data
 plt.scatter( T_nist, sos_nist, s = 25, facecolors = 'none', edgecolors = 'black', label = r'$\textrm{NIST}$' )
-plt.plot( T_data, sos_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
+plt.plot( T_data, sos_data, linestyle = '--', color = 'firebrick', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
 plt.tick_params(axis = 'both', top = True, bottom = True, right = 'True', left = True, direction = 'inout')
@@ -116,7 +116,7 @@ plt.clf()
 
 # Read & Plot data
 plt.scatter( T_nist, mu_nist, s = 25, facecolors = 'none', edgecolors = 'black', label = r'$\textrm{NIST}$' )
-plt.plot( T_data, mu_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
+plt.plot( T_data, mu_data, linestyle = '--', color = 'firebrick', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
 plt.tick_params(axis = 'both', top = True, bottom = True, right = 'True', left = True, direction = 'inout')
@@ -141,7 +141,7 @@ plt.clf()
 
 # Read & Plot data
 plt.scatter( T_nist, kappa_nist, s = 25, facecolors = 'none', edgecolors = 'black', label = r'$\textrm{NIST}$' )
-plt.plot( T_data, kappa_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
+plt.plot( T_data, kappa_data, linestyle = '--', color = 'firebrick', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
 plt.tick_params(axis = 'both', top = True, bottom = True, right = 'True', left = True, direction = 'inout')

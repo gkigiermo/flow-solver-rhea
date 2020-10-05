@@ -1,6 +1,7 @@
 RHEA DEVELOPMENT AGENDA:
 
-- Solve run problem bug (it may be connected to very small meshes) ... Willy
+- Solve run problem bug (it may be connected to having only one cell in a direction) ... Willy
+- Solve h5/xdmf/visualization problem on BSC ... Lluís/Willy
 
 - ...
 
