@@ -45,7 +45,7 @@ plt.clf()
 
 # Read & Plot data
 plt.plot( x_exact, rho_exact, linestyle = '-', linewidth = 1, color = 'black', label = r'$\textrm{Exact}$' )
-plt.plot( x_data, rho_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
+plt.plot( x_data, rho_data, linestyle = '--', color = 'firebrick', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
 plt.xlim( 0.0, 1.0 )
@@ -70,7 +70,7 @@ plt.clf()
 
 # Read & Plot data
 plt.plot( x_exact, u_exact, linestyle = '-', linewidth = 1, color = 'black', label = r'$\textrm{Exact}$' )
-plt.plot( x_data, u_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
+plt.plot( x_data, u_data, linestyle = '--', color = 'firebrick', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
 plt.xlim( 0.0, 1.0 )
@@ -95,7 +95,7 @@ plt.clf()
 
 # Read & Plot data
 plt.plot( x_exact, P_exact, linestyle = '-', linewidth = 1, color = 'black', label = r'$\textrm{Exact}$' )
-plt.plot( x_data, P_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
+plt.plot( x_data, P_data, linestyle = '--', color = 'firebrick', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
 plt.xlim( 0.0, 1.0 )
@@ -120,7 +120,7 @@ plt.clf()
 
 # Read & Plot data
 plt.plot( x_exact, e_exact, linestyle = '-', linewidth = 1, color = 'black', label = r'$\textrm{Exact}$' )
-plt.plot( x_data, e_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
+plt.plot( x_data, e_data, linestyle = '--', color = 'firebrick', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
 plt.xlim( 0.0, 1.0 )
