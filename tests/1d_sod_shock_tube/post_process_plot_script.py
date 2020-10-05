@@ -15,7 +15,7 @@ plt.rcParams['text.latex.preamble'] = [ r'\usepackage{amsmath}', r'\usepackage{a
 
 
 ### Open data file
-data_file = h5py.File( '1d_sod_shock_tube_58.h5', 'r' )
+data_file = h5py.File( '1d_sod_shock_tube_485.h5', 'r' )
 #list( data_file.keys() )
 x_data     = data_file['x'][0,0,:];     x_data     = np.asarray( x_data.flatten() )
 y_data     = data_file['y'][0,0,:];     y_data     = np.asarray( y_data.flatten() )
@@ -34,12 +34,17 @@ ke_data    = 0.5*( u_data*u_data + v_data*v_data + w_data*w_data )
 e_data     = E_data - ke_data
 
 
+### Open exact solution file
+x_exact, rho_exact, u_exact, P_exact, e_exact = np.loadtxt( 'toro_exact_solution.csv', delimiter=',', unpack = 'True' )
+
+
 ### Plot density vs. x-direction
 
 # Clear plot
 plt.clf()
 
 # Read & Plot data
+plt.plot( x_exact, rho_exact, linestyle = '-', linewidth = 1, color = 'black', label = r'$\textrm{Exact}$' )
 plt.plot( x_data, rho_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
@@ -48,8 +53,8 @@ plt.xticks( np.arange( 0.0, 1.1, 0.2 ) )
 plt.tick_params( axis = 'x', bottom = True, top = True, labelbottom = 'True', labeltop = 'False', direction = 'in' )
 #plt.xscale( 'log' )
 plt.xlabel( r'$x \thinspace \textrm{[m]}$' )
-plt.ylim( 0.0, 1.1 )
-plt.yticks( np.arange( 0.0, 1.2, 0.2 ) )
+plt.ylim( 0.0, 1.2 )
+plt.yticks( np.arange( 0.0, 1.3, 0.2 ) )
 plt.tick_params( axis = 'y', left = True, right = True, labelleft = 'True', labelright = 'False', direction = 'in' )
 #plt.yscale( 'log' )
 plt.ylabel( r'$\rho \thinspace \textrm{[kg/m}^\textrm{3}\textrm{]}$' )
@@ -64,6 +69,7 @@ plt.savefig( 'density_vs_x_direction.eps', format = 'eps', bbox_inches = 'tight'
 plt.clf()
 
 # Read & Plot data
+plt.plot( x_exact, u_exact, linestyle = '-', linewidth = 1, color = 'black', label = r'$\textrm{Exact}$' )
 plt.plot( x_data, u_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
@@ -72,12 +78,12 @@ plt.xticks( np.arange( 0.0, 1.1, 0.2 ) )
 plt.tick_params( axis = 'x', bottom = True, top = True, labelbottom = 'True', labeltop = 'False', direction = 'in' )
 #plt.xscale( 'log' )
 plt.xlabel( r'$x \thinspace \textrm{[m]}$' )
-plt.ylim( -0.1, 1.6 )
-plt.yticks( np.arange( 0.0, 1.7, 0.4 ) )
+plt.ylim( -0.2, 1.3 )
+plt.yticks( np.arange( -0.2, 1.4, 0.3 ) )
 plt.tick_params( axis = 'y', left = True, right = True, labelleft = 'True', labelright = 'False', direction = 'in' )
 #plt.yscale( 'log' )
 plt.ylabel( r'$u \thinspace \textrm{[m/s]}$' )
-legend = plt.legend( shadow = False, fancybox = False, frameon = False, loc='lower left' )
+legend = plt.legend( shadow = False, fancybox = False, frameon = False, loc='upper left' )
 plt.tick_params( axis = 'both', pad = 7.5 )
 plt.savefig( 'u_velocity_vs_x_direction.eps', format = 'eps', bbox_inches = 'tight' )
 
@@ -88,6 +94,7 @@ plt.savefig( 'u_velocity_vs_x_direction.eps', format = 'eps', bbox_inches = 'tig
 plt.clf()
 
 # Read & Plot data
+plt.plot( x_exact, P_exact, linestyle = '-', linewidth = 1, color = 'black', label = r'$\textrm{Exact}$' )
 plt.plot( x_data, P_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
@@ -96,8 +103,8 @@ plt.xticks( np.arange( 0.0, 1.1, 0.2 ) )
 plt.tick_params( axis = 'x', bottom = True, top = True, labelbottom = 'True', labeltop = 'False', direction = 'in' )
 #plt.xscale( 'log' )
 plt.xlabel( r'$x \thinspace \textrm{[m]}$' )
-plt.ylim( 0.0, 1.1 )
-plt.yticks( np.arange( 0.0, 1.2, 0.2 ) )
+plt.ylim( 0.0, 1.2 )
+plt.yticks( np.arange( 0.0, 1.3, 0.2 ) )
 plt.tick_params( axis = 'y', left = True, right = True, labelleft = 'True', labelright = 'False', direction = 'in' )
 #plt.yscale( 'log' )
 plt.ylabel( r'$P \thinspace \textrm{[Pa]}$' )
@@ -112,6 +119,7 @@ plt.savefig( 'pressure_vs_x_direction.eps', format = 'eps', bbox_inches = 'tight
 plt.clf()
 
 # Read & Plot data
+plt.plot( x_exact, e_exact, linestyle = '-', linewidth = 1, color = 'black', label = r'$\textrm{Exact}$' )
 plt.plot( x_data, e_data, linestyle = '--', color = 'black', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
@@ -120,8 +128,8 @@ plt.xticks( np.arange( 0.0, 1.1, 0.2 ) )
 plt.tick_params( axis = 'x', bottom = True, top = True, labelbottom = 'True', labeltop = 'False', direction = 'in' )
 #plt.xscale( 'log' )
 plt.xlabel( r'$x \thinspace \textrm{[m]}$' )
-plt.ylim( 1.8, 3.8 )
-plt.yticks( np.arange( 1.8, 4.0, 0.4 ) )
+plt.ylim( 1.6, 3.1 )
+plt.yticks( np.arange( 1.6, 3.2, 0.3 ) )
 plt.tick_params( axis = 'y', left = True, right = True, labelleft = 'True', labelright = 'False', direction = 'in' )
 #plt.yscale( 'log' )
 plt.ylabel( r'$e \thinspace \textrm{[J/kg]}$' )
