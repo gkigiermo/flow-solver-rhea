@@ -39,20 +39,20 @@ problem_parameters:
    L_x: 6.283185307                    					# Size of domain in x-direction [m]
    L_y: 6.283185307                    					# Size of domain in y-direction [m]
    L_z: 0.1                         					# Size of domain in z-direction [m]
-   final_time: 0.01                   					# Final time [s]
+   final_time: 0.5                   					# Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####
 computational_parameters:
-   num_grid_x: 32                     					# Number of internal grid points in the x-direction
-   num_grid_y: 32                     					# Number of internal grid points in the y-direction
+   num_grid_x: 64                     					# Number of internal grid points in the x-direction
+   num_grid_y: 64                     					# Number of internal grid points in the y-direction
    num_grid_z: 2                     					# Number of internal grid points in the z-direction
    # Stretching factors: x = x_0 + L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
    # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
    A_x: 0.0                 					        # Stretching factor in x-direction
    A_y: 0.0             					        # Stretching factor in y-direction
    A_z: 0.0                       					# Stretching factor in z-direction
-   CFL: 0.9                  					        # CFL coefficient
+   CFL: 0.1                  					        # CFL coefficient
    final_time_iter: 100000            					# Final time iteration
 
 
@@ -60,10 +60,10 @@ computational_parameters:
 boundary_conditions:
    # For each boundary [west (x), east (x), south (y), north (y), back (z), front (z)], type and u, v, w, P and T values/derivatives are needed
    # Boundary types: DIRICHLET (provide value), NEUMANN (provide derivative), PERIODIC (value/derivative not needed)
-   west_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]	                # West boundary condition
-   east_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]	                # East boundary condition
-   south_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]                       # South boundary condition
-   north_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]                    	# North boundary condition
+   west_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]	                # West boundary condition
+   east_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]	                # East boundary condition
+   south_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]                      # South boundary condition
+   north_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]                    	# North boundary condition
    back_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Back boundary condition
    front_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Front boundary condition
 
@@ -71,7 +71,7 @@ boundary_conditions:
 ##### WRITE/READ PARAMETERS #####
 write_read_parameters:
    output_data_file_name: '2d_taylor_green_vortex'			# Name of output data file
-   output_frequency_iter: 1000         					# Data output iteration frequency
+   output_frequency_iter: 100000       					# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
    restart_data_file: 'restart_data_file.h5' 				# Restart data file

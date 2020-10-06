@@ -1,11 +1,11 @@
 RHEA DEVELOPMENT AGENDA:
 
 - Solve run problem bug (it may be connected to having only one cell in a direction) ... Willy
+- Solve periodic boundary problems (seems to be doing periodic within cpu subdomains) ... Willy
 - Solve h5/xdmf/visualization problem on BSC ... Lluís/Willy
 
 - ...
 
-- Solve run problem bug (it may be connected to very small meshes)
 - Check heat problem changing direction of axes
 - Incorporate message that HDF5 labels cannot include special characters
 - Create/check destructors of Willy's classes
