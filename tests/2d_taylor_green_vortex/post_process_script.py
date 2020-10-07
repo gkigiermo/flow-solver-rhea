@@ -49,8 +49,8 @@ for i in range( 0, len( x_data ) ):
     if( ( x_data[i] > 0.0 ) and ( x_data[i] < ( 2.0*np.pi ) ) ):
         if( ( y_data[i] > 0.0 ) and ( y_data[i] < ( 2.0*np.pi ) ) ):
             ### Exact values
-            u_exact = U_0*np.sin( x_data[i] )*np.cos( y_data[i] )*math.exp( ( -2.0 )*nu*time )
-            v_exact = ( -1.0 )*U_0*np.cos( x_data[i] )*np.sin( y_data[i] )*math.exp( ( -2.0 )*nu*time )
+            u_exact = ( -1.0 )*U_0*np.cos( x_data[i] )*np.sin( y_data[i] )*math.exp( ( -2.0 )*nu*time )
+            v_exact = U_0*np.sin( x_data[i] )*np.cos( y_data[i] )*math.exp( ( -2.0 )*nu*time )
             P_exact = P_0 - ( rho_0*U_0*U_0/4.0 )*( np.cos( 2.0*x_data[i] ) + np.cos( 2.0*y_data[i] ) )*math.exp( ( -4.0 )*nu*time )
             ### L2-norm errors
             u_L2_norm_error += ( u_exact - u_data[i] )**2.0
