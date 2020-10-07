@@ -44,15 +44,15 @@ problem_parameters:
 
 ##### COMPUTATIONAL PARAMETERS #####
 computational_parameters:
-   num_grid_x: 64                     					# Number of internal grid points in the x-direction
-   num_grid_y: 64                     					# Number of internal grid points in the y-direction
+   num_grid_x: 32                     					# Number of internal grid points in the x-direction
+   num_grid_y: 32                     					# Number of internal grid points in the y-direction
    num_grid_z: 2                     					# Number of internal grid points in the z-direction
    # Stretching factors: x = x_0 + L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
    # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
    A_x: 0.0                 					        # Stretching factor in x-direction
    A_y: 0.0             					        # Stretching factor in y-direction
    A_z: 0.0                       					# Stretching factor in z-direction
-   CFL: 0.1                  					        # CFL coefficient
+   CFL: 0.9                  					        # CFL coefficient
    final_time_iter: 100000            					# Final time iteration
 
 
