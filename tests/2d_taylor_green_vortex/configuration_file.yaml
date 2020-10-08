@@ -39,13 +39,13 @@ problem_parameters:
    L_x: 6.283185307                    					# Size of domain in x-direction [m]
    L_y: 6.283185307                    					# Size of domain in y-direction [m]
    L_z: 0.1                         					# Size of domain in z-direction [m]
-   final_time: 0.5                   					# Final time [s]
+   final_time: 0.5                  					# Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####
 computational_parameters:
-   num_grid_x: 32                     					# Number of internal grid points in the x-direction
-   num_grid_y: 32                     					# Number of internal grid points in the y-direction
+   num_grid_x: 16                     					# Number of internal grid points in the x-direction
+   num_grid_y: 16                     					# Number of internal grid points in the y-direction
    num_grid_z: 2                     					# Number of internal grid points in the z-direction
    # Stretching factors: x = x_0 + L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
    # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center

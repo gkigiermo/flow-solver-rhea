@@ -26,10 +26,10 @@ void myRHEA::setInitialConditions() {
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                u_field[I1D(i,j,k)] = ( -1.0 )*U_0*cos( mesh->x[i] )*sin( mesh->y[j] );
-                v_field[I1D(i,j,k)] = U_0*sin( mesh->x[i] )*cos( mesh->y[j] );
+                u_field[I1D(i,j,k)] = U_0*sin( mesh->x[i] )*cos( mesh->y[j] );
+                v_field[I1D(i,j,k)] = U_0*cos( mesh->x[i] )*sin( mesh->y[j] );
                 w_field[I1D(i,j,k)] = 0.0;
-                P_field[I1D(i,j,k)] = P_0 - ( rho_0*U_0*U_0/4.0 )*( cos( 2.0*mesh->x[i] ) + cos( 2.0*mesh->y[j] ) );
+                P_field[I1D(i,j,k)] = P_0 + ( rho_0*U_0*U_0/4.0 )*( cos( 2.0*mesh->x[i] ) + cos( 2.0*mesh->y[j] ) );
                 T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_0*thermodynamics->getSpecificGasConstant() );
             }
         }
