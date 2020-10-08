@@ -22,6 +22,13 @@ void myRHEA::setInitialConditions() {
         }
     }
 
+    /// Update halo values
+    u_field.update();
+    v_field.update();
+    w_field.update();
+    P_field.update();
+    T_field.update();
+
 };
 
 void myRHEA::calculateSourceTerms() {
