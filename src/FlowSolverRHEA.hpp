@@ -73,67 +73,67 @@ class FlowSolverRHEA {
 	////////// SOLVER METHODS //////////
         
 	/// Execute (aggregated method) RHEA
-        void execute();
+        virtual void execute();
 
         /// Read configuration (input) file written in YAML language
-        void readConfigurationFile();
+        virtual void readConfigurationFile();
 
         /// Fill x, y and z mesh coordinate fields (input/output data)
-        void fillMeshCoordinateFields();
+        virtual void fillMeshCoordinateFields();
 
         /// Set initial conditions: u, v, w, P and T ... needs to be modified/overwritten according to the problem under consideration
         virtual void setInitialConditions();
 
         /// Initialize from restart file: x, y, z, rho, u, v, w, E, P, T, sos, mu and kappa
-        void initializeFromRestart();
+        virtual void initializeFromRestart();
 
         /// Initialize thermodynamic state: rho, E and sos
-        void initializeThermodynamics();
+        virtual void initializeThermodynamics();
 
         /// Calculate conserved variables from primitive variables: variable -> rho*variable
-        void primitiveToConservedVariables();
+        virtual void primitiveToConservedVariables();
 
         /// Calculate primitive variables from conserved variables: rho*variable -> variable
-        void conservedToPrimitiveVariables();
+        virtual void conservedToPrimitiveVariables();
 
         /// Calculate thermodynamics from primitive variables
-        void calculateThermodynamicsFromPrimitiveVariables();
+        virtual void calculateThermodynamicsFromPrimitiveVariables();
 
         /// Update boundary values: rho, rhou, rhov, rhow and rhoE
-        void updateBoundaries();
+        virtual void updateBoundaries();
 
         /// Update previous state of conserved variables: rho*variable -> rho_0*variable_0
-        void updatePreviousStateConservedVariables();
+        virtual void updatePreviousStateConservedVariables();
 
         /// Calculate time step satisfying CFL constraint
-        void calculateTimeStep();
+        virtual void calculateTimeStep();
 
         /// Calculate transport coefficients
-        void calculateTransportCoefficients();
+        virtual void calculateTransportCoefficients();
 
         /// Calculate rhou, rhov, rhow and rhoE source terms ... needs to be modified/overwritten according to the problem under consideration
         virtual void calculateSourceTerms();
 
         /// Calculate waves speed
-        void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
+        virtual void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
 
         /// Calculate HLLC flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
-        double calculateHllcFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+        virtual double calculateHllcFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
 
         /// Calculate inviscid fluxes
-        void calculateInviscidFluxes();
+        virtual void calculateInviscidFluxes();
 
         /// Calculate viscous fluxes
-        void calculateViscousFluxes();
+        virtual void calculateViscousFluxes();
 
         /// Sum inviscid & viscous fluxes, and source terms
-        void sumInviscidViscousFluxesSourceTerms(const int &rk_step);
+        virtual void sumInviscidViscousFluxesSourceTerms(const int &rk_step);
 
         /// Advance conserved variables in time
-        void timeAdvanceConservedVariables(const int &rk_step);
+        virtual void timeAdvanceConservedVariables(const int &rk_step);
 
         /// Output current solver state data
-        void outputCurrentStateData();
+        virtual void outputCurrentStateData();
 
     protected:
 
