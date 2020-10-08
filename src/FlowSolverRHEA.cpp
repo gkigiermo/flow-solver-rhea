@@ -37,6 +37,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
         MPI_Abort( MPI_COMM_WORLD, 1 );
     }
 
+    /// Construct (initialize) transport coefficients model
     if( transport_coefficients_model == "CONSTANT" ) {
         transport_coefficients = new ConstantTransportCoefficients( configuration_file );
     } else if( transport_coefficients_model == "HIGH_PRESSURE" ) {
