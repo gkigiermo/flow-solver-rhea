@@ -11,7 +11,7 @@ fluid_properties:
    # Thermodynamic models: IDEAL_GAS (provide R_specific, gamma), STIFFENED_GAS (provide R_specific, gamma, P_inf, e_0, c_v),
    # PENG_ROBINSON (provide R_specific, molecular_weight, acentric_factor, critical temperature, critical pressure, critical molar volume, NASA 7-coefficient polynomial)
    thermodynamic_model: 'IDEAL_GAS'			  		# Thermodynamic model
-   R_specific: 287.058                 					# Specific gas constant [J/(kg·K)]
+   R_specific: 1.0                 					# Specific gas constant [J/(kg·K)]
    gamma: 1.4                          					# Heat capacity ratio (iedal-gas) [-]
    P_inf: 0.0                         					# Pressure infinity (liquid stiffness) [Pa]
    e_0: 0.0                         					# Internal energy zero point [J/kg]
@@ -26,7 +26,7 @@ fluid_properties:
    # HIGH_PRESSURE (provide molecular weight, critical temperature, critical molar volume, acentric factor, dipole moment, association factor, NASA 7-coefficient polynomial)
    transport_coefficients_model: 'CONSTANT'		  		# Transport coefficients model
    mu: 1.0                           					# Dynamic viscosity [Pa·s]
-   kappa: 0.0                          					# Thermal conductivity [W/(m·k)]
+   kappa: 4.929577465                  					# Thermal conductivity [W/(m·k)]
    dipole_moment: 0.0               					# Dipole moment [D]
    association_factor: 0.0             					# Association factor [-]
 
@@ -52,7 +52,7 @@ computational_parameters:
    A_x: 0.0                 					        # Stretching factor in x-direction
    A_y: 0.0             					        # Stretching factor in y-direction
    A_z: 0.0                       					# Stretching factor in z-direction
-   CFL: 0.9                  					        # CFL coefficient
+   CFL: 0.5                  					        # CFL coefficient
    final_time_iter: 100000            					# Final time iteration
 
 
