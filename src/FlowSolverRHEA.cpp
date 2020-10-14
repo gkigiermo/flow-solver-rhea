@@ -8,7 +8,7 @@ using namespace std;
 
 ////////// FIXED PARAMETERS //////////
 const double epsilon     = 1.0e-15;			/// Small epsilon number (fixed)
-//const double Pi          = 2.0*asin(1.0);		/// Pi number (fixed)
+//const double pi          = 2.0*asin(1.0);		/// pi number (fixed)
 const int cout_presicion = 5;		                /// Output precision (fixed)
 
 
@@ -1306,6 +1306,7 @@ void FlowSolverRHEA::calculateViscousFluxes() {
 
     /// Inner points: rhou, rhov, rhow and rhoE
     double delta_x, delta_y, delta_z;
+    double div_uvw, tau_xx, tau_xy, tau_xz, tau_yy, tau_yz, tau_zz;
     double div_tau_x, div_tau_y, div_tau_z;
     double div_q, div_uvw_tau; 
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
@@ -1315,6 +1316,20 @@ void FlowSolverRHEA::calculateViscousFluxes() {
                 delta_x = mesh->x[i+1] - mesh->x[i-1]; 
                 delta_y = mesh->y[j+1] - mesh->y[j-1]; 
                 delta_z = mesh->z[k+1] - mesh->z[k-1];
+                /// Divergence of velocity
+                div_uvw = ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/delta_x
+                        + ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j-1,k)] )/delta_y
+                        + ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k-1)] )/delta_z;
+                /// Viscous stresses ( symmetric tensor )
+                tau_xx = 2.0*mu_field[I1D(i,j,k)]*( ( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/delta_x ) - ( div_uvw/3.0 ) );
+                tau_xy = mu_field[I1D(i,j,k)]*( ( ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j-1,k)] )/delta_y )
+                                              + ( ( v_field[I1D(i+1,j,k)] - v_field[I1D(i-1,j,k)] )/delta_x ) );
+                tau_xz = mu_field[I1D(i,j,k)]*( ( ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k-1)] )/delta_z )
+                                              + ( ( w_field[I1D(i+1,j,k)] - w_field[I1D(i-1,j,k)] )/delta_x ) );
+                tau_yy = 2.0*mu_field[I1D(i,j,k)]*( ( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j-1,k)] )/delta_y ) - ( div_uvw/3.0 ) );
+                tau_yz = mu_field[I1D(i,j,k)]*( ( ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k-1)] )/delta_z )
+                                              + ( ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j-1,k)] )/delta_y ) );
+                tau_zz = 2.0*mu_field[I1D(i,j,k)]*( ( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k-1)] )/delta_z ) - ( div_uvw/3.0 ) );
                 /// Divergence of viscous stresses
                 div_tau_x = mu_field[I1D(i,j,k)]*( ( 2.0/delta_x )*( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] )
                                                                    - ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) )
@@ -1360,7 +1375,16 @@ void FlowSolverRHEA::calculateViscousFluxes() {
                                                 + ( 2.0/delta_z )*( ( T_field[I1D(i,j,k+1)] - T_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] )
                                                                   - ( T_field[I1D(i,j,k)] - T_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) );
                 /// Work of viscous stresses
-                div_uvw_tau = u_field[I1D(i,j,k)]*div_tau_x + v_field[I1D(i,j,k)]*div_tau_y + w_field[I1D(i,j,k)]*div_tau_z;
+                div_uvw_tau = u_field[I1D(i,j,k)]*div_tau_x + v_field[I1D(i,j,k)]*div_tau_y + w_field[I1D(i,j,k)]*div_tau_z
+                            + tau_xx*( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/delta_x )
+                            + tau_xy*( ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j-1,k)] )/delta_y )
+                            + tau_xz*( ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k-1)] )/delta_z )
+                            + tau_xy*( ( v_field[I1D(i+1,j,k)] - v_field[I1D(i-1,j,k)] )/delta_x )
+                            + tau_yy*( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j-1,k)] )/delta_y )
+                            + tau_yz*( ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k-1)] )/delta_z )
+                            + tau_xz*( ( w_field[I1D(i+1,j,k)] - w_field[I1D(i-1,j,k)] )/delta_x )
+                            + tau_yz*( ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j-1,k)] )/delta_y )
+                            + tau_zz*( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k-1)] )/delta_z );
                 /// Viscous fluxes
                 rhou_vis_flux[I1D(i,j,k)] = div_tau_x;
                 rhov_vis_flux[I1D(i,j,k)] = div_tau_y;
@@ -1388,7 +1412,7 @@ void FlowSolverRHEA::sumInviscidViscousFluxesSourceTerms(const int &rk_step) {
         for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
             for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
                 for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                    /// Work of sources
+                    /// Work of momentum sources
                     f_rhouvw = f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)];
                     /// Sum all fluxes
                     rho_rk1_flux[I1D(i,j,k)]  = ( -1.0 )*rho_inv_flux[I1D(i,j,k)]; 
@@ -1417,7 +1441,7 @@ void FlowSolverRHEA::sumInviscidViscousFluxesSourceTerms(const int &rk_step) {
         for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
             for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
                 for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                    /// Work of sources
+                    /// Work of momentum sources
                     f_rhouvw = f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)];
                     /// Sum all fluxes
                     rho_rk2_flux[I1D(i,j,k)]  = ( -1.0 )*rho_inv_flux[I1D(i,j,k)]; 
@@ -1446,7 +1470,7 @@ void FlowSolverRHEA::sumInviscidViscousFluxesSourceTerms(const int &rk_step) {
         for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
             for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
                 for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                    /// Work of sources
+                    /// Work of momentum sources
                     f_rhouvw = f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)];
                     /// Sum all fluxes
                     rho_rk3_flux[I1D(i,j,k)]  = ( -1.0 )*rho_inv_flux[I1D(i,j,k)]; 
