@@ -7,7 +7,6 @@ import h5py
 import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
 from matplotlib import rc,rcParams
-from scipy.optimize import fsolve
 plt.rc( 'text', usetex = True )
 rc('font', family='sanserif')
 plt.rc( 'font', size = 20 )
@@ -43,7 +42,7 @@ x_exact, rho_exact, u_exact, P_exact, e_exact = np.loadtxt( 'toro_exact_solution
 # Clear plot
 plt.clf()
 
-# Read & Plot data
+# Plot data
 plt.plot( x_exact, rho_exact, linestyle = '-', linewidth = 1, color = 'black', label = r'$\textrm{Exact}$' )
 plt.plot( x_data, rho_data, linestyle = '--', color = 'firebrick', label = r'$\textrm{RHEA}$' )
 

@@ -85,6 +85,6 @@ timers_information:
 
 ##### PARALLELIZATION SCHEME #####
 parallelization_scheme:
-   np_x: 4                             					# Number of processes in x-direction
-   np_y: 1                             					# Number of processes in y-direction
+   np_x: 2                             					# Number of processes in x-direction
+   np_y: 2                             					# Number of processes in y-direction
    np_z: 1                             					# Number of processes in z-direction
