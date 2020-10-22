@@ -7,14 +7,14 @@ import h5py
 import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
 from matplotlib import rc,rcParams
+#np.set_printoptions(threshold=sys.maxsize)
 plt.rc( 'text', usetex = True )
 rc('font', family='sanserif')
 plt.rc( 'font', size = 20 )
 plt.rcParams['text.latex.preamble'] = [ r'\usepackage{amsmath}', r'\usepackage{amssymb}', r'\usepackage{color}' ]
 
-
 ### Open data file
-data_file = h5py.File( '2d_lid_driven_cavity_241064.h5', 'r' )
+data_file = h5py.File( '2d_lid_driven_cavity_482290.h5', 'r' )
 #list( data_file.keys() )
 x_data     = data_file['x'][0,:,:];     x_data     = np.asarray( x_data.flatten() )
 y_data     = data_file['y'][0,:,:];     y_data     = np.asarray( y_data.flatten() )
@@ -50,11 +50,15 @@ epsilon = 0.5*L/( int( np.sqrt( len( y_data ) ) - 2.0 ) )	# Geometric epsilon ba
 y_center_data = np.zeros( int( np.sqrt( len( y_data ) ) ) )
 u_center_data = np.zeros( int( np.sqrt( len( u_data ) ) ) )
 counter = 0
+y_old = -1.0
 for p in range( 0, len( x_data ) ):
     if( np.abs( x_data[p] - ( 0.5*L - 1.0e-1*epsilon ) ) < epsilon ):
-        y_center_data[counter] = y_data[p]
-        u_center_data[counter] = u_data[p]
-        counter += 1
+        if( y_data[p] > y_old ):
+            #print( x_data[p], y_data[p] )
+            y_center_data[counter] = y_data[p]
+            u_center_data[counter] = u_data[p]
+            counter += 1
+            y_old = y_data[p] 
 
 # Clear plot
 plt.clf()
@@ -85,11 +89,15 @@ plt.savefig( 'u_velocity_vs_y_direction.eps', format = 'eps', bbox_inches = 'tig
 x_center_data = np.zeros( int( np.sqrt( len( x_data ) ) ) )
 v_center_data = np.zeros( int( np.sqrt( len( v_data ) ) ) )
 counter = 0
+x_old = -1.0
 for p in range( 0, len( y_data ) ):
     if( np.abs( y_data[p] - ( 0.5*L - 1.0e-1*epsilon ) ) < epsilon ):
-        x_center_data[counter] = x_data[p]
-        v_center_data[counter] = v_data[p]
-        counter += 1
+        if( x_data[p] > x_old ):
+            #print( x_data[p], y_data[p] )
+            x_center_data[counter] = x_data[p]
+            v_center_data[counter] = v_data[p]
+            counter += 1
+            x_old = x_data[p] 
 
 # Clear plot
 plt.clf()

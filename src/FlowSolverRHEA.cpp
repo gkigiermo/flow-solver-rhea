@@ -906,7 +906,7 @@ void FlowSolverRHEA::calculateWavesSpeed(double &S_L, double &S_R, const double 
 #if _PRESSURE_BASED_WAVE_SPEED_ESTIMATES_
     /// Pressure-based wave speed estimates: ... recommended by E. F. Toro, but not sure if applicable to non-ideal gas themodynamics
     /// E. F. Toro, M. Spruce, W. Speares.
-    /// Restoration of the contact surface in the HLL–Riemann solver.
+    /// Restoration of the contact surface in the HLL-Riemann solver.
     /// Shock Waves, 4, 25-34, 1994.
 
     double P_bar   = 0.5*( P_L + P_R );
@@ -937,7 +937,7 @@ double FlowSolverRHEA::calculateHllcFlux(const double &F_L, const double &F_R, c
 
     /// Harten-Lax-van Leer-Contact (HLLC) Riemman solver:
     /// E. F. Toro, M. Spruce, W. Speares.
-    /// Restoration of the contact surface in the HLL–Riemann solver.
+    /// Restoration of the contact surface in the HLL-Riemann solver.
     /// Shock Waves, 4, 25-34, 1994.
 
     double S_L, S_R;
@@ -1237,7 +1237,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 /// z-direction k-1/2
                 index_L = k - 1;                       index_R = k;
                 rho_L   = rho_field[I1D(i,j,index_L)]; rho_R   = rho_field[I1D(i,j,index_R)];
-                u_L     = u_field[I1D(i,j,index_L)];   u_R     = w_field[I1D(i,j,index_R)];
+                u_L     = u_field[I1D(i,j,index_L)];   u_R     = u_field[I1D(i,j,index_R)];
                 v_L     = v_field[I1D(i,j,index_L)];   v_R     = v_field[I1D(i,j,index_R)];
                 w_L     = w_field[I1D(i,j,index_L)];   w_R     = w_field[I1D(i,j,index_R)];
                 E_L     = E_field[I1D(i,j,index_L)];   E_R     = E_field[I1D(i,j,index_R)];
