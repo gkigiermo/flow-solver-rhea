@@ -24,9 +24,6 @@ class myRHEA : public FlowSolverRHEA {
         /// Calculate rhou, rhov, rhow and rhoE source terms ... needs to be modified/overwritten according to the problem under consideration
         void calculateSourceTerms();
 
-        /// Calculate inviscid fluxes ... needs to be modified/overwritten for this problem
-        ////void calculateInviscidFluxes();
-
     protected:
 
     private:

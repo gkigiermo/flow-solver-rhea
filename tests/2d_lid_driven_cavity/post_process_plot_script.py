@@ -14,7 +14,7 @@ plt.rc( 'font', size = 20 )
 plt.rcParams['text.latex.preamble'] = [ r'\usepackage{amsmath}', r'\usepackage{amssymb}', r'\usepackage{color}' ]
 
 ### Open data file
-data_file = h5py.File( '2d_lid_driven_cavity_482290.h5', 'r' )
+data_file = h5py.File( '2d_lid_driven_cavity_2000.h5', 'r' )
 #list( data_file.keys() )
 x_data     = data_file['x'][0,:,:];     x_data     = np.asarray( x_data.flatten() )
 y_data     = data_file['y'][0,:,:];     y_data     = np.asarray( y_data.flatten() )
@@ -40,7 +40,7 @@ x_ghia, v_ghia = np.loadtxt( 'ghia_v_velocity_solution.csv', delimiter=',', unpa
 
 ### Reference parameters
 L       = 1.0							# Size of cavity [m]
-U_lid   = 1.0							# Lid velocity [m/s]
+U_lid   = 1.0   						# Lid velocity [m/s]
 epsilon = 0.5*L/( int( np.sqrt( len( y_data ) ) - 2.0 ) )	# Geometric epsilon based on grid resolution
 
 
@@ -64,7 +64,7 @@ for p in range( 0, len( x_data ) ):
 plt.clf()
 
 # Read & Plot data
-plt.scatter( y_ghia/L, u_ghia/U_lid, marker = 'p', s = 50, color = 'black', label = r'$\textrm{Ghia et al.}$' )
+plt.scatter( y_ghia, u_ghia, marker = 'p', s = 50, color = 'black', label = r'$\textrm{Ghia et al.}$' )
 plt.plot( y_center_data/L, u_center_data/U_lid, linestyle = '--', color = 'firebrick', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
@@ -103,7 +103,7 @@ for p in range( 0, len( y_data ) ):
 plt.clf()
 
 # Read & Plot data
-plt.scatter( x_ghia/L, v_ghia/U_lid, marker = 'p', s = 50, color = 'black', label = r'$\textrm{Ghia et al.}$' )
+plt.scatter( x_ghia, v_ghia, marker = 'p', s = 50, color = 'black', label = r'$\textrm{Ghia et al.}$' )
 plt.plot( x_center_data/L, v_center_data/U_lid, linestyle = '--', color = 'firebrick', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
