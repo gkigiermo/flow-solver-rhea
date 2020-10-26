@@ -1306,6 +1306,7 @@ void FlowSolverRHEA::calculateViscousFluxes() {
 
     /// Inner points: rhou, rhov, rhow and rhoE
     double delta_x, delta_y, delta_z;
+    double d_u_x, d_u_y, d_u_z, d_v_x, d_v_y, d_v_z, d_w_x, d_w_y, d_w_z;
     double div_uvw, tau_xx, tau_xy, tau_xz, tau_yy, tau_yz, tau_zz;
     double div_tau_x, div_tau_y, div_tau_z;
     double div_q, div_uvw_tau; 
@@ -1316,20 +1317,25 @@ void FlowSolverRHEA::calculateViscousFluxes() {
                 delta_x = mesh->x[i+1] - mesh->x[i-1]; 
                 delta_y = mesh->y[j+1] - mesh->y[j-1]; 
                 delta_z = mesh->z[k+1] - mesh->z[k-1];
+                /// Velocity derivatives
+                d_u_x = ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/delta_x;
+                d_u_y = ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j-1,k)] )/delta_y;
+                d_u_z = ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k-1)] )/delta_z;
+                d_v_x = ( v_field[I1D(i+1,j,k)] - v_field[I1D(i-1,j,k)] )/delta_x;
+                d_v_y = ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j-1,k)] )/delta_y;
+                d_v_z = ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k-1)] )/delta_z;
+                d_w_x = ( w_field[I1D(i+1,j,k)] - w_field[I1D(i-1,j,k)] )/delta_x;
+                d_w_y = ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j-1,k)] )/delta_y;
+                d_w_z = ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k-1)] )/delta_z;
                 /// Divergence of velocity
-                div_uvw = ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/delta_x
-                        + ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j-1,k)] )/delta_y
-                        + ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k-1)] )/delta_z;
+                div_uvw = d_u_x + d_v_y + d_w_z;
                 /// Viscous stresses ( symmetric tensor )
-                tau_xx = 2.0*mu_field[I1D(i,j,k)]*( ( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/delta_x ) - ( div_uvw/3.0 ) );
-                tau_xy = mu_field[I1D(i,j,k)]*( ( ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j-1,k)] )/delta_y )
-                                              + ( ( v_field[I1D(i+1,j,k)] - v_field[I1D(i-1,j,k)] )/delta_x ) );
-                tau_xz = mu_field[I1D(i,j,k)]*( ( ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k-1)] )/delta_z )
-                                              + ( ( w_field[I1D(i+1,j,k)] - w_field[I1D(i-1,j,k)] )/delta_x ) );
-                tau_yy = 2.0*mu_field[I1D(i,j,k)]*( ( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j-1,k)] )/delta_y ) - ( div_uvw/3.0 ) );
-                tau_yz = mu_field[I1D(i,j,k)]*( ( ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k-1)] )/delta_z )
-                                              + ( ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j-1,k)] )/delta_y ) );
-                tau_zz = 2.0*mu_field[I1D(i,j,k)]*( ( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k-1)] )/delta_z ) - ( div_uvw/3.0 ) );
+                tau_xx = 2.0*mu_field[I1D(i,j,k)]*( d_u_x - ( div_uvw/3.0 ) );
+                tau_xy = mu_field[I1D(i,j,k)]*( d_u_y + d_v_x );
+                tau_xz = mu_field[I1D(i,j,k)]*( d_u_z + d_w_x );
+                tau_yy = 2.0*mu_field[I1D(i,j,k)]*( d_v_y - ( div_uvw/3.0 ) );
+                tau_yz = mu_field[I1D(i,j,k)]*( d_v_z + d_w_y );
+                tau_zz = 2.0*mu_field[I1D(i,j,k)]*( d_w_z - ( div_uvw/3.0 ) );
                 /// Divergence of viscous stresses
                 div_tau_x = mu_field[I1D(i,j,k)]*( ( 2.0/delta_x )*( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] )
                                                                    - ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) )
@@ -1376,15 +1382,9 @@ void FlowSolverRHEA::calculateViscousFluxes() {
                                                                   - ( T_field[I1D(i,j,k)] - T_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) );
                 /// Work of viscous stresses
                 div_uvw_tau = u_field[I1D(i,j,k)]*div_tau_x + v_field[I1D(i,j,k)]*div_tau_y + w_field[I1D(i,j,k)]*div_tau_z
-                            + tau_xx*( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/delta_x )
-                            + tau_xy*( ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j-1,k)] )/delta_y )
-                            + tau_xz*( ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k-1)] )/delta_z )
-                            + tau_xy*( ( v_field[I1D(i+1,j,k)] - v_field[I1D(i-1,j,k)] )/delta_x )
-                            + tau_yy*( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j-1,k)] )/delta_y )
-                            + tau_yz*( ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k-1)] )/delta_z )
-                            + tau_xz*( ( w_field[I1D(i+1,j,k)] - w_field[I1D(i-1,j,k)] )/delta_x )
-                            + tau_yz*( ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j-1,k)] )/delta_y )
-                            + tau_zz*( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k-1)] )/delta_z );
+                            + tau_xx*d_u_x + tau_xy*d_u_y + tau_xz*d_u_z
+                            + tau_xy*d_v_x + tau_yy*d_v_y + tau_yz*d_v_z
+                            + tau_xz*d_w_x + tau_yz*d_w_y + tau_zz*d_w_z;
                 /// Viscous fluxes
                 rhou_vis_flux[I1D(i,j,k)] = div_tau_x;
                 rhov_vis_flux[I1D(i,j,k)] = div_tau_y;
