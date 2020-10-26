@@ -3,12 +3,18 @@
 using namespace std;
 
 /// PROBLEM PARAMETERS ///
-//const double Re_L  = 1000.0;			/// Reynolds number
-const double rho_0 = 1.0;			/// Reference density	
-//const double L     = 1.0;			/// Cavity size
-//const double U_lid = 1.0;			/// Lid velocity
-const double P_0   = 101325.0;			/// Reference pressure
-//const double nu    = u_l*L/Re_L;		/// Kinematic viscosity	
+//const double R_specific = 287.058;				/// Specific gas constant
+//const double gamma_     = 1.4;				/// Heat capacity ratio
+//const double c_p        = gamma_*R_specific/( gamma_ - 1.0 );	/// Heat capacity ratio
+//const double Re_L       = 1000.0;				/// Reynolds number
+//const double Pr         = 0.71;				/// Prandtl number
+const double rho_0      = 1.0;					/// Reference density	
+//const double L          = 1.0;				/// Cavity size
+//const double U_lid      = 100.0;				/// Lid velocity
+const double P_0        = 101325.0;				/// Reference pressure
+//const double mu         = rho_0*U_lid*L/Re_L;			/// Dynamic viscosity	
+//const double nu         = U_lid*L/Re_L;			/// Kinematic viscosity	
+//const double kappa      = c_p*mu/Pr;				/// Thermal conductivity
 
 ////////// myRHEA CLASS //////////
 
