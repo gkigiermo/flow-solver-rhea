@@ -2,6 +2,7 @@ RHEA DEVELOPMENT AGENDA:
 
 - Solve run problem bug (it may be connected to having only one cell in a direction) ... Willy
 - Solve periodic boundary problems (periodic within cpu subdomains, neumann instead of periodic) ... Willy
+- Re-think edge and corner boundary conditions ... Lluís/Willy
 - Solve h5/xdmf/visualization problem on BSC ... Lluís/Willy
 
 - ...
