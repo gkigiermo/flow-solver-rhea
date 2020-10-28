@@ -39,7 +39,7 @@ problem_parameters:
    L_x: 1.0                        					# Size of domain in x-direction [m]
    L_y: 1.0                           					# Size of domain in y-direction [m]
    L_z: 0.01                         					# Size of domain in z-direction [m]
-   final_time: 10.0                        				# Final time [s]
+   final_time: 100000.0                        				# Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####
@@ -53,7 +53,7 @@ computational_parameters:
    A_y: 0.0             					        # Stretching factor in y-direction
    A_z: 0.0                       					# Stretching factor in z-direction
    CFL: 0.5                  					        # CFL coefficient
-   final_time_iter: 100000000          					# Final time iteration
+   final_time_iter: 10000000000       					# Final time iteration
 
 
 ##### BOUNDARY CONDITIONS #####
