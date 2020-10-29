@@ -59,7 +59,7 @@ computational_parameters:
 ##### BOUNDARY CONDITIONS #####
 boundary_conditions:
    # For each boundary [west (x), east (x), south (y), north (y), back (z), front (z)], type and u, v, w, P and T values/derivatives are needed
-   # Boundary types: DIRICHLET (provide value ... negative value for impermeable wall),
+   # Boundary types: DIRICHLET (provide value ... P < 0 and T < 0 for impermeable boundary),
    #                 NEUMANN (provide derivative),
    #                 PERIODIC (no value/derivative needed)
    west_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, -1.0]			# West boundary condition
@@ -73,7 +73,7 @@ boundary_conditions:
 ##### WRITE/READ PARAMETERS #####
 write_read_parameters:
    output_data_file_name: '2d_lid_driven_cavity'  			# Name of output data file
-   output_frequency_iter: 100000000 	     				# Data output iteration frequency
+   output_frequency_iter: 10000 	     				# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
    restart_data_file: 'restart_data_file.h5' 				# Restart data file

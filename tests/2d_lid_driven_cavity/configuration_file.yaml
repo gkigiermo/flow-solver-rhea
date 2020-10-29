@@ -59,7 +59,7 @@ computational_parameters:
 ##### BOUNDARY CONDITIONS #####
 boundary_conditions:
    # For each boundary [west (x), east (x), south (y), north (y), back (z), front (z)], type and u, v, w, P and T values/derivatives are needed
-   # Boundary types: DIRICHLET (provide value ... negative value for impermeable wall),
+   # Boundary types: DIRICHLET (provide value ... P < 0 and T < 0 for impermeable boundary),
    #                 NEUMANN (provide derivative),
    #                 PERIODIC (no value/derivative needed)
    west_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, -1.0]			# West boundary condition
