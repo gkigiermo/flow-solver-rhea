@@ -94,6 +94,7 @@ plt.clf()
 # Plot data
 my_cmap = parula_map
 my_norm = colors.Normalize( vmin = rho_data.min(), vmax = rho_data.max() )
+plt.tricontour( x_data, y_data, rho_data, norm = my_norm, levels = np.arange( 0.0, 2.01, 7.5e-2 ), linewidths = 0.35, colors = 'black' )
 cs = plt.tricontourf( x_data, y_data, rho_data, cmap = my_cmap, norm = my_norm, levels = np.arange( 0.0, 2.01, 1.0e-3 ) )
 
 # Colorbar
@@ -115,7 +116,7 @@ ax.tick_params( axis = 'both', pad = 5.0 )
 plt.xlabel( r'$x \thinspace \textrm{[m]}$' )
 plt.ylabel( r'$y \thinspace \textrm{[m]}$' )
 plt.savefig('density_vs_x_y_direction.eps', format = 'eps', bbox_inches = 'tight' )
-
+plt.savefig('density_vs_x_y_direction.png', format = 'png', bbox_inches = 'tight', dpi = 600 )
 
 
 ### Plot pressure vs. x- & y-direction
@@ -126,6 +127,7 @@ plt.clf()
 # Plot data
 my_cmap = parula_map
 my_norm = colors.Normalize( vmin = P_data.min(), vmax = P_data.max() )
+plt.tricontour( x_data, y_data, P_data, norm = my_norm, levels = np.arange( 0.0, 2.01, 7.5e-2 ), linewidths = 0.35, colors = 'black' )
 cs = plt.tricontourf( x_data, y_data, P_data, cmap = my_cmap, norm = my_norm, levels = np.arange( 0.0, 2.01, 1.0e-3 ) )
 
 # Colorbar
@@ -147,3 +149,4 @@ ax.tick_params( axis = 'both', pad = 5.0 )
 plt.xlabel( r'$x \thinspace \textrm{[m]}$' )
 plt.ylabel( r'$y \thinspace \textrm{[m]}$' )
 plt.savefig('pressure_vs_x_y_direction.eps', format = 'eps', bbox_inches = 'tight' )
+plt.savefig('pressure_vs_x_y_direction.png', format = 'png', bbox_inches = 'tight', dpi = 600 )
