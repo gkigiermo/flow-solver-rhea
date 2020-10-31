@@ -1,6 +1,6 @@
 # RHEA's CONFIGURATION FILE (YAML LANGUAGE)
 #
-# 3D channel flow problem (Re_tau = 180):
+# 3D channel flow problem (Re_tau = 180, Pr = 0.71):
 # R. D. Moser, J. Kim, N. N. Mansour.
 # Direct numerical simulation of turbulent channel flow up to Re_tau = 590.
 # Physics of Fluids, 11, 943-945, 1999.
@@ -26,7 +26,7 @@ fluid_properties:
    # HIGH_PRESSURE (provide molecular weight, critical temperature, critical molar volume, acentric factor, dipole moment, association factor, NASA 7-coefficient polynomial)
    transport_coefficients_model: 'CONSTANT'		  		# Transport coefficients model
    mu: 0.005555556                     					# Dynamic viscosity [Pa·s]
-   kappa: 0.0                          					# Thermal conductivity [W/(m·k)]
+   kappa: 7.8615                       					# Thermal conductivity [W/(m·k)]
    dipole_moment: 0.0               					# Dipole moment [D]
    association_factor: 0.0             					# Association factor [-]
 
