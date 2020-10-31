@@ -70,12 +70,14 @@ boundary_conditions:
    front_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Front boundary condition
 
 
-##### WRITE/READ PARAMETERS #####
-write_read_parameters:
+##### PRINT/WRITE/READ PARAMETERS #####
+print_write_read_parameters:
+   print_frequency_iter: 1 	             				# Print information iteration frequency
    output_data_file_name: '1d_sod_shock_tube'				# Name of output data file
    output_frequency_iter: 1000         					# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
+   reset_time_averaging: 'FALSE'          				# Reset time averaging
    restart_data_file: 'restart_data_file.h5' 				# Restart data file
 
 

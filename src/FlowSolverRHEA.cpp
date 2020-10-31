@@ -22,8 +22,9 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     this->readConfigurationFile();
 	
     /// Set value of selected variables
-    current_time = 0.0;		/// Current time (restart will overwrite it)
+    current_time      = 0.0;	/// Current time (restart will overwrite it)
     current_time_iter = 0;	/// Current time iteration (restart will overwrite it)
+    averaging_time    = 0.0;	/// Current averaging time (restart will overwrite it)
 
     /// Construct (initialize) thermodynamic model
     if( thermodynamic_model == "IDEAL_GAS" ) {
@@ -127,6 +128,24 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     f_rhow_field.setTopology(topo,"f_rhow");
     f_rhoE_field.setTopology(topo,"f_rhoE");
 
+    /// Set parallel topology of time-averaged quantities
+    avg_rho_field.setTopology(topo,"avg_rho");
+    avg_rhou_field.setTopology(topo,"avg_rhou");
+    avg_rhov_field.setTopology(topo,"avg_rhov");
+    avg_rhow_field.setTopology(topo,"avg_rhow");
+    avg_rhoE_field.setTopology(topo,"avg_rhoE");
+    avg_P_field.setTopology(topo,"avg_P");
+    avg_T_field.setTopology(topo,"avg_T");
+    avg_sos_field.setTopology(topo,"avg_sos");
+    rmsf_rho_field.setTopology(topo,"rmsf_rho");
+    rmsf_rhou_field.setTopology(topo,"rmsf_rhou");
+    rmsf_rhov_field.setTopology(topo,"rmsf_rhov");
+    rmsf_rhow_field.setTopology(topo,"rmsf_rhow");
+    rmsf_rhoE_field.setTopology(topo,"rmsf_rhoE");
+    rmsf_P_field.setTopology(topo,"rmsf_P");
+    rmsf_T_field.setTopology(topo,"rmsf_T");
+    rmsf_sos_field.setTopology(topo,"rmsf_sos");
+
     /// Fill x, y and z fields
     this->fillMeshCoordinateFields();
 
@@ -136,6 +155,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     writer_reader = new ManagerHDF5( topo, char_array, generate_xdmf );
     writer_reader->addAttributeDouble( "Time");
     writer_reader->addAttributeInt( "Iteration" );
+    writer_reader->addAttributeDouble( "AveragingTime" );
     writer_reader->addField(&x_field);
     writer_reader->addField(&y_field);
     writer_reader->addField(&z_field);
@@ -149,6 +169,22 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     writer_reader->addField(&sos_field);
     writer_reader->addField(&mu_field);
     writer_reader->addField(&kappa_field);
+    writer_reader->addField(&avg_rho_field);
+    writer_reader->addField(&avg_rhou_field);
+    writer_reader->addField(&avg_rhov_field);
+    writer_reader->addField(&avg_rhow_field);
+    writer_reader->addField(&avg_rhoE_field);
+    writer_reader->addField(&avg_P_field);
+    writer_reader->addField(&avg_T_field);
+    writer_reader->addField(&avg_sos_field);
+    writer_reader->addField(&rmsf_rho_field);
+    writer_reader->addField(&rmsf_rhou_field);
+    writer_reader->addField(&rmsf_rhov_field);
+    writer_reader->addField(&rmsf_rhow_field);
+    writer_reader->addField(&rmsf_rhoE_field);
+    writer_reader->addField(&rmsf_P_field);
+    writer_reader->addField(&rmsf_T_field);
+    writer_reader->addField(&rmsf_sos_field);
 
     /// Construct (initialize) timers
     timers = new ParallelTimer();
@@ -165,6 +201,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     timers->createTimer( "update_boundaries" );
     timers->createTimer( "conserved_to_primitive_variables" );
     timers->createTimer( "calculate_thermodynamics_from_primitive_variables" );
+    timers->createTimer( "update_time_averaged_quantities" );
     timers->createTimer( "update_previous_state_conserved_variables" );
 
 };
@@ -318,13 +355,15 @@ void FlowSolverRHEA::readConfigurationFile() {
     bocos_P[_FRONT_] = boundary_conditions["front_bc"][4].as<double>();
     bocos_T[_FRONT_] = boundary_conditions["front_bc"][5].as<double>();
 
-    /// Write/read file parameters
-    const YAML::Node & write_read_parameters = configuration["write_read_parameters"];
-    output_data_file_name = write_read_parameters["output_data_file_name"].as<string>();
-    output_frequency_iter = write_read_parameters["output_frequency_iter"].as<int>();
-    generate_xdmf         = write_read_parameters["generate_xdmf"].as<bool>();
-    use_restart           = write_read_parameters["use_restart"].as<bool>();
-    restart_data_file     = write_read_parameters["restart_data_file"].as<string>();
+    /// Print/Write/Read file parameters
+    const YAML::Node & print_write_read_parameters = configuration["print_write_read_parameters"];
+    print_frequency_iter  = print_write_read_parameters["print_frequency_iter"].as<int>();
+    output_data_file_name = print_write_read_parameters["output_data_file_name"].as<string>();
+    output_frequency_iter = print_write_read_parameters["output_frequency_iter"].as<int>();
+    generate_xdmf         = print_write_read_parameters["generate_xdmf"].as<bool>();
+    use_restart           = print_write_read_parameters["use_restart"].as<bool>();
+    reset_time_averaging  = print_write_read_parameters["reset_time_averaging"].as<bool>();
+    restart_data_file     = print_write_read_parameters["restart_data_file"].as<string>();
 
     /// Timers information
     const YAML::Node & timers_information = configuration["timers_information"];
@@ -393,6 +432,8 @@ void FlowSolverRHEA::initializeFromRestart() {
     writer_reader->read( char_restart_data_file );
     current_time      = writer_reader->getAttributeDouble( "Time" );
     current_time_iter = writer_reader->getAttributeInt( "Iteration" );
+    averaging_time    = writer_reader->getAttributeDouble( "AveragingTime" );
+    if( reset_time_averaging ) averaging_time = 0.0;
 
     /// Update halo values
     x_field.update();
@@ -408,6 +449,22 @@ void FlowSolverRHEA::initializeFromRestart() {
     sos_field.update();
     mu_field.update();
     kappa_field.update();
+    avg_rho_field.update();
+    avg_rhou_field.update();
+    avg_rhov_field.update();
+    avg_rhow_field.update();
+    avg_rhoE_field.update();
+    avg_P_field.update();
+    avg_T_field.update();
+    avg_sos_field.update();
+    rmsf_rho_field.update();
+    rmsf_rhou_field.update();
+    rmsf_rhov_field.update();
+    rmsf_rhow_field.update();
+    rmsf_rhoE_field.update();
+    rmsf_P_field.update();
+    rmsf_T_field.update();
+    rmsf_sos_field.update();
     
 };
 
@@ -1610,7 +1667,59 @@ void FlowSolverRHEA::outputCurrentStateData() {
     /// Write to file current solver state, time and time iteration
     writer_reader->setAttribute( "Time", current_time );
     writer_reader->setAttribute( "Iteration", current_time_iter );
+    writer_reader->setAttribute( "AveragingTime", averaging_time );
     writer_reader->write( current_time_iter );
+
+};
+
+void FlowSolverRHEA::updateTimeAveragedQuantities() {
+
+    /// All (inner, boundary & halo) points: mu and kappa
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+                /// Time-averaged quantities
+                avg_rho_field[I1D(i,j,k)]  = ( avg_rho_field[I1D(i,j,k)]*averaging_time + rho_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
+                avg_rhou_field[I1D(i,j,k)] = ( avg_rhou_field[I1D(i,j,k)]*averaging_time + rhou_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
+                avg_rhov_field[I1D(i,j,k)] = ( avg_rhov_field[I1D(i,j,k)]*averaging_time + rhov_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
+                avg_rhow_field[I1D(i,j,k)] = ( avg_rhow_field[I1D(i,j,k)]*averaging_time + rhow_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
+                avg_rhoE_field[I1D(i,j,k)] = ( avg_rhoE_field[I1D(i,j,k)]*averaging_time + rhoE_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
+                avg_P_field[I1D(i,j,k)]    = ( avg_P_field[I1D(i,j,k)]*averaging_time + P_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
+                avg_T_field[I1D(i,j,k)]    = ( avg_T_field[I1D(i,j,k)]*averaging_time + T_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
+                avg_sos_field[I1D(i,j,k)]  = ( avg_sos_field[I1D(i,j,k)]*averaging_time + sos_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
+                /// Root-mean-square-fluctuation quantities
+                rmsf_rho_field[I1D(i,j,k)]  = sqrt( ( pow( rmsf_rho_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( rho_field[I1D(i,j,k)] - avg_rho_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
+                rmsf_rhou_field[I1D(i,j,k)] = sqrt( ( pow( rmsf_rhou_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( rhou_field[I1D(i,j,k)] - avg_rhou_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
+                rmsf_rhov_field[I1D(i,j,k)] = sqrt( ( pow( rmsf_rhov_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( rhov_field[I1D(i,j,k)] - avg_rhov_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
+                rmsf_rhow_field[I1D(i,j,k)] = sqrt( ( pow( rmsf_rhow_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( rhow_field[I1D(i,j,k)] - avg_rhow_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
+                rmsf_rhoE_field[I1D(i,j,k)] = sqrt( ( pow( rmsf_rhoE_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( rhoE_field[I1D(i,j,k)] - avg_rhoE_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
+                rmsf_P_field[I1D(i,j,k)]    = sqrt( ( pow( rmsf_P_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( P_field[I1D(i,j,k)] - avg_P_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
+                rmsf_T_field[I1D(i,j,k)]    = sqrt( ( pow( rmsf_T_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( T_field[I1D(i,j,k)] - avg_T_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
+                rmsf_sos_field[I1D(i,j,k)]  = sqrt( ( pow( rmsf_sos_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( sos_field[I1D(i,j,k)] - avg_sos_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
+            }
+        }
+    }
+
+    /// Update averaging time
+    averaging_time += delta_t;
+
+    /// Update halo values
+    //avg_rho_field.update();
+    //avg_rhou_field.update();
+    //avg_rhov_field.update();
+    //avg_rhow_field.update();
+    //avg_rhoE_field.update();
+    //avg_P_field.update();
+    //avg_T_field.update();
+    //avg_sos_field.update();
+    //rmsf_rho_field.update();
+    //rmsf_rhou_field.update();
+    //rmsf_rhov_field.update();
+    //rmsf_rhow_field.update();
+    //rmsf_rhoE_field.update();
+    //rmsf_P_field.update();
+    //rmsf_T_field.update();
+    //rmsf_sos_field.update();
 
 };
 
@@ -1671,8 +1780,8 @@ void FlowSolverRHEA::execute() {
         /// Start timer: output_solver_state
         timers->start( "output_solver_state" );
 
-        /// Print time iteration information
-        if( my_rank == 0 ) {
+        /// Print time iteration information (if criterion satisfied)
+        if( ( current_time_iter%print_frequency_iter == 0 ) and ( my_rank == 0 ) ) {
             cout << "Time iteration " << current_time_iter << ": " 
                  << "time = " << scientific << current_time << " [s], "
                  << "time-step = " << scientific << delta_t << " [s]" << endl;
@@ -1775,6 +1884,15 @@ void FlowSolverRHEA::execute() {
 
         /// Stop timer: rk_iteration_loop
         timers->stop( "rk_iteration_loop" );
+
+        /// Start timer: update_time_averaged_quantities
+        timers->start( "update_time_averaged_quantities" );
+
+        /// Update time-averaged quantities
+        this->updateTimeAveragedQuantities();
+
+        /// Stop timer: update_time_averaged_quantities
+        timers->stop( "update_time_averaged_quantities" );
 
         /// Start timer: update_previous_state_conserved_variables
         timers->start( "update_previous_state_conserved_variables" );

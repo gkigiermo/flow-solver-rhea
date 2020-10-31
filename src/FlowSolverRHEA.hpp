@@ -135,6 +135,9 @@ class FlowSolverRHEA {
         /// Output current solver state data
         virtual void outputCurrentStateData();
 
+        /// Update time-averaged quantities
+        virtual void updateTimeAveragedQuantities();
+
     protected:
 
         ////////// SOLVER PARAMETERS //////////
@@ -152,6 +155,7 @@ class FlowSolverRHEA {
         double L_z;						/// Domain size in z-direction [m]
         double current_time;   					/// Current time [s]
         double final_time;		      			/// Final time [s]
+        double averaging_time;		      			/// Averaging time [s]
         string configuration_file;				/// Configuration file name (YAML language)	
 
         /// Computational parameters
@@ -180,11 +184,13 @@ class FlowSolverRHEA {
         double bocos_P[6];					/// Array of boundary conditions P
         double bocos_T[6];					/// Array of boundary conditions T
 
-        /// Write/read file parameters
+        /// Print/Write/Read file parameters
+        int print_frequency_iter;				/// Print information iteration frequency
         string output_data_file_name;				/// Output data file name (HDF5 format)	
         int output_frequency_iter;				/// Data output iteration frequency
         bool generate_xdmf;					/// Generate xdmf file reader
         bool use_restart;					/// Use restart file for initialization
+        bool reset_time_averaging;				/// Reset time averaging
         string restart_data_file;				/// Restart data file
 
         /// Timers information
@@ -261,6 +267,24 @@ class FlowSolverRHEA {
         DistributedArray f_rhov_field;				/// 3-D field of rhov
         DistributedArray f_rhow_field;				/// 3-D field of rhow
         DistributedArray f_rhoE_field;				/// 3-D field of rhoE
+
+        /// Time averaging
+        DistributedArray avg_rho_field;				/// 3-D field of time-averaged rho
+        DistributedArray avg_rhou_field;			/// 3-D field of time-averaged rhou
+        DistributedArray avg_rhov_field;			/// 3-D field of time-averaged rhov
+        DistributedArray avg_rhow_field;			/// 3-D field of time-averaged rhow
+        DistributedArray avg_rhoE_field;			/// 3-D field of time-averaged rhoE
+        DistributedArray avg_P_field;				/// 3-D field of time-averaged P
+        DistributedArray avg_T_field;				/// 3-D field of time-averaged T
+        DistributedArray avg_sos_field;				/// 3-D field of time-averaged sos
+        DistributedArray rmsf_rho_field;			/// 3-D field of root-mean-square-fluctuation rho
+        DistributedArray rmsf_rhou_field;			/// 3-D field of root-mean-square-fluctuation rhou
+        DistributedArray rmsf_rhov_field;			/// 3-D field of root-mean-square-fluctuation rhov
+        DistributedArray rmsf_rhow_field;			/// 3-D field of root-mean-square-fluctuation rhow
+        DistributedArray rmsf_rhoE_field;			/// 3-D field of root-mean-square-fluctuation rhoE
+        DistributedArray rmsf_P_field;				/// 3-D field of root-mean-square-fluctuation P
+        DistributedArray rmsf_T_field;				/// 3-D field of root-mean-square-fluctuation T
+        DistributedArray rmsf_sos_field;			/// 3-D field of root-mean-square-fluctuation sos
 
 	////////// THERMODYNAMIC MODEL, TRANSPORT COEFFICIENTS, COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER & PARALLEL TIMER //////////
         BaseThermodynamicModel *thermodynamics;			/// Thermodynamic model
