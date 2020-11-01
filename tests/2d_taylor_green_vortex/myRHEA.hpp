@@ -2,7 +2,7 @@
 #define _MY_RHEA_
 
 ////////// INCLUDES //////////
-#include "src/FlowSolverRHEA.hpp"
+#include "../../src/FlowSolverRHEA.hpp"
 
 ////////// NAMESPACES //////////
 using namespace std;
