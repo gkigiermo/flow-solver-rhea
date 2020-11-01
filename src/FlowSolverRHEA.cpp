@@ -577,8 +577,8 @@ void FlowSolverRHEA::updateBoundaries() {
 
     /// West boundary points: rho, rhou, rhov, rhow and rhoE
     if( bocos_type[_WEST_] == _DIRICHLET_ ) {
-        wg_g  = ( x_0 - mesh->getGlobx(0) )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
-        wg_in = ( mesh->getGlobx(1) - x_0 )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
+        wg_g  = 1.0 - ( x_0 - mesh->getGlobx(0) )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
+        wg_in = 1.0 - ( mesh->getGlobx(1) - x_0 )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
     }
     if( bocos_type[_WEST_] == _NEUMANN_ ) {
         wg_g  = (  1.0 )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
@@ -627,8 +627,8 @@ void FlowSolverRHEA::updateBoundaries() {
 
     /// East boundary points: rho, rhou, rhov, rhow and rhoE
     if( bocos_type[_EAST_] == _DIRICHLET_ ) {
-        wg_g  = ( mesh->getGlobx(mesh->getGNx()+1) - ( x_0 + L_x ) )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
-        wg_in = ( ( x_0 + L_x ) - mesh->getGlobx(mesh->getGNx()) )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
+        wg_g  = 1.0 - ( mesh->getGlobx(mesh->getGNx()+1) - ( x_0 + L_x ) )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
+        wg_in = 1.0 - ( ( x_0 + L_x ) - mesh->getGlobx(mesh->getGNx()) )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
     }
     if( bocos_type[_EAST_] == _NEUMANN_ ) {
         wg_g  = (  1.0 )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
@@ -677,8 +677,8 @@ void FlowSolverRHEA::updateBoundaries() {
 
     /// South boundary points: rho, rhou, rhov, rhow and rhoE
     if( bocos_type[_SOUTH_] == _DIRICHLET_ ) {
-        wg_g  = ( y_0 - mesh->getGloby(0) )/( mesh->getGloby(1) - mesh->getGloby(0) );
-        wg_in = ( mesh->getGloby(1) - y_0 )/( mesh->getGloby(1) - mesh->getGloby(0) );
+        wg_g  = 1.0 - ( y_0 - mesh->getGloby(0) )/( mesh->getGloby(1) - mesh->getGloby(0) );
+        wg_in = 1.0 - ( mesh->getGloby(1) - y_0 )/( mesh->getGloby(1) - mesh->getGloby(0) );
     }
     if( bocos_type[_SOUTH_] == _NEUMANN_ ) {
         wg_g  = (  1.0 )/( mesh->getGloby(1) - mesh->getGloby(0) );
@@ -727,8 +727,8 @@ void FlowSolverRHEA::updateBoundaries() {
 
     /// North boundary points: rho, rhou, rhov, rhow and rhoE
     if( bocos_type[_NORTH_] == _DIRICHLET_ ) {
-        wg_g  = ( mesh->getGloby(mesh->getGNy()+1) - ( y_0 + L_y ) )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
-        wg_in = ( ( y_0 + L_y ) - mesh->getGloby(mesh->getGNy()) )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
+        wg_g  = 1.0 - ( mesh->getGloby(mesh->getGNy()+1) - ( y_0 + L_y ) )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
+        wg_in = 1.0 - ( ( y_0 + L_y ) - mesh->getGloby(mesh->getGNy()) )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
     }
     if( bocos_type[_NORTH_] == _NEUMANN_ ) {
         wg_g  = (  1.0 )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
@@ -777,8 +777,8 @@ void FlowSolverRHEA::updateBoundaries() {
 
     /// Back boundary points: rho, rhou, rhov, rhow and rhoE
     if( bocos_type[_BACK_] == _DIRICHLET_ ) {
-        wg_g  = ( z_0 - mesh->getGlobz(0) )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
-        wg_in = ( mesh->getGlobz(1) - z_0 )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
+        wg_g  = 1.0 - ( z_0 - mesh->getGlobz(0) )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
+        wg_in = 1.0 - ( mesh->getGlobz(1) - z_0 )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
     }
     if( bocos_type[_BACK_] == _NEUMANN_ ) {
         wg_g  = (  1.0 )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
@@ -827,8 +827,8 @@ void FlowSolverRHEA::updateBoundaries() {
 
     /// Front boundary points: rho, rhou, rhov, rhow and rhoE
     if( bocos_type[_FRONT_] == _DIRICHLET_ ) {
-        wg_g  = ( mesh->getGlobz(mesh->getGNz()+1) - ( z_0 + L_z ) )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
-        wg_in = ( ( z_0 + L_z ) - mesh->getGlobz(mesh->getGNz()) )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
+        wg_g  = 1.0 - ( mesh->getGlobz(mesh->getGNz()+1) - ( z_0 + L_z ) )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
+        wg_in = 1.0 - ( ( z_0 + L_z ) - mesh->getGlobz(mesh->getGNz()) )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
     }
     if( bocos_type[_FRONT_] == _NEUMANN_ ) {
         wg_g  = (  1.0 )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
