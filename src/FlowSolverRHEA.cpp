@@ -598,11 +598,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 E_in   = rhoE_field[I1D(i+1,j,k)]/rho_in;
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
                 e_in   = E_in - ke_in; 
+                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
 		/// Calculate ghost primitive variables
                 u_g = ( bocos_u[_WEST_] - wg_in*u_in )/wg_g;
                 v_g = ( bocos_v[_WEST_] - wg_in*v_in )/wg_g;
                 w_g = ( bocos_w[_WEST_] - wg_in*w_in )/wg_g;
-                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
                 if( ( bocos_type[_WEST_] == _DIRICHLET_ ) and ( bocos_P[_WEST_] < 0.0 ) ) {
                     P_g = P_in;
                 } else {
@@ -648,11 +648,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 E_in   = rhoE_field[I1D(i-1,j,k)]/rho_in;
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
                 e_in   = E_in - ke_in; 
+                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
 		/// Calculate ghost primitive variables
                 u_g = ( bocos_u[_EAST_] - wg_in*u_in )/wg_g;
                 v_g = ( bocos_v[_EAST_] - wg_in*v_in )/wg_g;
                 w_g = ( bocos_w[_EAST_] - wg_in*w_in )/wg_g;
-                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
                 if( ( bocos_type[_EAST_] == _DIRICHLET_ ) and ( bocos_P[_EAST_] < 0.0 ) ) {
                     P_g = P_in;
                 } else {
@@ -698,11 +698,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 E_in   = rhoE_field[I1D(i,j+1,k)]/rho_in;
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
                 e_in   = E_in - ke_in; 
+                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
 		/// Calculate ghost primitive variables
                 u_g = ( bocos_u[_SOUTH_] - wg_in*u_in )/wg_g;
                 v_g = ( bocos_v[_SOUTH_] - wg_in*v_in )/wg_g;
                 w_g = ( bocos_w[_SOUTH_] - wg_in*w_in )/wg_g;
-                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
                 if( ( bocos_type[_SOUTH_] == _DIRICHLET_ ) and ( bocos_P[_SOUTH_] < 0.0 ) ) {
                     P_g = P_in;
                 } else {
@@ -748,11 +748,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 E_in   = rhoE_field[I1D(i,j-1,k)]/rho_in;
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
                 e_in   = E_in - ke_in; 
+                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
 		/// Calculate ghost primitive variables
                 u_g = ( bocos_u[_NORTH_] - wg_in*u_in )/wg_g;
                 v_g = ( bocos_v[_NORTH_] - wg_in*v_in )/wg_g;
                 w_g = ( bocos_w[_NORTH_] - wg_in*w_in )/wg_g;
-                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
                 if( ( bocos_type[_NORTH_] == _DIRICHLET_ ) and ( bocos_P[_NORTH_] < 0.0 ) ) {
                     P_g = P_in;
                 } else {
@@ -798,11 +798,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 E_in   = rhoE_field[I1D(i,j,k+1)]/rho_in;
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
                 e_in   = E_in - ke_in; 
+                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
 		/// Calculate ghost primitive variables
                 u_g = ( bocos_u[_BACK_] - wg_in*u_in )/wg_g;
                 v_g = ( bocos_v[_BACK_] - wg_in*v_in )/wg_g;
                 w_g = ( bocos_w[_BACK_] - wg_in*w_in )/wg_g;
-                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
                 if( ( bocos_type[_BACK_] == _DIRICHLET_ ) and ( bocos_P[_BACK_] < 0.0 ) ) {
                     P_g = P_in;
                 } else {
@@ -848,11 +848,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 E_in   = rhoE_field[I1D(i,j,k-1)]/rho_in;
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
                 e_in   = E_in - ke_in; 
+                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
 		/// Calculate ghost primitive variables
                 u_g = ( bocos_u[_FRONT_] - wg_in*u_in )/wg_g;
                 v_g = ( bocos_v[_FRONT_] - wg_in*v_in )/wg_g;
                 w_g = ( bocos_w[_FRONT_] - wg_in*w_in )/wg_g;
-                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );
                 if( ( bocos_type[_FRONT_] == _DIRICHLET_ ) and ( bocos_P[_FRONT_] < 0.0 ) ) {
                     P_g = P_in;
                 } else {
