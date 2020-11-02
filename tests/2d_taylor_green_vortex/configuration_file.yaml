@@ -77,6 +77,7 @@ print_write_read_parameters:
    output_frequency_iter: 100000       					# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
+   time_averaging_active: 'FALSE'          				# Activate time averaging
    reset_time_averaging: 'FALSE'          				# Reset time averaging
    restart_data_file: 'restart_data_file.h5' 				# Restart data file
 

@@ -362,6 +362,7 @@ void FlowSolverRHEA::readConfigurationFile() {
     output_frequency_iter = print_write_read_parameters["output_frequency_iter"].as<int>();
     generate_xdmf         = print_write_read_parameters["generate_xdmf"].as<bool>();
     use_restart           = print_write_read_parameters["use_restart"].as<bool>();
+    time_averaging_active = print_write_read_parameters["time_averaging_active"].as<bool>();
     reset_time_averaging  = print_write_read_parameters["reset_time_averaging"].as<bool>();
     restart_data_file     = print_write_read_parameters["restart_data_file"].as<string>();
 
@@ -1889,7 +1890,7 @@ void FlowSolverRHEA::execute() {
         timers->start( "update_time_averaged_quantities" );
 
         /// Update time-averaged quantities
-        this->updateTimeAveragedQuantities();
+        if( time_averaging_active ) this->updateTimeAveragedQuantities();
 
         /// Stop timer: update_time_averaged_quantities
         timers->stop( "update_time_averaged_quantities" );

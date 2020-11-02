@@ -190,6 +190,7 @@ class FlowSolverRHEA {
         int output_frequency_iter;				/// Data output iteration frequency
         bool generate_xdmf;					/// Generate xdmf file reader
         bool use_restart;					/// Use restart file for initialization
+        bool time_averaging_active;				/// Activate time averaging
         bool reset_time_averaging;				/// Reset time averaging
         string restart_data_file;				/// Restart data file
 
