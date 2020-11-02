@@ -39,8 +39,8 @@ x_ghia, v_ghia = np.loadtxt( 'ghia_v_velocity_solution.csv', delimiter=',', unpa
 
 
 ### Reference parameters
-L       = 1.0							# Size of cavity [m]
-U_lid   = 1.0   						# Lid velocity [m/s]
+L       = 0.1							# Size of cavity [m]
+U_lid   = 100.0   						# Lid velocity [m/s]
 epsilon = 0.5*L/( int( np.sqrt( len( y_data ) ) - 2.0 ) )	# Geometric epsilon based on grid resolution
 
 

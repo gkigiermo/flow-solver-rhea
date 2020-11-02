@@ -9,8 +9,8 @@ using namespace std;
 //const double Re         = 1000.0;				/// Reynolds number
 //const double Pr         = 0.71;					/// Prandtl number
 const double rho_0      = 1.0;					/// Reference density	
-//const double L          = 1.0;					/// Cavity size
-//const double U_lid      = 1.0;					/// Lid velocity
+//const double L          = 0.1;					/// Cavity size
+//const double U_lid      = 100.0;				/// Lid velocity
 const double P_0        = 101325.0;				/// Reference pressure
 //const double mu         = rho_0*U_lid*L/Re;			/// Dynamic viscosity	
 //const double nu         = U_lid*L/Re;				/// Kinematic viscosity	

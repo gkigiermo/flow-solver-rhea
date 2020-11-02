@@ -25,8 +25,8 @@ fluid_properties:
    # Transport coefficients models: CONSTANT (provide mu, kappa),
    # HIGH_PRESSURE (provide molecular weight, critical temperature, critical molar volume, acentric factor, dipole moment, association factor, NASA 7-coefficient polynomial)
    transport_coefficients_model: 'CONSTANT'		  		# Transport coefficients model
-   mu: 0.001	                  					# Dynamic viscosity [Pa·s]
-   kappa: 1.4151                      					# Thermal conductivity [W/(m·k)]
+   mu: 0.01	                  					# Dynamic viscosity [Pa·s]
+   kappa: 14.151                      					# Thermal conductivity [W/(m·k)]
    dipole_moment: 0.0               					# Dipole moment [D]
    association_factor: 0.0             					# Association factor [-]
 
@@ -36,10 +36,10 @@ problem_parameters:
    x_0: 0.0                            					# Domain origin in x-direction [m]
    y_0: 0.0                            					# Domain origin in y-direction [m]
    z_0: 0.0                           					# Domain origin in z-direction [m]
-   L_x: 1.0                        					# Size of domain in x-direction [m]
-   L_y: 1.0                           					# Size of domain in y-direction [m]
-   L_z: 0.01                         					# Size of domain in z-direction [m]
-   final_time: 1000.0                        				# Final time [s]
+   L_x: 0.1                        					# Size of domain in x-direction [m]
+   L_y: 0.1                           					# Size of domain in y-direction [m]
+   L_z: 0.001                         					# Size of domain in z-direction [m]
+   final_time: 1.0                        				# Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####
@@ -65,7 +65,7 @@ boundary_conditions:
    west_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, -1.0]			# West boundary condition
    east_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, -1.0]			# East boundary condition
    south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, -1.0]			# South boundary condition
-   north_bc: ['DIRICHLET', 1.0, 0.0, 0.0, -1.0, -1.0]			# North boundary condition
+   north_bc: ['DIRICHLET', 100.0, 0.0, 0.0, -1.0, -1.0]			# North boundary condition
    back_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Back boundary condition
    front_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Front boundary condition
 
