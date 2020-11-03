@@ -538,11 +538,11 @@ void FlowSolverRHEA::conservedToPrimitiveVariables() {
 
 void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
 
-    /// All (inner, boundary & halo) points: ke, e, P, T and sos
+    /// Inner points: ke, e, P, T and sos
     double ke, e, P, T;
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 ke                    = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
                 e                     = E_field[I1D(i,j,k)] - ke;
                 P = P_field[I1D(i,j,k)];	/// Initial pressure guess
@@ -600,28 +600,31 @@ void FlowSolverRHEA::updateBoundaries() {
                 e_in   = E_in - ke_in; 
                 thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
 		/// Calculate ghost primitive variables
-                u_g = ( bocos_u[_WEST_] - wg_in*u_in )/wg_g;
-                v_g = ( bocos_v[_WEST_] - wg_in*v_in )/wg_g;
-                w_g = ( bocos_w[_WEST_] - wg_in*w_in )/wg_g;
-                if( ( bocos_type[_WEST_] == _DIRICHLET_ ) and ( bocos_P[_WEST_] < 0.0 ) ) {
-                    P_g = P_in;
-                } else {
-                    P_g = ( bocos_P[_WEST_] - wg_in*P_in )/wg_g;
-                }
-                if( ( bocos_type[_WEST_] == _DIRICHLET_ ) and ( bocos_T[_WEST_] < 0.0 ) ) {
-                    T_g = T_in;
-                } else {
-                    T_g = ( bocos_T[_WEST_] - wg_in*T_in )/wg_g;
-                }
-                thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                u_g  = ( bocos_u[_WEST_] - wg_in*u_in )/wg_g;
+                v_g  = ( bocos_v[_WEST_] - wg_in*v_in )/wg_g;
+                w_g  = ( bocos_w[_WEST_] - wg_in*w_in )/wg_g;
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
-                E_g  = e_g + ke_g;
+                if( ( bocos_type[_WEST_] == _DIRICHLET_ ) and ( bocos_P[_WEST_] < 0.0 ) and ( bocos_T[_WEST_] < 0.0 ) ) {
+                    P_g   = P_in;
+                    T_g   = T_in;
+                    rho_g = rho_in;
+                    e_g   = e_in;
+                } else {
+                    P_g  = ( bocos_P[_WEST_] - wg_in*P_in )/wg_g;
+                    T_g  = ( bocos_T[_WEST_] - wg_in*T_in )/wg_g;
+                    thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                }
+                E_g = e_g + ke_g;
 		/// Update ghost conserved variables
                 rho_field[I1D(i,j,k)]  = rho_g;
                 rhou_field[I1D(i,j,k)] = rho_g*u_g;
                 rhov_field[I1D(i,j,k)] = rho_g*v_g;
                 rhow_field[I1D(i,j,k)] = rho_g*w_g;
                 rhoE_field[I1D(i,j,k)] = rho_g*E_g;
+		/// Update P, T and sos variables
+                P_field[I1D(i,j,k)]   = P_g;
+                T_field[I1D(i,j,k)]   = T_g;
+                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
             }
         }
     }
@@ -650,28 +653,31 @@ void FlowSolverRHEA::updateBoundaries() {
                 e_in   = E_in - ke_in; 
                 thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
 		/// Calculate ghost primitive variables
-                u_g = ( bocos_u[_EAST_] - wg_in*u_in )/wg_g;
-                v_g = ( bocos_v[_EAST_] - wg_in*v_in )/wg_g;
-                w_g = ( bocos_w[_EAST_] - wg_in*w_in )/wg_g;
-                if( ( bocos_type[_EAST_] == _DIRICHLET_ ) and ( bocos_P[_EAST_] < 0.0 ) ) {
-                    P_g = P_in;
-                } else {
-                    P_g = ( bocos_P[_EAST_] - wg_in*P_in )/wg_g;
-                }
-                if( ( bocos_type[_EAST_] == _DIRICHLET_ ) and ( bocos_T[_EAST_] < 0.0 ) ) {
-                    T_g = T_in;
-                } else {
-                    T_g = ( bocos_T[_EAST_] - wg_in*T_in )/wg_g;
-                } 
-                thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                u_g  = ( bocos_u[_EAST_] - wg_in*u_in )/wg_g;
+                v_g  = ( bocos_v[_EAST_] - wg_in*v_in )/wg_g;
+                w_g  = ( bocos_w[_EAST_] - wg_in*w_in )/wg_g;
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
-                E_g  = e_g + ke_g;
+                if( ( bocos_type[_EAST_] == _DIRICHLET_ ) and ( bocos_P[_EAST_] < 0.0 ) and ( bocos_T[_EAST_] < 0.0 ) ) {
+                    P_g   = P_in;
+                    T_g   = T_in;
+                    rho_g = rho_in;
+                    e_g   = e_in;
+                } else {
+                    P_g  = ( bocos_P[_EAST_] - wg_in*P_in )/wg_g;
+                    T_g  = ( bocos_T[_EAST_] - wg_in*T_in )/wg_g;
+                    thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                }
+                E_g = e_g + ke_g;
 		/// Update ghost conserved variables
                 rho_field[I1D(i,j,k)]  = rho_g;
                 rhou_field[I1D(i,j,k)] = rho_g*u_g;
                 rhov_field[I1D(i,j,k)] = rho_g*v_g;
                 rhow_field[I1D(i,j,k)] = rho_g*w_g;
                 rhoE_field[I1D(i,j,k)] = rho_g*E_g;
+		/// Update P, T and sos variables
+                P_field[I1D(i,j,k)]   = P_g;
+                T_field[I1D(i,j,k)]   = T_g;
+                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
             }
         }
     }
@@ -700,28 +706,31 @@ void FlowSolverRHEA::updateBoundaries() {
                 e_in   = E_in - ke_in; 
                 thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
 		/// Calculate ghost primitive variables
-                u_g = ( bocos_u[_SOUTH_] - wg_in*u_in )/wg_g;
-                v_g = ( bocos_v[_SOUTH_] - wg_in*v_in )/wg_g;
-                w_g = ( bocos_w[_SOUTH_] - wg_in*w_in )/wg_g;
-                if( ( bocos_type[_SOUTH_] == _DIRICHLET_ ) and ( bocos_P[_SOUTH_] < 0.0 ) ) {
-                    P_g = P_in;
-                } else {
-                    P_g = ( bocos_P[_SOUTH_] - wg_in*P_in )/wg_g;
-                }
-                if( ( bocos_type[_SOUTH_] == _DIRICHLET_ ) and ( bocos_T[_SOUTH_] < 0.0 ) ) {
-                    T_g = T_in;
-                } else {
-                    T_g = ( bocos_T[_SOUTH_] - wg_in*T_in )/wg_g;
-                }
-                thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                u_g  = ( bocos_u[_SOUTH_] - wg_in*u_in )/wg_g;
+                v_g  = ( bocos_v[_SOUTH_] - wg_in*v_in )/wg_g;
+                w_g  = ( bocos_w[_SOUTH_] - wg_in*w_in )/wg_g;
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
-                E_g  = e_g + ke_g;
+                if( ( bocos_type[_SOUTH_] == _DIRICHLET_ ) and ( bocos_P[_SOUTH_] < 0.0 ) and ( bocos_T[_SOUTH_] < 0.0 ) ) {
+                    P_g   = P_in;
+                    T_g   = T_in;
+                    rho_g = rho_in;
+                    e_g   = e_in;
+                } else {
+                    P_g  = ( bocos_P[_SOUTH_] - wg_in*P_in )/wg_g;
+                    T_g  = ( bocos_T[_SOUTH_] - wg_in*T_in )/wg_g;
+                    thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                }
+                E_g = e_g + ke_g;
 		/// Update ghost conserved variables
                 rho_field[I1D(i,j,k)]  = rho_g;
                 rhou_field[I1D(i,j,k)] = rho_g*u_g;
                 rhov_field[I1D(i,j,k)] = rho_g*v_g;
                 rhow_field[I1D(i,j,k)] = rho_g*w_g;
                 rhoE_field[I1D(i,j,k)] = rho_g*E_g;
+		/// Update P, T and sos variables
+                P_field[I1D(i,j,k)]   = P_g;
+                T_field[I1D(i,j,k)]   = T_g;
+                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
             }
         }
     }
@@ -750,28 +759,31 @@ void FlowSolverRHEA::updateBoundaries() {
                 e_in   = E_in - ke_in; 
                 thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
 		/// Calculate ghost primitive variables
-                u_g = ( bocos_u[_NORTH_] - wg_in*u_in )/wg_g;
-                v_g = ( bocos_v[_NORTH_] - wg_in*v_in )/wg_g;
-                w_g = ( bocos_w[_NORTH_] - wg_in*w_in )/wg_g;
-                if( ( bocos_type[_NORTH_] == _DIRICHLET_ ) and ( bocos_P[_NORTH_] < 0.0 ) ) {
-                    P_g = P_in;
-                } else {
-                    P_g = ( bocos_P[_NORTH_] - wg_in*P_in )/wg_g;
-                }
-                if( ( bocos_type[_NORTH_] == _DIRICHLET_ ) and ( bocos_T[_NORTH_] < 0.0 ) ) {
-                    T_g = T_in;
-                } else {
-                    T_g = ( bocos_T[_NORTH_] - wg_in*T_in )/wg_g;
-                }
-                thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                u_g  = ( bocos_u[_NORTH_] - wg_in*u_in )/wg_g;
+                v_g  = ( bocos_v[_NORTH_] - wg_in*v_in )/wg_g;
+                w_g  = ( bocos_w[_NORTH_] - wg_in*w_in )/wg_g;
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
-                E_g  = e_g + ke_g;
+                if( ( bocos_type[_NORTH_] == _DIRICHLET_ ) and ( bocos_P[_NORTH_] < 0.0 ) and ( bocos_T[_NORTH_] < 0.0 ) ) {
+                    P_g   = P_in;
+                    T_g   = T_in;
+                    rho_g = rho_in;
+                    e_g   = e_in;
+                } else {
+                    P_g  = ( bocos_P[_NORTH_] - wg_in*P_in )/wg_g;
+                    T_g  = ( bocos_T[_NORTH_] - wg_in*T_in )/wg_g;
+                    thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                }
+                E_g = e_g + ke_g;
 		/// Update ghost conserved variables
                 rho_field[I1D(i,j,k)]  = rho_g;
                 rhou_field[I1D(i,j,k)] = rho_g*u_g;
                 rhov_field[I1D(i,j,k)] = rho_g*v_g;
                 rhow_field[I1D(i,j,k)] = rho_g*w_g;
                 rhoE_field[I1D(i,j,k)] = rho_g*E_g;
+		/// Update P, T and sos variables
+                P_field[I1D(i,j,k)]   = P_g;
+                T_field[I1D(i,j,k)]   = T_g;
+                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
             }
         }
     }
@@ -800,28 +812,31 @@ void FlowSolverRHEA::updateBoundaries() {
                 e_in   = E_in - ke_in; 
                 thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
 		/// Calculate ghost primitive variables
-                u_g = ( bocos_u[_BACK_] - wg_in*u_in )/wg_g;
-                v_g = ( bocos_v[_BACK_] - wg_in*v_in )/wg_g;
-                w_g = ( bocos_w[_BACK_] - wg_in*w_in )/wg_g;
-                if( ( bocos_type[_BACK_] == _DIRICHLET_ ) and ( bocos_P[_BACK_] < 0.0 ) ) {
-                    P_g = P_in;
-                } else {
-                    P_g = ( bocos_P[_BACK_] - wg_in*P_in )/wg_g;
-                }
-                if( ( bocos_type[_BACK_] == _DIRICHLET_ ) and ( bocos_T[_BACK_] < 0.0 ) ) {
-                    T_g = T_in;
-                } else {
-                    T_g = ( bocos_T[_BACK_] - wg_in*T_in )/wg_g;
-                } 
-                thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                u_g  = ( bocos_u[_BACK_] - wg_in*u_in )/wg_g;
+                v_g  = ( bocos_v[_BACK_] - wg_in*v_in )/wg_g;
+                w_g  = ( bocos_w[_BACK_] - wg_in*w_in )/wg_g;
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
-                E_g  = e_g + ke_g;
+                if( ( bocos_type[_BACK_] == _DIRICHLET_ ) and ( bocos_P[_BACK_] < 0.0 ) and ( bocos_T[_BACK_] < 0.0 ) ) {
+                    P_g   = P_in;
+                    T_g   = T_in;
+                    rho_g = rho_in;
+                    e_g   = e_in;
+                } else {
+                    P_g  = ( bocos_P[_BACK_] - wg_in*P_in )/wg_g;
+                    T_g  = ( bocos_T[_BACK_] - wg_in*T_in )/wg_g;
+                    thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                }
+                E_g = e_g + ke_g;
 		/// Update ghost conserved variables
                 rho_field[I1D(i,j,k)]  = rho_g;
                 rhou_field[I1D(i,j,k)] = rho_g*u_g;
                 rhov_field[I1D(i,j,k)] = rho_g*v_g;
                 rhow_field[I1D(i,j,k)] = rho_g*w_g;
                 rhoE_field[I1D(i,j,k)] = rho_g*E_g;
+		/// Update P, T and sos variables
+                P_field[I1D(i,j,k)]   = P_g;
+                T_field[I1D(i,j,k)]   = T_g;
+                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
             }
         }
     }
@@ -850,28 +865,31 @@ void FlowSolverRHEA::updateBoundaries() {
                 e_in   = E_in - ke_in; 
                 thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
 		/// Calculate ghost primitive variables
-                u_g = ( bocos_u[_FRONT_] - wg_in*u_in )/wg_g;
-                v_g = ( bocos_v[_FRONT_] - wg_in*v_in )/wg_g;
-                w_g = ( bocos_w[_FRONT_] - wg_in*w_in )/wg_g;
-                if( ( bocos_type[_FRONT_] == _DIRICHLET_ ) and ( bocos_P[_FRONT_] < 0.0 ) ) {
-                    P_g = P_in;
-                } else {
-                    P_g = ( bocos_P[_FRONT_] - wg_in*P_in )/wg_g;
-                }
-                if( ( bocos_type[_FRONT_] == _DIRICHLET_ ) and ( bocos_T[_FRONT_] < 0.0 ) ) {
-                    T_g = T_in;
-                } else {
-                    T_g = ( bocos_T[_FRONT_] - wg_in*T_in )/wg_g;
-                }
-                thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                u_g  = ( bocos_u[_FRONT_] - wg_in*u_in )/wg_g;
+                v_g  = ( bocos_v[_FRONT_] - wg_in*v_in )/wg_g;
+                w_g  = ( bocos_w[_FRONT_] - wg_in*w_in )/wg_g;
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
-                E_g  = e_g + ke_g;
+                if( ( bocos_type[_FRONT_] == _DIRICHLET_ ) and ( bocos_P[_FRONT_] < 0.0 ) and ( bocos_T[_FRONT_] < 0.0 ) ) {
+                    P_g   = P_in;
+                    T_g   = T_in;
+                    rho_g = rho_in;
+                    e_g   = e_in;
+                } else {
+                    P_g  = ( bocos_P[_FRONT_] - wg_in*P_in )/wg_g;
+                    T_g  = ( bocos_T[_FRONT_] - wg_in*T_in )/wg_g;
+                    thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
+                }
+                E_g = e_g + ke_g;
 		/// Update ghost conserved variables
                 rho_field[I1D(i,j,k)]  = rho_g;
                 rhou_field[I1D(i,j,k)] = rho_g*u_g;
                 rhov_field[I1D(i,j,k)] = rho_g*v_g;
                 rhow_field[I1D(i,j,k)] = rho_g*w_g;
                 rhoE_field[I1D(i,j,k)] = rho_g*E_g;
+		/// Update P, T and sos variables
+                P_field[I1D(i,j,k)]   = P_g;
+                T_field[I1D(i,j,k)]   = T_g;
+                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
             }
         }
     }
@@ -882,6 +900,9 @@ void FlowSolverRHEA::updateBoundaries() {
     rhov_field.update();
     rhow_field.update();
     rhoE_field.update();
+    P_field.update();
+    T_field.update();
+    sos_field.update();
 
 };
 

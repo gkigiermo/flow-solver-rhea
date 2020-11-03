@@ -6,19 +6,16 @@ using namespace std;
 //const double Pi = 2.0*asin( 1.0 );
 
 /// PROBLEM PARAMETERS ///
-//const double R_specific = 287.058;				/// Specific gas constant
-//const double gamma_     = 1.4;					/// Heat capacity ratio
-//const double c_p        = gamma_*R_specific/( gamma_ - 1.0 );	/// Heat capacity ratio
+const double gamma_0    = 1.4;					/// Heat capacity ratio
 const double delta      = 1.0;					/// Channel half-height
 const double Re_tau     = 180.0;				/// Friction Reynolds number
-//const double Pr         = 0.71;					/// Prandtl number
+const double Ma         = 1.0e-2/sqrt( gamma_0 );		/// Mach number
 const double rho_ref    = 1.0;					/// Reference density	
-const double P_ref      = 101325.0;				/// Reference pressure
 const double u_tau      = 1.0;					/// Friction velocity
 const double tau_w      = rho_ref*u_tau*u_tau;			/// Wall shear stress
 //const double mu         = rho_ref*u_tau*delta/Re_tau;		/// Dynamic viscosity	
 const double nu         = u_tau*delta/Re_tau;			/// Kinematic viscosity	
-//const double kappa      = c_p*mu/Pr;				/// Thermal conductivity
+const double P_0        = rho_0*u_tau*u_tau/( gamma_0*Ma*Ma );	/// Reference pressure
 const double Re_b       = pow( Re_tau/0.09, 1.0/0.88 );		/// Bulk (approximated) Reynolds number
 const double u_b        = nu*Re_b/( 2.0*delta );		/// Bulk (approximated) velocity
 //const double L_x       = 4.0*Pi*delta;			/// Streamwise length
@@ -41,7 +38,7 @@ void myRHEA::setInitialConditions() {
                 u_field[I1D(i,j,k)] = ( random_number + 0.5 )*( u_tau*( ( 1.0/0.41 )*log( y_dist*u_tau/nu ) + 5.2 ) );
                 v_field[I1D(i,j,k)] = ( random_number - 0.5 )*u_b;
                 w_field[I1D(i,j,k)] = ( random_number - 0.5 )*u_b;
-                P_field[I1D(i,j,k)] = P_ref;
+                P_field[I1D(i,j,k)] = P_0;
                 T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_ref*thermodynamics->getSpecificGasConstant() );
             }
         }

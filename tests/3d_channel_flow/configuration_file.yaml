@@ -26,7 +26,7 @@ fluid_properties:
    # HIGH_PRESSURE (provide molecular weight, critical temperature, critical molar volume, acentric factor, dipole moment, association factor, NASA 7-coefficient polynomial)
    transport_coefficients_model: 'CONSTANT'		  		# Transport coefficients model
    mu: 0.005555556                     					# Dynamic viscosity [Pa·s]
-   kappa: 7.8615                       					# Thermal conductivity [W/(m·k)]
+   kappa: 0.0                       					# Thermal conductivity [W/(m·k)]
    dipole_moment: 0.0               					# Dipole moment [D]
    association_factor: 0.0             					# Association factor [-]
 
@@ -52,7 +52,7 @@ computational_parameters:
    A_x: 0.0                 					        # Stretching factor in x-direction
    A_y: -1.875             					        # Stretching factor in y-direction
    A_z: 0.0                       					# Stretching factor in z-direction
-   CFL: 0.1                  					        # CFL coefficient
+   CFL: 0.3                  					        # CFL coefficient
    final_time_iter: 1000000            					# Final time iteration
 
 
@@ -72,7 +72,7 @@ boundary_conditions:
 
 ##### PRINT/WRITE/READ PARAMETERS #####
 print_write_read_parameters:
-   print_frequency_iter: 1 	             				# Print information iteration frequency
+   print_frequency_iter: 1000 	             				# Print information iteration frequency
    output_data_file_name: '3d_channel_flow'  				# Name of output data file
    output_frequency_iter: 10000        					# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader

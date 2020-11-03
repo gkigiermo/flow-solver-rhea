@@ -8,15 +8,12 @@ using namespace std;
 /// PROBLEM PARAMETERS ///
 const double gamma_0    = 1.4;					/// Reference ratio of heat capacities
 //const double R_specific = 1.0;					/// Specific gas constant
-//const double c_p        = gamma_0*R_specific/( gamma_0 - 1.0 );	/// Heat capacity at constant pressure
-//const double Re_0       = pi;					/// Reynolds number
-const double Ma_0       = 1.0e-2/sqrt( gamma_0 );		/// Mach number
-//const double Pr         = 0.71;					/// Prandtl number
+//const double Re         = pi;					/// Reynolds number
+const double Ma         = 1.0e-2/sqrt( gamma_0 );		/// Mach number
 const double rho_0      = 1.0;					/// Reference density	
 const double U_0        = 1.0;					/// Reference velocity
-//const double mu_0       = rho_0*U_0*pi/Re_0;			/// Dynamic viscosity	
-//const double k_0 	= mu_0*c_p/Pr;				/// Thermal conductivity
-const double P_0        = rho_0*U_0*U_0/( gamma_0*Ma_0*Ma_0 );	/// Reference pressure
+//const double mu_0       = rho_0*U_0*pi/Re;			/// Dynamic viscosity	
+const double P_0        = rho_0*U_0*U_0/( gamma_0*Ma*Ma );	/// Reference pressure
 //const double L          = 2.0*pi;				/// Domain size			
 
 
