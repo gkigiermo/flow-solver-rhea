@@ -1,6 +1,6 @@
 EXECUTABLE   = RHEA.exe
 MAIN         = myRHEA.cpp
-SRC_DIR      = ./src
+SRC_DIR      = src
 CXX          = mpic++
 CXXFLAGS     = -O3 -Wall -std=c++0x
 # UBUNTU - LINUX

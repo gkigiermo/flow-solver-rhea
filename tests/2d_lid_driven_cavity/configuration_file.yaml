@@ -26,7 +26,7 @@ fluid_properties:
    # HIGH_PRESSURE (provide molecular weight, critical temperature, critical molar volume, acentric factor, dipole moment, association factor, NASA 7-coefficient polynomial)
    transport_coefficients_model: 'CONSTANT'		  		# Transport coefficients model
    mu: 0.001	                  					# Dynamic viscosity [Pa·s]
-   kappa: 0.0                      					# Thermal conductivity [W/(m·k)]
+   kappa: 1.4151                      					# Thermal conductivity [W/(m·k)]
    dipole_moment: 0.0               					# Dipole moment [D]
    association_factor: 0.0             					# Association factor [-]
 
@@ -62,10 +62,10 @@ boundary_conditions:
    # Boundary types: DIRICHLET (provide value ... P < 0 and T < 0 for impermeable boundary),
    #                 NEUMANN (provide derivative),
    #                 PERIODIC (no value/derivative needed)
-   west_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, -1.0]			# West boundary condition
-   east_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, -1.0]			# East boundary condition
-   south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, -1.0]			# South boundary condition
-   north_bc: ['DIRICHLET', 1.0, 0.0, 0.0, -1.0, -1.0]			# North boundary condition
+   west_bc: ['DIRICHLET', 0.0, 0.0, 0.0, 10000.0, 34.836]		# West boundary condition
+   east_bc: ['DIRICHLET', 0.0, 0.0, 0.0, 10000.0, 34.836]		# East boundary condition
+   south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, 10000.0, 34.836]		# South boundary condition
+   north_bc: ['DIRICHLET', 1.0, 0.0, 0.0, 10000.0, 34.836]		# North boundary condition
    back_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Back boundary condition
    front_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Front boundary condition
 
