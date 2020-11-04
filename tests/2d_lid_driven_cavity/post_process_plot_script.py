@@ -14,7 +14,7 @@ plt.rc( 'font', size = 20 )
 plt.rcParams['text.latex.preamble'] = [ r'\usepackage{amsmath}', r'\usepackage{amssymb}', r'\usepackage{color}' ]
 
 ### Open data file
-data_file = h5py.File( '2d_lid_driven_cavity_20000.h5', 'r' )
+data_file = h5py.File( '2d_lid_driven_cavity_180000.h5', 'r' )
 #list( data_file.keys() )
 x_data     = data_file['x'][0,:,:];     x_data     = np.asarray( x_data.flatten() )
 y_data     = data_file['y'][0,:,:];     y_data     = np.asarray( y_data.flatten() )

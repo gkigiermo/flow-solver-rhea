@@ -588,17 +588,16 @@ void FlowSolverRHEA::updateBoundaries() {
     for(int i = topo->iter_bound[_WEST_][_INIX_]; i <= topo->iter_bound[_WEST_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_WEST_][_INIY_]; j <= topo->iter_bound[_WEST_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_WEST_][_INIZ_]; k <= topo->iter_bound[_WEST_][_ENDZ_]; k++) {
-		/// Calculate inner values
-                P_in   = P_field[I1D(i+1,j,k)];		/// Initial pressure guess
-                T_in   = T_field[I1D(i+1,j,k)];		/// Initial temperature guess
+		/// Get/calculate inner values
                 rho_in = rho_field[I1D(i+1,j,k)]; 
-                u_in   = rhou_field[I1D(i+1,j,k)]/rho_in;
-                v_in   = rhov_field[I1D(i+1,j,k)]/rho_in;
-                w_in   = rhow_field[I1D(i+1,j,k)]/rho_in;
-                E_in   = rhoE_field[I1D(i+1,j,k)]/rho_in;
+                u_in   = u_field[I1D(i+1,j,k)];
+                v_in   = v_field[I1D(i+1,j,k)];
+                w_in   = w_field[I1D(i+1,j,k)];
+                E_in   = E_field[I1D(i+1,j,k)];
+                P_in   = P_field[I1D(i+1,j,k)];
+                T_in   = T_field[I1D(i+1,j,k)];	
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
                 e_in   = E_in - ke_in; 
-                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
 		/// Calculate ghost primitive variables
                 u_g  = ( bocos_u[_WEST_] - wg_in*u_in )/wg_g;
                 v_g  = ( bocos_v[_WEST_] - wg_in*v_in )/wg_g;
@@ -645,17 +644,16 @@ void FlowSolverRHEA::updateBoundaries() {
     for(int i = topo->iter_bound[_EAST_][_INIX_]; i <= topo->iter_bound[_EAST_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_EAST_][_INIY_]; j <= topo->iter_bound[_EAST_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_EAST_][_INIZ_]; k <= topo->iter_bound[_EAST_][_ENDZ_]; k++) {
-		/// Calculate inner values
-                P_in   = P_field[I1D(i-1,j,k)];		/// Initial pressure guess
-                T_in   = T_field[I1D(i-1,j,k)];		/// Initial temperature guess
+		/// Get/calculate inner values
                 rho_in = rho_field[I1D(i-1,j,k)]; 
-                u_in   = rhou_field[I1D(i-1,j,k)]/rho_in;
-                v_in   = rhov_field[I1D(i-1,j,k)]/rho_in;
-                w_in   = rhow_field[I1D(i-1,j,k)]/rho_in;
-                E_in   = rhoE_field[I1D(i-1,j,k)]/rho_in;
+                u_in   = u_field[I1D(i-1,j,k)];
+                v_in   = v_field[I1D(i-1,j,k)];
+                w_in   = w_field[I1D(i-1,j,k)];
+                E_in   = E_field[I1D(i-1,j,k)];
+                P_in   = P_field[I1D(i-1,j,k)];
+                T_in   = T_field[I1D(i-1,j,k)];	
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
-                e_in   = E_in - ke_in; 
-                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
+                e_in   = E_in - ke_in;
 		/// Calculate ghost primitive variables
                 u_g  = ( bocos_u[_EAST_] - wg_in*u_in )/wg_g;
                 v_g  = ( bocos_v[_EAST_] - wg_in*v_in )/wg_g;
@@ -702,17 +700,16 @@ void FlowSolverRHEA::updateBoundaries() {
     for(int i = topo->iter_bound[_SOUTH_][_INIX_]; i <= topo->iter_bound[_SOUTH_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_SOUTH_][_INIY_]; j <= topo->iter_bound[_SOUTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_SOUTH_][_INIZ_]; k <= topo->iter_bound[_SOUTH_][_ENDZ_]; k++) {
-		/// Calculate inner values
-                P_in   = P_field[I1D(i,j+1,k)];		/// Initial pressure guess
-                T_in   = T_field[I1D(i,j+1,k)];		/// Initial temperature guess
+		/// Get/calculate inner values
                 rho_in = rho_field[I1D(i,j+1,k)]; 
-                u_in   = rhou_field[I1D(i,j+1,k)]/rho_in;
-                v_in   = rhov_field[I1D(i,j+1,k)]/rho_in;
-                w_in   = rhow_field[I1D(i,j+1,k)]/rho_in;
-                E_in   = rhoE_field[I1D(i,j+1,k)]/rho_in;
+                u_in   = u_field[I1D(i,j+1,k)];
+                v_in   = v_field[I1D(i,j+1,k)];
+                w_in   = w_field[I1D(i,j+1,k)];
+                E_in   = E_field[I1D(i,j+1,k)];
+                P_in   = P_field[I1D(i,j+1,k)];
+                T_in   = T_field[I1D(i,j+1,k)];	
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
-                e_in   = E_in - ke_in; 
-                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
+                e_in   = E_in - ke_in;
 		/// Calculate ghost primitive variables
                 u_g  = ( bocos_u[_SOUTH_] - wg_in*u_in )/wg_g;
                 v_g  = ( bocos_v[_SOUTH_] - wg_in*v_in )/wg_g;
@@ -759,17 +756,16 @@ void FlowSolverRHEA::updateBoundaries() {
     for(int i = topo->iter_bound[_NORTH_][_INIX_]; i <= topo->iter_bound[_NORTH_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_NORTH_][_INIY_]; j <= topo->iter_bound[_NORTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_NORTH_][_INIZ_]; k <= topo->iter_bound[_NORTH_][_ENDZ_]; k++) {
-		/// Calculate inner values
-                P_in   = P_field[I1D(i,j-1,k)];		/// Initial pressure guess
-                T_in   = T_field[I1D(i,j-1,k)];		/// Initial temperature guess
+		/// Get/calculate inner values
                 rho_in = rho_field[I1D(i,j-1,k)]; 
-                u_in   = rhou_field[I1D(i,j-1,k)]/rho_in;
-                v_in   = rhov_field[I1D(i,j-1,k)]/rho_in;
-                w_in   = rhow_field[I1D(i,j-1,k)]/rho_in;
-                E_in   = rhoE_field[I1D(i,j-1,k)]/rho_in;
+                u_in   = u_field[I1D(i,j-1,k)];
+                v_in   = v_field[I1D(i,j-1,k)];
+                w_in   = w_field[I1D(i,j-1,k)];
+                E_in   = E_field[I1D(i,j-1,k)];
+                P_in   = P_field[I1D(i,j-1,k)];
+                T_in   = T_field[I1D(i,j-1,k)];	
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
-                e_in   = E_in - ke_in; 
-                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
+                e_in   = E_in - ke_in;
 		/// Calculate ghost primitive variables
                 u_g  = ( bocos_u[_NORTH_] - wg_in*u_in )/wg_g;
                 v_g  = ( bocos_v[_NORTH_] - wg_in*v_in )/wg_g;
@@ -816,17 +812,16 @@ void FlowSolverRHEA::updateBoundaries() {
     for(int i = topo->iter_bound[_BACK_][_INIX_]; i <= topo->iter_bound[_BACK_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_BACK_][_INIY_]; j <= topo->iter_bound[_BACK_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_BACK_][_INIZ_]; k <= topo->iter_bound[_BACK_][_ENDZ_]; k++) {
-		/// Calculate inner values
-                P_in   = P_field[I1D(i,j,k+1)];		/// Initial pressure guess
-                T_in   = T_field[I1D(i,j,k+1)];		/// Initial temperature guess
+		/// Get/calculate inner values
                 rho_in = rho_field[I1D(i,j,k+1)]; 
-                u_in   = rhou_field[I1D(i,j,k+1)]/rho_in;
-                v_in   = rhov_field[I1D(i,j,k+1)]/rho_in;
-                w_in   = rhow_field[I1D(i,j,k+1)]/rho_in;
-                E_in   = rhoE_field[I1D(i,j,k+1)]/rho_in;
+                u_in   = u_field[I1D(i,j,k+1)];
+                v_in   = v_field[I1D(i,j,k+1)];
+                w_in   = w_field[I1D(i,j,k+1)];
+                E_in   = E_field[I1D(i,j,k+1)];
+                P_in   = P_field[I1D(i,j,k+1)];
+                T_in   = T_field[I1D(i,j,k+1)];	
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
-                e_in   = E_in - ke_in; 
-                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
+                e_in   = E_in - ke_in;
 		/// Calculate ghost primitive variables
                 u_g  = ( bocos_u[_BACK_] - wg_in*u_in )/wg_g;
                 v_g  = ( bocos_v[_BACK_] - wg_in*v_in )/wg_g;
@@ -873,17 +868,16 @@ void FlowSolverRHEA::updateBoundaries() {
     for(int i = topo->iter_bound[_FRONT_][_INIX_]; i <= topo->iter_bound[_FRONT_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_FRONT_][_INIY_]; j <= topo->iter_bound[_FRONT_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_FRONT_][_INIZ_]; k <= topo->iter_bound[_FRONT_][_ENDZ_]; k++) {
-		/// Calculate inner values
-                P_in   = P_field[I1D(i,j,k-1)];		/// Initial pressure guess
-                T_in   = T_field[I1D(i,j,k-1)];		/// Initial temperature guess
+		/// Get/calculate inner values
                 rho_in = rho_field[I1D(i,j,k-1)]; 
-                u_in   = rhou_field[I1D(i,j,k-1)]/rho_in;
-                v_in   = rhov_field[I1D(i,j,k-1)]/rho_in;
-                w_in   = rhow_field[I1D(i,j,k-1)]/rho_in;
-                E_in   = rhoE_field[I1D(i,j,k-1)]/rho_in;
+                u_in   = u_field[I1D(i,j,k-1)];
+                v_in   = v_field[I1D(i,j,k-1)];
+                w_in   = w_field[I1D(i,j,k-1)];
+                E_in   = E_field[I1D(i,j,k-1)];
+                P_in   = P_field[I1D(i,j,k-1)];
+                T_in   = T_field[I1D(i,j,k-1)];	
                 ke_in  = 0.5*( u_in*u_in + v_in*v_in + w_in*w_in ); 
-                e_in   = E_in - ke_in; 
-                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P_in, T_in, rho_in, e_in );	/// Updated values
+                e_in   = E_in - ke_in;
 		/// Calculate ghost primitive variables
                 u_g  = ( bocos_u[_FRONT_] - wg_in*u_in )/wg_g;
                 v_g  = ( bocos_v[_FRONT_] - wg_in*v_in )/wg_g;
@@ -1903,15 +1897,6 @@ void FlowSolverRHEA::execute() {
             /// Stop timer: time_advance_conserved_variables
             timers->stop( "time_advance_conserved_variables" );
 
-            /// Start timer: update_boundaries
-            timers->start( "update_boundaries" );
-
-            /// Update boundary values
-            this->updateBoundaries();
-
-            /// Stop timer: update_boundaries
-            timers->stop( "update_boundaries" );
-
             /// Start timer: conserved_to_primitive_variables
             timers->start( "conserved_to_primitive_variables" );
 
@@ -1929,6 +1914,15 @@ void FlowSolverRHEA::execute() {
 
             /// Stop timer: calculate_thermodynamics_from_primitive_variables
             timers->stop( "calculate_thermodynamics_from_primitive_variables" );
+
+            /// Start timer: update_boundaries
+            timers->start( "update_boundaries" );
+
+            /// Update boundary values
+            this->updateBoundaries();
+
+            /// Stop timer: update_boundaries
+            timers->stop( "update_boundaries" );
 
         }
 
