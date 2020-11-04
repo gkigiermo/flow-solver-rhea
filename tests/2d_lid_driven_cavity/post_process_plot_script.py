@@ -14,7 +14,7 @@ plt.rc( 'font', size = 20 )
 plt.rcParams['text.latex.preamble'] = [ r'\usepackage{amsmath}', r'\usepackage{amssymb}', r'\usepackage{color}' ]
 
 ### Open data file
-data_file = h5py.File( '2d_lid_driven_cavity_1144969.h5', 'r' )
+data_file = h5py.File( '2d_lid_driven_cavity_20000.h5', 'r' )
 #list( data_file.keys() )
 x_data     = data_file['x'][0,:,:];     x_data     = np.asarray( x_data.flatten() )
 y_data     = data_file['y'][0,:,:];     y_data     = np.asarray( y_data.flatten() )
@@ -64,7 +64,7 @@ for p in range( 0, len( x_data ) ):
 plt.clf()
 
 # Read & Plot data
-plt.scatter( y_ghia, u_ghia, marker = 'p', s = 50, color = 'black', label = r'$\textrm{Ghia et al.}$' )
+plt.scatter( y_ghia, u_ghia, marker = 'p', s = 50, color = 'black', label = r'$\textrm{Ghia et al., }Re=100$' )
 plt.plot( y_center_data/L, u_center_data/U_lid, linestyle = '--', color = 'firebrick', label = r'$\textrm{RHEA}$' )
 
 # Configure plot
@@ -112,8 +112,8 @@ plt.xticks( np.arange( 0.0, 1.1, 0.2 ) )
 plt.tick_params( axis = 'x', bottom = True, top = True, labelbottom = 'True', labeltop = 'False', direction = 'in' )
 #plt.xscale( 'log' )
 plt.xlabel( r'$x/L$' )
-plt.ylim( -0.6, 0.6 )
-plt.yticks( np.arange( -0.6, 0.61, 0.3 ) )
+plt.ylim( -0.3, 0.3 )
+plt.yticks( np.arange( -0.3, 0.31, 0.15 ) )
 plt.tick_params( axis = 'y', left = True, right = True, labelleft = 'True', labelright = 'False', direction = 'in' )
 #plt.yscale( 'log' )
 plt.ylabel( r'$v/U_\textrm{lid}$' )

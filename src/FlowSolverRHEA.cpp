@@ -381,7 +381,7 @@ void FlowSolverRHEA::readConfigurationFile() {
 
 void FlowSolverRHEA::fillMeshCoordinateFields() {
 
-    /// All (inner, boundary & halo) points: x, y and z
+    /// All (inner, halo, boundary) points: x, y and z
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -393,9 +393,9 @@ void FlowSolverRHEA::fillMeshCoordinateFields() {
     }
 
     /// Update halo values
-    //x_field.update();
-    //y_field.update();
-    //z_field.update();
+    x_field.update();
+    y_field.update();
+    z_field.update();
 
 };
 
@@ -403,7 +403,7 @@ void FlowSolverRHEA::setInitialConditions() {
 
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
-    /// All (inner, boundary & halo) points: u, v, w, P and T
+    /// All (inner, halo, boundary): u, v, w, P and T
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -417,11 +417,11 @@ void FlowSolverRHEA::setInitialConditions() {
     }
 
     /// Update halo values
-    //u_field.update();
-    //v_field.update();
-    //w_field.update();
-    //P_field.update();
-    //T_field.update();
+    u_field.update();
+    v_field.update();
+    w_field.update();
+    P_field.update();
+    T_field.update();
 
 };
 
@@ -471,7 +471,7 @@ void FlowSolverRHEA::initializeFromRestart() {
 
 void FlowSolverRHEA::initializeThermodynamics() {
 
-    /// All (inner, boundary & halo) points: rho, e, ke, E and sos
+    /// All (inner, halo, boundary): rho, E and sos
     double rho, e, ke;
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
@@ -486,15 +486,15 @@ void FlowSolverRHEA::initializeThermodynamics() {
     }
 
     /// Update halo values
-    //rho_field.update();
-    //E_field.update();
-    //sos_field.update();
+    rho_field.update();
+    E_field.update();
+    sos_field.update();
 
 };
 
 void FlowSolverRHEA::primitiveToConservedVariables() {
 
-    /// All (inner, boundary & halo) points: rhou, rhov, rhow and rhoE
+    /// All (inner, halo, boundary): rhou, rhov, rhow and rhoE
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -507,19 +507,19 @@ void FlowSolverRHEA::primitiveToConservedVariables() {
     }
 
     /// Update halo values
-    //rhou_field.update();
-    //rhov_field.update();
-    //rhow_field.update();
-    //rhoE_field.update();
+    rhou_field.update();
+    rhov_field.update();
+    rhow_field.update();
+    rhoE_field.update();
 
 };
 
 void FlowSolverRHEA::conservedToPrimitiveVariables() {
 
-    /// All (inner, boundary & halo) points: u, v, w and E
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+    /// Inner: u, v, w and E
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 u_field[I1D(i,j,k)] = rhou_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
                 v_field[I1D(i,j,k)] = rhov_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
                 w_field[I1D(i,j,k)] = rhow_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
@@ -538,7 +538,7 @@ void FlowSolverRHEA::conservedToPrimitiveVariables() {
 
 void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
 
-    /// Inner points: ke, e, P, T and sos
+    /// Inner points: P, T and sos
     double ke, e, P, T;
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
@@ -621,7 +621,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 rhov_field[I1D(i,j,k)] = rho_g*v_g;
                 rhow_field[I1D(i,j,k)] = rho_g*w_g;
                 rhoE_field[I1D(i,j,k)] = rho_g*E_g;
-		/// Update P, T and sos variables
+		/// Update u, v, w, E, P, T and sos variables
+                u_field[I1D(i,j,k)]   = u_g;
+                v_field[I1D(i,j,k)]   = v_g;
+                w_field[I1D(i,j,k)]   = w_g;
+                E_field[I1D(i,j,k)]   = E_g;
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -674,7 +678,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 rhov_field[I1D(i,j,k)] = rho_g*v_g;
                 rhow_field[I1D(i,j,k)] = rho_g*w_g;
                 rhoE_field[I1D(i,j,k)] = rho_g*E_g;
-		/// Update P, T and sos variables
+		/// Update u, v, w, E, P, T and sos variables
+                u_field[I1D(i,j,k)]   = u_g;
+                v_field[I1D(i,j,k)]   = v_g;
+                w_field[I1D(i,j,k)]   = w_g;
+                E_field[I1D(i,j,k)]   = E_g;
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -727,7 +735,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 rhov_field[I1D(i,j,k)] = rho_g*v_g;
                 rhow_field[I1D(i,j,k)] = rho_g*w_g;
                 rhoE_field[I1D(i,j,k)] = rho_g*E_g;
-		/// Update P, T and sos variables
+		/// Update u, v, w, E, P, T and sos variables
+                u_field[I1D(i,j,k)]   = u_g;
+                v_field[I1D(i,j,k)]   = v_g;
+                w_field[I1D(i,j,k)]   = w_g;
+                E_field[I1D(i,j,k)]   = E_g;
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -780,7 +792,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 rhov_field[I1D(i,j,k)] = rho_g*v_g;
                 rhow_field[I1D(i,j,k)] = rho_g*w_g;
                 rhoE_field[I1D(i,j,k)] = rho_g*E_g;
-		/// Update P, T and sos variables
+		/// Update u, v, w, E, P, T and sos variables
+                u_field[I1D(i,j,k)]   = u_g;
+                v_field[I1D(i,j,k)]   = v_g;
+                w_field[I1D(i,j,k)]   = w_g;
+                E_field[I1D(i,j,k)]   = E_g;
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -833,7 +849,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 rhov_field[I1D(i,j,k)] = rho_g*v_g;
                 rhow_field[I1D(i,j,k)] = rho_g*w_g;
                 rhoE_field[I1D(i,j,k)] = rho_g*E_g;
-		/// Update P, T and sos variables
+		/// Update u, v, w, E, P, T and sos variables
+                u_field[I1D(i,j,k)]   = u_g;
+                v_field[I1D(i,j,k)]   = v_g;
+                w_field[I1D(i,j,k)]   = w_g;
+                E_field[I1D(i,j,k)]   = E_g;
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -886,7 +906,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 rhov_field[I1D(i,j,k)] = rho_g*v_g;
                 rhow_field[I1D(i,j,k)] = rho_g*w_g;
                 rhoE_field[I1D(i,j,k)] = rho_g*E_g;
-		/// Update P, T and sos variables
+		/// Update u, v, w, E, P, T and sos variables
+                u_field[I1D(i,j,k)]   = u_g;
+                v_field[I1D(i,j,k)]   = v_g;
+                w_field[I1D(i,j,k)]   = w_g;
+                E_field[I1D(i,j,k)]   = E_g;
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -900,6 +924,10 @@ void FlowSolverRHEA::updateBoundaries() {
     rhov_field.update();
     rhow_field.update();
     rhoE_field.update();
+    u_field.update();
+    v_field.update();
+    w_field.update();
+    E_field.update();
     P_field.update();
     T_field.update();
     sos_field.update();
@@ -908,7 +936,7 @@ void FlowSolverRHEA::updateBoundaries() {
 
 void FlowSolverRHEA::updatePreviousStateConservedVariables() {
 
-    /// All (inner, boundary & halo) points: rho_0, rhou_0 rhov_0, rhow_0 and rhoE_0
+    /// All (inner, halo, boundary) points: rho_0, rhou_0 rhov_0, rhow_0 and rhoE_0
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -922,11 +950,11 @@ void FlowSolverRHEA::updatePreviousStateConservedVariables() {
     }
 
     /// Update halo values
-    //rho_0_field.update();
-    //rhou_0_field.update();
-    //rhov_0_field.update();
-    //rhow_0_field.update();
-    //rhoE_0_field.update();
+    rho_0_field.update();
+    rhou_0_field.update();
+    rhov_0_field.update();
+    rhow_0_field.update();
+    rhoE_0_field.update();
 
 };
 
@@ -987,7 +1015,7 @@ void FlowSolverRHEA::calculateTimeStep() {
 
 void FlowSolverRHEA::calculateTransportCoefficients() {
     
-    /// All (inner, boundary & halo) points: mu and kappa
+    /// All (inner, halo, boundary) points: mu and kappa
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -998,8 +1026,8 @@ void FlowSolverRHEA::calculateTransportCoefficients() {
     }
 
     /// Update halo values
-    //mu_field.update();
-    //kappa_field.update();
+    mu_field.update();
+    kappa_field.update();
 
 };
 
@@ -1696,7 +1724,7 @@ void FlowSolverRHEA::outputCurrentStateData() {
 
 void FlowSolverRHEA::updateTimeAveragedQuantities() {
 
-    /// All (inner, boundary & halo) points: mu and kappa
+    /// All (inner, boundary & halo) points: time-averaged and root-mean-square-fluctuation quantities 
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -1726,22 +1754,22 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
     averaging_time += delta_t;
 
     /// Update halo values
-    //avg_rho_field.update();
-    //avg_rhou_field.update();
-    //avg_rhov_field.update();
-    //avg_rhow_field.update();
-    //avg_rhoE_field.update();
-    //avg_P_field.update();
-    //avg_T_field.update();
-    //avg_sos_field.update();
-    //rmsf_rho_field.update();
-    //rmsf_rhou_field.update();
-    //rmsf_rhov_field.update();
-    //rmsf_rhow_field.update();
-    //rmsf_rhoE_field.update();
-    //rmsf_P_field.update();
-    //rmsf_T_field.update();
-    //rmsf_sos_field.update();
+    avg_rho_field.update();
+    avg_rhou_field.update();
+    avg_rhov_field.update();
+    avg_rhow_field.update();
+    avg_rhoE_field.update();
+    avg_P_field.update();
+    avg_T_field.update();
+    avg_sos_field.update();
+    rmsf_rho_field.update();
+    rmsf_rhou_field.update();
+    rmsf_rhov_field.update();
+    rmsf_rhow_field.update();
+    rmsf_rhoE_field.update();
+    rmsf_P_field.update();
+    rmsf_T_field.update();
+    rmsf_sos_field.update();
 
 };
 

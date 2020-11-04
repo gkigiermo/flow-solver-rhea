@@ -32,7 +32,7 @@ void myRHEA::setInitialConditions() {
 
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
-    /// All (inner, boundary & halo) points: u, v, w, P and T
+    /// All (inner, halo, boundary): u, v, w, P and T
     double random_number, y_dist;
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
@@ -72,6 +72,12 @@ void myRHEA::calculateSourceTerms() {
             }
         }
     }
+
+    /// Update halo values
+    //f_rhou_field.update();
+    //f_rhov_field.update();
+    //f_rhow_field.update();
+    //f_rhoE_field.update();
 
 };
 

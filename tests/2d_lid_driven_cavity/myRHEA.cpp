@@ -6,7 +6,7 @@ using namespace std;
 //const double R_specific = 287.058;				/// Specific gas constant
 const double gamma_0    = 1.4;					/// Heat capacity ratio
 //const double c_p        = gamma_0*R_specific/( gamma_0 - 1.0 );	/// Isobaric heat capacity
-//const double Re         = 1000.0;				/// Reynolds number
+//const double Re         = 100.0;				/// Reynolds number
 const double Ma         = 1.0e-2/sqrt( gamma_0 );		/// Mach number
 //const double Pr         = 0.71;					/// Prandtl number
 const double rho_0      = 1.0;					/// Reference density	
@@ -23,7 +23,7 @@ void myRHEA::setInitialConditions() {
 
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
-    /// All (inner, boundary & halo) points: u, v, w, P and T
+    /// All (inner, halo, boundary): u, v, w, P and T
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -60,6 +60,12 @@ void myRHEA::calculateSourceTerms() {
             }
         }
     }
+
+    /// Update halo values
+    //f_rhou_field.update();
+    //f_rhov_field.update();
+    //f_rhow_field.update();
+    //f_rhoE_field.update();
 
 };
 
