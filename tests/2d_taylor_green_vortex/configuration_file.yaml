@@ -1,6 +1,6 @@
 # RHEA's CONFIGURATION FILE (YAML LANGUAGE)
 #
-# 2D Viscous Taylor-Green vortex problem (Re = pi, Ma = 0.1/sqrt(gamma)):
+# 2D Viscous Taylor-Green vortex problem (Re = pi, Ma = 1/sqrt(gamma)):
 # G. I. Taylor, A. E. Green.
 # Mechanism of the production of small eddies from large ones.
 # Proceedings of the Royal Society of London A, 158, 499-521, 1937.

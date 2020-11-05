@@ -1,6 +1,6 @@
 # RHEA's CONFIGURATION FILE (YAML LANGUAGE)
 #
-# 2D Lid-driven cavity problem (Re = 100, Ma = 0.1/sqrt(gamma), Pr = 0.71):
+# 2D Lid-driven cavity problem (Re = 100, Ma = 1/sqrt(gamma), Pr = 0.71):
 # U. Ghia, K. N. Ghia, C. T. Shin.
 # High-Re solutions for incompressible flow using the Navier-Stokes equations and a multi-grid method.
 # Journal of Computational Physics, 48, 387-411, 1982.
