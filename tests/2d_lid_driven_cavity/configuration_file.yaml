@@ -39,7 +39,7 @@ problem_parameters:
    L_x: 1.0                        					# Size of domain in x-direction [m]
    L_y: 1.0                          					# Size of domain in y-direction [m]
    L_z: 0.01                         					# Size of domain in z-direction [m]
-   final_time: 100.0                        				# Final time [s]
+   final_time: 50.0                        				# Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####
@@ -53,7 +53,7 @@ computational_parameters:
    A_y: 0.0             					        # Stretching factor in y-direction
    A_z: 0.0                       					# Stretching factor in z-direction
    CFL: 0.3                  					        # CFL coefficient
-   final_time_iter: 1000000       					# Final time iteration
+   final_time_iter: 10000000       					# Final time iteration
 
 
 ##### BOUNDARY CONDITIONS #####
@@ -74,7 +74,7 @@ boundary_conditions:
 print_write_read_parameters:
    print_frequency_iter: 1000 	             				# Print information iteration frequency
    output_data_file_name: '2d_lid_driven_cavity'  			# Name of output data file
-   output_frequency_iter: 1000000 	     				# Data output iteration frequency
+   output_frequency_iter: 10000000 	     				# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
    time_averaging_active: 'FALSE'          				# Activate time averaging
