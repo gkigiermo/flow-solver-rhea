@@ -9,7 +9,7 @@ using namespace std;
 const double gamma_0    = 1.4;					/// Reference ratio of heat capacities
 //const double R_specific = 1.0;					/// Specific gas constant
 //const double Re         = pi;					/// Reynolds number
-const double Ma         = 1.0e-2/sqrt( gamma_0 );		/// Mach number
+const double Ma         = 1.0e-1/sqrt( gamma_0 );		/// Mach number
 const double rho_0      = 1.0;					/// Reference density	
 const double U_0        = 1.0;					/// Reference velocity
 //const double mu_0       = rho_0*U_0*pi/Re;			/// Dynamic viscosity	

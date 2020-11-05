@@ -13,8 +13,9 @@ rc('font', family='sanserif')
 plt.rc( 'font', size = 20 )
 plt.rcParams['text.latex.preamble'] = [ r'\usepackage{amsmath}', r'\usepackage{amssymb}', r'\usepackage{color}' ]
 
+
 ### Open data file
-data_file = h5py.File( '2d_lid_driven_cavity_300000.h5', 'r' )
+data_file = h5py.File( '2d_lid_driven_cavity_36000.h5', 'r' )
 #list( data_file.keys() )
 x_data     = data_file['x'][0,:,:];     x_data     = np.asarray( x_data.flatten() )
 y_data     = data_file['y'][0,:,:];     y_data     = np.asarray( y_data.flatten() )
@@ -33,15 +34,15 @@ ke_data    = 0.5*( u_data*u_data + v_data*v_data + w_data*w_data )
 e_data     = E_data - ke_data
 
 
-### Open reference solution files
-y_ghia, u_ghia = np.loadtxt( 'ghia_u_velocity_solution.csv', delimiter=',', unpack = 'True' )
-x_ghia, v_ghia = np.loadtxt( 'ghia_v_velocity_solution.csv', delimiter=',', unpack = 'True' )
-
-
 ### Reference parameters
 L       = 1.0							# Size of cavity [m]
 U_lid   = 1.0   						# Lid velocity [m/s]
 epsilon = 0.5*L/( int( np.sqrt( len( y_data ) ) - 2.0 ) )	# Geometric epsilon based on grid resolution
+
+
+### Open reference solution files
+y_ghia, u_ghia = np.loadtxt( 'ghia_u_velocity_solution.csv', delimiter=',', unpack = 'True' )
+x_ghia, v_ghia = np.loadtxt( 'ghia_v_velocity_solution.csv', delimiter=',', unpack = 'True' )
 
 
 ### Plot u-velocity vs. y-direction (vertical line through geometric center of cavity)
@@ -52,7 +53,7 @@ u_center_data = np.zeros( int( np.sqrt( len( u_data ) ) ) )
 counter = 0
 y_old = -1.0
 for p in range( 0, len( x_data ) ):
-    if( np.abs( x_data[p] - ( 0.5*L - 1.0e-1*epsilon ) ) < epsilon ):
+    if( np.abs( x_data[p] - ( 0.5*L - epsilon ) ) < epsilon ):
         if( y_data[p] > y_old ):
             #print( x_data[p], y_data[p] )
             y_center_data[counter] = y_data[p]
@@ -91,7 +92,7 @@ v_center_data = np.zeros( int( np.sqrt( len( v_data ) ) ) )
 counter = 0
 x_old = -1.0
 for p in range( 0, len( y_data ) ):
-    if( np.abs( y_data[p] - ( 0.5*L - 1.0e-1*epsilon ) ) < epsilon ):
+    if( np.abs( y_data[p] - ( 0.5*L - epsilon ) ) < epsilon ):
         if( x_data[p] > x_old ):
             #print( x_data[p], y_data[p] )
             x_center_data[counter] = x_data[p]
