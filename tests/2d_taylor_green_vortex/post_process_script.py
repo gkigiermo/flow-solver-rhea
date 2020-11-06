@@ -12,7 +12,7 @@ rho_0   = 1.0				                # Reference density [kg/m3]
 U_0     = 1.0				                # Reference velocity [m/s]
 nu      = 1.0				                # Kinematic viscosity [m2/s]
 gamma_0 = 1.4				                # Ratio of heat capacities [-]
-Ma      = 1.0/np.sqrt( gamma_0 )	                # Mach number [-]
+Ma      = 1.0e-2/np.sqrt( gamma_0 )	                # Mach number [-]
 P_0     = rho_0*U_0*U_0/( gamma_0*Ma*Ma )               # Reference pressure [Pa]
 time    = ( 1.0/( 2.0*nu ) )                  		# Final time [s]
 

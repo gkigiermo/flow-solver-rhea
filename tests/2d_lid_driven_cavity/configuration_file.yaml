@@ -1,6 +1,6 @@
 # RHEA's CONFIGURATION FILE (YAML LANGUAGE)
 #
-# 2D Lid-driven cavity problem (Re = 100, Ma = 1/sqrt(gamma), Pr = 0.71):
+# 2D Lid-driven cavity problem (Re = 100, Ma = 0.1/sqrt(gamma), Pr = 0.71):
 # U. Ghia, K. N. Ghia, C. T. Shin.
 # High-Re solutions for incompressible flow using the Navier-Stokes equations and a multi-grid method.
 # Journal of Computational Physics, 48, 387-411, 1982.
@@ -39,14 +39,14 @@ problem_parameters:
    L_x: 1.0                        					# Size of domain in x-direction [m]
    L_y: 1.0                          					# Size of domain in y-direction [m]
    L_z: 0.01                         					# Size of domain in z-direction [m]
-   final_time: 50.0                        				# Final time [s]
+   final_time: 10.0                        				# Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####
 computational_parameters:
-   num_grid_x: 128                     					# Number of internal grid points in the x-direction
-   num_grid_y: 128                     					# Number of internal grid points in the y-direction
-   num_grid_z: 2                     					# Number of internal grid points in the z-direction
+   num_grid_x: 64                     					# Number of internal grid points in the x-direction
+   num_grid_y: 64                     					# Number of internal grid points in the y-direction
+   num_grid_z: 1                     					# Number of internal grid points in the z-direction
    # Stretching factors: x = x_0 + L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
    # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
    A_x: 0.0                 					        # Stretching factor in x-direction
@@ -59,13 +59,13 @@ computational_parameters:
 ##### BOUNDARY CONDITIONS #####
 boundary_conditions:
    # For each boundary [west (x), east (x), south (y), north (y), back (z), front (z)], type and u, v, w, P and T values/derivatives are needed
-   # Boundary types: DIRICHLET (provide value ... P < 0 and T < 0 for impermeable boundary),
+   # Boundary types: DIRICHLET (provide value ... P < 0 and/or T < 0 for impermeable boundary),
    #                 NEUMANN (provide derivative),
    #                 PERIODIC (no value/derivative needed)
-   west_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, -1.0]			# West boundary condition
-   east_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, -1.0]			# East boundary condition
-   south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, -1.0]			# South boundary condition
-   north_bc: ['DIRICHLET', 1.0, 0.0, 0.0, -1.0, -1.0]			# North boundary condition
+   west_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 0.34836]			# West boundary condition
+   east_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 0.34836]			# East boundary condition
+   south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 0.34836]		# South boundary condition
+   north_bc: ['DIRICHLET', 1.0, 0.0, 0.0, -1.0, 0.34836]		# North boundary condition
    back_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Back boundary condition
    front_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Front boundary condition
 

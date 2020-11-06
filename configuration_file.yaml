@@ -1,6 +1,6 @@
 # RHEA's CONFIGURATION FILE (YAML LANGUAGE)
 #
-# 2D Viscous Taylor-Green vortex problem (Re = pi, Ma = 1/sqrt(gamma)):
+# 2D Viscous Taylor-Green vortex problem (Re = pi, Ma = 0.01/sqrt(gamma)):
 # G. I. Taylor, A. E. Green.
 # Mechanism of the production of small eddies from large ones.
 # Proceedings of the Royal Society of London A, 158, 499-521, 1937.
@@ -59,7 +59,7 @@ computational_parameters:
 ##### BOUNDARY CONDITIONS #####
 boundary_conditions:
    # For each boundary [west (x), east (x), south (y), north (y), back (z), front (z)], type and u, v, w, P and T values/derivatives are needed
-   # Boundary types: DIRICHLET (provide value ... P < 0 and T < 0 for impermeable boundary),
+   # Boundary types: DIRICHLET (provide value ... P < 0 and/or T < 0 for impermeable boundary),
    #                 NEUMANN (provide derivative),
    #                 PERIODIC (no value/derivative needed)
    west_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]	                # West boundary condition
