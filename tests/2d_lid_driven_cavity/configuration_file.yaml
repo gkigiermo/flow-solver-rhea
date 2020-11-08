@@ -39,7 +39,7 @@ problem_parameters:
    L_x: 1.0                        					# Size of domain in x-direction [m]
    L_y: 1.0                          					# Size of domain in y-direction [m]
    L_z: 0.01                         					# Size of domain in z-direction [m]
-   final_time: 100.0                        				# Final time [s]
+   final_time: 10.0                        				# Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####

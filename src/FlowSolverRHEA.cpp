@@ -429,7 +429,7 @@ void FlowSolverRHEA::initializeFromRestart() {
 
     /// Read from file to restart solver: data, time and time iteration
     char char_restart_data_file[ restart_data_file.length() + 1 ]; 
-    strcpy( char_restart_data_file,restart_data_file.c_str() );
+    strcpy( char_restart_data_file, restart_data_file.c_str() );
     writer_reader->read( char_restart_data_file );
     current_time      = writer_reader->getAttributeDouble( "Time" );
     current_time_iter = writer_reader->getAttributeInt( "Iteration" );
