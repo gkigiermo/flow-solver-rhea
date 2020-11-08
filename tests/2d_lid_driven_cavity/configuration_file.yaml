@@ -6,8 +6,8 @@
 # Journal of Computational Physics, 48, 387-411, 1982.
 ---
 
-##### FLUID PROPERTIES #####
-fluid_properties:
+##### FLUID & FLOW PROPERTIES #####
+fluid_flow_properties:
    # Thermodynamic models: IDEAL_GAS (provide R_specific, gamma), STIFFENED_GAS (provide R_specific, gamma, P_inf, e_0, c_v),
    # PENG_ROBINSON (provide R_specific, molecular_weight, acentric_factor, critical temperature, critical pressure, critical molar volume, NASA 7-coefficient polynomial)
    thermodynamic_model: 'IDEAL_GAS'			  		# Thermodynamic model
@@ -46,7 +46,7 @@ problem_parameters:
 computational_parameters:
    num_grid_x: 64                     					# Number of internal grid points in the x-direction
    num_grid_y: 64                     					# Number of internal grid points in the y-direction
-   num_grid_z: 1                     					# Number of internal grid points in the z-direction
+   num_grid_z: 2                     					# Number of internal grid points in the z-direction
    # Stretching factors: x = x_0 + L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
    # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
    A_x: 0.0                 					        # Stretching factor in x-direction
@@ -64,8 +64,8 @@ boundary_conditions:
    #                 PERIODIC (no value/derivative needed)
    west_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 0.34836]			# West boundary condition
    east_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 0.34836]			# East boundary condition
-   south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 0.34836]		# South boundary condition
-   north_bc: ['DIRICHLET', 1.0, 0.0, 0.0, -1.0, 0.34836]		# North boundary condition
+   south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 0.34836] 		# South boundary condition
+   north_bc: ['DIRICHLET', 1.0, 0.0, 0.0, -1.0, 0.34836]        	# North boundary condition
    back_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Back boundary condition
    front_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Front boundary condition
 
@@ -77,9 +77,9 @@ print_write_read_parameters:
    output_frequency_iter: 10000000 	     				# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
+   restart_data_file: 'restart_data_file.h5' 				# Restart data file
    time_averaging_active: 'FALSE'          				# Activate time averaging
    reset_time_averaging: 'FALSE'          				# Reset time averaging
-   restart_data_file: 'restart_data_file.h5' 				# Restart data file
 
 
 ##### TIMERS INFORMATION #####

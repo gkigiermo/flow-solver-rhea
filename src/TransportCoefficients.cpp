@@ -32,10 +32,10 @@ void ConstantTransportCoefficients::readConfigurationFile() {
     /// Create YAML object
     YAML::Node configuration = YAML::LoadFile(configuration_file);
 
-    /// Fluid properties
-    const YAML::Node & fluid_properties = configuration["fluid_properties"];
-    mu    = fluid_properties["mu"].as<double>();
-    kappa = fluid_properties["kappa"].as<double>();
+    /// Fluid & flow properties
+    const YAML::Node & fluid_flow_properties = configuration["fluid_flow_properties"];
+    mu    = fluid_flow_properties["mu"].as<double>();
+    kappa = fluid_flow_properties["kappa"].as<double>();
 
 };
         
@@ -113,29 +113,29 @@ void HighPressureTransportCoefficients::readConfigurationFile() {
     /// Create YAML object
     YAML::Node configuration = YAML::LoadFile(configuration_file);
 
-    /// Fluid properties
-    const YAML::Node & fluid_properties = configuration["fluid_properties"];
-    molecular_weight      = fluid_properties["molecular_weight"].as<double>();
-    critical_temperature  = fluid_properties["critical_temperature"].as<double>();
-    critical_molar_volume = fluid_properties["critical_molar_volume"].as<double>();
-    acentric_factor       = fluid_properties["acentric_factor"].as<double>();
-    dipole_moment         = fluid_properties["dipole_moment"].as<double>();
-    association_factor    = fluid_properties["association_factor"].as<double>();
-    NASA_coefficients[0]  = fluid_properties["NASA_coefficients"][0].as<double>();
-    NASA_coefficients[1]  = fluid_properties["NASA_coefficients"][1].as<double>();
-    NASA_coefficients[2]  = fluid_properties["NASA_coefficients"][2].as<double>();
-    NASA_coefficients[3]  = fluid_properties["NASA_coefficients"][3].as<double>();
-    NASA_coefficients[4]  = fluid_properties["NASA_coefficients"][4].as<double>();
-    NASA_coefficients[5]  = fluid_properties["NASA_coefficients"][5].as<double>();
-    NASA_coefficients[6]  = fluid_properties["NASA_coefficients"][6].as<double>();
-    NASA_coefficients[7]  = fluid_properties["NASA_coefficients"][7].as<double>();
-    NASA_coefficients[8]  = fluid_properties["NASA_coefficients"][8].as<double>();
-    NASA_coefficients[9]  = fluid_properties["NASA_coefficients"][9].as<double>();
-    NASA_coefficients[10] = fluid_properties["NASA_coefficients"][10].as<double>();
-    NASA_coefficients[11] = fluid_properties["NASA_coefficients"][11].as<double>();
-    NASA_coefficients[12] = fluid_properties["NASA_coefficients"][12].as<double>();
-    NASA_coefficients[13] = fluid_properties["NASA_coefficients"][13].as<double>();
-    NASA_coefficients[14] = fluid_properties["NASA_coefficients"][14].as<double>();
+    /// Fluid & flow properties
+    const YAML::Node & fluid_flow_properties = configuration["fluid_flow_properties"];
+    molecular_weight      = fluid_flow_properties["molecular_weight"].as<double>();
+    critical_temperature  = fluid_flow_properties["critical_temperature"].as<double>();
+    critical_molar_volume = fluid_flow_properties["critical_molar_volume"].as<double>();
+    acentric_factor       = fluid_flow_properties["acentric_factor"].as<double>();
+    dipole_moment         = fluid_flow_properties["dipole_moment"].as<double>();
+    association_factor    = fluid_flow_properties["association_factor"].as<double>();
+    NASA_coefficients[0]  = fluid_flow_properties["NASA_coefficients"][0].as<double>();
+    NASA_coefficients[1]  = fluid_flow_properties["NASA_coefficients"][1].as<double>();
+    NASA_coefficients[2]  = fluid_flow_properties["NASA_coefficients"][2].as<double>();
+    NASA_coefficients[3]  = fluid_flow_properties["NASA_coefficients"][3].as<double>();
+    NASA_coefficients[4]  = fluid_flow_properties["NASA_coefficients"][4].as<double>();
+    NASA_coefficients[5]  = fluid_flow_properties["NASA_coefficients"][5].as<double>();
+    NASA_coefficients[6]  = fluid_flow_properties["NASA_coefficients"][6].as<double>();
+    NASA_coefficients[7]  = fluid_flow_properties["NASA_coefficients"][7].as<double>();
+    NASA_coefficients[8]  = fluid_flow_properties["NASA_coefficients"][8].as<double>();
+    NASA_coefficients[9]  = fluid_flow_properties["NASA_coefficients"][9].as<double>();
+    NASA_coefficients[10] = fluid_flow_properties["NASA_coefficients"][10].as<double>();
+    NASA_coefficients[11] = fluid_flow_properties["NASA_coefficients"][11].as<double>();
+    NASA_coefficients[12] = fluid_flow_properties["NASA_coefficients"][12].as<double>();
+    NASA_coefficients[13] = fluid_flow_properties["NASA_coefficients"][13].as<double>();
+    NASA_coefficients[14] = fluid_flow_properties["NASA_coefficients"][14].as<double>();
 
 };
         

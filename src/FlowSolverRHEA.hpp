@@ -142,7 +142,7 @@ class FlowSolverRHEA {
 
         ////////// SOLVER PARAMETERS //////////
 	
-        /// Fluid properties 
+        /// Fluid & flow properties 
         string thermodynamic_model;				/// Thermodynamic model
         string transport_coefficients_model;			/// Transport coefficients model
 
@@ -190,9 +190,9 @@ class FlowSolverRHEA {
         int output_frequency_iter;				/// Data output iteration frequency
         bool generate_xdmf;					/// Generate xdmf file reader
         bool use_restart;					/// Use restart file for initialization
+        string restart_data_file;				/// Restart data file
         bool time_averaging_active;				/// Activate time averaging
         bool reset_time_averaging;				/// Reset time averaging
-        string restart_data_file;				/// Restart data file
 
         /// Timers information
         bool print_timers;					/// Print timers information

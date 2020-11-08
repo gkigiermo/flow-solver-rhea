@@ -5,6 +5,7 @@ using namespace std;
 
 ////////// COMPILATION DIRECTIVES //////////
 #define _PRESSURE_BASED_WAVE_SPEED_ESTIMATES_ 0		/// Select approach for estimating wave speeds
+#define _ALL_SPEED_HLLC_TYPE_SCHEME_ 1			/// Select approach for HLLC-type scheme
 
 ////////// FIXED PARAMETERS //////////
 const double epsilon     = 1.0e-15;			/// Small epsilon number (fixed)
@@ -224,9 +225,9 @@ void FlowSolverRHEA::readConfigurationFile() {
     YAML::Node configuration = YAML::LoadFile(configuration_file);
 
     /// Fluid properties
-    const YAML::Node & fluid_properties = configuration["fluid_properties"];
-    thermodynamic_model          = fluid_properties["thermodynamic_model"].as<string>();
-    transport_coefficients_model = fluid_properties["transport_coefficients_model"].as<string>();
+    const YAML::Node & fluid_flow_properties = configuration["fluid_flow_properties"];
+    thermodynamic_model          = fluid_flow_properties["thermodynamic_model"].as<string>();
+    transport_coefficients_model = fluid_flow_properties["transport_coefficients_model"].as<string>();
 
     /// Problem parameters
     const YAML::Node & problem_parameters = configuration["problem_parameters"];
@@ -362,9 +363,9 @@ void FlowSolverRHEA::readConfigurationFile() {
     output_frequency_iter = print_write_read_parameters["output_frequency_iter"].as<int>();
     generate_xdmf         = print_write_read_parameters["generate_xdmf"].as<bool>();
     use_restart           = print_write_read_parameters["use_restart"].as<bool>();
+    restart_data_file     = print_write_read_parameters["restart_data_file"].as<string>();
     time_averaging_active = print_write_read_parameters["time_averaging_active"].as<bool>();
     reset_time_averaging  = print_write_read_parameters["reset_time_averaging"].as<bool>();
-    restart_data_file     = print_write_read_parameters["restart_data_file"].as<string>();
 
     /// Timers information
     const YAML::Node & timers_information = configuration["timers_information"];
@@ -950,12 +951,15 @@ void FlowSolverRHEA::calculateTimeStep() {
     double local_delta_t = numeric_limits<double>::max();
 
     /// Inner points: find minimum (local) delta_t
-    double c_v, c_p, Pr;
+    double sos, c_v, c_p, Pr;
     double delta_x, delta_y, delta_z;
     double S_x, S_y, S_z;
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                /// Speed of sound
+		sos = sos_field[I1D(i,j,k)];
+                /// Heat capacities
                 thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
                 /// Prandtl (Pr) number
                 Pr = c_p/c_v;
@@ -965,15 +969,15 @@ void FlowSolverRHEA::calculateTimeStep() {
                 delta_y = 0.5*( mesh->y[j+1] - mesh->y[j-1] ); 
                 delta_z = 0.5*( mesh->z[k+1] - mesh->z[k-1] );                
                 /// x-direction inviscid & viscous terms
-                S_x           = abs( u_field[I1D(i,j,k)] ) + sos_field[I1D(i,j,k)];
+                S_x           = abs( u_field[I1D(i,j,k)] ) + sos;
                 local_delta_t = min( local_delta_t, CFL*delta_x/S_x );
                 local_delta_t = min( local_delta_t, CFL*Pr*rho_field[I1D(i,j,k)]*pow( delta_x, 2.0 )/( mu_field[I1D(i,j,k)]*( c_p/c_v ) + epsilon ) );
                 /// y-direction inviscid & viscous terms
-                S_y           = abs( v_field[I1D(i,j,k)] ) + sos_field[I1D(i,j,k)];
+                S_y           = abs( v_field[I1D(i,j,k)] ) + sos;
                 local_delta_t = min( local_delta_t, CFL*delta_y/S_y );
                 local_delta_t = min( local_delta_t, CFL*Pr*rho_field[I1D(i,j,k)]*pow( delta_y, 2.0 )/( mu_field[I1D(i,j,k)]*( c_p/c_v ) + epsilon ) );
                 /// z-direction inviscid & viscous terms
-                S_z           = abs( w_field[I1D(i,j,k)] ) + sos_field[I1D(i,j,k)];
+                S_z           = abs( w_field[I1D(i,j,k)] ) + sos;
                 local_delta_t = min( local_delta_t, CFL*delta_z/S_z );
                 local_delta_t = min( local_delta_t, CFL*Pr*rho_field[I1D(i,j,k)]*pow( delta_z, 2.0 )/( mu_field[I1D(i,j,k)]*( c_p/c_v ) + epsilon ) );
             }
@@ -1066,6 +1070,65 @@ void FlowSolverRHEA::calculateWavesSpeed(double &S_L, double &S_R, const double 
 
 double FlowSolverRHEA::calculateHllcFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
+#if _ALL_SPEED_HLLC_TYPE_SCHEME_
+    /// HLLC-type Riemann solver for all-speed flows:
+    /// S. Chen, B. Lin, Y. Li, C. Yan.
+    /// HLLC+: low-Mach shock-stable HLLC-type Riemann solver for all-speed flows.
+    /// SIAM Journal of Scientific Computing, 4, B921-B950, 2020.
+
+    double S_L, S_R;
+    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
+    double phi_L = rho_L*( S_L - u_L );
+    double phi_R = rho_R*( S_R - u_R );
+    double S_star   = ( P_R - P_L + phi_L*u_L - phi_R*u_R )/( phi_L - phi_R );
+    double U_star_L = rho_L*( ( S_L - u_L )/( S_L - S_star ) );
+    double U_star_R = rho_R*( ( S_R - u_R )/( S_R - S_star ) );
+    double M        = min( 1.0, max( ( 1.0/a_L )*sqrt( u_L*u_L + v_L*v_L + w_L*w_L ), ( 1.0/a_R )*sqrt( u_R*u_R + v_R*v_R + w_R*w_R ) ) );
+    double f_M      = M*sqrt( 4.0 + pow( 1.0 - M*M, 2.0 ) )/( 1.0 + M*M );
+    double A_p_L    = ( phi_L*phi_R )/( phi_R - phi_L );
+    double A_p_R    = ( phi_L*phi_R )/( phi_R - phi_L );
+    if(var_type == 0) {
+        U_star_L *= 1.0;
+        U_star_R *= 1.0;       
+        A_p_L    *= 0.0;
+        A_p_R    *= 0.0;
+    } else if(var_type == 1) {
+        U_star_L *= S_star;
+        U_star_R *= S_star;
+        A_p_L    *= ( f_M - 1.0 )*( u_R - u_L );
+        A_p_R    *= ( f_M - 1.0 )*( u_R - u_L );
+    } else if(var_type == 2) {
+        U_star_L *= v_L;
+        U_star_R *= v_R;
+        A_p_L    *= 0.0;
+        A_p_R    *= 0.0;
+    } else if(var_type == 3) {
+        U_star_L *= w_L;
+        U_star_R *= w_R;
+        A_p_L    *= 0.0;
+        A_p_R    *= 0.0;
+    } else if(var_type == 4) {
+        U_star_L *= ( E_L + ( S_star - u_L )*( S_star + P_L/( rho_L*( S_L - u_L ) ) ) );
+        U_star_R *= ( E_R + ( S_star - u_R )*( S_star + P_R/( rho_R*( S_R - u_R ) ) ) );
+        A_p_L    *= ( f_M - 1.0 )*( u_R - u_L )*S_star;
+        A_p_R    *= ( f_M - 1.0 )*( u_R - u_L )*S_star;
+    }
+
+    double F_star_L = F_L + S_L*( U_star_L - U_L ) + A_p_L;
+    double F_star_R = F_R + S_R*( U_star_R - U_R ) + A_p_R;
+    double F = 0.0;
+    if(0.0 <= S_L) {
+        F = F_L;
+    } else if(( S_L <= 0.0 ) && ( 0.0 <= S_star )) {
+        F = F_star_L;
+    } else if(( S_star <= 0.0 ) && ( 0.0 <= S_R )) {
+        F = F_star_R;
+    } else if(0.0 >= S_R) {
+        F = F_R;
+    }
+
+    return( F );
+#else
     /// Harten-Lax-van Leer-Contact (HLLC) Riemman solver:
     /// E. F. Toro, M. Spruce, W. Speares.
     /// Restoration of the contact surface in the HLL-Riemann solver.
@@ -1092,6 +1155,7 @@ double FlowSolverRHEA::calculateHllcFlux(const double &F_L, const double &F_R, c
         U_star_L *= ( E_L + ( S_star - u_L )*( S_star + P_L/( rho_L*( S_L - u_L ) ) ) );
         U_star_R *= ( E_R + ( S_star - u_R )*( S_star + P_R/( rho_R*( S_R - u_R ) ) ) );
     }
+
     double F_star_L = F_L + S_L*( U_star_L - U_L );
     double F_star_R = F_R + S_R*( U_star_R - U_R );
     double F = 0.0;
@@ -1106,6 +1170,7 @@ double FlowSolverRHEA::calculateHllcFlux(const double &F_L, const double &F_R, c
     }
 
     return( F );
+#endif
 
 };
 
