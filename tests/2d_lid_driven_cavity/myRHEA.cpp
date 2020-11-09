@@ -7,7 +7,7 @@ using namespace std;
 const double gamma_0    = 1.4;					/// Heat capacity ratio
 //const double c_p        = gamma_0*R_specific/( gamma_0 - 1.0 );	/// Isobaric heat capacity
 //const double Re         = 100.0;				/// Reynolds number
-const double Ma         = 1.0e-1/sqrt( gamma_0 );		/// Mach number
+const double Ma         = 1.0e-2/sqrt( gamma_0 );		/// Mach number
 //const double Pr         = 0.71;					/// Prandtl number
 const double rho_0      = 1.0;					/// Reference density	
 //const double L          = 1.0;					/// Cavity size
