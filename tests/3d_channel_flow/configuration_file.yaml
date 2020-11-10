@@ -64,8 +64,8 @@ boundary_conditions:
    #                 PERIODIC (no value/derivative needed)
    west_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# West boundary condition
    east_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# East boundary condition
-   south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 34.836] 	       	# South boundary condition
-   north_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 34.836]    		# North boundary condition
+   south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 0.34836] 	       	# South boundary condition
+   north_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 0.34836]    		# North boundary condition
    back_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Back boundary condition
    front_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Front boundary condition
 
