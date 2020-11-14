@@ -9,7 +9,7 @@ using namespace std;
 const double gamma_0    = 1.4;					/// Reference ratio of heat capacities
 //const double R_specific = 1.0;					/// Specific gas constant
 //const double Re         = pi;					/// Reynolds number
-const double Ma         = 1.0e-2/sqrt( gamma_0 );		/// Mach number
+const double Ma         = 1.0e-1/sqrt( gamma_0 );		/// Mach number
 const double rho_0      = 1.0;					/// Reference density	
 const double U_0        = 1.0;					/// Reference velocity
 //const double mu_0       = rho_0*U_0*pi/Re;			/// Dynamic viscosity	
@@ -66,6 +66,32 @@ void myRHEA::calculateSourceTerms() {
     //f_rhov_field.update();
     //f_rhow_field.update();
     //f_rhoE_field.update();
+
+};
+
+void myRHEA::calculateInviscidFluxes() {
+
+    /// IMPORTANT: This method has been modified/overwritten according to the problem under consideration
+
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                /// Fluxes set to zero
+                rho_inv_flux[I1D(i,j,k)]  = 0.0;
+                rhou_inv_flux[I1D(i,j,k)] = 0.0;
+                rhov_inv_flux[I1D(i,j,k)] = 0.0;
+                rhow_inv_flux[I1D(i,j,k)] = 0.0;
+                rhoE_inv_flux[I1D(i,j,k)] = 0.0;
+            }
+        }
+    }
+
+    /// Update halo values
+    //rho_inv_flux.update();
+    //rhou_inv_flux.update();
+    //rhov_inv_flux.update();
+    //rhow_inv_flux.update();
+    //rhoE_inv_flux.update();
 
 };
 

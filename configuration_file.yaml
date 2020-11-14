@@ -1,9 +1,9 @@
 # RHEA's CONFIGURATION FILE (YAML LANGUAGE)
 #
-# 2D Viscous Taylor-Green vortex problem (Re = pi, Ma = 0.01/sqrt(gamma)):
-# G. I. Taylor, A. E. Green.
-# Mechanism of the production of small eddies from large ones.
-# Proceedings of the Royal Society of London A, 158, 499-521, 1937.
+# 2D Riemann initial value problem (configuration 3):
+# C.-W. Schulz-Rinne.
+# Classification of the Riemann problem for two-dimensional gas dynamics.
+# SIAM Journal on Mathematical Analysis, 24, 76-88, 1993.
 ---
 
 ##### FLUID & FLOW PROPERTIES #####
@@ -12,7 +12,7 @@ fluid_flow_properties:
    # PENG_ROBINSON (provide R_specific, molecular_weight, acentric_factor, critical temperature, critical pressure, critical molar volume, NASA 7-coefficient polynomial)
    thermodynamic_model: 'IDEAL_GAS'			  		# Thermodynamic model
    R_specific: 287.058                 					# Specific gas constant [J/(kg·K)]
-   gamma: 1.4                          					# Heat capacity ratio (iedal-gas) [-]
+   gamma: 1.4                          					# Heat capacity ratio (ideal-gas) [-]
    P_inf: 0.0                         					# Pressure infinity (liquid stiffness) [Pa]
    e_0: 0.0                         					# Internal energy zero point [J/kg]
    c_v: 0.0                         					# Specific isochoric heat capacity [J/(kg·K)]
@@ -25,7 +25,7 @@ fluid_flow_properties:
    # Transport coefficients models: CONSTANT (provide mu, kappa),
    # HIGH_PRESSURE (provide molecular weight, critical temperature, critical molar volume, acentric factor, dipole moment, association factor, NASA 7-coefficient polynomial)
    transport_coefficients_model: 'CONSTANT'		  		# Transport coefficients model
-   mu: 1.0                           					# Dynamic viscosity [Pa·s]
+   mu: 0.0                          					# Dynamic viscosity [Pa·s]
    kappa: 0.0                          					# Thermal conductivity [W/(m·k)]
    dipole_moment: 0.0               					# Dipole moment [D]
    association_factor: 0.0             					# Association factor [-]
@@ -33,27 +33,27 @@ fluid_flow_properties:
 
 ##### PROBLEM PARAMETERS #####
 problem_parameters:
-   x_0: 0.0                       					# Domain origin in x-direction [m]
+   x_0: 0.0                            					# Domain origin in x-direction [m]
    y_0: 0.0                            					# Domain origin in y-direction [m]
    z_0: 0.0                           					# Domain origin in z-direction [m]
-   L_x: 6.283185307                    					# Size of domain in x-direction [m]
-   L_y: 6.283185307                    					# Size of domain in y-direction [m]
-   L_z: 0.1                         					# Size of domain in z-direction [m]
-   final_time: 0.5                  					# Final time [s]
+   L_x: 1.0                      					# Size of domain in x-direction [m]
+   L_y: 1.0                           					# Size of domain in y-direction [m]
+   L_z: 0.01                    					# Size of domain in z-direction [m]
+   final_time: 0.8                   					# Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####
 computational_parameters:
-   num_grid_x: 16                     					# Number of internal grid points in the x-direction
-   num_grid_y: 16                     					# Number of internal grid points in the y-direction
+   num_grid_x: 200                     					# Number of internal grid points in the x-direction
+   num_grid_y: 200                     					# Number of internal grid points in the y-direction
    num_grid_z: 2                     					# Number of internal grid points in the z-direction
    # Stretching factors: x = x_0 + L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
    # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
    A_x: 0.0                 					        # Stretching factor in x-direction
-   A_y: 0.0             					        # Stretching factor in y-direction
+   A_y: 0.0              					        # Stretching factor in y-direction
    A_z: 0.0                       					# Stretching factor in z-direction
    CFL: 0.9                  					        # CFL coefficient
-   final_time_iter: 100000            					# Final time iteration
+   final_time_iter: 1000            					# Final time iteration
 
 
 ##### BOUNDARY CONDITIONS #####
@@ -62,10 +62,10 @@ boundary_conditions:
    # Boundary types: DIRICHLET (provide value ... P < 0 and/or T < 0 for impermeable boundary),
    #                 NEUMANN (provide derivative),
    #                 PERIODIC (no value/derivative needed)
-   west_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]	                # West boundary condition
-   east_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]	                # East boundary condition
-   south_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]                      # South boundary condition
-   north_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]                    	# North boundary condition
+   west_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]			# West boundary condition
+   east_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]			# East boundary condition
+   south_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]       	        # South boundary condition
+   north_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]               	# North boundary condition
    back_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Back boundary condition
    front_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# Front boundary condition
 
@@ -73,11 +73,11 @@ boundary_conditions:
 ##### PRINT/WRITE/READ PARAMETERS #####
 print_write_read_parameters:
    print_frequency_iter: 1 	             				# Print information iteration frequency
-   output_data_file_name: '2d_taylor_green_vortex'			# Name of output data file
-   output_frequency_iter: 100000       					# Data output iteration frequency
+   output_data_file_name: '2d_riemann_problem'				# Name of output data file
+   output_frequency_iter: 1000         					# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
-   restart_data_file: 'restart_data_file.h5' 				# Restart data file
+   restart_data_file: 'restart_data_file.h5'				# Restart data file
    time_averaging_active: 'FALSE'          				# Activate time averaging
    reset_time_averaging: 'FALSE'          				# Reset time averaging
 

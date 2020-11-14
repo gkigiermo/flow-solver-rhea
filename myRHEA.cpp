@@ -2,20 +2,6 @@
 
 using namespace std;
 
-/// pi number
-//const double pi = 2.0*asin( 1.0 );
-
-/// PROBLEM PARAMETERS ///
-const double gamma_0    = 1.4;					/// Reference ratio of heat capacities
-//const double R_specific = 1.0;					/// Specific gas constant
-//const double Re         = pi;					/// Reynolds number
-const double Ma         = 1.0e-2/sqrt( gamma_0 );		/// Mach number
-const double rho_0      = 1.0;					/// Reference density	
-const double U_0        = 1.0;					/// Reference velocity
-//const double mu_0       = rho_0*U_0*pi/Re;			/// Dynamic viscosity	
-const double P_0        = rho_0*U_0*U_0/( gamma_0*Ma*Ma );	/// Reference pressure
-//const double L          = 2.0*pi;				/// Domain size			
-
 
 ////////// myRHEA CLASS //////////
 
@@ -27,11 +13,35 @@ void myRHEA::setInitialConditions() {
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                u_field[I1D(i,j,k)] = U_0*sin( mesh->x[i] )*cos( mesh->y[j] );
-                v_field[I1D(i,j,k)] = ( -1.0 )*U_0*cos( mesh->x[i] )*sin( mesh->y[j] );
-                w_field[I1D(i,j,k)] = 0.0;
-                P_field[I1D(i,j,k)] = P_0 - ( rho_0*U_0*U_0/4.0 )*( cos( 2.0*mesh->x[i] ) + cos( 2.0*mesh->y[j] ) );
-                T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_0*thermodynamics->getSpecificGasConstant() );
+		if( mesh->x[i] > 0.8 ) {
+                    if( mesh->y[j] < 0.8 ) {
+                        u_field[I1D(i,j,k)] = 0.0;
+                        v_field[I1D(i,j,k)] = 1.206;
+                        w_field[I1D(i,j,k)] = 0.0;
+                        P_field[I1D(i,j,k)] = 0.3;
+                        T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 0.5323*thermodynamics->getSpecificGasConstant() );
+		    } else {
+                        u_field[I1D(i,j,k)] = 0.0;
+                        v_field[I1D(i,j,k)] = 0.0;
+                        w_field[I1D(i,j,k)] = 0.0;
+                        P_field[I1D(i,j,k)] = 1.5;
+                        T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 1.5*thermodynamics->getSpecificGasConstant() );
+		    }
+		} else {
+                    if( mesh->y[j] < 0.8 ) {
+                        u_field[I1D(i,j,k)] = 1.206;
+                        v_field[I1D(i,j,k)] = 1.206;
+                        w_field[I1D(i,j,k)] = 0.0;
+                        P_field[I1D(i,j,k)] = 0.029;
+                        T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 0.138*thermodynamics->getSpecificGasConstant() );
+		    } else {
+                        u_field[I1D(i,j,k)] = 1.206;
+                        v_field[I1D(i,j,k)] = 0.0;
+                        w_field[I1D(i,j,k)] = 0.0;
+                        P_field[I1D(i,j,k)] = 0.3;
+                        T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 0.5323*thermodynamics->getSpecificGasConstant() );
+		    }
+		}		
             }
         }
     }

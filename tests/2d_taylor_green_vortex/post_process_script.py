@@ -8,17 +8,18 @@ import h5py
 
 
 ### Set fixed parameters
+L       = 1.0				                # Reference length [m]	
 rho_0   = 1.0				                # Reference density [kg/m3]	
 U_0     = 1.0				                # Reference velocity [m/s]
 nu      = 1.0				                # Kinematic viscosity [m2/s]
 gamma_0 = 1.4				                # Ratio of heat capacities [-]
-Ma      = 1.0e-2/np.sqrt( gamma_0 )	                # Mach number [-]
+Ma      = 1.0e-1/np.sqrt( gamma_0 )	                # Mach number [-]
 P_0     = rho_0*U_0*U_0/( gamma_0*Ma*Ma )               # Reference pressure [Pa]
-time    = ( 1.0/( 2.0*nu ) )                  		# Final time [s]
+time    = rho_0*L*L/( 2.0*nu )             		# Final time [s]
 
 
 ### Open data file
-data_file = h5py.File( '2d_taylor_green_vortex_16.h5', 'r' )
+data_file = h5py.File( '2d_taylor_green_vortex_223.h5', 'r' )
 #list( data_file.keys() )
 x_data     = data_file['x'][0,:,:];     x_data     = np.asarray( x_data.flatten() )
 y_data     = data_file['y'][0,:,:];     y_data     = np.asarray( y_data.flatten() )
@@ -41,26 +42,20 @@ u_L2_norm_error = 0.0
 u_L2_norm_den   = 0.0
 v_L2_norm_error = 0.0
 v_L2_norm_den   = 0.0
-P_L2_norm_error = 0.0
-P_L2_norm_den   = 0.0
 for i in range( 0, len( x_data ) ):
     if( ( x_data[i] > 0.0 ) and ( x_data[i] < ( 2.0*np.pi ) ) ):
         if( ( y_data[i] > 0.0 ) and ( y_data[i] < ( 2.0*np.pi ) ) ):
             ### Exact values
             u_exact =          U_0*np.sin( x_data[i] )*np.cos( y_data[i] )*math.exp( ( -2.0 )*nu*time )
             v_exact = ( -1.0 )*U_0*np.cos( x_data[i] )*np.sin( y_data[i] )*math.exp( ( -2.0 )*nu*time )
-            P_exact = P_0 - ( rho_0*U_0*U_0/4.0 )*( np.cos( 2.0*x_data[i] ) + np.cos( 2.0*y_data[i] ) )*math.exp( ( -4.0 )*nu*time )
             ### L2-norm errors
             u_L2_norm_error += ( u_exact - u_data[i] )**2.0
             u_L2_norm_den   += u_exact**2.0
             v_L2_norm_error += ( v_exact - v_data[i] )**2.0
             v_L2_norm_den   += v_exact**2.0
-            P_L2_norm_error += ( P_exact - P_data[i] )**2.0
-            P_L2_norm_den   += P_exact**2.0
 u_L2_norm_error = np.sqrt( u_L2_norm_error/u_L2_norm_den )
 v_L2_norm_error = np.sqrt( v_L2_norm_error/v_L2_norm_den )
-P_L2_norm_error = np.sqrt( P_L2_norm_error/P_L2_norm_den )
 
 
 ### Print results
-print( 'L2-norm relative errors N = 16:' + ' u_L2_norm = ' + str( u_L2_norm_error ) + ', v_L2_norm = ' + str( v_L2_norm_error ) + ', P_L2_norm = ' + str( P_L2_norm_error ) )
+print( 'L2-norm relative errors N = 16:' + ' u_L2_norm = ' + str( u_L2_norm_error ) + ', v_L2_norm = ' + str( v_L2_norm_error ) )
