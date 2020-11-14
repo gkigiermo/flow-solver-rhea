@@ -393,11 +393,6 @@ void FlowSolverRHEA::fillMeshCoordinateFields() {
         }
     }
 
-    /// Update halo values
-    x_field.update();
-    y_field.update();
-    z_field.update();
-
 };
 
 void FlowSolverRHEA::setInitialConditions() {
@@ -438,9 +433,6 @@ void FlowSolverRHEA::initializeFromRestart() {
     if( reset_time_averaging ) averaging_time = 0.0;
 
     /// Update halo values
-    x_field.update();
-    y_field.update();
-    z_field.update();
     rho_field.update();
     u_field.update();
     v_field.update();
