@@ -294,18 +294,15 @@ void ManagerHDF5::read( char const* inputName)
    map<string, double>::iterator it_d;
    for (it_d = dattrib.begin(); it_d != dattrib.end(); it_d++)
    {
-       sprintf(attribute_name,"%s",(it_i->first).c_str());
-       hid_t attri1 = H5Aopen(file_id,attribute_name,H5T_NATIVE_DOUBLE);
+       sprintf(attribute_name,"%s",(it_d->first).c_str());
+       //hid_t attri1 = H5Aopen(file_id,attribute_name,H5T_NATIVE_DOUBLE);
+       hid_t attri1 = H5Aopen(file_id,attribute_name,H5P_DEFAULT);
        status = H5Aread(attri1, H5T_NATIVE_DOUBLE, &(it_d->second));
        status = H5Aclose(attri1);
    }
 
-
    status = H5Sclose(attspace_id);
 
-
    status = H5Fclose(file_id); 
-
-
 
 }
