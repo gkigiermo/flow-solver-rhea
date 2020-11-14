@@ -226,7 +226,8 @@ ParallelTopology::ParallelTopology(ComputationalDomain* dom, int nprocsx, int np
     }
 
     // To create the extra connections
-
+    
+    calculate_tags();
     exchange_2nd_level_neighbour_info();
     find_extra_neighbours();
     create_complex_bound_iters();
@@ -234,8 +235,535 @@ ParallelTopology::ParallelTopology(ComputationalDomain* dom, int nprocsx, int np
     create_complex_toRecv_iters();
     create_complex_toSend_iters();
     create_complex_comm_arrays();
+
+/*    printCommSchemeToFile(3);
+    printCommSchemeToFile(0);
+    printCommSchemeToFile(1);
+    printCommSchemeToFile(2);
+*/
+
+
+
 }
 
+void ParallelTopology::calculate_tags()
+{
+
+//Calculating localbounds
+
+    //if your doimain is located at the left
+    if( rank%npx == 0 ){
+        lbounds[_WEST_] = mymesh->getBoco(_WEST_);
+    }
+    else{
+        lbounds[_WEST_] = _NO_BOCO_ ;
+    }
+
+    //if your doimain is located at the right
+    if( rank%npx == (npx-1) ){
+        lbounds[_EAST_] = mymesh->getBoco(_EAST_);
+    }
+    else{
+        lbounds[_EAST_] = _NO_BOCO_ ;
+    }
+
+    //if your doimain is located at the bottom
+    if( ((rank%(npx*npy))/npx) == 0 ){
+        lbounds[_SOUTH_] = mymesh->getBoco(_SOUTH_);
+    }
+    else{
+        lbounds[_SOUTH_] = _NO_BOCO_ ;
+    }
+
+    //if your doimain is located at the top
+    if( ((rank%(npx*npy))/npx) == (npy-1) ){
+        lbounds[_NORTH_] = mymesh->getBoco(_NORTH_);
+    }
+    else{
+        lbounds[_NORTH_] = _NO_BOCO_ ;
+    }
+
+    //if your doimain is located at the back
+    if ((rank/(npx*npy)) == 0 ){
+        lbounds[_BACK_] = mymesh->getBoco(_BACK_);
+    }
+    else{
+        lbounds[_BACK_] = _NO_BOCO_ ;
+    }
+
+    //if your doimain is located at the front
+    if ((rank/(npx*npy)) == (npz-1) ){
+        lbounds[_FRONT_] = mymesh->getBoco(_FRONT_);
+    }
+    else{
+        lbounds[_FRONT_] = _NO_BOCO_ ;
+    }
+
+
+
+
+
+//  Tags for simple communication (3D)
+    tagid_s[_WEST_] = _WEST_;
+    tagid_r[_WEST_] = _EAST_;
+
+    tagid_s[_EAST_] = _EAST_;
+    tagid_r[_EAST_] = _WEST_;
+
+    tagid_s[_SOUTH_] = _SOUTH_;
+    tagid_r[_SOUTH_] = _NORTH_;
+
+    tagid_s[_NORTH_] = _NORTH_;
+    tagid_r[_NORTH_] = _SOUTH_;
+
+    tagid_s[_BACK_] = _BACK_;
+    tagid_r[_BACK_] = _FRONT_;
+
+    tagid_s[_FRONT_] = _FRONT_;
+    tagid_r[_FRONT_] = _BACK_;
+
+// Tags for 2D communications
+
+    tagid_s[_WEST_S_] = _WEST_S_;
+    tagid_s[_WEST_N_] = _WEST_N_;
+    tagid_s[_WEST_B_] = _WEST_B_;
+    tagid_s[_WEST_F_] = _WEST_F_;
+
+    tagid_s[_EAST_S_] = _EAST_S_;
+    tagid_s[_EAST_N_] = _EAST_N_;
+    tagid_s[_EAST_B_] = _EAST_B_;
+    tagid_s[_EAST_F_] = _EAST_F_;
+
+
+    // WEST SOUTH
+    if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_) && ( lbounds[_SOUTH_] != _PERIODIC_ && lbounds[_SOUTH_] != _NO_BOCO_) ){
+       tagid_r[_WEST_S_] = _EAST_S_;
+    }
+    else  if((lbounds[_SOUTH_] == _PERIODIC_  || lbounds[_SOUTH_] == _NO_BOCO_) && (lbounds[_WEST_] != _PERIODIC_ && lbounds[_WEST_] != _NO_BOCO_) ){
+       tagid_r[_WEST_S_] = _WEST_N_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_WEST_S_] = _EAST_N_;
+    }
+
+    // EAST SOUTH
+    if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_) && ( lbounds[_SOUTH_] != _PERIODIC_ && lbounds[_SOUTH_] != _NO_BOCO_) ){
+       tagid_r[_EAST_S_] = _WEST_S_;
+    }
+    else  if((lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_) &&( lbounds[_EAST_] != _PERIODIC_ && lbounds[_EAST_] != _NO_BOCO_) ){
+       tagid_r[_EAST_S_] = _EAST_N_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_EAST_S_] = _WEST_N_;
+    }
+
+
+
+    // WEST NORTH
+    if((lbounds[_WEST_] == _PERIODIC_  || lbounds[_WEST_] == _NO_BOCO_) && (lbounds[_NORTH_] != _PERIODIC_ && lbounds[_NORTH_] != _NO_BOCO_) ){
+       tagid_r[_WEST_N_] = _EAST_N_;
+    }
+    else if((lbounds[_NORTH_] == _PERIODIC_  || lbounds[_NORTH_] == _NO_BOCO_) && ( lbounds[_WEST_] != _PERIODIC_  && lbounds[_WEST_] != _NO_BOCO_)){
+       tagid_r[_WEST_N_] = _WEST_S_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_WEST_N_] = _EAST_S_;
+    }
+
+    // EAST NORTH
+    if((lbounds[_EAST_] == _PERIODIC_  || lbounds[_EAST_] == _NO_BOCO_) && (lbounds[_NORTH_] != _PERIODIC_  && lbounds[_NORTH_] != _NO_BOCO_)){
+       tagid_r[_EAST_N_] = _WEST_N_;
+    }
+    else if((lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_) && (lbounds[_EAST_] != _PERIODIC_  && lbounds[_EAST_] != _NO_BOCO_)){
+       tagid_r[_EAST_N_] = _EAST_S_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_EAST_N_] = _WEST_S_;
+    }
+
+
+
+    // WEST BACK
+    if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_) && (lbounds[_BACK_] != _PERIODIC_ && lbounds[_BACK_] != _NO_BOCO_)){
+       tagid_r[_WEST_B_] = _EAST_B_;
+    }
+    else if((lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_) && (lbounds[_WEST_] != _PERIODIC_  && lbounds[_WEST_] != _NO_BOCO_)){
+       tagid_r[_WEST_B_] = _WEST_F_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_WEST_B_] = _EAST_F_;
+    }
+
+    // EAST BACK
+    if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_) && (lbounds[_BACK_] != _PERIODIC_  && lbounds[_BACK_] != _NO_BOCO_)){
+       tagid_r[_EAST_B_] = _WEST_B_;
+    }
+    else if((lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_) && (lbounds[_EAST_] != _PERIODIC_  && lbounds[_EAST_] != _NO_BOCO_)){
+       tagid_r[_EAST_B_] = _EAST_F_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_EAST_B_] = _WEST_F_;
+    }
+
+
+    // WEST FRONT
+    if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_) && ( lbounds[_FRONT_] != _PERIODIC_  && lbounds[_FRONT_] != _NO_BOCO_)){
+       tagid_r[_WEST_F_] = _EAST_F_;
+    }
+    else if((lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_) && (lbounds[_WEST_] != _PERIODIC_  && lbounds[_WEST_] != _NO_BOCO_)){
+       tagid_r[_WEST_F_] = _WEST_B_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_WEST_F_] = _EAST_B_;
+    }
+
+    // EAST FRONT
+    if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_) && ( lbounds[_FRONT_] != _PERIODIC_  && lbounds[_FRONT_] != _NO_BOCO_)){
+       tagid_r[_EAST_F_] = _WEST_F_;
+    }
+    else if((lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_) && (lbounds[_EAST_] != _PERIODIC_  && lbounds[_EAST_] != _NO_BOCO_)){
+       tagid_r[_EAST_F_] = _EAST_B_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_EAST_F_] = _WEST_B_;
+    }
+
+
+    tagid_s[_SOUTH_B_] = _SOUTH_B_;
+    tagid_s[_SOUTH_F_] = _SOUTH_F_;
+    tagid_s[_NORTH_B_] = _NORTH_B_;
+    tagid_s[_NORTH_F_] = _NORTH_F_;
+
+
+    // SOUTH BACK
+    if((lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_) && ( lbounds[_BACK_] != _PERIODIC_ && lbounds[_BACK_] != _NO_BOCO_) ){
+       tagid_r[_SOUTH_B_] = _NORTH_B_;
+    }
+    else if((lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_) && ( lbounds[_SOUTH_] != _PERIODIC_ && lbounds[_SOUTH_] != _NO_BOCO_) ){
+       tagid_r[_SOUTH_B_] = _SOUTH_F_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_SOUTH_B_] = _NORTH_F_;
+
+    }
+ 
+    // NORTH BACK
+    if((lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_) && (lbounds[_BACK_] != _PERIODIC_ && lbounds[_BACK_] != _NO_BOCO_)){
+       tagid_r[_NORTH_B_] = _SOUTH_B_;
+    }
+    else  if((lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_) && (lbounds[_NORTH_] != _PERIODIC_ && lbounds[_NORTH_] != _NO_BOCO_)){
+       tagid_r[_NORTH_B_] = _NORTH_F_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_NORTH_B_] = _SOUTH_F_;
+    }
+ 
+    // SOUTH FRONT
+    if((lbounds[_SOUTH_] == _PERIODIC_  || lbounds[_SOUTH_] == _NO_BOCO_)  && (lbounds[_BACK_] != _PERIODIC_  && lbounds[_BACK_] != _NO_BOCO_)  ){
+       tagid_r[_SOUTH_F_] = _NORTH_F_;
+    }
+    else  if((lbounds[_BACK_] == _PERIODIC_  || lbounds[_BACK_] == _NO_BOCO_) && (lbounds[_SOUTH_] != _PERIODIC_  && lbounds[_SOUTH_] != _NO_BOCO_) ){
+       tagid_r[_SOUTH_F_] = _SOUTH_B_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_SOUTH_F_] = _NORTH_B_;
+    }
+ 
+    // NORTH FRONT
+    if((lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_) && (lbounds[_BACK_] != _PERIODIC_  && lbounds[_BACK_] != _NO_BOCO_)){
+       tagid_r[_NORTH_F_] = _SOUTH_F_;
+    }
+    else  if((lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_) && (lbounds[_NORTH_] != _PERIODIC_ && lbounds[_NORTH_] != _NO_BOCO_)){
+       tagid_r[_NORTH_F_] = _NORTH_B_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_NORTH_F_] = _SOUTH_B_;
+    }
+ 
+
+// point communications
+
+    tagid_s[_WEST_S_B_] = _WEST_S_B_;
+    tagid_s[_WEST_S_F_] = _WEST_S_F_;
+    tagid_s[_WEST_N_B_] = _WEST_N_B_;
+    tagid_s[_WEST_N_F_] = _WEST_N_F_;
+
+    tagid_s[_EAST_S_B_] = _EAST_S_B_;
+    tagid_s[_EAST_S_F_] = _EAST_S_F_;
+    tagid_s[_EAST_N_B_] = _EAST_N_B_;
+    tagid_s[_EAST_N_F_] = _EAST_N_F_;
+
+
+    // WEST SOUTH BACK
+    if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_)  && (lbounds[_SOUTH_] != _PERIODIC_ && lbounds[_SOUTH_] != _NO_BOCO_) && ( lbounds[_BACK_] != _PERIODIC_ && lbounds[_BACK_] != _NO_BOCO_ ) ){
+       tagid_r[_WEST_S_B_] = _EAST_S_B_;
+    }
+    else if((lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_)  && (lbounds[_WEST_] != _PERIODIC_ && lbounds[_WEST_] != _NO_BOCO_ ) && (lbounds[_BACK_] != _PERIODIC_ && lbounds[_BACK_] != _NO_BOCO_ )){
+       tagid_r[_WEST_S_B_] = _WEST_N_B_;
+    }
+    else  if((lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_)  && (lbounds[_WEST_] != _PERIODIC_ && lbounds[_WEST_] != _NO_BOCO_) && (lbounds[_SOUTH_] != _PERIODIC_ && lbounds[_SOUTH_] != _NO_BOCO_)){
+       tagid_r[_WEST_S_B_] = _WEST_S_F_;
+    }
+    else if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_)  && (lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_) &&  ( lbounds[_BACK_] != _PERIODIC_ &&  lbounds[_BACK_] != _NO_BOCO_)){
+       tagid_r[_WEST_S_B_] = _EAST_N_B_;
+    }
+    else if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_) && ( lbounds[_SOUTH_] != _PERIODIC_ &&  lbounds[_SOUTH_] != _NO_BOCO_ ) && ( lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_)){
+       tagid_r[_WEST_S_B_] = _EAST_S_F_;
+    }
+    else if((lbounds[_WEST_] != _PERIODIC_ &&  lbounds[_WEST_] != _NO_BOCO_)  && (lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_) &&  (lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_)){
+       tagid_r[_WEST_S_B_] = _WEST_N_F_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_WEST_S_B_] = _EAST_N_F_;
+    }
+
+    // WEST SOUTH FRONT
+    if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_) && (lbounds[_SOUTH_] != _PERIODIC_ && lbounds[_SOUTH_] != _NO_BOCO_) && ( lbounds[_FRONT_] != _PERIODIC_ && lbounds[_FRONT_] != _NO_BOCO_ ) ){
+       tagid_r[_WEST_S_F_] = _EAST_S_F_;
+    }
+    else if((lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_) && (lbounds[_WEST_] != _PERIODIC_ && lbounds[_WEST_] != _NO_BOCO_ ) && (lbounds[_FRONT_] != _PERIODIC_ && lbounds[_FRONT_] != _NO_BOCO_ )){
+       tagid_r[_WEST_S_F_] = _WEST_N_F_;
+    }
+    else if((lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_) && (lbounds[_WEST_] != _PERIODIC_ && lbounds[_WEST_] != _NO_BOCO_) && (lbounds[_SOUTH_] != _PERIODIC_ && lbounds[_SOUTH_] != _NO_BOCO_)){
+       tagid_r[_WEST_S_F_] = _WEST_S_B_;
+    }
+    else if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_) && (lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_) &&  ( lbounds[_FRONT_] != _PERIODIC_ &&  lbounds[_FRONT_] != _NO_BOCO_)){
+       tagid_r[_WEST_S_F_] = _EAST_N_F_;
+    }
+    else if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_) && ( lbounds[_SOUTH_] != _PERIODIC_ &&  lbounds[_SOUTH_] != _NO_BOCO_ ) && ( lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_)){
+       tagid_r[_WEST_S_F_] = _EAST_S_B_;
+    }
+    else if((lbounds[_WEST_] != _PERIODIC_ &&  lbounds[_WEST_] != _NO_BOCO_)  && (lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_)  &&  (lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_)){
+       tagid_r[_WEST_S_F_] = _WEST_N_B_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_WEST_S_F_] = _EAST_N_B_;
+    }
+
+    // WEST NORTH BACK
+    if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_) && (lbounds[_NORTH_] != _PERIODIC_ && lbounds[_NORTH_] != _NO_BOCO_) && ( lbounds[_BACK_] != _PERIODIC_ && lbounds[_BACK_] != _NO_BOCO_ ) ){
+       tagid_r[_WEST_N_B_] = _EAST_N_B_;
+    }
+    else  if((lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_) && (lbounds[_WEST_] != _PERIODIC_ && lbounds[_WEST_] != _NO_BOCO_ ) && (lbounds[_BACK_] != _PERIODIC_ && lbounds[_BACK_] != _NO_BOCO_ )){
+       tagid_r[_WEST_N_B_] = _WEST_S_B_;
+    }
+    else  if((lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_) && (lbounds[_WEST_] != _PERIODIC_ && lbounds[_WEST_] != _NO_BOCO_) && (lbounds[_NORTH_] != _PERIODIC_ && lbounds[_NORTH_] != _NO_BOCO_)){
+       tagid_r[_WEST_N_B_] = _WEST_N_F_;
+    }
+    else if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_) && (lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_) &&  ( lbounds[_BACK_] != _PERIODIC_ &&  lbounds[_BACK_] != _NO_BOCO_)){
+       tagid_r[_WEST_N_B_] = _EAST_S_B_;
+    }
+    else if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_) && ( lbounds[_NORTH_] != _PERIODIC_ &&  lbounds[_NORTH_] != _NO_BOCO_ ) && ( lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_)){
+       tagid_r[_WEST_N_B_] = _EAST_N_F_;
+    }
+    else if((lbounds[_WEST_] != _PERIODIC_ &&  lbounds[_WEST_] != _NO_BOCO_)  && (lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_) &&  (lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_)){
+       tagid_r[_WEST_N_B_] = _WEST_S_F_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_WEST_N_B_] = _EAST_S_F_;
+    }
+
+    // WEST NORTH FRONT
+    if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_) && (lbounds[_NORTH_] != _PERIODIC_ && lbounds[_NORTH_] != _NO_BOCO_) && ( lbounds[_FRONT_] != _PERIODIC_ && lbounds[_FRONT_] != _NO_BOCO_ ) ){
+       tagid_r[_WEST_N_F_] = _EAST_N_F_;
+    }
+    else  if((lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_) && (lbounds[_WEST_] != _PERIODIC_ && lbounds[_WEST_] != _NO_BOCO_ ) && (lbounds[_FRONT_] != _PERIODIC_ && lbounds[_FRONT_] != _NO_BOCO_ )){
+       tagid_r[_WEST_N_F_] = _WEST_S_F_;
+    }
+    else  if((lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_) && (lbounds[_WEST_] != _PERIODIC_ && lbounds[_WEST_] != _NO_BOCO_) && (lbounds[_NORTH_] != _PERIODIC_ && lbounds[_NORTH_] != _NO_BOCO_)){
+       tagid_r[_WEST_N_F_] = _WEST_N_B_;
+    }
+    else if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_) && (lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_) &&  ( lbounds[_FRONT_] != _PERIODIC_ &&  lbounds[_FRONT_] != _NO_BOCO_)){
+       tagid_r[_WEST_N_F_] = _EAST_S_F_;
+    }
+    else if((lbounds[_WEST_] == _PERIODIC_ || lbounds[_WEST_] == _NO_BOCO_) && ( lbounds[_NORTH_] != _PERIODIC_ &&  lbounds[_NORTH_] != _NO_BOCO_ ) && ( lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_)){
+       tagid_r[_WEST_N_F_] = _EAST_N_B_;
+    }
+    else if((lbounds[_WEST_] != _PERIODIC_ &&  lbounds[_WEST_] != _NO_BOCO_)  && (lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_) &&  (lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_)){
+       tagid_r[_WEST_N_F_] = _WEST_S_B_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_WEST_N_F_] = _EAST_S_B_;
+    }
+
+    // EAST SOUTH BACK
+    if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_) && (lbounds[_SOUTH_] != _PERIODIC_ && lbounds[_SOUTH_] != _NO_BOCO_) && ( lbounds[_BACK_] != _PERIODIC_ && lbounds[_BACK_] != _NO_BOCO_ ) ){
+       tagid_r[_EAST_S_B_] = _WEST_S_B_;
+    }
+    else  if((lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_)  && (lbounds[_EAST_] != _PERIODIC_ && lbounds[_EAST_] != _NO_BOCO_ ) && (lbounds[_BACK_] != _PERIODIC_ && lbounds[_BACK_] != _NO_BOCO_ )){
+       tagid_r[_EAST_S_B_] = _EAST_N_B_;
+    }
+    else  if((lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_)  && (lbounds[_EAST_] != _PERIODIC_ && lbounds[_EAST_] != _NO_BOCO_) && (lbounds[_SOUTH_] != _PERIODIC_ && lbounds[_SOUTH_] != _NO_BOCO_)){
+       tagid_r[_EAST_S_B_] = _EAST_S_F_;
+    }
+    else if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_)  && (lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_)  &&  ( lbounds[_BACK_] != _PERIODIC_ &&  lbounds[_BACK_] != _NO_BOCO_)){
+       tagid_r[_EAST_S_B_] = _WEST_N_B_;
+    }
+    else if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_)  && ( lbounds[_SOUTH_] != _PERIODIC_ &&  lbounds[_SOUTH_] != _NO_BOCO_ ) &&  (lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_) ){
+       tagid_r[_EAST_S_B_] = _WEST_S_F_;
+    }
+    else if((lbounds[_EAST_] != _PERIODIC_ &&  lbounds[_EAST_] != _NO_BOCO_)  && (lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_)  &&  (lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_) ){
+       tagid_r[_EAST_S_B_] = _EAST_N_F_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_EAST_S_B_] = _WEST_N_F_;
+    }
+
+    // EAST SOUTH FRONT
+    if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_)  && (lbounds[_SOUTH_] != _PERIODIC_ && lbounds[_SOUTH_] != _NO_BOCO_) && ( lbounds[_FRONT_] != _PERIODIC_ && lbounds[_FRONT_] != _NO_BOCO_ ) ){
+       tagid_r[_EAST_S_F_] = _WEST_S_F_;
+    }
+    else  if((lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_)  && (lbounds[_EAST_] != _PERIODIC_ && lbounds[_EAST_] != _NO_BOCO_ ) && (lbounds[_FRONT_] != _PERIODIC_ && lbounds[_FRONT_] != _NO_BOCO_ )){
+       tagid_r[_EAST_S_F_] = _EAST_N_F_;
+    }
+    else  if((lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_)  && (lbounds[_EAST_] != _PERIODIC_ && lbounds[_EAST_] != _NO_BOCO_) && (lbounds[_SOUTH_] != _PERIODIC_ && lbounds[_SOUTH_] != _NO_BOCO_)){
+       tagid_r[_EAST_S_F_] = _EAST_S_B_;
+    }
+    else if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_)  && (lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_)  &&  ( lbounds[_FRONT_] != _PERIODIC_ &&  lbounds[_FRONT_] != _NO_BOCO_)){
+       tagid_r[_EAST_S_F_] = _WEST_N_F_;
+    }
+    else if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_)  && ( lbounds[_SOUTH_] != _PERIODIC_ &&  lbounds[_SOUTH_] != _NO_BOCO_ ) && ( lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_) ){
+       tagid_r[_EAST_S_F_] = _WEST_S_B_;
+    }
+    else if((lbounds[_EAST_] != _PERIODIC_ &&  lbounds[_EAST_] != _NO_BOCO_)  && (lbounds[_SOUTH_] == _PERIODIC_ || lbounds[_SOUTH_] == _NO_BOCO_)  &&  (lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_) ){
+       tagid_r[_EAST_S_F_] = _EAST_N_B_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_EAST_S_F_] = _WEST_N_B_;
+    }
+
+    // EAST NORTH BACK
+    if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_)  && (lbounds[_NORTH_] != _PERIODIC_ && lbounds[_NORTH_] != _NO_BOCO_) && ( lbounds[_BACK_] != _PERIODIC_ && lbounds[_BACK_] != _NO_BOCO_ ) ){
+       tagid_r[_EAST_N_B_] = _WEST_N_B_;
+    }
+    else  if((lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_)  && (lbounds[_EAST_] != _PERIODIC_ && lbounds[_EAST_] != _NO_BOCO_ ) && (lbounds[_BACK_] != _PERIODIC_ && lbounds[_BACK_] != _NO_BOCO_ )){
+       tagid_r[_EAST_N_B_] = _EAST_S_B_;
+    }
+    else  if((lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_)  && (lbounds[_EAST_] != _PERIODIC_ && lbounds[_EAST_] != _NO_BOCO_) && (lbounds[_NORTH_] != _PERIODIC_ && lbounds[_NORTH_] != _NO_BOCO_)){
+       tagid_r[_EAST_N_B_] = _EAST_N_F_;
+    }
+    else if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_)  && (lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_)  &&  ( lbounds[_BACK_] != _PERIODIC_ &&  lbounds[_BACK_] != _NO_BOCO_)){
+       tagid_r[_EAST_N_B_] = _WEST_S_B_;
+    }
+    else if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_)  && ( lbounds[_NORTH_] != _PERIODIC_ &&  lbounds[_NORTH_] != _NO_BOCO_ ) && ( lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_) ){
+       tagid_r[_EAST_N_B_] = _WEST_N_F_;
+    }
+    else if((lbounds[_EAST_] != _PERIODIC_ &&  lbounds[_EAST_] != _NO_BOCO_)  && (lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_)  && ( lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_) ){
+       tagid_r[_EAST_N_B_] = _EAST_S_F_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_EAST_N_B_] = _WEST_S_F_;
+    }
+
+  // EAST NORTH FRONT
+    if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_)  && (lbounds[_NORTH_] != _PERIODIC_ && lbounds[_NORTH_] != _NO_BOCO_) && ( lbounds[_FRONT_] != _PERIODIC_ && lbounds[_FRONT_] != _NO_BOCO_ ) ){
+       tagid_r[_EAST_N_F_] = _WEST_N_F_;
+    }
+    else  if((lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_)  && (lbounds[_EAST_] != _PERIODIC_ && lbounds[_EAST_] != _NO_BOCO_ ) && (lbounds[_FRONT_] != _PERIODIC_ && lbounds[_FRONT_] != _NO_BOCO_ )){
+       tagid_r[_EAST_N_F_] = _EAST_S_F_;
+    }
+    else  if((lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_)  && (lbounds[_EAST_] != _PERIODIC_ && lbounds[_EAST_] != _NO_BOCO_) && (lbounds[_NORTH_] != _PERIODIC_ && lbounds[_NORTH_] != _NO_BOCO_)){
+       tagid_r[_EAST_N_F_] = _EAST_N_B_;
+    }
+    else if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_)  && (lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_)  &&  ( lbounds[_FRONT_] != _PERIODIC_ &&  lbounds[_FRONT_] != _NO_BOCO_)){
+       tagid_r[_EAST_N_F_] = _WEST_S_F_;
+    }
+    else if((lbounds[_EAST_] == _PERIODIC_ || lbounds[_EAST_] == _NO_BOCO_)  && ( lbounds[_NORTH_] != _PERIODIC_ &&  lbounds[_NORTH_] != _NO_BOCO_ ) && ( lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_) ){
+       tagid_r[_EAST_N_F_] = _WEST_N_B_;
+    }
+    else if((lbounds[_EAST_] != _PERIODIC_ &&  lbounds[_EAST_] != _NO_BOCO_)  && (lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_)  && ( lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_) ){
+       tagid_r[_EAST_N_F_] = _EAST_S_B_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_EAST_N_F_] = _WEST_S_B_;
+    }
+
+
+/*
+
+    // WEST SOUTH
+    if(lbounds[_WEST_] == _PERIODIC_ && lbounds[_SOUTH_] != _PERIODIC_ &&  lbounds[_BACK_] != _PERIODIC_){
+       tagid_r[_WEST_S_B_] = _EAST_S_B_;
+       tagid_r[_EAST_S_B_] = _WEST_S_B_;
+       tagid_r[_WEST_N_B_] = _EAST_N_B_;
+       tagid_r[_EAST_N_B_] = _WEST_N_B_;
+ 
+       tagid_r[_WEST_S_F_] = _EAST_S_F_;
+       tagid_r[_EAST_S_F_] = _WEST_S_F_;
+       tagid_r[_WEST_N_F_] = _EAST_N_F_;
+       tagid_r[_EAST_N_F_] = _WEST_N_F_;
+    }
+    else  if(lbounds[_SOUTH_] == _PERIODIC_ && lbounds[_WEST_] != _PERIODIC_ && lbounds[_BACK_] != _PERIODIC_ ){
+       tagid_r[_WEST_S_B_] = _WEST_N_B_;
+       tagid_r[_EAST_S_B_] = _EAST_N_B_;
+       tagid_r[_WEST_N_B_] = _WEST_S_B_;
+       tagid_r[_EAST_N_B_] = _EAST_S_B_;
+ 
+       tagid_r[_WEST_S_F_] = _WEST_N_F_;
+       tagid_r[_EAST_S_F_] = _EAST_N_F_;
+       tagid_r[_WEST_N_F_] = _WEST_S_F_;
+       tagid_r[_EAST_N_F_] = _EAST_S_F_;
+    }
+    else  if(lbounds[_BACK_] == _PERIODIC_ && lbounds[_WEST_] != _PERIODIC_ && lbounds[_SOUTH_] != _PERIODIC_ ){
+       tagid_r[_WEST_S_B_] = _WEST_S_F_;
+       tagid_r[_EAST_S_B_] = _EAST_S_F_;
+       tagid_r[_WEST_N_B_] = _WEST_N_F_;
+       tagid_r[_EAST_N_B_] = _EAST_N_F_;
+ 
+       tagid_r[_WEST_S_F_] = _WEST_S_B_;
+       tagid_r[_EAST_S_F_] = _EAST_S_B_;
+       tagid_r[_WEST_N_F_] = _WEST_N_B_;
+       tagid_r[_EAST_N_F_] = _EAST_N_B_;
+    }
+    if(lbounds[_WEST_] == _PERIODIC_ && lbounds[_SOUTH_] == _PERIODIC_ &&  lbounds[_BACK_] != _PERIODIC_){
+       tagid_r[_WEST_S_B_] = _EAST_N_B_;
+       tagid_r[_EAST_S_B_] = _WEST_N_B_;
+       tagid_r[_WEST_N_B_] = _EAST_S_B_;
+       tagid_r[_EAST_N_B_] = _WEST_S_B_;
+ 
+       tagid_r[_WEST_S_F_] = _EAST_N_F_;
+       tagid_r[_EAST_S_F_] = _WEST_N_F_;
+       tagid_r[_WEST_N_F_] = _EAST_S_F_;
+       tagid_r[_EAST_N_F_] = _WEST_S_F_;
+    }
+    if(lbounds[_WEST_] == _PERIODIC_ && lbounds[_SOUTH_] != _PERIODIC_ &&  lbounds[_BACK_] == _PERIODIC_){
+       tagid_r[_WEST_S_B_] = _EAST_S_F_;
+       tagid_r[_EAST_S_B_] = _WEST_S_F_;
+       tagid_r[_WEST_N_B_] = _EAST_N_F_;
+       tagid_r[_EAST_N_B_] = _WEST_N_F_;
+ 
+       tagid_r[_WEST_S_F_] = _EAST_S_B_;
+       tagid_r[_EAST_S_F_] = _WEST_S_B_;
+       tagid_r[_WEST_N_F_] = _EAST_N_B_;
+       tagid_r[_EAST_N_F_] = _WEST_N_B_;
+    }
+    if(lbounds[_WEST_] != _PERIODIC_ && lbounds[_SOUTH_] == _PERIODIC_ &&  lbounds[_BACK_] == _PERIODIC_){
+       tagid_r[_WEST_S_B_] = _WEST_N_F_;
+       tagid_r[_EAST_S_B_] = _EAST_N_F_;
+       tagid_r[_WEST_N_B_] = _WEST_S_F_;
+       tagid_r[_EAST_N_B_] = _EAST_S_F_;
+ 
+       tagid_r[_WEST_S_F_] = _WEST_N_B_;
+       tagid_r[_EAST_S_F_] = _EAST_N_B_;
+       tagid_r[_WEST_N_F_] = _WEST_S_B_;
+       tagid_r[_EAST_N_F_] = _EAST_S_B_;
+    }
+    else{ //In case double periodic or internals no periodic
+      tagid_r[_WEST_S_B_] = _EAST_N_F_;
+      tagid_r[_EAST_S_B_] = _WEST_N_F_;
+      tagid_r[_WEST_N_B_] = _EAST_S_F_;
+      tagid_r[_EAST_N_B_] = _WEST_S_F_;
+ 
+      tagid_r[_WEST_S_F_] = _EAST_N_B_;
+      tagid_r[_EAST_S_F_] = _WEST_N_B_;
+      tagid_r[_WEST_N_F_] = _EAST_S_B_;
+      tagid_r[_EAST_N_F_] = _WEST_S_B_;
+    }
+*/
+
+
+
+} 
 void ParallelTopology::exchange_2nd_level_neighbour_info()
 {
     int pack[6];
@@ -269,41 +797,41 @@ void ParallelTopology::exchange_2nd_level_neighbour_info()
 
 
     if(getNB(_WEST_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_WEST_), 0, RHEA_3DCOMM, &req_s[_WEST_]);
+        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_WEST_), tagid_s[_WEST_], RHEA_3DCOMM, &req_s[_WEST_]);
 
     if(getNB(_EAST_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_EAST_), 0, RHEA_3DCOMM, &req_s[_EAST_]);
+        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_EAST_), tagid_s[_EAST_], RHEA_3DCOMM, &req_s[_EAST_]);
 
     if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_SOUTH_), 0, RHEA_3DCOMM, &req_s[_SOUTH_]);
+        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_SOUTH_), tagid_s[_SOUTH_], RHEA_3DCOMM, &req_s[_SOUTH_]);
 
     if(getNB(_NORTH_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_NORTH_), 0, RHEA_3DCOMM, &req_s[_NORTH_]);
+        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_NORTH_), tagid_s[_NORTH_], RHEA_3DCOMM, &req_s[_NORTH_]);
 
     if(getNB(_BACK_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_BACK_), 0, RHEA_3DCOMM, &req_s[_BACK_]);
+        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_BACK_), tagid_s[_BACK_], RHEA_3DCOMM, &req_s[_BACK_]);
 
     if(getNB(_FRONT_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_FRONT_), 0, RHEA_3DCOMM, &req_s[_FRONT_]);
+        MPI_Isend(&pack[0], 6, MPI_INT, getNB(_FRONT_), tagid_s[_FRONT_], RHEA_3DCOMM, &req_s[_FRONT_]);
 
 
     if(getNB(_WEST_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(&info_2nd[off_nb[_WEST_]], 6, MPI_INT, getNB(_WEST_), 0, RHEA_3DCOMM, &req_r[_WEST_]);
+        MPI_Irecv(&info_2nd[off_nb[_WEST_]], 6, MPI_INT, getNB(_WEST_), tagid_r[_WEST_], RHEA_3DCOMM, &req_r[_WEST_]);
 
     if(getNB(_EAST_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(&info_2nd[off_nb[_EAST_]], 6, MPI_INT, getNB(_EAST_), 0, RHEA_3DCOMM, &req_r[_EAST_]);
+        MPI_Irecv(&info_2nd[off_nb[_EAST_]], 6, MPI_INT, getNB(_EAST_), tagid_r[_EAST_], RHEA_3DCOMM, &req_r[_EAST_]);
 
     if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(&info_2nd[off_nb[_SOUTH_]], 6, MPI_INT, getNB(_SOUTH_), 0, RHEA_3DCOMM, &req_r[_SOUTH_]);
+        MPI_Irecv(&info_2nd[off_nb[_SOUTH_]], 6, MPI_INT, getNB(_SOUTH_), tagid_r[_SOUTH_], RHEA_3DCOMM, &req_r[_SOUTH_]);
 
     if(getNB(_NORTH_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(&info_2nd[off_nb[_NORTH_]], 6, MPI_INT, getNB(_NORTH_), 0, RHEA_3DCOMM, &req_r[_NORTH_]);
+        MPI_Irecv(&info_2nd[off_nb[_NORTH_]], 6, MPI_INT, getNB(_NORTH_), tagid_r[_NORTH_], RHEA_3DCOMM, &req_r[_NORTH_]);
 
     if(getNB(_BACK_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(&info_2nd[off_nb[_BACK_]], 6, MPI_INT, getNB(_BACK_), 0, RHEA_3DCOMM, &req_r[_BACK_]);
+        MPI_Irecv(&info_2nd[off_nb[_BACK_]], 6, MPI_INT, getNB(_BACK_), tagid_r[_BACK_], RHEA_3DCOMM, &req_r[_BACK_]);
 
     if(getNB(_FRONT_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(&info_2nd[off_nb[_FRONT_]], 6, MPI_INT, getNB(_FRONT_), 0, RHEA_3DCOMM, &req_r[_FRONT_]);
+        MPI_Irecv(&info_2nd[off_nb[_FRONT_]], 6, MPI_INT, getNB(_FRONT_), tagid_r[_FRONT_], RHEA_3DCOMM, &req_r[_FRONT_]);
 
 
     if(getNB(_WEST_) != _NO_NEIGHBOUR_ ){
@@ -589,6 +1117,10 @@ void ParallelTopology::printCommSchemeToFile(int proc)
             myfile<<" lNy "<<lNy<<endl;
             myfile<<" lNz "<<lNz<<endl;
             myfile<<"--------"<<endl;
+            myfile<<" Lboco ids: "<<endl;
+            myfile<<" X  : WEST  "<<lbounds[_WEST_] <<" EAST  "<<lbounds[_EAST_]<<endl;
+            myfile<<" Y  : SOUTH "<<lbounds[_SOUTH_]<<" NORTH "<<lbounds[_NORTH_]<<endl;
+            myfile<<" Z  : BACK  "<<lbounds[_BACK_] <<" FRONT "<<lbounds[_FRONT_]<<endl;
             myfile<<" Neighbour ids: "<<endl;
             myfile<<" X  : WEST  "<<neighb[_WEST_] <<" EAST  "<<neighb[_EAST_]<<endl;
             myfile<<" Y  : SOUTH "<<neighb[_SOUTH_]<<" NORTH "<<neighb[_NORTH_]<<endl;
@@ -676,6 +1208,71 @@ void ParallelTopology::printCommSchemeToFile(int proc)
             myfile<<" INI_X  "<<iter_toSend[_FRONT_][_INIX_]<<" END_X "<<iter_toSend[_FRONT_][_ENDX_]<<endl;
             myfile<<" INI_Y  "<<iter_toSend[_FRONT_][_INIY_]<<" END_Y "<<iter_toSend[_FRONT_][_ENDY_]<<endl;
             myfile<<" INI_Z  "<<iter_toSend[_FRONT_][_INIZ_]<<" END_Z "<<iter_toSend[_FRONT_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" WEST_S: "<<tagid_r[_WEST_S_]<<" tags_s "<<tagid_s[_WEST_S_]<<endl;
+            myfile<<" INI_X  "<<iter_toSend[_WEST_S_][_INIX_]<<" END_X "<<iter_toSend[_WEST_S_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toSend[_WEST_S_][_INIY_]<<" END_Y "<<iter_toSend[_WEST_S_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toSend[_WEST_S_][_INIZ_]<<" END_Z "<<iter_toSend[_WEST_S_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" WEST_N: "<<tagid_r[_WEST_N_]<<" tags_s "<<tagid_s[_WEST_N_]<<endl;
+            myfile<<" INI_X  "<<iter_toSend[_WEST_N_][_INIX_]<<" END_X "<<iter_toSend[_WEST_N_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toSend[_WEST_N_][_INIY_]<<" END_Y "<<iter_toSend[_WEST_N_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toSend[_WEST_N_][_INIZ_]<<" END_Z "<<iter_toSend[_WEST_N_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" WEST_B: "<<tagid_r[_WEST_B_]<<" tags_s "<<tagid_s[_WEST_B_]<<endl;
+            myfile<<" INI_X  "<<iter_toSend[_WEST_B_][_INIX_]<<" END_X "<<iter_toSend[_WEST_B_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toSend[_WEST_B_][_INIY_]<<" END_Y "<<iter_toSend[_WEST_B_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toSend[_WEST_B_][_INIZ_]<<" END_Z "<<iter_toSend[_WEST_B_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" WEST_F: "<<tagid_r[_WEST_F_]<<" tags_s "<<tagid_s[_WEST_F_]<<endl;
+            myfile<<" INI_X  "<<iter_toSend[_WEST_F_][_INIX_]<<" END_X "<<iter_toSend[_WEST_F_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toSend[_WEST_F_][_INIY_]<<" END_Y "<<iter_toSend[_WEST_F_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toSend[_WEST_F_][_INIZ_]<<" END_Z "<<iter_toSend[_WEST_F_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" EAST_S: "<<tagid_r[_EAST_S_]<<" tags_s "<<tagid_s[_EAST_S_]<<endl;
+            myfile<<" INI_X  "<<iter_toSend[_EAST_S_][_INIX_]<<" END_X "<<iter_toSend[_EAST_S_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toSend[_EAST_S_][_INIY_]<<" END_Y "<<iter_toSend[_EAST_S_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toSend[_EAST_S_][_INIZ_]<<" END_Z "<<iter_toSend[_EAST_S_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" EAST_N: "<<tagid_r[_EAST_N_]<<" tags_s "<<tagid_s[_EAST_N_]<<endl;
+            myfile<<" INI_X  "<<iter_toSend[_EAST_N_][_INIX_]<<" END_X "<<iter_toSend[_EAST_N_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toSend[_EAST_N_][_INIY_]<<" END_Y "<<iter_toSend[_EAST_N_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toSend[_EAST_N_][_INIZ_]<<" END_Z "<<iter_toSend[_EAST_N_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" EAST_B: "<<tagid_r[_EAST_B_]<<" tags_s "<<tagid_s[_EAST_B_]<<endl;
+            myfile<<" INI_X  "<<iter_toSend[_EAST_B_][_INIX_]<<" END_X "<<iter_toSend[_EAST_B_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toSend[_EAST_B_][_INIY_]<<" END_Y "<<iter_toSend[_EAST_B_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toSend[_EAST_B_][_INIZ_]<<" END_Z "<<iter_toSend[_EAST_B_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" EAST_F: "<<tagid_r[_EAST_F_]<<" tags_s "<<tagid_s[_EAST_F_]<<endl;
+            myfile<<" INI_X  "<<iter_toSend[_EAST_F_][_INIX_]<<" END_X "<<iter_toSend[_EAST_F_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toSend[_EAST_F_][_INIY_]<<" END_Y "<<iter_toSend[_EAST_F_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toSend[_EAST_F_][_INIZ_]<<" END_Z "<<iter_toSend[_EAST_F_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" SOUTH_B: tags_r "<<tagid_r[_SOUTH_B_]<<" tags_s "<<tagid_s[_SOUTH_B_]<<endl;
+            myfile<<" INI_X  "<<iter_toSend[_SOUTH_B_][_INIX_]<<" END_X "<<iter_toSend[_SOUTH_B_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toSend[_SOUTH_B_][_INIY_]<<" END_Y "<<iter_toSend[_SOUTH_B_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toSend[_SOUTH_B_][_INIZ_]<<" END_Z "<<iter_toSend[_SOUTH_B_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" SOUTH_F: tags_r "<<tagid_r[_SOUTH_F_]<<" tags_s "<<tagid_s[_SOUTH_F_]<<endl;
+            myfile<<" INI_X  "<<iter_toSend[_SOUTH_F_][_INIX_]<<" END_X "<<iter_toSend[_SOUTH_F_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toSend[_SOUTH_F_][_INIY_]<<" END_Y "<<iter_toSend[_SOUTH_F_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toSend[_SOUTH_F_][_INIZ_]<<" END_Z "<<iter_toSend[_SOUTH_F_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" NORTH_B: tags_r "<<tagid_r[_NORTH_B_]<<" tags_s "<<tagid_s[_NORTH_B_]<<endl;
+            myfile<<" INI_X  "<<iter_toSend[_NORTH_B_][_INIX_]<<" END_X "<<iter_toSend[_NORTH_B_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toSend[_NORTH_B_][_INIY_]<<" END_Y "<<iter_toSend[_NORTH_B_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toSend[_NORTH_B_][_INIZ_]<<" END_Z "<<iter_toSend[_NORTH_B_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" NORTH_F:  tags_r "<<tagid_r[_NORTH_F_]<<" tags_s "<<tagid_s[_NORTH_F_]<<endl;
+            myfile<<" INI_X  "<<iter_toSend[_NORTH_F_][_INIX_]<<" END_X "<<iter_toSend[_NORTH_F_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toSend[_NORTH_F_][_INIY_]<<" END_Y "<<iter_toSend[_NORTH_F_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toSend[_NORTH_F_][_INIZ_]<<" END_Z "<<iter_toSend[_NORTH_F_][_ENDZ_]<<endl;
+  
+
+
+
+
             myfile<<"--------"<<endl;
             myfile<<" Recv iterators: "<<endl;
             myfile<<" WEST: "<<endl;
@@ -707,6 +1304,69 @@ void ParallelTopology::printCommSchemeToFile(int proc)
             myfile<<" INI_X  "<<iter_toRecv[_FRONT_][_INIX_]<<" END_X "<<iter_toRecv[_FRONT_][_ENDX_]<<endl;
             myfile<<" INI_Y  "<<iter_toRecv[_FRONT_][_INIY_]<<" END_Y "<<iter_toRecv[_FRONT_][_ENDY_]<<endl;
             myfile<<" INI_Z  "<<iter_toRecv[_FRONT_][_INIZ_]<<" END_Z "<<iter_toRecv[_FRONT_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" WEST_S: "<<endl;
+            myfile<<" INI_X  "<<iter_toRecv[_WEST_S_][_INIX_]<<" END_X "<<iter_toRecv[_WEST_S_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toRecv[_WEST_S_][_INIY_]<<" END_Y "<<iter_toRecv[_WEST_S_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toRecv[_WEST_S_][_INIZ_]<<" END_Z "<<iter_toRecv[_WEST_S_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" WEST_N: "<<endl;
+            myfile<<" INI_X  "<<iter_toRecv[_WEST_N_][_INIX_]<<" END_X "<<iter_toRecv[_WEST_N_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toRecv[_WEST_N_][_INIY_]<<" END_Y "<<iter_toRecv[_WEST_N_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toRecv[_WEST_N_][_INIZ_]<<" END_Z "<<iter_toRecv[_WEST_N_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" WEST_B: "<<endl;
+            myfile<<" INI_X  "<<iter_toRecv[_WEST_B_][_INIX_]<<" END_X "<<iter_toRecv[_WEST_B_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toRecv[_WEST_B_][_INIY_]<<" END_Y "<<iter_toRecv[_WEST_B_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toRecv[_WEST_B_][_INIZ_]<<" END_Z "<<iter_toRecv[_WEST_B_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" WEST_F: "<<endl;
+            myfile<<" INI_X  "<<iter_toRecv[_WEST_F_][_INIX_]<<" END_X "<<iter_toRecv[_WEST_F_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toRecv[_WEST_F_][_INIY_]<<" END_Y "<<iter_toRecv[_WEST_F_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toRecv[_WEST_F_][_INIZ_]<<" END_Z "<<iter_toRecv[_WEST_F_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" EAST_S: "<<endl;
+            myfile<<" INI_X  "<<iter_toRecv[_EAST_S_][_INIX_]<<" END_X "<<iter_toRecv[_EAST_S_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toRecv[_EAST_S_][_INIY_]<<" END_Y "<<iter_toRecv[_EAST_S_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toRecv[_EAST_S_][_INIZ_]<<" END_Z "<<iter_toRecv[_EAST_S_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" EAST_N: "<<endl;
+            myfile<<" INI_X  "<<iter_toRecv[_EAST_N_][_INIX_]<<" END_X "<<iter_toRecv[_EAST_N_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toRecv[_EAST_N_][_INIY_]<<" END_Y "<<iter_toRecv[_EAST_N_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toRecv[_EAST_N_][_INIZ_]<<" END_Z "<<iter_toRecv[_EAST_N_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" EAST_B: "<<endl;
+            myfile<<" INI_X  "<<iter_toRecv[_EAST_B_][_INIX_]<<" END_X "<<iter_toRecv[_EAST_B_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toRecv[_EAST_B_][_INIY_]<<" END_Y "<<iter_toRecv[_EAST_B_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toRecv[_EAST_B_][_INIZ_]<<" END_Z "<<iter_toRecv[_EAST_B_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" EAST_F: "<<endl;
+            myfile<<" INI_X  "<<iter_toRecv[_EAST_F_][_INIX_]<<" END_X "<<iter_toRecv[_EAST_F_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toRecv[_EAST_F_][_INIY_]<<" END_Y "<<iter_toRecv[_EAST_F_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toRecv[_EAST_F_][_INIZ_]<<" END_Z "<<iter_toRecv[_EAST_F_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" SOUTH_B: "<<endl;
+            myfile<<" INI_X  "<<iter_toRecv[_SOUTH_B_][_INIX_]<<" END_X "<<iter_toRecv[_SOUTH_B_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toRecv[_SOUTH_B_][_INIY_]<<" END_Y "<<iter_toRecv[_SOUTH_B_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toRecv[_SOUTH_B_][_INIZ_]<<" END_Z "<<iter_toRecv[_SOUTH_B_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" SOUTH_F: "<<endl;
+            myfile<<" INI_X  "<<iter_toRecv[_SOUTH_F_][_INIX_]<<" END_X "<<iter_toRecv[_SOUTH_F_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toRecv[_SOUTH_F_][_INIY_]<<" END_Y "<<iter_toRecv[_SOUTH_F_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toRecv[_SOUTH_F_][_INIZ_]<<" END_Z "<<iter_toRecv[_SOUTH_F_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" NORTH_B: "<<endl;
+            myfile<<" INI_X  "<<iter_toRecv[_NORTH_B_][_INIX_]<<" END_X "<<iter_toRecv[_NORTH_B_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toRecv[_NORTH_B_][_INIY_]<<" END_Y "<<iter_toRecv[_NORTH_B_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toRecv[_NORTH_B_][_INIZ_]<<" END_Z "<<iter_toRecv[_NORTH_B_][_ENDZ_]<<endl;
+            myfile<<endl;
+            myfile<<" NORTH_F: "<<endl;
+            myfile<<" INI_X  "<<iter_toRecv[_NORTH_F_][_INIX_]<<" END_X "<<iter_toRecv[_NORTH_F_][_ENDX_]<<endl;
+            myfile<<" INI_Y  "<<iter_toRecv[_NORTH_F_][_INIY_]<<" END_Y "<<iter_toRecv[_NORTH_F_][_ENDY_]<<endl;
+            myfile<<" INI_Z  "<<iter_toRecv[_NORTH_F_][_INIZ_]<<" END_Z "<<iter_toRecv[_NORTH_F_][_ENDZ_]<<endl;
+  
+
+
 
 
             myfile.close();
@@ -3596,41 +4256,41 @@ void ParallelTopology :: halo_exchange_simple()
 
 
     if(getNB(_WEST_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_w, len_yz, MPI_DOUBLE, getNB(_WEST_), 0, RHEA_3DCOMM, &req_s[_WEST_]);
+        MPI_Isend(pack_send_w, len_yz, MPI_DOUBLE, getNB(_WEST_), tagid_s[_WEST_], RHEA_3DCOMM, &req_s[_WEST_]);
 
     if(getNB(_EAST_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_e, len_yz, MPI_DOUBLE, getNB(_EAST_), 0, RHEA_3DCOMM, &req_s[_EAST_]);
+        MPI_Isend(pack_send_e, len_yz, MPI_DOUBLE, getNB(_EAST_), tagid_s[_EAST_], RHEA_3DCOMM, &req_s[_EAST_]);
 
     if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_s, len_xz, MPI_DOUBLE, getNB(_SOUTH_), 0, RHEA_3DCOMM, &req_s[_SOUTH_]);
+        MPI_Isend(pack_send_s, len_xz, MPI_DOUBLE, getNB(_SOUTH_), tagid_s[_SOUTH_], RHEA_3DCOMM, &req_s[_SOUTH_]);
 
     if(getNB(_NORTH_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_n, len_xz, MPI_DOUBLE, getNB(_NORTH_), 0, RHEA_3DCOMM, &req_s[_NORTH_]);
+        MPI_Isend(pack_send_n, len_xz, MPI_DOUBLE, getNB(_NORTH_), tagid_s[_NORTH_], RHEA_3DCOMM, &req_s[_NORTH_]);
 
     if(getNB(_BACK_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_b, len_xy, MPI_DOUBLE, getNB(_BACK_), 0, RHEA_3DCOMM, &req_s[_BACK_]);
+        MPI_Isend(pack_send_b, len_xy, MPI_DOUBLE, getNB(_BACK_), tagid_s[_BACK_], RHEA_3DCOMM, &req_s[_BACK_]);
 
     if(getNB(_FRONT_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_f, len_xy, MPI_DOUBLE, getNB(_FRONT_), 0, RHEA_3DCOMM, &req_s[_FRONT_]);
+        MPI_Isend(pack_send_f, len_xy, MPI_DOUBLE, getNB(_FRONT_), tagid_s[_FRONT_], RHEA_3DCOMM, &req_s[_FRONT_]);
 
 
     if(getNB(_WEST_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_w, len_yz, MPI_DOUBLE, getNB(_WEST_), 0, RHEA_3DCOMM, &req_r[_WEST_]);
+        MPI_Irecv(pack_recv_w, len_yz, MPI_DOUBLE, getNB(_WEST_), tagid_r[_WEST_], RHEA_3DCOMM, &req_r[_WEST_]);
 
     if(getNB(_EAST_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_e, len_yz, MPI_DOUBLE, getNB(_EAST_), 0, RHEA_3DCOMM, &req_r[_EAST_]);
+        MPI_Irecv(pack_recv_e, len_yz, MPI_DOUBLE, getNB(_EAST_), tagid_r[_EAST_], RHEA_3DCOMM, &req_r[_EAST_]);
 
     if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_s, len_xz, MPI_DOUBLE, getNB(_SOUTH_), 0, RHEA_3DCOMM, &req_r[_SOUTH_]);
+        MPI_Irecv(pack_recv_s, len_xz, MPI_DOUBLE, getNB(_SOUTH_), tagid_r[_SOUTH_], RHEA_3DCOMM, &req_r[_SOUTH_]);
 
     if(getNB(_NORTH_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_n, len_xz, MPI_DOUBLE, getNB(_NORTH_), 0, RHEA_3DCOMM, &req_r[_NORTH_]);
+        MPI_Irecv(pack_recv_n, len_xz, MPI_DOUBLE, getNB(_NORTH_), tagid_r[_NORTH_], RHEA_3DCOMM, &req_r[_NORTH_]);
 
     if(getNB(_BACK_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_b, len_xy, MPI_DOUBLE, getNB(_BACK_), 0, RHEA_3DCOMM, &req_r[_BACK_]);
+        MPI_Irecv(pack_recv_b, len_xy, MPI_DOUBLE, getNB(_BACK_), tagid_r[_BACK_], RHEA_3DCOMM, &req_r[_BACK_]);
 
     if(getNB(_FRONT_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_f, len_xy, MPI_DOUBLE, getNB(_FRONT_), 0, RHEA_3DCOMM, &req_r[_FRONT_]);
+        MPI_Irecv(pack_recv_f, len_xy, MPI_DOUBLE, getNB(_FRONT_), tagid_r[_FRONT_], RHEA_3DCOMM, &req_r[_FRONT_]);
 
 
     if(getNB(_WEST_) != _NO_NEIGHBOUR_ ) {
@@ -3675,163 +4335,163 @@ void ParallelTopology :: halo_exchange()
 
 
     if(getNB(_WEST_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_w, len_yz, MPI_DOUBLE, getNB(_WEST_), 0, RHEA_3DCOMM, &req_s[_WEST_]);
+        MPI_Isend(pack_send_w, len_yz, MPI_DOUBLE, getNB(_WEST_), tagid_s[_WEST_], RHEA_3DCOMM, &req_s[_WEST_]);
 
     if(getNB(_EAST_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_e, len_yz, MPI_DOUBLE, getNB(_EAST_), 0, RHEA_3DCOMM, &req_s[_EAST_]);
+        MPI_Isend(pack_send_e, len_yz, MPI_DOUBLE, getNB(_EAST_), tagid_s[_EAST_], RHEA_3DCOMM, &req_s[_EAST_]);
 
     if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_s, len_xz, MPI_DOUBLE, getNB(_SOUTH_), 0, RHEA_3DCOMM, &req_s[_SOUTH_]);
+        MPI_Isend(pack_send_s, len_xz, MPI_DOUBLE, getNB(_SOUTH_), tagid_s[_SOUTH_], RHEA_3DCOMM, &req_s[_SOUTH_]);
 
     if(getNB(_NORTH_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_n, len_xz, MPI_DOUBLE, getNB(_NORTH_), 0, RHEA_3DCOMM, &req_s[_NORTH_]);
+        MPI_Isend(pack_send_n, len_xz, MPI_DOUBLE, getNB(_NORTH_), tagid_s[_NORTH_], RHEA_3DCOMM, &req_s[_NORTH_]);
 
     if(getNB(_BACK_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_b, len_xy, MPI_DOUBLE, getNB(_BACK_), 0, RHEA_3DCOMM, &req_s[_BACK_]);
+        MPI_Isend(pack_send_b, len_xy, MPI_DOUBLE, getNB(_BACK_), tagid_s[_BACK_], RHEA_3DCOMM, &req_s[_BACK_]);
 
     if(getNB(_FRONT_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_f, len_xy, MPI_DOUBLE, getNB(_FRONT_), 0, RHEA_3DCOMM, &req_s[_FRONT_]);
+        MPI_Isend(pack_send_f, len_xy, MPI_DOUBLE, getNB(_FRONT_), tagid_s[_FRONT_], RHEA_3DCOMM, &req_s[_FRONT_]);
 
 // 2nd level
 
     if(getNB(_WEST_S_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_ws, len_1Dz, MPI_DOUBLE, getNB(_WEST_S_), 0, RHEA_3DCOMM, &req_s[_WEST_S_]);
+        MPI_Isend(pack_send_ws, len_1Dz, MPI_DOUBLE, getNB(_WEST_S_), tagid_s[_WEST_S_], RHEA_3DCOMM, &req_s[_WEST_S_]);
 
     if(getNB(_WEST_N_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_wn, len_1Dz, MPI_DOUBLE, getNB(_WEST_N_), 0, RHEA_3DCOMM, &req_s[_WEST_N_]);
+        MPI_Isend(pack_send_wn, len_1Dz, MPI_DOUBLE, getNB(_WEST_N_), tagid_s[_WEST_N_], RHEA_3DCOMM, &req_s[_WEST_N_]);
 
     if(getNB(_WEST_B_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_wb, len_1Dy, MPI_DOUBLE, getNB(_WEST_B_), 0, RHEA_3DCOMM, &req_s[_WEST_B_]);
+        MPI_Isend(pack_send_wb, len_1Dy, MPI_DOUBLE, getNB(_WEST_B_), tagid_s[_WEST_B_], RHEA_3DCOMM, &req_s[_WEST_B_]);
 
     if(getNB(_WEST_F_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_wf, len_1Dy, MPI_DOUBLE, getNB(_WEST_F_), 0, RHEA_3DCOMM, &req_s[_WEST_F_]);
+        MPI_Isend(pack_send_wf, len_1Dy, MPI_DOUBLE, getNB(_WEST_F_), tagid_s[_WEST_F_], RHEA_3DCOMM, &req_s[_WEST_F_]);
 
 
     if(getNB(_EAST_S_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_es, len_1Dz, MPI_DOUBLE, getNB(_EAST_S_), 0, RHEA_3DCOMM, &req_s[_EAST_S_]);
+        MPI_Isend(pack_send_es, len_1Dz, MPI_DOUBLE, getNB(_EAST_S_), tagid_s[_EAST_S_], RHEA_3DCOMM, &req_s[_EAST_S_]);
 
     if(getNB(_EAST_N_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_en, len_1Dz, MPI_DOUBLE, getNB(_EAST_N_), 0, RHEA_3DCOMM, &req_s[_EAST_N_]);
+        MPI_Isend(pack_send_en, len_1Dz, MPI_DOUBLE, getNB(_EAST_N_), tagid_s[_EAST_N_], RHEA_3DCOMM, &req_s[_EAST_N_]);
 
     if(getNB(_EAST_B_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_eb, len_1Dy, MPI_DOUBLE, getNB(_EAST_B_), 0, RHEA_3DCOMM, &req_s[_EAST_B_]);
+        MPI_Isend(pack_send_eb, len_1Dy, MPI_DOUBLE, getNB(_EAST_B_), tagid_s[_EAST_B_], RHEA_3DCOMM, &req_s[_EAST_B_]);
 
     if(getNB(_EAST_F_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_ef, len_1Dy, MPI_DOUBLE, getNB(_EAST_F_), 0, RHEA_3DCOMM, &req_s[_EAST_F_]);
+        MPI_Isend(pack_send_ef, len_1Dy, MPI_DOUBLE, getNB(_EAST_F_), tagid_s[_EAST_F_], RHEA_3DCOMM, &req_s[_EAST_F_]);
 
 
     if(getNB(_SOUTH_B_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_sb, len_1Dx, MPI_DOUBLE, getNB(_SOUTH_B_), 0, RHEA_3DCOMM, &req_s[_SOUTH_B_]);
+        MPI_Isend(pack_send_sb, len_1Dx, MPI_DOUBLE, getNB(_SOUTH_B_), tagid_s[_SOUTH_B_], RHEA_3DCOMM, &req_s[_SOUTH_B_]);
 
     if(getNB(_SOUTH_F_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_sf, len_1Dx, MPI_DOUBLE, getNB(_SOUTH_F_), 0, RHEA_3DCOMM, &req_s[_SOUTH_F_]);
+        MPI_Isend(pack_send_sf, len_1Dx, MPI_DOUBLE, getNB(_SOUTH_F_), tagid_s[_SOUTH_F_], RHEA_3DCOMM, &req_s[_SOUTH_F_]);
 
     if(getNB(_NORTH_B_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_nb, len_1Dx, MPI_DOUBLE, getNB(_NORTH_B_), 0, RHEA_3DCOMM, &req_s[_NORTH_B_]);
+        MPI_Isend(pack_send_nb, len_1Dx, MPI_DOUBLE, getNB(_NORTH_B_), tagid_s[_NORTH_B_], RHEA_3DCOMM, &req_s[_NORTH_B_]);
 
     if(getNB(_NORTH_F_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_nf, len_1Dx, MPI_DOUBLE, getNB(_NORTH_F_), 0, RHEA_3DCOMM, &req_s[_NORTH_F_]);
+        MPI_Isend(pack_send_nf, len_1Dx, MPI_DOUBLE, getNB(_NORTH_F_), tagid_s[_NORTH_F_], RHEA_3DCOMM, &req_s[_NORTH_F_]);
 
 
 // 3er level
 
     if(getNB(_WEST_S_B_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_wsb, len_1pt, MPI_DOUBLE, getNB(_WEST_S_B_), 0, RHEA_3DCOMM, &req_s[_WEST_S_B_]);
+        MPI_Isend(pack_send_wsb, len_1pt, MPI_DOUBLE, getNB(_WEST_S_B_), tagid_s[_WEST_S_B_], RHEA_3DCOMM, &req_s[_WEST_S_B_]);
 
     if(getNB(_WEST_N_B_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_wnb, len_1pt, MPI_DOUBLE, getNB(_WEST_N_B_), 0, RHEA_3DCOMM, &req_s[_WEST_N_B_]);
+        MPI_Isend(pack_send_wnb, len_1pt, MPI_DOUBLE, getNB(_WEST_N_B_), tagid_s[_WEST_N_B_], RHEA_3DCOMM, &req_s[_WEST_N_B_]);
 
     if(getNB(_WEST_S_F_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_wsf, len_1pt, MPI_DOUBLE, getNB(_WEST_S_F_), 0, RHEA_3DCOMM, &req_s[_WEST_S_F_]);
+        MPI_Isend(pack_send_wsf, len_1pt, MPI_DOUBLE, getNB(_WEST_S_F_), tagid_s[_WEST_S_F_], RHEA_3DCOMM, &req_s[_WEST_S_F_]);
 
     if(getNB(_WEST_N_F_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_wnf, len_1pt, MPI_DOUBLE, getNB(_WEST_N_F_), 0, RHEA_3DCOMM, &req_s[_WEST_N_F_]);
+        MPI_Isend(pack_send_wnf, len_1pt, MPI_DOUBLE, getNB(_WEST_N_F_), tagid_s[_WEST_N_F_], RHEA_3DCOMM, &req_s[_WEST_N_F_]);
 
 
 
     if(getNB(_EAST_S_B_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_esb, len_1pt, MPI_DOUBLE, getNB(_EAST_S_B_), 0, RHEA_3DCOMM, &req_s[_EAST_S_B_]);
+        MPI_Isend(pack_send_esb, len_1pt, MPI_DOUBLE, getNB(_EAST_S_B_), tagid_s[_EAST_S_B_], RHEA_3DCOMM, &req_s[_EAST_S_B_]);
 
     if(getNB(_EAST_N_B_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_enb, len_1pt, MPI_DOUBLE, getNB(_EAST_N_B_), 0, RHEA_3DCOMM, &req_s[_EAST_N_B_]);
+        MPI_Isend(pack_send_enb, len_1pt, MPI_DOUBLE, getNB(_EAST_N_B_), tagid_s[_EAST_N_B_], RHEA_3DCOMM, &req_s[_EAST_N_B_]);
 
     if(getNB(_EAST_S_F_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_esf, len_1pt, MPI_DOUBLE, getNB(_EAST_S_F_), 0, RHEA_3DCOMM, &req_s[_EAST_S_F_]);
+        MPI_Isend(pack_send_esf, len_1pt, MPI_DOUBLE, getNB(_EAST_S_F_), tagid_s[_EAST_S_F_], RHEA_3DCOMM, &req_s[_EAST_S_F_]);
 
     if(getNB(_EAST_N_F_) != _NO_NEIGHBOUR_ )
-        MPI_Isend(pack_send_enf, len_1pt, MPI_DOUBLE, getNB(_EAST_N_F_), 0, RHEA_3DCOMM, &req_s[_EAST_N_F_]);
+        MPI_Isend(pack_send_enf, len_1pt, MPI_DOUBLE, getNB(_EAST_N_F_), tagid_s[_EAST_N_F_], RHEA_3DCOMM, &req_s[_EAST_N_F_]);
 
 
 
 ///////
 
     if(getNB(_WEST_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_w, len_yz, MPI_DOUBLE, getNB(_WEST_), 0, RHEA_3DCOMM, &req_r[_WEST_]);
+        MPI_Irecv(pack_recv_w, len_yz, MPI_DOUBLE, getNB(_WEST_), tagid_r[_WEST_], RHEA_3DCOMM, &req_r[_WEST_]);
 
     if(getNB(_EAST_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_e, len_yz, MPI_DOUBLE, getNB(_EAST_), 0, RHEA_3DCOMM, &req_r[_EAST_]);
+        MPI_Irecv(pack_recv_e, len_yz, MPI_DOUBLE, getNB(_EAST_), tagid_r[_EAST_], RHEA_3DCOMM, &req_r[_EAST_]);
 
     if(getNB(_SOUTH_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_s, len_xz, MPI_DOUBLE, getNB(_SOUTH_), 0, RHEA_3DCOMM, &req_r[_SOUTH_]);
+        MPI_Irecv(pack_recv_s, len_xz, MPI_DOUBLE, getNB(_SOUTH_), tagid_r[_SOUTH_], RHEA_3DCOMM, &req_r[_SOUTH_]);
 
     if(getNB(_NORTH_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_n, len_xz, MPI_DOUBLE, getNB(_NORTH_), 0, RHEA_3DCOMM, &req_r[_NORTH_]);
+        MPI_Irecv(pack_recv_n, len_xz, MPI_DOUBLE, getNB(_NORTH_), tagid_r[_NORTH_], RHEA_3DCOMM, &req_r[_NORTH_]);
 
     if(getNB(_BACK_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_b, len_xy, MPI_DOUBLE, getNB(_BACK_), 0, RHEA_3DCOMM, &req_r[_BACK_]);
+        MPI_Irecv(pack_recv_b, len_xy, MPI_DOUBLE, getNB(_BACK_), tagid_r[_BACK_], RHEA_3DCOMM, &req_r[_BACK_]);
 
     if(getNB(_FRONT_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_f, len_xy, MPI_DOUBLE, getNB(_FRONT_), 0, RHEA_3DCOMM, &req_r[_FRONT_]);
+        MPI_Irecv(pack_recv_f, len_xy, MPI_DOUBLE, getNB(_FRONT_), tagid_r[_FRONT_], RHEA_3DCOMM, &req_r[_FRONT_]);
 
 //2nd Level
 
     if(getNB(_WEST_S_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_ws, len_1Dz, MPI_DOUBLE, getNB(_WEST_S_), 0, RHEA_3DCOMM, &req_r[_WEST_S_]);
+        MPI_Irecv(pack_recv_ws, len_1Dz, MPI_DOUBLE, getNB(_WEST_S_), tagid_r[_WEST_S_], RHEA_3DCOMM, &req_r[_WEST_S_]);
     if(getNB(_WEST_N_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_wn, len_1Dz, MPI_DOUBLE, getNB(_WEST_N_), 0, RHEA_3DCOMM, &req_r[_WEST_N_]);
+        MPI_Irecv(pack_recv_wn, len_1Dz, MPI_DOUBLE, getNB(_WEST_N_), tagid_r[_WEST_N_], RHEA_3DCOMM, &req_r[_WEST_N_]);
     if(getNB(_WEST_B_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_wb, len_1Dy, MPI_DOUBLE, getNB(_WEST_B_), 0, RHEA_3DCOMM, &req_r[_WEST_B_]);
+        MPI_Irecv(pack_recv_wb, len_1Dy, MPI_DOUBLE, getNB(_WEST_B_), tagid_r[_WEST_B_], RHEA_3DCOMM, &req_r[_WEST_B_]);
     if(getNB(_WEST_F_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_wf, len_1Dy, MPI_DOUBLE, getNB(_WEST_F_), 0, RHEA_3DCOMM, &req_r[_WEST_F_]);
+        MPI_Irecv(pack_recv_wf, len_1Dy, MPI_DOUBLE, getNB(_WEST_F_), tagid_r[_WEST_F_], RHEA_3DCOMM, &req_r[_WEST_F_]);
 
     if(getNB(_EAST_S_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_es, len_1Dz, MPI_DOUBLE, getNB(_EAST_S_), 0, RHEA_3DCOMM, &req_r[_EAST_S_]);
+        MPI_Irecv(pack_recv_es, len_1Dz, MPI_DOUBLE, getNB(_EAST_S_), tagid_r[_EAST_S_], RHEA_3DCOMM, &req_r[_EAST_S_]);
     if(getNB(_EAST_N_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_en, len_1Dz, MPI_DOUBLE, getNB(_EAST_N_), 0, RHEA_3DCOMM, &req_r[_EAST_N_]);
+        MPI_Irecv(pack_recv_en, len_1Dz, MPI_DOUBLE, getNB(_EAST_N_), tagid_r[_EAST_N_], RHEA_3DCOMM, &req_r[_EAST_N_]);
     if(getNB(_EAST_B_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_eb, len_1Dy, MPI_DOUBLE, getNB(_EAST_B_), 0, RHEA_3DCOMM, &req_r[_EAST_B_]);
+        MPI_Irecv(pack_recv_eb, len_1Dy, MPI_DOUBLE, getNB(_EAST_B_), tagid_r[_EAST_B_], RHEA_3DCOMM, &req_r[_EAST_B_]);
     if(getNB(_EAST_F_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_ef, len_1Dy, MPI_DOUBLE, getNB(_EAST_F_), 0, RHEA_3DCOMM, &req_r[_EAST_F_]);
+        MPI_Irecv(pack_recv_ef, len_1Dy, MPI_DOUBLE, getNB(_EAST_F_), tagid_r[_EAST_F_], RHEA_3DCOMM, &req_r[_EAST_F_]);
 
     if(getNB(_SOUTH_B_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_sb, len_1Dx, MPI_DOUBLE, getNB(_SOUTH_B_), 0, RHEA_3DCOMM, &req_r[_SOUTH_B_]);
+        MPI_Irecv(pack_recv_sb, len_1Dx, MPI_DOUBLE, getNB(_SOUTH_B_), tagid_r[_SOUTH_B_], RHEA_3DCOMM, &req_r[_SOUTH_B_]);
     if(getNB(_SOUTH_F_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_sf, len_1Dx, MPI_DOUBLE, getNB(_SOUTH_F_), 0, RHEA_3DCOMM, &req_r[_SOUTH_F_]);
+        MPI_Irecv(pack_recv_sf, len_1Dx, MPI_DOUBLE, getNB(_SOUTH_F_), tagid_r[_SOUTH_F_], RHEA_3DCOMM, &req_r[_SOUTH_F_]);
     if(getNB(_NORTH_B_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_nb, len_1Dx, MPI_DOUBLE, getNB(_NORTH_B_), 0, RHEA_3DCOMM, &req_r[_NORTH_B_]);
+        MPI_Irecv(pack_recv_nb, len_1Dx, MPI_DOUBLE, getNB(_NORTH_B_), tagid_r[_NORTH_B_], RHEA_3DCOMM, &req_r[_NORTH_B_]);
     if(getNB(_NORTH_F_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_nf, len_1Dx, MPI_DOUBLE, getNB(_NORTH_F_), 0, RHEA_3DCOMM, &req_r[_NORTH_F_]);
+        MPI_Irecv(pack_recv_nf, len_1Dx, MPI_DOUBLE, getNB(_NORTH_F_), tagid_r[_NORTH_F_], RHEA_3DCOMM, &req_r[_NORTH_F_]);
 
 
 // 3er level
 
     if(getNB(_WEST_S_B_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_wsb, len_1pt, MPI_DOUBLE, getNB(_WEST_S_B_), 0, RHEA_3DCOMM, &req_r[_WEST_S_B_]);
+        MPI_Irecv(pack_recv_wsb, len_1pt, MPI_DOUBLE, getNB(_WEST_S_B_), tagid_r[_WEST_S_B_], RHEA_3DCOMM, &req_r[_WEST_S_B_]);
     if(getNB(_WEST_N_B_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_wnb, len_1pt, MPI_DOUBLE, getNB(_WEST_N_B_), 0, RHEA_3DCOMM, &req_r[_WEST_N_B_]);
+        MPI_Irecv(pack_recv_wnb, len_1pt, MPI_DOUBLE, getNB(_WEST_N_B_), tagid_r[_WEST_N_B_], RHEA_3DCOMM, &req_r[_WEST_N_B_]);
     if(getNB(_WEST_S_F_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_wsf, len_1pt, MPI_DOUBLE, getNB(_WEST_S_F_), 0, RHEA_3DCOMM, &req_r[_WEST_S_F_]);
+        MPI_Irecv(pack_recv_wsf, len_1pt, MPI_DOUBLE, getNB(_WEST_S_F_), tagid_r[_WEST_S_F_], RHEA_3DCOMM, &req_r[_WEST_S_F_]);
     if(getNB(_WEST_N_F_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_wnf, len_1pt, MPI_DOUBLE, getNB(_WEST_N_F_), 0, RHEA_3DCOMM, &req_r[_WEST_N_F_]);
+        MPI_Irecv(pack_recv_wnf, len_1pt, MPI_DOUBLE, getNB(_WEST_N_F_), tagid_r[_WEST_N_F_], RHEA_3DCOMM, &req_r[_WEST_N_F_]);
 
     if(getNB(_EAST_S_B_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_esb, len_1pt, MPI_DOUBLE, getNB(_EAST_S_B_), 0, RHEA_3DCOMM, &req_r[_EAST_S_B_]);
+        MPI_Irecv(pack_recv_esb, len_1pt, MPI_DOUBLE, getNB(_EAST_S_B_), tagid_r[_EAST_S_B_], RHEA_3DCOMM, &req_r[_EAST_S_B_]);
     if(getNB(_EAST_N_B_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_enb, len_1pt, MPI_DOUBLE, getNB(_EAST_N_B_), 0, RHEA_3DCOMM, &req_r[_EAST_N_B_]);
+        MPI_Irecv(pack_recv_enb, len_1pt, MPI_DOUBLE, getNB(_EAST_N_B_), tagid_r[_EAST_N_B_], RHEA_3DCOMM, &req_r[_EAST_N_B_]);
     if(getNB(_EAST_S_F_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_esf, len_1pt, MPI_DOUBLE, getNB(_EAST_S_F_), 0, RHEA_3DCOMM, &req_r[_EAST_S_F_]);
+        MPI_Irecv(pack_recv_esf, len_1pt, MPI_DOUBLE, getNB(_EAST_S_F_), tagid_r[_EAST_S_F_], RHEA_3DCOMM, &req_r[_EAST_S_F_]);
     if(getNB(_EAST_N_F_) != _NO_NEIGHBOUR_ )
-        MPI_Irecv(pack_recv_enf, len_1pt, MPI_DOUBLE, getNB(_EAST_N_F_), 0, RHEA_3DCOMM, &req_r[_EAST_N_F_]);
+        MPI_Irecv(pack_recv_enf, len_1pt, MPI_DOUBLE, getNB(_EAST_N_F_), tagid_r[_EAST_N_F_], RHEA_3DCOMM, &req_r[_EAST_N_F_]);
 
 // Wait for the communications to be done
 

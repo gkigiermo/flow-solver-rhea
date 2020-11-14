@@ -89,6 +89,10 @@ class ParallelTopology{
         // IDs of the boundaries
         int lbounds[26];
 
+        // Tag Id
+        int tagid_s[26];
+        int tagid_r[26];
+
 
         // 2nd level info
         int is_inix;
@@ -206,6 +210,8 @@ class ParallelTopology{
         void halo_exchange_simple();
         void unpack(double*);
         void unpack_simple(double*);
+
+        void calculate_tags();
 
 
 };
