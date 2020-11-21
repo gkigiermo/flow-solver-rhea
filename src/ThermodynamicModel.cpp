@@ -274,31 +274,31 @@ void PengRobinsonModel::calculateDensityInternalEnergyFromPressureTemperature(do
     rho = molecular_weight/real( v_1 );		/// First root is always real
 
     /// Calculate e
-    double v = molecular_weight/rho;
-    e        = ( 1.0/molecular_weight )*this->calculateMolarInternalEnergyFromPressureTemperatureMolarVolume( P, T, v );
+    double bar_v = molecular_weight/rho;
+    e            = ( 1.0/molecular_weight )*this->calculateMolarInternalEnergyFromPressureTemperatureMolarVolume( P, T, bar_v );
 
 };
 
 void PengRobinsonModel::calculateSpecificHeatCapacities(double &c_v, double &c_p, const double &P, const double &T, const double &rho) {
 
-    double v           = molecular_weight/rho;
+    double bar_v       = molecular_weight/rho;
     double std_bar_c_p = this->calculateMolarStdCpFromNASApolynomials( T );
     double std_bar_c_v = std_bar_c_p - R_universal;
 
-    c_v = ( 1.0/molecular_weight )*( std_bar_c_v + this->calculateDepartureFunctionMolarCv( P, T, v ) );
-    c_p = ( 1.0/molecular_weight )*( std_bar_c_p + this->calculateDepartureFunctionMolarCp( P, T, v ) );
+    c_v = ( 1.0/molecular_weight )*( std_bar_c_v + this->calculateDepartureFunctionMolarCv( P, T, bar_v ) );
+    c_p = ( 1.0/molecular_weight )*( std_bar_c_p + this->calculateDepartureFunctionMolarCp( P, T, bar_v ) );
 
 };
 
 double PengRobinsonModel::calculateHeatCapacitiesRatio(const double &P, const double &rho) {
 
-    double v           = molecular_weight/rho;
-    double T           = this->calculateTemperatureFromPressureMolarVolume( P, v );
+    double bar_v       = molecular_weight/rho;
+    double T           = this->calculateTemperatureFromPressureMolarVolume( P, bar_v );
     double std_bar_c_p = this->calculateMolarStdCpFromNASApolynomials( T );
     double std_bar_c_v = std_bar_c_p - R_universal;
 
-    double c_v = ( 1.0/molecular_weight )*( std_bar_c_v + this->calculateDepartureFunctionMolarCv( P, T, v ) );
-    double c_p = ( 1.0/molecular_weight )*( std_bar_c_p + this->calculateDepartureFunctionMolarCp( P, T, v ) );
+    double c_v = ( 1.0/molecular_weight )*( std_bar_c_v + this->calculateDepartureFunctionMolarCv( P, T, bar_v ) );
+    double c_p = ( 1.0/molecular_weight )*( std_bar_c_p + this->calculateDepartureFunctionMolarCp( P, T, bar_v ) );
 
     double gamma = c_p/c_v;
 
@@ -308,9 +308,9 @@ double PengRobinsonModel::calculateHeatCapacitiesRatio(const double &P, const do
 
 double PengRobinsonModel::calculateSoundSpeed(const double &P, const double &T, const double &rho) {
 
-    double v = molecular_weight/rho;
+    double bar_v = molecular_weight/rho;
 
-    double sos = sqrt( 1.0/( rho*this->calculateIsentropicCompressibility( P, T, v ) ) );
+    double sos = sqrt( 1.0/( rho*this->calculateIsentropicCompressibility( P, T, bar_v ) ) );
 
     return( sos );
 
@@ -318,17 +318,17 @@ double PengRobinsonModel::calculateSoundSpeed(const double &P, const double &T, 
 
 double PengRobinsonModel::calculatePressureFromTemperatureDensity(const double &T, const double &rho) {
 
-    double v = molecular_weight/rho;
+    double bar_v = molecular_weight/rho;
 
-    double P = R_universal*T/( v - eos_b ) - this->calculate_eos_a( T )/( v*v + 2.0*eos_b*v - eos_b*eos_b );
+    double P = R_universal*T/( bar_v - eos_b ) - this->calculate_eos_a( T )/( bar_v*bar_v + 2.0*eos_b*bar_v - eos_b*eos_b );
 
     return( P );
 
 };
 
-double PengRobinsonModel::calculateMolarInternalEnergyFromPressureTemperatureMolarVolume(const double &P, const double &T, const double &v) {
+double PengRobinsonModel::calculateMolarInternalEnergyFromPressureTemperatureMolarVolume(const double &P, const double &T, const double &bar_v) {
 
-    double bar_e = this->calculateMolarStdEnthalpyFromNASApolynomials( T ) + this->calculateDepartureFunctionMolarEnthalpy( P, T, v ) - P*v;
+    double bar_e = this->calculateMolarStdEnthalpyFromNASApolynomials( T ) + this->calculateDepartureFunctionMolarEnthalpy( P, T, bar_v ) - P*bar_v;
 
     return( bar_e );
 
@@ -373,9 +373,9 @@ double PengRobinsonModel::calculate_eos_a_second_derivative(const double &T) {
 
 };
 
-double PengRobinsonModel::calculate_Z(const double &P, const double &T, const double &v) {
+double PengRobinsonModel::calculate_Z(const double &P, const double &T, const double &bar_v) {
 
-    double Z = ( P*v )/( R_universal*T );
+    double Z = ( P*bar_v )/( R_universal*T );
 
     return( Z );
 
@@ -465,7 +465,7 @@ double PengRobinsonModel::calculateMolarStdEnthalpyFromNASApolynomials(const dou
 
 };
 
-double PengRobinsonModel::calculateDepartureFunctionMolarCp(const double &P, const double &T, const double &v) {
+double PengRobinsonModel::calculateDepartureFunctionMolarCp(const double &P, const double &T, const double &bar_v) {
 
     /// Peng-Robinson model:
     /// D. Y. Peng, D. B. Robinson.
@@ -474,7 +474,7 @@ double PengRobinsonModel::calculateDepartureFunctionMolarCp(const double &P, con
 
     double eos_a_first_derivative  = this->calculate_eos_a_first_derivative( T );
     double eos_a_second_derivative = this->calculate_eos_a_second_derivative( T );
-    double Z                       = this->calculate_Z( P, T, v );
+    double Z                       = this->calculate_Z( P, T, bar_v );
     double A                       = this->calculate_A( P, T );
     double B                       = this->calculate_B( P, T );
     double M                       = this->calculate_M( Z, B );
@@ -486,7 +486,7 @@ double PengRobinsonModel::calculateDepartureFunctionMolarCp(const double &P, con
   
 };
 
-double PengRobinsonModel::calculateDepartureFunctionMolarCv(const double &P, const double &T, const double &v) {
+double PengRobinsonModel::calculateDepartureFunctionMolarCv(const double &P, const double &T, const double &bar_v) {
 
     /// Peng-Robinson model:
     /// D. Y. Peng, D. B. Robinson.
@@ -494,7 +494,7 @@ double PengRobinsonModel::calculateDepartureFunctionMolarCv(const double &P, con
     /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
 
     double eos_a_second_derivative = this->calculate_eos_a_second_derivative( T );
-    double Z                       = this->calculate_Z( P, T, v );
+    double Z                       = this->calculate_Z( P, T, bar_v );
     double B                       = this->calculate_B( P, T );
 
     double Delta_bar_c_v = ( -1.0 )*( ( T*eos_a_second_derivative )/( 2.0*sqrt( 2.0 )*eos_b ) )*log( ( Z + ( 1.0 - sqrt( 2.0 ) )*B )/( Z + ( 1.0 + sqrt( 2.0 ) )*B ) );
@@ -503,7 +503,7 @@ double PengRobinsonModel::calculateDepartureFunctionMolarCv(const double &P, con
   
   };
 
-double PengRobinsonModel::calculateDepartureFunctionMolarEnthalpy(const double &P, const double &T, const double &v) {
+double PengRobinsonModel::calculateDepartureFunctionMolarEnthalpy(const double &P, const double &T, const double &bar_v) {
 
     /// Peng-Robinson model:
     /// D. Y. Peng, D. B. Robinson.
@@ -512,7 +512,7 @@ double PengRobinsonModel::calculateDepartureFunctionMolarEnthalpy(const double &
 
     double eos_a                  = this->calculate_eos_a( T );
     double eos_a_first_derivative = this->calculate_eos_a_first_derivative( T );
-    double Z                      = this->calculate_Z( P, T, v );
+    double Z                      = this->calculate_Z( P, T, bar_v );
     double B                      = this->calculate_B( P, T );
 
     double Delta_bar_h = R_universal*T*( Z - 1.0 ) + ( ( eos_a - eos_a_first_derivative*T )/( 2.0*sqrt( 2.0 )*eos_b ) )*log( ( Z + ( 1.0 - sqrt( 2.0 ) )*B )/( Z + ( 1.0 + sqrt( 2.0 ) )*B ) );
@@ -521,20 +521,20 @@ double PengRobinsonModel::calculateDepartureFunctionMolarEnthalpy(const double &
   
 };
 
-double PengRobinsonModel::calculateTemperatureFromPressureMolarVolume(const double &P, const double &v) {
+double PengRobinsonModel::calculateTemperatureFromPressureMolarVolume(const double &P, const double &bar_v) {
 
     /// Numerical Recipes in C++, Second Edition.
     /// W.H. Press, S.A. Teulosky, W.T. Vetterling, B.P. Flannery.
     /// 5.1 Series and Their Convergence: Aitken’s delta-squared process.
 
     // Initial temperature guess using ideal-gas model
-    double T = P*v/R_universal;
+    double T = P*bar_v/R_universal;
 
     /// Aitken’s delta-squared process:
     double x_0 = T, x_1, x_2, denominator;
     for(int iter = 0; iter < max_aitken_iter; iter++) { 
-        x_1 = ( (v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_0 )/( pow( v, 2.0 ) + 2.0*eos_b*v - pow( eos_b, 2.0 ) ) ) );
-        x_2 = ( (v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_1 )/( pow( v, 2.0 ) + 2.0*eos_b*v - pow( eos_b, 2.0 ) ) ) );
+        x_1 = ( (bar_v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_0 )/( pow( bar_v, 2.0 ) + 2.0*eos_b*bar_v - pow( eos_b, 2.0 ) ) ) );
+        x_2 = ( (bar_v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_1 )/( pow( bar_v, 2.0 ) + 2.0*eos_b*bar_v - pow( eos_b, 2.0 ) ) ) );
 
         denominator = x_2 - 2.0*x_1 + x_0;
         T = x_2 - ( pow( x_2 - x_1, 2.0 ) )/denominator;
@@ -547,7 +547,7 @@ double PengRobinsonModel::calculateTemperatureFromPressureMolarVolume(const doub
 
 };
 
-double PengRobinsonModel::calculateDPDTConstantMolarVolume(const double &T, const double &v) {
+double PengRobinsonModel::calculateDPDTConstantMolarVolume(const double &T, const double &bar_v) {
 
     /// Peng-Robinson model:
     /// D. Y. Peng, D. B. Robinson.
@@ -556,13 +556,13 @@ double PengRobinsonModel::calculateDPDTConstantMolarVolume(const double &T, cons
 
     double eos_a_first_derivative = this->calculate_eos_a_first_derivative( T );
 
-    double dP_dT_const_v = ( R_universal/( v - eos_b ) ) - ( eos_a_first_derivative/( v*v + 2.0*v*eos_b - eos_b*eos_b ) );
+    double dP_dT_const_v = ( R_universal/( bar_v - eos_b ) ) - ( eos_a_first_derivative/( bar_v*bar_v + 2.0*bar_v*eos_b - eos_b*eos_b ) );
 
     return( dP_dT_const_v );
   
 };
 
-double PengRobinsonModel::calculateDPDvConstantTemperature(const double &T, const double &v) {
+double PengRobinsonModel::calculateDPDvConstantTemperature(const double &T, const double &bar_v) {
 
     /// Peng-Robinson model:
     /// D. Y. Peng, D. B. Robinson.
@@ -571,40 +571,40 @@ double PengRobinsonModel::calculateDPDvConstantTemperature(const double &T, cons
 
     double eos_a = this->calculate_eos_a( T );
     
-    double dP_dv_const_T = ( -1.0 )*( ( R_universal*T )/pow( v - eos_b, 2.0 ) ) + ( eos_a*( 2.0*v + 2.0*eos_b ) )/pow( pow( v, 2.0 ) + 2.0*v*eos_b - pow( eos_b, 2.0 ), 2.0 );
+    double dP_dv_const_T = ( -1.0 )*( ( R_universal*T )/pow( bar_v - eos_b, 2.0 ) ) + ( eos_a*( 2.0*bar_v + 2.0*eos_b ) )/pow( pow( bar_v, 2.0 ) + 2.0*bar_v*eos_b - pow( eos_b, 2.0 ), 2.0 );
 
     return( dP_dv_const_T );
   
 };  
 
-double PengRobinsonModel::calculateExpansivity(const double &T, const double &v) {
+double PengRobinsonModel::calculateExpansivity(const double &T, const double &bar_v) {
 
-    double dP_dT_const_v = this->calculateDPDTConstantMolarVolume( T, v );
-    double dP_dv_const_T = this->calculateDPDvConstantTemperature( T, v );
+    double dP_dT_const_v = this->calculateDPDTConstantMolarVolume( T, bar_v );
+    double dP_dv_const_T = this->calculateDPDvConstantTemperature( T, bar_v );
 
-    double expansivity = ( -1.0 )*( dP_dT_const_v/( v*dP_dv_const_T ) );
+    double expansivity = ( -1.0 )*( dP_dT_const_v/( bar_v*dP_dv_const_T ) );
 
     return( expansivity );
   
 };
 
-double PengRobinsonModel::calculateIsothermalCompressibility(const double &T, const double &v) {
+double PengRobinsonModel::calculateIsothermalCompressibility(const double &T, const double &bar_v) {
 
-    double dP_dv_const_T = this->calculateDPDvConstantTemperature( T, v );
+    double dP_dv_const_T = this->calculateDPDvConstantTemperature( T, bar_v );
 
-    double isothermal_compressibility = ( -1.0 )/( v*dP_dv_const_T );
+    double isothermal_compressibility = ( -1.0 )/( bar_v*dP_dv_const_T );
 
     return( isothermal_compressibility );
   
 };  
 
-double PengRobinsonModel::calculateIsentropicCompressibility(const double &P, const double &T, const double &v) {
+double PengRobinsonModel::calculateIsentropicCompressibility(const double &P, const double &T, const double &bar_v) {
 
-    double isothermal_compressibility = this->calculateIsothermalCompressibility( T, v );
-    double expansivity                = this->calculateExpansivity( T, v );
-    double bar_c_p                    = this->calculateMolarStdCpFromNASApolynomials( T ) + this->calculateDepartureFunctionMolarCp( P, T, v );
+    double isothermal_compressibility = this->calculateIsothermalCompressibility( T, bar_v );
+    double expansivity                = this->calculateExpansivity( T, bar_v );
+    double bar_c_p                    = this->calculateMolarStdCpFromNASApolynomials( T ) + this->calculateDepartureFunctionMolarCp( P, T, bar_v );
       
-    double isentropic_compressibility = ( isothermal_compressibility - ( ( v*T*pow( expansivity, 2.0 ) )/bar_c_p ) );
+    double isentropic_compressibility = ( isothermal_compressibility - ( ( bar_v*T*pow( expansivity, 2.0 ) )/bar_c_p ) );
     
     return( isentropic_compressibility );
   

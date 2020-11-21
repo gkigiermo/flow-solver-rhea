@@ -209,7 +209,7 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         double calculatePressureFromTemperatureDensity(const double &T, const double &rho);
 
         /// Calculate molar internal energy from pressure, temperature and molar volume
-        double calculateMolarInternalEnergyFromPressureTemperatureMolarVolume(const double &P, const double &T, const double &v);
+        double calculateMolarInternalEnergyFromPressureTemperatureMolarVolume(const double &P, const double &T, const double &bar_v);
 
         /// Calculate attractive-forces a coefficient
         double calculate_eos_a(const double &T);
@@ -221,7 +221,7 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         double calculate_eos_a_second_derivative(const double &T);
 
         /// Calculate compressibility factor
-        double calculate_Z(const double &P, const double &T, const double &v);
+        double calculate_Z(const double &P, const double &T, const double &bar_v);
 
         /// Calculate auxiliar parameters
         double calculate_A(const double &P, const double &T);
@@ -234,21 +234,21 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         double calculateMolarStdEnthalpyFromNASApolynomials(const double &T);
 
         /// Calculate high-pressure departure functions
-        double calculateDepartureFunctionMolarCp(const double &P, const double &T, const double &v);
-        double calculateDepartureFunctionMolarCv(const double &P, const double &T, const double &v);
-        double calculateDepartureFunctionMolarEnthalpy(const double &P, const double &T, const double &v);
+        double calculateDepartureFunctionMolarCp(const double &P, const double &T, const double &bar_v);
+        double calculateDepartureFunctionMolarCv(const double &P, const double &T, const double &bar_v);
+        double calculateDepartureFunctionMolarEnthalpy(const double &P, const double &T, const double &bar_v);
 
         /// Calculate temperature from pressure and molar volume
-        double calculateTemperatureFromPressureMolarVolume(const double &P, const double &v);
+        double calculateTemperatureFromPressureMolarVolume(const double &P, const double &bar_v);
 
         /// Calculate thermodynamic derivatives
-        double calculateDPDTConstantMolarVolume(const double &T, const double &v);
-        double calculateDPDvConstantTemperature(const double &T, const double &v);
+        double calculateDPDTConstantMolarVolume(const double &T, const double &bar_v);
+        double calculateDPDvConstantTemperature(const double &T, const double &bar_v);
 
         /// Calculate expansivity & compressibility
-        double calculateExpansivity(const double &T, const double &v);
-        double calculateIsothermalCompressibility(const double &T, const double &v);
-        double calculateIsentropicCompressibility(const double &P, const double &T, const double &v);
+        double calculateExpansivity(const double &T, const double &bar_v);
+        double calculateIsothermalCompressibility(const double &T, const double &bar_v);
+        double calculateIsentropicCompressibility(const double &P, const double &T, const double &bar_v);
 
         /// Calculate roots of cubic polynomial
         void calculateRootsCubicPolynomial(complex<double> &root_1, complex<double> &root_2, complex<double> &root_3, double &a, double &b, double &c, double &d);
