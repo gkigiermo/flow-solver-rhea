@@ -577,7 +577,7 @@ double PengRobinsonModel::calculateDPDvConstantTemperature(const double &T, cons
   
 };  
 
-double PengRobinsonModel::calculateExpansivity(const double &T, const double &bar_v) {
+double PengRobinsonModel::calculateVolumeExpansivity(const double &T, const double &bar_v) {
 
     double dP_dT_const_v = this->calculateDPDTConstantMolarVolume( T, bar_v );
     double dP_dv_const_T = this->calculateDPDvConstantTemperature( T, bar_v );
@@ -601,7 +601,7 @@ double PengRobinsonModel::calculateIsothermalCompressibility(const double &T, co
 double PengRobinsonModel::calculateIsentropicCompressibility(const double &P, const double &T, const double &bar_v) {
 
     double isothermal_compressibility = this->calculateIsothermalCompressibility( T, bar_v );
-    double expansivity                = this->calculateExpansivity( T, bar_v );
+    double expansivity                = this->calculateVolumeExpansivity( T, bar_v );
     double bar_c_p                    = this->calculateMolarStdCpFromNASApolynomials( T ) + this->calculateDepartureFunctionMolarCp( P, T, bar_v );
       
     double isentropic_compressibility = ( isothermal_compressibility - ( ( bar_v*T*pow( expansivity, 2.0 ) )/bar_c_p ) );

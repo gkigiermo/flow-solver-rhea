@@ -246,7 +246,7 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         double calculateDPDvConstantTemperature(const double &T, const double &bar_v);
 
         /// Calculate expansivity & compressibility
-        double calculateExpansivity(const double &T, const double &bar_v);
+        double calculateVolumeExpansivity(const double &T, const double &bar_v);
         double calculateIsothermalCompressibility(const double &T, const double &bar_v);
         double calculateIsentropicCompressibility(const double &P, const double &T, const double &bar_v);
 
