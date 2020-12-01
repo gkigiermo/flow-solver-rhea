@@ -20,11 +20,15 @@ const double tau_w      = rho_0*u_tau*u_tau;			/// Wall shear stress
 const double nu         = u_tau*delta/Re_tau;			/// Kinematic viscosity	
 //const double kappa      = c_p*mu/Pr;				/// Thermal conductivity	
 const double P_0        = rho_0*u_tau*u_tau/( gamma_0*Ma*Ma );	/// Reference pressure
-const double Re_b       = pow( Re_tau/0.09, 1.0/0.88 );		/// Bulk (approximated) Reynolds number
-const double u_b        = nu*Re_b/( 2.0*delta );		/// Bulk (approximated) velocity
-const double L_x       = 4.0*pi*delta;				/// Streamwise length
-const double L_y       = 2.0*delta;				/// Wall-normal height
-const double L_z       = 4.0*pi*delta/3.0;			/// Spanwise width
+//const double Re_b       = pow( Re_tau/0.09, 1.0/0.88 );		/// Bulk (approximated) Reynolds number
+//const double u_b        = nu*Re_b/( 2.0*delta );		/// Bulk (approximated) velocity
+//const double L_x       = 4.0*pi*delta;				/// Streamwise length
+//const double L_y       = 2.0*delta;				/// Wall-normal height
+//const double L_z       = 4.0*pi*delta/3.0;			/// Spanwise width
+const double kappa_vK   = 0.41;					/// von Kármán constant
+const double y_0        = nu/( 9.0*u_tau );			/// Smooth-wall roughness
+const double u_0        = ( u_tau/kappa_vK )*( log( delta/y_0 ) + ( y_0/delta ) - 1.0 );	/// Volume average of a log-law velocity profile
+const double alpha      = 0.5;					/// Magnitude of velocity perturbation
 
 ////////// myRHEA CLASS //////////
 
@@ -33,23 +37,15 @@ void myRHEA::setInitialConditions() {
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
     /// All (inner, halo, boundary): u, v, w, P and T
-    //double random_number, y_dist;
-    double random_number, y_dist, y_factor, z_factor;
+    double random_number, y_dist;
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                random_number = (double) rand()/RAND_MAX;
-                y_dist        = max( 1.0e-10, min( mesh->y[j], 2.0*delta - mesh->y[j] ) );
-                y_factor = 1.0;
-		if( mesh->y[j] > 0.5*L_y ) y_factor = -1.0;
-                z_factor = 1.0;
-		if( mesh->z[k] > 0.5*L_z ) z_factor = -1.0;
-                //u_field[I1D(i,j,k)] = y_factor*z_factor*( 1.0 - 5.0e-1*random_number )*sin( 16.0*mesh->x[i]/L_x );
-                u_field[I1D(i,j,k)] = ( u_b + 7.5e-1*( random_number - 5.0e-1 ) )*pow( y_dist/delta, 1.0/8.0 );
-                //v_field[I1D(i,j,k)] = ( random_number - 0.5 )*u_b;
-                v_field[I1D(i,j,k)] = y_factor*z_factor*( 1.0 - 5.0e-1*random_number )*sin( 16.0*mesh->x[i]/L_x );
-                //w_field[I1D(i,j,k)] = ( random_number - 0.5 )*u_b;
-                w_field[I1D(i,j,k)] = y_factor*z_factor*( 1.0 - 5.0e-1*random_number )*sin( 16.0*mesh->x[i]/L_x );
+                random_number       = 2.0*( (double) rand()/RAND_MAX ) - 1.0;
+                y_dist              = min( mesh->y[j], 2.0*delta - mesh->y[j] );
+                u_field[I1D(i,j,k)] = ( 2.0*u_0*y_dist/delta ) + alpha*u_0*random_number;
+                v_field[I1D(i,j,k)] = 0.0;
+                w_field[I1D(i,j,k)] = 0.0;
                 P_field[I1D(i,j,k)] = P_0;
                 T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_0*thermodynamics->getSpecificGasConstant() );
             }
