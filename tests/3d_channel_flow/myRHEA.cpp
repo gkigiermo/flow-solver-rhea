@@ -36,12 +36,17 @@ void myRHEA::setInitialConditions() {
 
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
+    int my_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    srand( my_rank );
+
     /// All (inner, halo, boundary): u, v, w, P and T
     double random_number, y_dist;
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                random_number       = 2.0*( (double) rand()/RAND_MAX ) - 1.0;
+                random_number       = 2.0*( (double) rand()/( RAND_MAX ) ) - 1.0;
                 y_dist              = min( mesh->y[j], 2.0*delta - mesh->y[j] );
                 u_field[I1D(i,j,k)] = ( 2.0*u_0*y_dist/delta ) + alpha*u_0*random_number;
                 v_field[I1D(i,j,k)] = 0.0;
