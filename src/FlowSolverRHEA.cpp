@@ -1077,7 +1077,8 @@ double FlowSolverRHEA::calculateHllcFlux(const double &F_L, const double &F_R, c
     double U_star_R = rho_R*( ( S_R - u_R )/( S_R - S_star ) );
     double M        = min( 1.0, max( ( 1.0/a_L )*sqrt( u_L*u_L + v_L*v_L + w_L*w_L ), ( 1.0/a_R )*sqrt( u_R*u_R + v_R*v_R + w_R*w_R ) ) );
     //double f_M      = M*sqrt( 4.0 + pow( 1.0 - M*M, 2.0 ) )/( 1.0 + M*M );	// original function
-    double f_M      = 0.5*( tanh( 7.5*M - 3.75 ) + 1.0 );			// taylored function
+    //double f_M      = 0.5*( tanh( 7.5*M - 3.75 ) + 1.0 );			// taylored function
+    double f_M      = 0.5*( tanh( 13.5*M - 7.25 ) + 1.0 );			// taylored function
     double h        = min( P_L/P_R, P_R/P_L );
     double g        = 1.0 - pow( h, M );
     double A_p_L    = ( phi_L*phi_R )/( phi_R - phi_L );
