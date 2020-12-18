@@ -26,7 +26,8 @@ using namespace std;
 class FlowSolverRHEA;					/// Flow solver RHEA
 class BaseRiemannSolver;				/// Base Riemann solver
 class HllcApproximateRiemannSolver;			/// HLLC approximate Riemann solver
-class AllSpeedHllcApproximateRiemannSolver;		/// All-speed HLLC approximate Riemann solver
+class HllcLmApproximateRiemannSolver;			/// HLLC-LM approximate Riemann solver
+class HllcPlusApproximateRiemannSolver;			/// HLLC+ approximate Riemann solver
 
 ////////// FUNCTION DECLARATION //////////
 
@@ -315,7 +316,7 @@ class BaseRiemannSolver {
 	////////// METHODS //////////
        
         /// Calculate waves speed
-        void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
+        virtual void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
 
         /// Calculate Godunov flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
         virtual double calculateGodunovFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) = 0;
@@ -354,14 +355,46 @@ class HllcApproximateRiemannSolver : public BaseRiemannSolver {
 
 };
 
-////////// AllSpeedHllcApproximateRiemannSolver CLASS //////////
-class AllSpeedHllcApproximateRiemannSolver : public BaseRiemannSolver {
+////////// HllcLmApproximateRiemannSolver CLASS //////////
+class HllcLmApproximateRiemannSolver : public BaseRiemannSolver {
    
     public:
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        AllSpeedHllcApproximateRiemannSolver();						/// Default constructor
-        virtual ~AllSpeedHllcApproximateRiemannSolver();				/// Destructor
+        HllcLmApproximateRiemannSolver();					/// Default constructor
+        virtual ~HllcLmApproximateRiemannSolver();				/// Destructor
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+       
+        /// Calculate waves speed
+        void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
+
+        /// Calculate Godunov flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+        double calculateGodunovFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+
+    protected:
+
+        ////////// PARAMETERS //////////
+	
+        /// Low-Mach-number correction parameters
+        double Ma_limit = 0.1;					/// Correction applied if local flow speed is less than 10% of local sound speed
+
+    private:
+
+};
+
+////////// HllcPlusApproximateRiemannSolver CLASS //////////
+class HllcPlusApproximateRiemannSolver : public BaseRiemannSolver {
+   
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        HllcPlusApproximateRiemannSolver();					/// Default constructor
+        virtual ~HllcPlusApproximateRiemannSolver();				/// Destructor
 
 	////////// GET FUNCTIONS //////////
 
