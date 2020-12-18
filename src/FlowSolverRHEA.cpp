@@ -1965,16 +1965,14 @@ double HllcApproximateRiemannSolver::calculateGodunovFlux(const double &F_L, con
         U_star_L *= ( E_L + ( S_star - u_L )*( S_star + P_L/( rho_L*( S_L - u_L ) ) ) );
         U_star_R *= ( E_R + ( S_star - u_R )*( S_star + P_R/( rho_R*( S_R - u_R ) ) ) );
     }
-    double F_star_L = F_L + S_L*( U_star_L - U_L );
-    double F_star_R = F_R + S_R*( U_star_R - U_R );
 
     double F = 0.0;
     if( 0.0 <= S_L ) {
         F = F_L;
     } else if( ( S_L <= 0.0 ) && ( 0.0 <= S_star ) ) {
-        F = F_star_L;
+        F = F_L + S_L*( U_star_L - U_L );
     } else if( ( S_star <= 0.0 ) && ( 0.0 <= S_R ) ) {
-        F = F_star_R;
+        F = F_R + S_R*( U_star_R - U_R );
     } else if( 0.0 >= S_R ) {
         F = F_R;
     }
@@ -2015,26 +2013,6 @@ double HllcLmApproximateRiemannSolver::calculateGodunovFlux(const double &F_L, c
     double S_L, S_R;
     this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
 
-    double S_star   = ( P_R - P_L + rho_L*u_L*( S_L - u_L ) - rho_R*u_R*( S_R - u_R ) )/( rho_L*( S_L - u_L ) - rho_R*( S_R - u_R ) );
-    double U_star_L = ( S_L - u_L )/( S_L - S_star );
-    double U_star_R = ( S_R - u_R )/( S_R - S_star );
-    if( var_type == 0 ) {
-        U_star_L *= rho_L;
-        U_star_R *= rho_R;       
-    } else if( var_type == 1 ) {
-        U_star_L *= rho_L*S_star;
-        U_star_R *= rho_R*S_star;
-    } else if( var_type == 2 ) {
-        U_star_L *= rho_L*v_L;
-        U_star_R *= rho_R*v_R;
-    } else if( var_type == 3 ) {
-        U_star_L *= rho_L*w_L;
-        U_star_R *= rho_R*w_R;
-    } else if( var_type == 4 ) {
-        U_star_L *= E_L + ( S_star - u_L )*( rho_L*S_star + ( P_L/( S_L - u_L ) ) );
-        U_star_R *= E_R + ( S_star - u_R )*( rho_R*S_star + ( P_R/( S_R - u_R ) ) );
-    }
-
     double F = 0.0;
     if( S_L >= 0.0 ) {
         F = F_L;
@@ -2045,6 +2023,27 @@ double HllcLmApproximateRiemannSolver::calculateGodunovFlux(const double &F_L, c
         double phi           = sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi );	    
         double S_L_corrected = phi*S_L;
         double S_R_corrected = phi*S_R;
+
+        double S_star   = ( P_R - P_L + rho_L*u_L*( S_L - u_L ) - rho_R*u_R*( S_R - u_R ) )/( rho_L*( S_L - u_L ) - rho_R*( S_R - u_R ) );
+        double U_star_L = rho_L*( ( S_L - u_L )/( S_L - S_star ) );
+        double U_star_R = rho_R*( ( S_R - u_R )/( S_R - S_star ) );
+        if( var_type == 0 ) {
+            U_star_L *= 1.0;
+            U_star_R *= 1.0;       
+        } else if( var_type == 1 ) {
+            U_star_L *= S_star;
+            U_star_R *= S_star;
+        } else if( var_type == 2 ) {
+            U_star_L *= v_L;
+            U_star_R *= v_R;
+        } else if( var_type == 3 ) {
+            U_star_L *= w_L;
+            U_star_R *= w_R;
+        } else if( var_type == 4 ) {
+            U_star_L *= ( E_L + ( S_star - u_L )*( S_star + P_L/( rho_L*( S_L - u_L ) ) ) );
+            U_star_R *= ( E_R + ( S_star - u_R )*( S_star + P_R/( rho_R*( S_R - u_R ) ) ) );
+        }
+
         F = 0.5*( F_L + F_R ) + 0.5*( S_L_corrected*( U_star_L - U_L ) + abs( S_star )*( U_star_L - U_star_R ) + S_R_corrected*( U_star_R - U_R ) );
     }
 
