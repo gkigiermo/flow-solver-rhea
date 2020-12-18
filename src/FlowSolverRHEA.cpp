@@ -5,7 +5,6 @@ using namespace std;
 
 ////////// COMPILATION DIRECTIVES //////////
 #define _PRESSURE_BASED_WAVE_SPEED_ESTIMATES_ 0		/// Select approach for estimating wave speeds
-#define _ALL_SPEED_HLLC_TYPE_SCHEME_ 1			/// Select approach for HLLC-type scheme
 
 ////////// FIXED PARAMETERS //////////
 const double epsilon     = 1.0e-15;			/// Small epsilon number (fixed)
@@ -46,6 +45,16 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
         transport_coefficients = new HighPressureTransportCoefficients( configuration_file );
     } else {
         cout << "Transport coefficients model not available!" << endl;
+        MPI_Abort( MPI_COMM_WORLD, 1 );
+    }
+
+    /// Construct (initialize) Riemann solver
+    if( riemann_solver_scheme == "HLLC" ) {
+        riemann_solver = new HllcApproximateRiemannSolver();
+    } else if( riemann_solver_scheme == "ALL_SPEED_HLLC" ) {
+        riemann_solver = new AllSpeedHllcApproximateRiemannSolver();
+    } else {
+        cout << "Riemann solver not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
     }
 
@@ -241,14 +250,15 @@ void FlowSolverRHEA::readConfigurationFile() {
 
     /// Computational parameters
     const YAML::Node & computational_parameters = configuration["computational_parameters"];
-    num_grid_x        = computational_parameters["num_grid_x"].as<int>();
-    num_grid_y        = computational_parameters["num_grid_y"].as<int>();
-    num_grid_z        = computational_parameters["num_grid_z"].as<int>();
-    A_x               = computational_parameters["A_x"].as<double>();
-    A_y               = computational_parameters["A_y"].as<double>();
-    A_z               = computational_parameters["A_z"].as<double>();
-    CFL               = computational_parameters["CFL"].as<double>();
-    final_time_iter   = computational_parameters["final_time_iter"].as<int>();
+    num_grid_x            = computational_parameters["num_grid_x"].as<int>();
+    num_grid_y            = computational_parameters["num_grid_y"].as<int>();
+    num_grid_z            = computational_parameters["num_grid_z"].as<int>();
+    A_x                   = computational_parameters["A_x"].as<double>();
+    A_y                   = computational_parameters["A_y"].as<double>();
+    A_z                   = computational_parameters["A_z"].as<double>();
+    CFL                   = computational_parameters["CFL"].as<double>();
+    riemann_solver_scheme = computational_parameters["riemann_solver_scheme"].as<string>();
+    final_time_iter       = computational_parameters["final_time_iter"].as<int>();
 
     /// Boundary conditions
     string dummy_type_boco;
@@ -1028,150 +1038,6 @@ void FlowSolverRHEA::calculateSourceTerms() {
 
 };
 
-void FlowSolverRHEA::calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R) {
-
-#if _PRESSURE_BASED_WAVE_SPEED_ESTIMATES_
-    /// Pressure-based wave speed estimates: ... recommended by E. F. Toro, but not sure if applicable to non-ideal gas themodynamics
-    /// E. F. Toro, M. Spruce, W. Speares.
-    /// Restoration of the contact surface in the HLL-Riemann solver.
-    /// Shock Waves, 4, 25-34, 1994.
-
-    double P_bar   = 0.5*( P_L + P_R );
-    double rho_bar = 0.5*( rho_L + rho_R );
-    double gamma   = thermodynamics->calculateHeatCapacitiesRatio( P_bar, rho_bar );
-    double a_bar   = 0.5*( a_L + a_R );
-    double P_pvrs  = 0.5*( P_L + P_R ) - 0.5*( u_R - u_L )*rho_bar*a_bar;
-    double P_star  = max( 0.0, P_pvrs );
-    double q_L     = 1.0;
-    if(P_star > P_L) q_L = sqrt( 1.0 + ( ( gamma + 1.0 )/( 2.0*gamma ) )*( ( P_star/P_L ) - 1.0 ) );
-    double q_R     = 1.0;
-    if(P_star > P_R) q_R = sqrt( 1.0 + ( ( gamma + 1.0 )/( 2.0*gamma ) )*( ( P_star/P_R ) - 1.0 ) );
-    S_L = u_L - a_L*q_L;
-    S_R = u_R + a_R*q_R;
-#else
-    /// Direct wave speed estimates:
-    /// S. F. Davis.
-    /// Simplified second-order Godunov-type methods.
-    /// SIAM Journal on Scientific and Statistical Computing, 9, 445-473, 1988.
-
-    S_L = min( u_L - a_L, u_R - a_R );
-    S_R = max( u_L + a_L, u_R + a_R );
-#endif
-
-};
-
-double FlowSolverRHEA::calculateHllcFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
-
-#if _ALL_SPEED_HLLC_TYPE_SCHEME_
-    /// HLLC-type Riemann solver for all-speed flows:
-    /// S. Chen, B. Lin, Y. Li, C. Yan.
-    /// HLLC+: low-Mach shock-stable HLLC-type Riemann solver for all-speed flows.
-    /// SIAM Journal of Scientific Computing, 4, B921-B950, 2020.
-
-    double S_L, S_R;
-    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
-    double phi_L = rho_L*( S_L - u_L );
-    double phi_R = rho_R*( S_R - u_R );
-    double S_star   = ( P_R - P_L + phi_L*u_L - phi_R*u_R )/( phi_L - phi_R );
-    double U_star_L = rho_L*( ( S_L - u_L )/( S_L - S_star ) );
-    double U_star_R = rho_R*( ( S_R - u_R )/( S_R - S_star ) );
-    //double M        = min( 1.0, max( ( 1.0/a_L )*sqrt( u_L*u_L + v_L*v_L + w_L*w_L ), ( 1.0/a_R )*sqrt( u_R*u_R + v_R*v_R + w_R*w_R ) ) );
-    double M        = max( ( 1.0/a_L )*sqrt( u_L*u_L + v_L*v_L + w_L*w_L ), ( 1.0/a_R )*sqrt( u_R*u_R + v_R*v_R + w_R*w_R ) );
-    //double f_M      = M*sqrt( 4.0 + pow( 1.0 - M*M, 2.0 ) )/( 1.0 + M*M );	// original function
-    double f_M      = 0.5*( tanh( 5.0*M - 2.5 ) + 1.0 );			// taylored function
-    //double f_M      = 0.5*( tanh( 7.5*M - 3.75 ) + 1.0 );			// taylored function
-    //double f_M      = 0.5*( tanh( 13.5*M - 7.25 ) + 1.0 );			// taylored function
-    double h        = min( P_L/P_R, P_R/P_L );
-    double g        = 1.0 - pow( h, M );
-    double A_p_L    = ( phi_L*phi_R )/( phi_R - phi_L );
-    double A_p_R    = ( phi_L*phi_R )/( phi_R - phi_L );
-    if(var_type == 0) {
-        U_star_L *= 1.0;
-        U_star_R *= 1.0;       
-        A_p_L    *= 0.0;
-        A_p_R    *= 0.0;
-    } else if(var_type == 1) {
-        U_star_L *= S_star;
-        U_star_R *= S_star;
-        A_p_L    *= ( f_M - 1.0 )*( u_R - u_L );
-        A_p_R    *= ( f_M - 1.0 )*( u_R - u_L );
-    } else if(var_type == 2) {
-        U_star_L *= v_L;
-        U_star_R *= v_R;
-        A_p_L    *= ( S_L/( S_L - S_star ) )*g*( v_R - v_L );
-        A_p_R    *= ( S_R/( S_R - S_star ) )*g*( v_R - v_L );
-    } else if(var_type == 3) {
-        U_star_L *= w_L;
-        U_star_R *= w_R;
-        A_p_L    *= ( S_L/( S_L - S_star ) )*g*( w_R - w_L );
-        A_p_R    *= ( S_R/( S_R - S_star ) )*g*( w_R - w_L );
-    } else if(var_type == 4) {
-        U_star_L *= ( E_L + ( S_star - u_L )*( S_star + P_L/( rho_L*( S_L - u_L ) ) ) );
-        U_star_R *= ( E_R + ( S_star - u_R )*( S_star + P_R/( rho_R*( S_R - u_R ) ) ) );
-        A_p_L    *= ( f_M - 1.0 )*( u_R - u_L )*S_star;
-        A_p_R    *= ( f_M - 1.0 )*( u_R - u_L )*S_star;
-    }
-
-    double F_star_L = F_L + S_L*( U_star_L - U_L ) + A_p_L;
-    double F_star_R = F_R + S_R*( U_star_R - U_R ) + A_p_R;
-    double F = 0.0;
-    if(0.0 <= S_L) {
-        F = F_L;
-    } else if(( S_L <= 0.0 ) && ( 0.0 <= S_star )) {
-        F = F_star_L;
-    } else if(( S_star <= 0.0 ) && ( 0.0 <= S_R )) {
-        F = F_star_R;
-    } else if(0.0 >= S_R) {
-        F = F_R;
-    }
-
-    return( F );
-#else
-    /// Harten-Lax-van Leer-Contact (HLLC) Riemman solver:
-    /// E. F. Toro, M. Spruce, W. Speares.
-    /// Restoration of the contact surface in the HLL-Riemann solver.
-    /// Shock Waves, 4, 25-34, 1994.
-
-    double S_L, S_R;
-    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
-    double S_star   = ( P_R - P_L + rho_L*u_L*( S_L - u_L ) - rho_R*u_R*( S_R - u_R ) )/( rho_L*( S_L - u_L ) - rho_R*( S_R - u_R ) );
-    double U_star_L = rho_L*( ( S_L - u_L )/( S_L - S_star ) );
-    double U_star_R = rho_R*( ( S_R - u_R )/( S_R - S_star ) );
-    if(var_type == 0) {
-        U_star_L *= 1.0;
-        U_star_R *= 1.0;       
-    } else if(var_type == 1) {
-        U_star_L *= S_star;
-        U_star_R *= S_star;
-    } else if(var_type == 2) {
-        U_star_L *= v_L;
-        U_star_R *= v_R;
-    } else if(var_type == 3) {
-        U_star_L *= w_L;
-        U_star_R *= w_R;
-    } else if(var_type == 4) {
-        U_star_L *= ( E_L + ( S_star - u_L )*( S_star + P_L/( rho_L*( S_L - u_L ) ) ) );
-        U_star_R *= ( E_R + ( S_star - u_R )*( S_star + P_R/( rho_R*( S_R - u_R ) ) ) );
-    }
-
-    double F_star_L = F_L + S_L*( U_star_L - U_L );
-    double F_star_R = F_R + S_R*( U_star_R - U_R );
-    double F = 0.0;
-    if(0.0 <= S_L) {
-        F = F_L;
-    } else if(( S_L <= 0.0 ) && ( 0.0 <= S_star )) {
-        F = F_star_L;
-    } else if(( S_star <= 0.0 ) && ( 0.0 <= S_R )) {
-        F = F_star_R;
-    } else if(0.0 >= S_R) {
-        F = F_R;
-    }
-
-    return( F );
-#endif
-
-};
-
 void FlowSolverRHEA::calculateInviscidFluxes() {
 
     /// First-order Godunov-type unsplit method for Euler equations:
@@ -1211,35 +1077,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_R*u_R;
                 rho_U_L  = rho_L;
                 rho_U_R  = rho_R;
-                rho_F_p  = this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rho_F_p  = riemann_solver->calculateGodunovFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 1;
                 rhou_F_L = rho_L*u_L*u_L + P_L;
                 rhou_F_R = rho_R*u_R*u_R + P_R;
                 rhou_U_L = rho_L*u_L;
                 rhou_U_R = rho_R*u_R;
-                rhou_F_p = this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhou_F_p = riemann_solver->calculateGodunovFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 rhov_F_L = rho_L*u_L*v_L;
                 rhov_F_R = rho_R*u_R*v_R;
                 rhov_U_L = rho_L*v_L;
                 rhov_U_R = rho_R*v_R;
-                rhov_F_p = this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhov_F_p = riemann_solver->calculateGodunovFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 rhow_F_L = rho_L*u_L*w_L;
                 rhow_F_R = rho_R*u_R*w_R;
                 rhow_U_L = rho_L*w_L;
                 rhow_U_R = rho_R*w_R;
-                rhow_F_p = this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhow_F_p = riemann_solver->calculateGodunovFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_L*u_L*E_L + u_L*P_L;
                 rhoE_F_R = rho_R*u_R*E_R + u_R*P_R;
                 rhoE_U_L = rho_L*E_L;
                 rhoE_U_R = rho_R*E_R;
-                rhoE_F_p = this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhoE_F_p = riemann_solver->calculateGodunovFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// x-direction i-1/2
                 index_L = i - 1;                       index_R = i;
                 rho_L   = rho_field[I1D(index_L,j,k)]; rho_R   = rho_field[I1D(index_R,j,k)];
@@ -1255,35 +1121,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_R*u_R;
                 rho_U_L  = rho_L;
                 rho_U_R  = rho_R;
-                rho_F_m  = this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rho_F_m  = riemann_solver->calculateGodunovFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 1;
                 rhou_F_L = rho_L*u_L*u_L + P_L;
                 rhou_F_R = rho_R*u_R*u_R + P_R;
                 rhou_U_L = rho_L*u_L;
                 rhou_U_R = rho_R*u_R;
-                rhou_F_m = this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhou_F_m = riemann_solver->calculateGodunovFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 rhov_F_L = rho_L*u_L*v_L;
                 rhov_F_R = rho_R*u_R*v_R;
                 rhov_U_L = rho_L*v_L;
                 rhov_U_R = rho_R*v_R;
-                rhov_F_m = this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhov_F_m = riemann_solver->calculateGodunovFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 rhow_F_L = rho_L*u_L*w_L;
                 rhow_F_R = rho_R*u_R*w_R;
                 rhow_U_L = rho_L*w_L;
                 rhow_U_R = rho_R*w_R;
-                rhow_F_m = this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhow_F_m = riemann_solver->calculateGodunovFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_L*u_L*E_L + u_L*P_L;
                 rhoE_F_R = rho_R*u_R*E_R + u_R*P_R;
                 rhoE_U_L = rho_L*E_L;
                 rhoE_U_R = rho_R*E_R;
-                rhoE_F_m = this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhoE_F_m = riemann_solver->calculateGodunovFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes x-direction
                 rho_inv_flux[I1D(i,j,k)]  = ( rho_F_p - rho_F_m )/delta_x;
                 rhou_inv_flux[I1D(i,j,k)] = ( rhou_F_p - rhou_F_m )/delta_x;
@@ -1305,35 +1171,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_R*v_R;
                 rho_U_L  = rho_L;
                 rho_U_R  = rho_R;
-                rho_F_p  = this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rho_F_p  = riemann_solver->calculateGodunovFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 2;
                 rhou_F_L = rho_L*v_L*u_L;
                 rhou_F_R = rho_R*v_R*u_R;
                 rhou_U_L = rho_L*u_L;
                 rhou_U_R = rho_R*u_R;
-                rhou_F_p = this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhou_F_p = riemann_solver->calculateGodunovFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 1;
                 rhov_F_L = rho_L*v_L*v_L + P_L;
                 rhov_F_R = rho_R*v_R*v_R + P_R;
                 rhov_U_L = rho_L*v_L;
                 rhov_U_R = rho_R*v_R;
-                rhov_F_p = this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhov_F_p = riemann_solver->calculateGodunovFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 rhow_F_L = rho_L*v_L*w_L;
                 rhow_F_R = rho_R*v_R*w_R;
                 rhow_U_L = rho_L*w_L;
                 rhow_U_R = rho_R*w_R;
-                rhow_F_p = this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhow_F_p = riemann_solver->calculateGodunovFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_L*v_L*E_L + v_L*P_L;
                 rhoE_F_R = rho_R*v_R*E_R + v_R*P_R;
                 rhoE_U_L = rho_L*E_L;
                 rhoE_U_R = rho_R*E_R;
-                rhoE_F_p = this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhoE_F_p = riemann_solver->calculateGodunovFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// y-direction j-1/2
                 index_L = j - 1;                       index_R = j;
                 rho_L   = rho_field[I1D(i,index_L,k)]; rho_R   = rho_field[I1D(i,index_R,k)];
@@ -1349,35 +1215,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_R*v_R;
                 rho_U_L  = rho_L;
                 rho_U_R  = rho_R;
-                rho_F_m  = this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rho_F_m  = riemann_solver->calculateGodunovFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 2;
                 rhou_F_L = rho_L*v_L*u_L;
                 rhou_F_R = rho_R*v_R*u_R;
                 rhou_U_L = rho_L*u_L;
                 rhou_U_R = rho_R*u_R;
-                rhou_F_m = this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhou_F_m = riemann_solver->calculateGodunovFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 1;
                 rhov_F_L = rho_L*v_L*v_L + P_L;
                 rhov_F_R = rho_R*v_R*v_R + P_R;
                 rhov_U_L = rho_L*v_L;
                 rhov_U_R = rho_R*v_R;
-                rhov_F_m = this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhov_F_m = riemann_solver->calculateGodunovFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 rhow_F_L = rho_L*v_L*w_L;
                 rhow_F_R = rho_R*v_R*w_R;
                 rhow_U_L = rho_L*w_L;
                 rhow_U_R = rho_R*w_R;
-                rhow_F_m = this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhow_F_m = riemann_solver->calculateGodunovFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_L*v_L*E_L + v_L*P_L;
                 rhoE_F_R = rho_R*v_R*E_R + v_R*P_R;
                 rhoE_U_L = rho_L*E_L;
                 rhoE_U_R = rho_R*E_R;
-                rhoE_F_m = this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhoE_F_m = riemann_solver->calculateGodunovFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes y-direction
                 rho_inv_flux[I1D(i,j,k)]  += ( rho_F_p - rho_F_m )/delta_y;
                 rhou_inv_flux[I1D(i,j,k)] += ( rhou_F_p - rhou_F_m )/delta_y;
@@ -1399,35 +1265,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_R*w_R;
                 rho_U_L  = rho_L;
                 rho_U_R  = rho_R;
-                rho_F_p  = this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rho_F_p  = riemann_solver->calculateGodunovFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 3;
                 rhou_F_L = rho_L*w_L*u_L;
                 rhou_F_R = rho_R*w_R*u_R;
                 rhou_U_L = rho_L*u_L;
                 rhou_U_R = rho_R*u_R;
-                rhou_F_p = this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhou_F_p = riemann_solver->calculateGodunovFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 rhov_F_L = rho_L*w_L*v_L;
                 rhov_F_R = rho_R*w_R*v_R;
                 rhov_U_L = rho_L*v_L;
                 rhov_U_R = rho_R*v_R;
-                rhov_F_p = this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhov_F_p = riemann_solver->calculateGodunovFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 1;
                 rhow_F_L = rho_L*w_L*w_L + P_L;
                 rhow_F_R = rho_R*w_R*w_R + P_R;
                 rhow_U_L = rho_L*w_L;
                 rhow_U_R = rho_R*w_R;
-                rhow_F_p = this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhow_F_p = riemann_solver->calculateGodunovFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_L*w_L*E_L + w_L*P_L;
                 rhoE_F_R = rho_R*w_R*E_R + w_R*P_R;
                 rhoE_U_L = rho_L*E_L;
                 rhoE_U_R = rho_R*E_R;
-                rhoE_F_p = this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhoE_F_p = riemann_solver->calculateGodunovFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// z-direction k-1/2
                 index_L = k - 1;                       index_R = k;
                 rho_L   = rho_field[I1D(i,j,index_L)]; rho_R   = rho_field[I1D(i,j,index_R)];
@@ -1443,35 +1309,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_R*w_R;
                 rho_U_L  = rho_L;
                 rho_U_R  = rho_R;
-                rho_F_m  = this->calculateHllcFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rho_F_m  = riemann_solver->calculateGodunovFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 3;
                 rhou_F_L = rho_L*w_L*u_L;
                 rhou_F_R = rho_R*w_R*u_R;
                 rhou_U_L = rho_L*u_L;
                 rhou_U_R = rho_R*u_R;
-                rhou_F_m = this->calculateHllcFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhou_F_m = riemann_solver->calculateGodunovFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 rhov_F_L = rho_L*w_L*v_L;
                 rhov_F_R = rho_R*w_R*v_R;
                 rhov_U_L = rho_L*v_L;
                 rhov_U_R = rho_R*v_R;
-                rhov_F_m = this->calculateHllcFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhov_F_m = riemann_solver->calculateGodunovFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 1;
                 rhow_F_L = rho_L*w_L*w_L + P_L;
                 rhow_F_R = rho_R*w_R*w_R + P_R;
                 rhow_U_L = rho_L*w_L;
                 rhow_U_R = rho_R*w_R;
-                rhow_F_m = this->calculateHllcFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhow_F_m = riemann_solver->calculateGodunovFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_L*w_L*E_L + w_L*P_L;
                 rhoE_F_R = rho_R*w_R*E_R + w_R*P_R;
                 rhoE_U_L = rho_L*E_L;
                 rhoE_U_R = rho_R*E_R;
-                rhoE_F_m = this->calculateHllcFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                rhoE_F_m = riemann_solver->calculateGodunovFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes z-direction
                 rho_inv_flux[I1D(i,j,k)]  += ( rho_F_p - rho_F_m )/delta_z;
                 rhou_inv_flux[I1D(i,j,k)] += ( rhou_F_p - rhou_F_m )/delta_z;
@@ -2019,5 +1885,172 @@ void FlowSolverRHEA::execute() {
 
     /// End RHEA simulation
     if( my_rank == 0 ) cout << "RHEA: END SIMULATION" << endl;
+
+};
+
+
+////////// BaseRiemannSolver CLASS //////////
+
+BaseRiemannSolver::BaseRiemannSolver() {};
+        
+BaseRiemannSolver::~BaseRiemannSolver() {};
+
+void BaseRiemannSolver::calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R) {
+
+#if _PRESSURE_BASED_WAVE_SPEED_ESTIMATES_
+    /// Pressure-based wave speed estimates: ... recommended by E. F. Toro, but not sure if applicable to non-ideal gas themodynamics
+    /// E. F. Toro, M. Spruce, W. Speares.
+    /// Restoration of the contact surface in the HLL-Riemann solver.
+    /// Shock Waves, 4, 25-34, 1994.
+
+    double P_bar   = 0.5*( P_L + P_R );
+    double rho_bar = 0.5*( rho_L + rho_R );
+    double gamma   = thermodynamics->calculateHeatCapacitiesRatio( P_bar, rho_bar );
+    double a_bar   = 0.5*( a_L + a_R );
+    double P_pvrs  = 0.5*( P_L + P_R ) - 0.5*( u_R - u_L )*rho_bar*a_bar;
+    double P_star  = max( 0.0, P_pvrs );
+    double q_L     = 1.0;
+    if(P_star > P_L) q_L = sqrt( 1.0 + ( ( gamma + 1.0 )/( 2.0*gamma ) )*( ( P_star/P_L ) - 1.0 ) );
+    double q_R     = 1.0;
+    if(P_star > P_R) q_R = sqrt( 1.0 + ( ( gamma + 1.0 )/( 2.0*gamma ) )*( ( P_star/P_R ) - 1.0 ) );
+    S_L = u_L - a_L*q_L;
+    S_R = u_R + a_R*q_R;
+#else
+    /// Direct wave speed estimates:
+    /// S. F. Davis.
+    /// Simplified second-order Godunov-type methods.
+    /// SIAM Journal on Scientific and Statistical Computing, 9, 445-473, 1988.
+
+    S_L = min( u_L - a_L, u_R - a_R );
+    S_R = max( u_L + a_L, u_R + a_R );
+#endif
+
+};
+
+
+////////// HllcApproximateRiemannSolver CLASS //////////
+
+HllcApproximateRiemannSolver::HllcApproximateRiemannSolver() : BaseRiemannSolver() {};
+
+HllcApproximateRiemannSolver::~HllcApproximateRiemannSolver() {};
+
+double HllcApproximateRiemannSolver::calculateGodunovFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
+
+    /// Harten-Lax-van Leer-Contact (HLLC) Riemman solver:
+    /// E. F. Toro, M. Spruce, W. Speares.
+    /// Restoration of the contact surface in the HLL-Riemann solver.
+    /// Shock Waves, 4, 25-34, 1994.
+
+    double S_L, S_R;
+    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
+    double S_star   = ( P_R - P_L + rho_L*u_L*( S_L - u_L ) - rho_R*u_R*( S_R - u_R ) )/( rho_L*( S_L - u_L ) - rho_R*( S_R - u_R ) );
+    double U_star_L = rho_L*( ( S_L - u_L )/( S_L - S_star ) );
+    double U_star_R = rho_R*( ( S_R - u_R )/( S_R - S_star ) );
+    if(var_type == 0) {
+        U_star_L *= 1.0;
+        U_star_R *= 1.0;       
+    } else if(var_type == 1) {
+        U_star_L *= S_star;
+        U_star_R *= S_star;
+    } else if(var_type == 2) {
+        U_star_L *= v_L;
+        U_star_R *= v_R;
+    } else if(var_type == 3) {
+        U_star_L *= w_L;
+        U_star_R *= w_R;
+    } else if(var_type == 4) {
+        U_star_L *= ( E_L + ( S_star - u_L )*( S_star + P_L/( rho_L*( S_L - u_L ) ) ) );
+        U_star_R *= ( E_R + ( S_star - u_R )*( S_star + P_R/( rho_R*( S_R - u_R ) ) ) );
+    }
+
+    double F_star_L = F_L + S_L*( U_star_L - U_L );
+    double F_star_R = F_R + S_R*( U_star_R - U_R );
+    double F = 0.0;
+    if(0.0 <= S_L) {
+        F = F_L;
+    } else if(( S_L <= 0.0 ) && ( 0.0 <= S_star )) {
+        F = F_star_L;
+    } else if(( S_star <= 0.0 ) && ( 0.0 <= S_R )) {
+        F = F_star_R;
+    } else if(0.0 >= S_R) {
+        F = F_R;
+    }
+
+    return( F );
+
+};
+
+
+////////// AllSpeedHllcApproximateRiemannSolver CLASS //////////
+
+AllSpeedHllcApproximateRiemannSolver::AllSpeedHllcApproximateRiemannSolver() : BaseRiemannSolver() {};
+
+AllSpeedHllcApproximateRiemannSolver::~AllSpeedHllcApproximateRiemannSolver() {};
+
+double AllSpeedHllcApproximateRiemannSolver::calculateGodunovFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
+
+    /// HLLC-type Riemann solver for all-speed flows:
+    /// S. Chen, B. Lin, Y. Li, C. Yan.
+    /// HLLC+: low-Mach shock-stable HLLC-type Riemann solver for all-speed flows.
+    /// SIAM Journal of Scientific Computing, 4, B921-B950, 2020.
+
+    double S_L, S_R;
+    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
+    double phi_L = rho_L*( S_L - u_L );
+    double phi_R = rho_R*( S_R - u_R );
+    double S_star   = ( P_R - P_L + phi_L*u_L - phi_R*u_R )/( phi_L - phi_R );
+    double U_star_L = rho_L*( ( S_L - u_L )/( S_L - S_star ) );
+    double U_star_R = rho_R*( ( S_R - u_R )/( S_R - S_star ) );
+    //double M        = min( 1.0, max( ( 1.0/a_L )*sqrt( u_L*u_L + v_L*v_L + w_L*w_L ), ( 1.0/a_R )*sqrt( u_R*u_R + v_R*v_R + w_R*w_R ) ) );
+    double M        = max( ( 1.0/a_L )*sqrt( u_L*u_L + v_L*v_L + w_L*w_L ), ( 1.0/a_R )*sqrt( u_R*u_R + v_R*v_R + w_R*w_R ) );
+    //double f_M      = M*sqrt( 4.0 + pow( 1.0 - M*M, 2.0 ) )/( 1.0 + M*M );	// original function
+    double f_M      = 0.5*( tanh( 5.0*M - 2.5 ) + 1.0 );			// taylored function
+    //double f_M      = 0.5*( tanh( 7.5*M - 3.75 ) + 1.0 );			// taylored function
+    //double f_M      = 0.5*( tanh( 13.5*M - 7.25 ) + 1.0 );			// taylored function
+    double h        = min( P_L/P_R, P_R/P_L );
+    double g        = 1.0 - pow( h, M );
+    double A_p_L    = ( phi_L*phi_R )/( phi_R - phi_L );
+    double A_p_R    = ( phi_L*phi_R )/( phi_R - phi_L );
+    if(var_type == 0) {
+        U_star_L *= 1.0;
+        U_star_R *= 1.0;       
+        A_p_L    *= 0.0;
+        A_p_R    *= 0.0;
+    } else if(var_type == 1) {
+        U_star_L *= S_star;
+        U_star_R *= S_star;
+        A_p_L    *= ( f_M - 1.0 )*( u_R - u_L );
+        A_p_R    *= ( f_M - 1.0 )*( u_R - u_L );
+    } else if(var_type == 2) {
+        U_star_L *= v_L;
+        U_star_R *= v_R;
+        A_p_L    *= ( S_L/( S_L - S_star ) )*g*( v_R - v_L );
+        A_p_R    *= ( S_R/( S_R - S_star ) )*g*( v_R - v_L );
+    } else if(var_type == 3) {
+        U_star_L *= w_L;
+        U_star_R *= w_R;
+        A_p_L    *= ( S_L/( S_L - S_star ) )*g*( w_R - w_L );
+        A_p_R    *= ( S_R/( S_R - S_star ) )*g*( w_R - w_L );
+    } else if(var_type == 4) {
+        U_star_L *= ( E_L + ( S_star - u_L )*( S_star + P_L/( rho_L*( S_L - u_L ) ) ) );
+        U_star_R *= ( E_R + ( S_star - u_R )*( S_star + P_R/( rho_R*( S_R - u_R ) ) ) );
+        A_p_L    *= ( f_M - 1.0 )*( u_R - u_L )*S_star;
+        A_p_R    *= ( f_M - 1.0 )*( u_R - u_L )*S_star;
+    }
+
+    double F_star_L = F_L + S_L*( U_star_L - U_L ) + A_p_L;
+    double F_star_R = F_R + S_R*( U_star_R - U_R ) + A_p_R;
+    double F = 0.0;
+    if(0.0 <= S_L) {
+        F = F_L;
+    } else if(( S_L <= 0.0 ) && ( 0.0 <= S_star )) {
+        F = F_star_L;
+    } else if(( S_star <= 0.0 ) && ( 0.0 <= S_R )) {
+        F = F_star_R;
+    } else if(0.0 >= S_R) {
+        F = F_R;
+    }
+
+    return( F );
 
 };

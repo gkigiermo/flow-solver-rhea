@@ -23,7 +23,10 @@
 using namespace std;
 
 ////////// CLASS DECLARATION //////////
-class FlowSolverRHEA;						/// Flow solver RHEA
+class FlowSolverRHEA;					/// Flow solver RHEA
+class BaseRiemannSolver;				/// Base Riemann solver
+class HllcApproximateRiemannSolver;			/// HLLC approximate Riemann solver
+class AllSpeedHllcApproximateRiemannSolver;		/// All-speed HLLC approximate Riemann solver
 
 ////////// FUNCTION DECLARATION //////////
 
@@ -114,12 +117,6 @@ class FlowSolverRHEA {
         /// Calculate rhou, rhov, rhow and rhoE source terms ... needs to be modified/overwritten according to the problem under consideration
         virtual void calculateSourceTerms();
 
-        /// Calculate waves speed
-        virtual void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
-
-        /// Calculate HLLC flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
-        virtual double calculateHllcFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
-
         /// Calculate inviscid fluxes
         virtual void calculateInviscidFluxes();
 
@@ -170,6 +167,7 @@ class FlowSolverRHEA {
         int current_time_iter;					/// Current time iteration
         int final_time_iter;					/// Final time iteration
         int rk_order = 3;					/// Order of Runge-Kutta method (fixed)
+        string riemann_solver_scheme;				/// Riemann solver scheme
 
         /// Local mesh values for I1D macro
         int _lNx_;
@@ -287,13 +285,96 @@ class FlowSolverRHEA {
         DistributedArray rmsf_T_field;				/// 3-D field of root-mean-square-fluctuation T
         DistributedArray rmsf_sos_field;			/// 3-D field of root-mean-square-fluctuation sos
 
-	////////// THERMODYNAMIC MODEL, TRANSPORT COEFFICIENTS, COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER & PARALLEL TIMER //////////
+	////////// THERMODYNAMIC MODEL, TRANSPORT COEFFICIENTS, RIEMANN SOLVER //////////
+	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER, PARALLEL TIMER //////////
         BaseThermodynamicModel *thermodynamics;			/// Thermodynamic model
         BaseTransportCoefficients *transport_coefficients;	/// Transport coefficients
+        BaseRiemannSolver *riemann_solver;			/// Riemann solver
         ComputationalDomain *mesh;				/// Computational domain
         ParallelTopology *topo;					/// Parallel topology
         ManagerHDF5 *writer_reader;				/// HDF5 data writer/reader
         ParallelTimer *timers;					/// Parallel timer
+
+    private:
+
+};
+
+////////// BaseRiemannSolver CLASS //////////
+class BaseRiemannSolver {
+   
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        BaseRiemannSolver();					/// Default constructor
+        virtual ~BaseRiemannSolver();				/// Destructor
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+       
+        /// Calculate waves speed
+        void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
+
+        /// Calculate Godunov flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+        virtual double calculateGodunovFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) = 0;
+
+    protected:
+
+        ////////// PARAMETERS //////////
+
+    private:
+
+};
+
+////////// HllcApproximateRiemannSolver CLASS //////////
+class HllcApproximateRiemannSolver : public BaseRiemannSolver {
+   
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        HllcApproximateRiemannSolver();							/// Default constructor
+        virtual ~HllcApproximateRiemannSolver();					/// Destructor
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+        
+        /// Calculate Godunov flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+        double calculateGodunovFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+
+    protected:
+
+        ////////// PARAMETERS //////////
+
+    private:
+
+};
+
+////////// AllSpeedHllcApproximateRiemannSolver CLASS //////////
+class AllSpeedHllcApproximateRiemannSolver : public BaseRiemannSolver {
+   
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        AllSpeedHllcApproximateRiemannSolver();						/// Default constructor
+        virtual ~AllSpeedHllcApproximateRiemannSolver();				/// Destructor
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+        
+        /// Calculate Godunov flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+        double calculateGodunovFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+
+    protected:
+
+        ////////// PARAMETERS //////////
 
     private:
 
