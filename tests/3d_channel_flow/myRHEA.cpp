@@ -28,7 +28,7 @@ const double P_0        = rho_0*u_b*u_b/( gamma_0*Ma*Ma );	/// Reference pressur
 const double kappa_vK   = 0.41;					/// von Kármán constant
 const double y_0        = nu/( 9.0*u_tau );			/// Smooth-wall roughness
 const double u_0        = ( u_tau/kappa_vK )*( log( delta/y_0 ) + ( y_0/delta ) - 1.0 );	/// Volume average of a log-law velocity profile
-const double alpha      = 0.5;					/// Magnitude of velocity perturbation
+const double alpha      = 0.05;					/// Magnitude of velocity perturbation
 
 ////////// myRHEA CLASS //////////
 
@@ -42,15 +42,23 @@ void myRHEA::setInitialConditions() {
     srand( my_rank );
 
     /// All (inner, halo, boundary): u, v, w, P and T
-    double random_number, y_dist;
+    //double random_number, y_dist;
+    double random_number, x, y, z, aux_x;
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 random_number       = 2.0*( (double) rand()/( RAND_MAX ) ) - 1.0;
-                y_dist              = min( mesh->y[j], 2.0*delta - mesh->y[j] );
-                u_field[I1D(i,j,k)] = ( 2.0*u_0*y_dist/delta ) + alpha*u_0*random_number;
-                v_field[I1D(i,j,k)] = 0.0;
-                w_field[I1D(i,j,k)] = 0.0;
+                //y_dist              = min( mesh->y[j], 2.0*delta - mesh->y[j] );
+                //u_field[I1D(i,j,k)] = ( 2.0*u_0*y_dist/delta ) + alpha*u_0*random_number;
+                //v_field[I1D(i,j,k)] = 0.0;
+                //w_field[I1D(i,j,k)] = 0.0;
+		x = mesh->x[i];
+		y = mesh->y[j];
+		z = mesh->z[k];
+		aux_x = ( y > 1.0 ) ? 1.0 : -1.0;
+                u_field[I1D(i,j,k)] = u_0*sin( x )*aux_x + alpha*u_0*random_number;
+                v_field[I1D(i,j,k)] = 0.1*( u_0*sin( y ) + alpha*u_0*random_number );
+                w_field[I1D(i,j,k)] = 0.1*( u_0*sin( z ) + alpha*u_0*random_number );
                 P_field[I1D(i,j,k)] = P_0;
                 T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( rho_0*thermodynamics->getSpecificGasConstant() );
             }
