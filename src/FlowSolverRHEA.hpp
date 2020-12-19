@@ -381,7 +381,7 @@ class HllcLmApproximateRiemannSolver : public BaseRiemannSolver {
         ////////// PARAMETERS //////////
 	
         /// Low-Mach-number correction parameters
-        double Ma_limit = 0.3;					/// Correction applied if local flow speed is less than 30% of local sound speed
+        double Ma_limit = 0.8;					/// Correction applied if local flow speed is less than 80% of local sound speed
 
     private:
 
