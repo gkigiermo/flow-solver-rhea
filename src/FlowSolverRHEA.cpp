@@ -1948,17 +1948,7 @@ double CentralFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
 
     /// Central scheme obtained from a central differencing of the first derivative of the flux term:
 
-    double S_L, S_R;
-    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
-
-    double F = 0.0;
-    if( S_L >= 0.0 ) {
-        F = F_L;
-    } else if( S_R <= 0.0 ) {
-        F = F_R;
-    } else {
-        F = 0.5*( F_L + F_R );
-    }
+    double F = 0.5*( F_L + F_R );
 
     return( F );
 
@@ -2070,8 +2060,8 @@ double HllcLmApproximateRiemannSolver::calculateIntercellFlux(const double &F_L,
         F = F_R;
     } else {
         double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
-        double phi           = sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi );	    			// original function
-        //double phi           = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 5.0 ) );	// taylored function	    
+        //double phi           = sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi );	    			// original function
+        double phi           = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 7.5 ) );	// taylored function	    
         double S_L_corrected = phi*S_L;
         double S_R_corrected = phi*S_R;
 
