@@ -49,7 +49,9 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     }
 
     /// Construct (initialize) Riemann solver
-    if( riemann_solver_scheme == "HLLC" ) {
+    if( riemann_solver_scheme == "HLL" ) {
+        riemann_solver = new HllApproximateRiemannSolver();
+    } else if( riemann_solver_scheme == "HLLC" ) {
         riemann_solver = new HllcApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HLLC-LM" ) {
         riemann_solver = new HllcLmApproximateRiemannSolver();
@@ -223,6 +225,7 @@ FlowSolverRHEA::~FlowSolverRHEA() {
     /// Free thermodynamics, transport_coefficients, mesh, topo, writer_reader and timers
     if( thermodynamics != NULL ) free( thermodynamics );
     if( transport_coefficients != NULL ) free( transport_coefficients );
+    if( riemann_solver != NULL ) free( riemann_solver );
     if( mesh != NULL ) free( mesh );	
     if( topo != NULL ) free( topo );
     if( writer_reader != NULL ) free( writer_reader );
@@ -1926,6 +1929,36 @@ void BaseRiemannSolver::calculateWavesSpeed(double &S_L, double &S_R, const doub
     S_L = min( u_L - a_L, u_R - a_R );
     S_R = max( u_L + a_L, u_R + a_R );
 #endif
+
+};
+
+
+////////// HllApproximateRiemannSolver CLASS //////////
+
+HllApproximateRiemannSolver::HllApproximateRiemannSolver() : BaseRiemannSolver() {};
+
+HllApproximateRiemannSolver::~HllApproximateRiemannSolver() {};
+
+double HllApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
+
+    /// Harten-Lax-van Leer (HLL) Riemman solver:
+    /// A. Harten, P. D. Lax, B. van Leer.
+    /// On upstream differencing and Godunov-type schemes for hyperbolic conservation laws.
+    /// SIAM review, 25, 35-61, 1983.
+
+    double S_L, S_R;
+    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
+
+    double F = 0.0;
+    if( 0.0 <= S_L ) {
+        F = F_L;
+    } else if( ( S_L <= 0.0 ) && ( 0.0 <= S_R ) ) {
+        F = ( S_R*F_L - S_L*F_R + S_L*S_R*( U_R - U_L ) )/( S_R - S_L );
+    } else if( 0.0 >= S_R ) {
+        F = F_R;
+    }
+
+    return( F );
 
 };
 
