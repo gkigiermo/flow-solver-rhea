@@ -53,6 +53,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
         riemann_solver = new CentralFluxApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HLL" ) {
         riemann_solver = new HllApproximateRiemannSolver();
+    } else if( riemann_solver_scheme == "HLL-LM" ) {
+        riemann_solver = new HllLmApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HLLC" ) {
         riemann_solver = new HllcApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HLLC-LM" ) {
