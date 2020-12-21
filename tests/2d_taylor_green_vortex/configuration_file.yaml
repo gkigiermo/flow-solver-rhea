@@ -53,7 +53,7 @@ computational_parameters:
    A_y: 0.0             					        # Stretching factor in y-direction
    A_z: 0.0                       					# Stretching factor in z-direction
    CFL: 0.9                  					        # CFL coefficient
-   # Riemann solver scheme: CENTRAL_FLUX, HLL, HLLC, HLLC-LM, HLLC+
+   # Riemann solver scheme: CENTRAL_FLUX, HLL, HLL-LM, HLLC, HLLC-LM, HLLC+
    riemann_solver_scheme: 'HLLC'	        	  		# Riemann solver scheme
    final_time_iter: 100000            					# Final time iteration
 

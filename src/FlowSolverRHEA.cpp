@@ -1974,10 +1974,48 @@ double HllApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, co
     double F = 0.0;
     if( 0.0 <= S_L ) {
         F = F_L;
-    } else if( ( S_L <= 0.0 ) && ( 0.0 <= S_R ) ) {
-        F = ( S_R*F_L - S_L*F_R + S_L*S_R*( U_R - U_L ) )/( S_R - S_L );
     } else if( 0.0 >= S_R ) {
         F = F_R;
+    } else {
+        F = ( S_R*F_L - S_L*F_R + S_L*S_R*( U_R - U_L ) )/( S_R - S_L );
+    }
+
+    return( F );
+
+};
+
+
+////////// HllLmApproximateRiemannSolver CLASS //////////
+
+HllLmApproximateRiemannSolver::HllLmApproximateRiemannSolver() : BaseRiemannSolver() {};
+
+HllLmApproximateRiemannSolver::~HllLmApproximateRiemannSolver() {};
+
+double HllLmApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
+
+    /// HLL-type Riemann solver with reduced numerical dissipation:
+    /// N. Fleischmann, S. Adami, N. A. Adams.
+    /// A shock-stable modification of the HLLC Riemann solver with reduced numerical dissipation.
+    /// Journal of Computational Physics, 423, 109762, 2020.
+
+    double S_L, S_R;
+    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
+
+    double F = 0.0;
+    if( S_L >= 0.0 ) {
+        F = F_L;
+    } else if( S_R <= 0.0 ) {
+        F = F_R;
+    } else {
+        double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
+        //double phi           = sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi );	    			// original function
+        double phi           = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 7.5 ) );	// taylored function	    
+        double S_L_corrected = phi*S_L;
+        double S_R_corrected = phi*S_R;
+
+        double U_HLL = ( S_R*U_R - S_L*U_L + F_L - F_R )/( S_R - S_L );
+
+        F = 0.5*( F_L + F_R ) + 0.5*( S_L_corrected*( U_HLL - U_L ) + S_R_corrected*( U_HLL - U_R ) );
     }
 
     return( F );
