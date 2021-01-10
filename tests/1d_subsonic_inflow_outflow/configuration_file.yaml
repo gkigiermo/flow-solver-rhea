@@ -1,6 +1,6 @@
 # RHEA's CONFIGURATION FILE (YAML LANGUAGE)
 #
-# 1D inflow-outflow problem (Re = 1, Ma = 0.3, Pr = 0.71):
+# 1D subsonic inflow-outflow problem (Re = 1, Ma = 0.3, Pr = 0.71):
 ---
 
 ##### FLUID & FLOW PROPERTIES #####
@@ -36,7 +36,7 @@ problem_parameters:
    L_x: 1.0                      					# Size of domain in x-direction [m]
    L_y: 0.01                           					# Size of domain in y-direction [m]
    L_z: 0.01                    					# Size of domain in z-direction [m]
-   final_time: 1.0                   					# Final time [s]
+   final_time: 2.0                   					# Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####
@@ -52,7 +52,7 @@ computational_parameters:
    CFL: 0.9                  					        # CFL coefficient
    # Riemann solver scheme: CENTRAL_FLUX, HLL, HLL-LM, HLLC, HLLC-LM, HLLC+
    riemann_solver_scheme: 'HLL-LM'	        	  		# Riemann solver scheme
-   final_time_iter: 100000            					# Final time iteration
+   final_time_iter: 1000000            					# Final time iteration
 
 
 ##### BOUNDARY CONDITIONS #####
@@ -72,8 +72,8 @@ boundary_conditions:
 ##### PRINT/WRITE/READ PARAMETERS #####
 print_write_read_parameters:
    print_frequency_iter: 1 	             				# Print information iteration frequency
-   output_data_file_name: '1d_inflow_outflow'				# Name of output data file
-   output_frequency_iter: 10         					# Data output iteration frequency
+   output_data_file_name: '1d_subsonic_inflow_outflow'			# Name of output data file
+   output_frequency_iter: 10000        					# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
    restart_data_file: 'restart_data_file.h5' 				# Restart data file
