@@ -1,9 +1,9 @@
 # RHEA's CONFIGURATION FILE (YAML LANGUAGE)
 #
 # 1D subsonic inflow-outflow problem (Re = 1, Ma = 0.3, Pr = 0.71):
-# T. J. Poinsot, S. K. Lele.
-# Boundary conditions for direct simulations of compressible viscous flows.
-# Journal of Computational Physics, 101, 104-129, 1992.
+# S. Pirozzoli, T. COlonius.
+# Generalized characteristic ralaxation boundary conditions for unsteady compressible flow simulations.
+# Journal of Computational Physics, 248, 109-126, 2013.
 ---
 
 ##### FLUID & FLOW PROPERTIES #####
