@@ -42,6 +42,9 @@ class BaseThermodynamicModel {
        
         /// Read configuration (input) file written in YAML language
         virtual void readConfigurationFile() {};
+
+        /// Calculate temperature from pressure and density
+        virtual double calculateTemperatureFromPressureDensity(const double &P, const double &rho) = 0;
  
         /// Calculate pressure and temperature from density and internal energy
         virtual void calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {};
@@ -93,6 +96,9 @@ class IdealGasModel : public BaseThermodynamicModel {
         /// Read configuration (input) file written in YAML language
         void readConfigurationFile();
 
+        /// Calculate temperature from pressure and density
+        double calculateTemperatureFromPressureDensity(const double &P, const double &rho);
+
         /// Calculate pressure and temperature from density and internal energy
         void calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e);
 
@@ -138,6 +144,9 @@ class StiffenedGasModel : public BaseThermodynamicModel {
         
         /// Read configuration (input) file written in YAML language
         void readConfigurationFile();
+
+        /// Calculate temperature from pressure and density
+        double calculateTemperatureFromPressureDensity(const double &P, const double &rho);
 
         /// Calculate pressure and temperature from density and internal energy
         void calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e);
@@ -189,6 +198,9 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         
         /// Read configuration (input) file written in YAML language
         void readConfigurationFile();
+
+        /// Calculate temperature from pressure and density
+        double calculateTemperatureFromPressureDensity(const double &P, const double &rho);
 
         /// Calculate pressure and temperature from density and internal energy
         void calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e);

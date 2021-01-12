@@ -19,13 +19,13 @@ void myRHEA::setInitialConditions() {
                         v_field[I1D(i,j,k)] = 1.206;
                         w_field[I1D(i,j,k)] = 0.0;
                         P_field[I1D(i,j,k)] = 0.3;
-                        T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 0.5323*thermodynamics->getSpecificGasConstant() );
+                        T_field[I1D(i,j,k)] = thermodynamics->calculateTemperatureFromPressureDensity( P_field[I1D(i,j,k)], 0.5323 );
 		    } else {
                         u_field[I1D(i,j,k)] = 0.0;
                         v_field[I1D(i,j,k)] = 0.0;
                         w_field[I1D(i,j,k)] = 0.0;
                         P_field[I1D(i,j,k)] = 1.5;
-                        T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 1.5*thermodynamics->getSpecificGasConstant() );
+                        T_field[I1D(i,j,k)] = thermodynamics->calculateTemperatureFromPressureDensity( P_field[I1D(i,j,k)], 1.5 );
 		    }
 		} else {
                     if( mesh->y[j] < 0.8 ) {
@@ -33,13 +33,13 @@ void myRHEA::setInitialConditions() {
                         v_field[I1D(i,j,k)] = 1.206;
                         w_field[I1D(i,j,k)] = 0.0;
                         P_field[I1D(i,j,k)] = 0.029;
-                        T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 0.138*thermodynamics->getSpecificGasConstant() );
+                        T_field[I1D(i,j,k)] = thermodynamics->calculateTemperatureFromPressureDensity( P_field[I1D(i,j,k)], 0.138 );
 		    } else {
                         u_field[I1D(i,j,k)] = 1.206;
                         v_field[I1D(i,j,k)] = 0.0;
                         w_field[I1D(i,j,k)] = 0.0;
                         P_field[I1D(i,j,k)] = 0.3;
-                        T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 0.5323*thermodynamics->getSpecificGasConstant() );
+                        T_field[I1D(i,j,k)] = thermodynamics->calculateTemperatureFromPressureDensity( P_field[I1D(i,j,k)], 0.5323 );
 		    }
 		}		
             }

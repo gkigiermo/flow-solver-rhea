@@ -39,6 +39,17 @@ void IdealGasModel::readConfigurationFile() {
 
 };
 
+double IdealGasModel::calculateTemperatureFromPressureDensity(const double &P, const double &rho) {
+
+    /// Ideal-gas model:
+    /// P = rho*R_specific*T is pressure
+
+    double T = P/( rho*R_specific );
+
+    return( T );
+
+};
+
 void IdealGasModel::calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {
 
     /// Ideal-gas model:
@@ -122,6 +133,18 @@ void StiffenedGasModel::readConfigurationFile() {
     P_inf      = fluid_flow_properties["P_inf"].as<double>();
     e_0        = fluid_flow_properties["e_0"].as<double>();
     c_v        = fluid_flow_properties["c_v"].as<double>();
+
+};
+
+double StiffenedGasModel::calculateTemperatureFromPressureDensity(const double &P, const double &rho) {
+
+    /// Stiffened-gas model:
+    /// P = (e - e_0)*rho*(gamma - 1) - gamma*P_inf is pressure
+    /// T = ((e - e_0) - (P_inf/rho))/c_v is temperature
+
+    double T = ( ( ( P + gamma*P_inf )/( rho*( gamma - 1.0 ) ) ) - ( P_inf/rho ) )/c_v;
+
+    return( T );
 
 };
 
@@ -238,6 +261,35 @@ void PengRobinsonModel::readConfigurationFile() {
     NASA_coefficients[12] = fluid_flow_properties["NASA_coefficients"][12].as<double>();
     NASA_coefficients[13] = fluid_flow_properties["NASA_coefficients"][13].as<double>();
     NASA_coefficients[14] = fluid_flow_properties["NASA_coefficients"][14].as<double>();
+
+};
+
+double PengRobinsonModel::calculateTemperatureFromPressureDensity(const double &P, const double &rho) {
+
+    /// Numerical Recipes in C++, Second Edition.
+    /// W.H. Press, S.A. Teulosky, W.T. Vetterling, B.P. Flannery.
+    /// 5.1 Series and Their Convergence: Aitken’s delta-squared process.
+
+    // Calculate molar volume
+    double bar_v = molecular_weight/rho;
+
+    // Initial temperature guess using ideal-gas model
+    double T = P*bar_v/R_universal;
+
+    /// Aitken’s delta-squared process:
+    double x_0 = T, x_1, x_2, denominator;
+    for(int iter = 0; iter < max_aitken_iter; iter++) { 
+        x_1 = ( (bar_v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_0 )/( pow( bar_v, 2.0 ) + 2.0*eos_b*bar_v - pow( eos_b, 2.0 ) ) ) );
+        x_2 = ( (bar_v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_1 )/( pow( bar_v, 2.0 ) + 2.0*eos_b*bar_v - pow( eos_b, 2.0 ) ) ) );
+
+        denominator = x_2 - 2.0*x_1 + x_0;
+        T = x_2 - ( pow( x_2 - x_1, 2.0 ) )/denominator;
+    
+        if( abs( ( T - x_2 )/ T ) < aitken_relative_tolerance ) break;	/// If the result is within tolerance, leave the loop!
+        x_0 = T;							/// Otherwise, update x_0 to iterate again ...                 
+    }
+
+    return( T );
 
 };
 

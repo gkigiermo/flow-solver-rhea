@@ -53,7 +53,7 @@ computational_parameters:
    A_y: -1.875             					        # Stretching factor in y-direction
    A_z: 0.0                       					# Stretching factor in z-direction
    CFL: 0.9                  					        # CFL coefficient
-   # Riemann solver scheme: CENTRAL_FLUX, HLL, HLL-LM, HLLC, HLLC-LM, HLLC+
+   # Riemann solver scheme: CENTRAL, HLL, HLL-LM, HLLC, HLLC-LM, HLLC+
    riemann_solver_scheme: 'HLL-LM'               	  		# Riemann solver scheme
    final_time_iter: 10000000           					# Final time iteration
 
@@ -64,6 +64,8 @@ boundary_conditions:
    # Boundary types: DIRICHLET (provide value ... P < 0 and/or T < 0 for impermeable boundary),
    #                 NEUMANN (provide derivative),
    #                 PERIODIC (no value/derivative needed)
+   #                 SUBSONIC_INFLOW (provide u, v, w, T)
+   #                 SUBSONIC_OUTFLOW (provide P_inf)
    west_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# West boundary condition
    east_bc: ['PERIODIC', 0.0, 0.0, 0.0, 0.0, 0.0]			# East boundary condition
    south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 6.7826]	 	       	# South boundary condition

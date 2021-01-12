@@ -18,13 +18,13 @@ void myRHEA::setInitialConditions() {
                     v_field[I1D(i,j,k)] = 0.0;
                     w_field[I1D(i,j,k)] = 0.0;
                     P_field[I1D(i,j,k)] = 1.0;
-                    T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 1.0*thermodynamics->getSpecificGasConstant() );
+                    T_field[I1D(i,j,k)] = thermodynamics->calculateTemperatureFromPressureDensity( P_field[I1D(i,j,k)], 1.0 );
 		} else {
                     u_field[I1D(i,j,k)] = 0.0;
                     v_field[I1D(i,j,k)] = 0.0;
                     w_field[I1D(i,j,k)] = 0.0;
                     P_field[I1D(i,j,k)] = 0.1;
-                    T_field[I1D(i,j,k)] = P_field[I1D(i,j,k)]/( 0.125*thermodynamics->getSpecificGasConstant() );
+                    T_field[I1D(i,j,k)] = thermodynamics->calculateTemperatureFromPressureDensity( P_field[I1D(i,j,k)], 0.0125 );
 		}		
             }
         }

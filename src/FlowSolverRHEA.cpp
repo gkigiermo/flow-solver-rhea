@@ -49,7 +49,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     }
 
     /// Construct (initialize) Riemann solver
-    if( riemann_solver_scheme == "CENTRAL_FLUX" ) {
+    if( riemann_solver_scheme == "CENTRAL" ) {
         riemann_solver = new CentralFluxApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HLL" ) {
         riemann_solver = new HllApproximateRiemannSolver();
@@ -280,6 +280,10 @@ void FlowSolverRHEA::readConfigurationFile() {
         bocos_type[_WEST_] = _NEUMANN_;
     } else if( dummy_type_boco == "PERIODIC" ) {
         bocos_type[_WEST_] = _PERIODIC_;
+    } else if( dummy_type_boco == "SUBSONIC_INFLOW" ) {
+        bocos_type[_WEST_] = _SUBSONIC_INFLOW_;
+    } else if( dummy_type_boco == "SUBSONIC_OUTFLOW" ) {
+        bocos_type[_WEST_] = _SUBSONIC_OUTFLOW_;
     } else {
         cout << "West boundary condition not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -297,6 +301,10 @@ void FlowSolverRHEA::readConfigurationFile() {
         bocos_type[_EAST_] = _NEUMANN_;
     } else if( dummy_type_boco == "PERIODIC" ) {
         bocos_type[_EAST_] = _PERIODIC_;
+    } else if( dummy_type_boco == "SUBSONIC_INFLOW" ) {
+        bocos_type[_EAST_] = _SUBSONIC_INFLOW_;
+    } else if( dummy_type_boco == "SUBSONIC_OUTFLOW" ) {
+        bocos_type[_EAST_] = _SUBSONIC_OUTFLOW_;
     } else {
         cout << "East boundary condition not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -314,6 +322,10 @@ void FlowSolverRHEA::readConfigurationFile() {
         bocos_type[_SOUTH_] = _NEUMANN_;
     } else if( dummy_type_boco == "PERIODIC" ) {
         bocos_type[_SOUTH_] = _PERIODIC_;
+    } else if( dummy_type_boco == "SUBSONIC_INFLOW" ) {
+        bocos_type[_SOUTH_] = _SUBSONIC_INFLOW_;
+    } else if( dummy_type_boco == "SUBSONIC_OUTFLOW" ) {
+        bocos_type[_SOUTH_] = _SUBSONIC_OUTFLOW_;
     } else {
         cout << "South boundary condition not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -331,6 +343,10 @@ void FlowSolverRHEA::readConfigurationFile() {
         bocos_type[_NORTH_] = _NEUMANN_;
     } else if( dummy_type_boco == "PERIODIC" ) {
         bocos_type[_NORTH_] = _PERIODIC_;
+    } else if( dummy_type_boco == "SUBSONIC_INFLOW" ) {
+        bocos_type[_NORTH_] = _SUBSONIC_INFLOW_;
+    } else if( dummy_type_boco == "SUBSONIC_OUTFLOW" ) {
+        bocos_type[_NORTH_] = _SUBSONIC_OUTFLOW_;
     } else {
         cout << "North boundary condition not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -348,6 +364,10 @@ void FlowSolverRHEA::readConfigurationFile() {
         bocos_type[_BACK_] = _NEUMANN_;
     } else if( dummy_type_boco == "PERIODIC" ) {
         bocos_type[_BACK_] = _PERIODIC_;
+    } else if( dummy_type_boco == "SUBSONIC_INFLOW" ) {
+        bocos_type[_BACK_] = _SUBSONIC_INFLOW_;
+    } else if( dummy_type_boco == "SUBSONIC_OUTFLOW" ) {
+        bocos_type[_BACK_] = _SUBSONIC_OUTFLOW_;
     } else {
         cout << "Back boundary condition not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -365,6 +385,10 @@ void FlowSolverRHEA::readConfigurationFile() {
         bocos_type[_FRONT_] = _NEUMANN_;
     } else if( dummy_type_boco == "PERIODIC" ) {
         bocos_type[_FRONT_] = _PERIODIC_;
+    } else if( dummy_type_boco == "SUBSONIC_INFLOW" ) {
+        bocos_type[_FRONT_] = _SUBSONIC_INFLOW_;
+    } else if( dummy_type_boco == "SUBSONIC_OUTFLOW" ) {
+        bocos_type[_FRONT_] = _SUBSONIC_OUTFLOW_;
     } else {
         cout << "Front boundary condition not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -589,7 +613,7 @@ void FlowSolverRHEA::updateBoundaries() {
     double u_in, v_in, w_in, P_in, T_in;
 
     /// West boundary points: rho, rhou, rhov, rhow and rhoE
-    if( bocos_type[_WEST_] == _DIRICHLET_ ) {
+    if( ( bocos_type[_WEST_] == _DIRICHLET_ ) or ( bocos_type[_WEST_] == _SUBSONIC_INFLOW_ ) ) {
         wg_g  = 1.0 - ( x_0 - mesh->getGlobx(0) )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
         wg_in = 1.0 - ( mesh->getGlobx(1) - x_0 )/( mesh->getGlobx(1) - mesh->getGlobx(0) );
     }
@@ -620,6 +644,45 @@ void FlowSolverRHEA::updateBoundaries() {
                 } else {
                     T_g = ( bocos_T[_WEST_] - wg_in*T_in )/wg_g;
                 }
+                if( bocos_type[_WEST_] == _SUBSONIC_INFLOW_ ) {
+                    double rho_in   = rho_field[I1D(i+1,j,k)]; 
+                    double sos_in   = sos_field[I1D(i+1,j,k)];
+                    double P_in_in  = P_field[I1D(i+2,j,k)]; 
+                    double u_in_in  = u_field[I1D(i+2,j,k)]; 
+                    double Delta    = mesh->x[i+2] - mesh->x[i+1];
+                    double lambda_1 = u_in - sos_in;
+		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( u_in_in - u_in )/Delta ) );
+		    double L_5      = L_1;	// Steady-state velocity assumption
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_order )*0.5*( L_1 + L_5 );
+                    T_g = ( bocos_T[_WEST_] - wg_in*T_in )/wg_g;
+		} else if( bocos_type[_WEST_] == _SUBSONIC_OUTFLOW_ ) {
+                    P_g = bocos_P[_WEST_]; 
+                    double rho_in    = rho_field[I1D(i+1,j,k)]; 
+                    double sos_in    = sos_field[I1D(i+1,j,k)];
+                    double Ma_in     = u_in/sos_in;
+                    double P_in_in   = P_field[I1D(i+2,j,k)]; 
+                    //double u_in_in   = u_field[I1D(i+2,j,k)];
+                    double v_in_in   = v_field[I1D(i+2,j,k)];
+                    double w_in_in   = w_field[I1D(i+2,j,k)];
+                    double rho_in_in = rho_field[I1D(i+2,j,k)];
+                    double Delta_b   = mesh->x[i+1] - mesh->x[i];
+                    double Delta     = mesh->x[i+2] - mesh->x[i+1];
+                    double lambda_2  = u_in;
+                    double lambda_3  = u_in;
+                    double lambda_4  = u_in;
+                    //double lambda_5  = u_in + sos_in;
+		    double L_1       = sos_in*( 1.0 - Ma_in )*( P_in - P_g )/Delta_b;
+		    double L_2       = lambda_2*( sos_in*sos_in*( ( rho_in_in - rho_in )/Delta ) - ( ( P_in_in - P_in )/Delta ) );
+		    double L_3       = lambda_3*( ( v_in_in - v_in )/Delta );
+		    double L_4       = lambda_4*( ( w_in_in - w_in )/Delta );
+		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( u_in_in - u_in )/Delta ) );
+		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
+                    T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+                }
                 thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
@@ -642,7 +705,7 @@ void FlowSolverRHEA::updateBoundaries() {
     }
 
     /// East boundary points: rho, rhou, rhov, rhow and rhoE
-    if( bocos_type[_EAST_] == _DIRICHLET_ ) {
+    if( ( bocos_type[_EAST_] == _DIRICHLET_ ) or ( bocos_type[_EAST_] == _SUBSONIC_INFLOW_ ) ) {
         wg_g  = 1.0 - ( mesh->getGlobx(mesh->getGNx()+1) - ( x_0 + L_x ) )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
         wg_in = 1.0 - ( ( x_0 + L_x ) - mesh->getGlobx(mesh->getGNx()) )/( mesh->getGlobx(mesh->getGNx()+1) - mesh->getGlobx(mesh->getGNx()) );
     }
@@ -673,6 +736,45 @@ void FlowSolverRHEA::updateBoundaries() {
                 } else {
                     T_g = ( bocos_T[_EAST_] - wg_in*T_in )/wg_g;
                 }
+                if( bocos_type[_EAST_] == _SUBSONIC_INFLOW_ ) {
+                    double rho_in   = rho_field[I1D(i-1,j,k)]; 
+                    double sos_in   = sos_field[I1D(i-1,j,k)];
+                    double P_in_in  = P_field[I1D(i-2,j,k)]; 
+                    double u_in_in  = u_field[I1D(i-2,j,k)]; 
+                    double Delta    = mesh->x[i-2] - mesh->x[i-1];
+                    double lambda_1 = u_in - sos_in;
+		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( u_in_in - u_in )/Delta ) );
+		    double L_5      = L_1;	// Steady-state velocity assumption
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_order )*0.5*( L_1 + L_5 );
+                    T_g = ( bocos_T[_EAST_] - wg_in*T_in )/wg_g;
+		} else if( bocos_type[_EAST_] == _SUBSONIC_OUTFLOW_ ) {
+                    P_g = bocos_P[_EAST_]; 
+                    double rho_in    = rho_field[I1D(i-1,j,k)]; 
+                    double sos_in    = sos_field[I1D(i-1,j,k)];
+                    double Ma_in     = u_in/sos_in;
+                    double P_in_in   = P_field[I1D(i-2,j,k)]; 
+                    //double u_in_in   = u_field[I1D(i-2,j,k)];
+                    double v_in_in   = v_field[I1D(i-2,j,k)];
+                    double w_in_in   = w_field[I1D(i-2,j,k)];
+                    double rho_in_in = rho_field[I1D(i-2,j,k)];
+                    double Delta_b   = mesh->x[i] - mesh->x[i-1];
+                    double Delta     = mesh->x[i-2] - mesh->x[i-1];
+                    double lambda_2  = u_in;
+                    double lambda_3  = u_in;
+                    double lambda_4  = u_in;
+                    //double lambda_5  = u_in + sos_in;
+		    double L_1       = sos_in*( 1.0 - Ma_in )*( P_in - P_g )/Delta_b;
+		    double L_2       = lambda_2*( sos_in*sos_in*( ( rho_in_in - rho_in )/Delta ) - ( ( P_in_in - P_in )/Delta ) );
+		    double L_3       = lambda_3*( ( v_in_in - v_in )/Delta );
+		    double L_4       = lambda_4*( ( w_in_in - w_in )/Delta );
+		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( u_in_in - u_in )/Delta ) );
+		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
+                    T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+                }
                 thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
@@ -695,7 +797,7 @@ void FlowSolverRHEA::updateBoundaries() {
     }
 
     /// South boundary points: rho, rhou, rhov, rhow and rhoE
-    if( bocos_type[_SOUTH_] == _DIRICHLET_ ) {
+    if( ( bocos_type[_SOUTH_] == _DIRICHLET_ ) or ( bocos_type[_SOUTH_] == _SUBSONIC_INFLOW_ ) ) {
         wg_g  = 1.0 - ( y_0 - mesh->getGloby(0) )/( mesh->getGloby(1) - mesh->getGloby(0) );
         wg_in = 1.0 - ( mesh->getGloby(1) - y_0 )/( mesh->getGloby(1) - mesh->getGloby(0) );
     }
@@ -726,6 +828,45 @@ void FlowSolverRHEA::updateBoundaries() {
                 } else {
                     T_g = ( bocos_T[_SOUTH_] - wg_in*T_in )/wg_g;
                 }
+                if( bocos_type[_SOUTH_] == _SUBSONIC_INFLOW_ ) {
+                    double rho_in   = rho_field[I1D(i,j+1,k)]; 
+                    double sos_in   = sos_field[I1D(i,j+1,k)];
+                    double P_in_in  = P_field[I1D(i,j+2,k)]; 
+                    double v_in_in  = v_field[I1D(i,j+2,k)]; 
+                    double Delta    = mesh->y[j+2] - mesh->y[j+1];
+                    double lambda_1 = v_in - sos_in;
+		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( v_in_in - v_in )/Delta ) );
+		    double L_5      = L_1;	// Steady-state velocity assumption
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_order )*0.5*( L_1 + L_5 );
+                    T_g = ( bocos_T[_SOUTH_] - wg_in*T_in )/wg_g;
+		} else if( bocos_type[_SOUTH_] == _SUBSONIC_OUTFLOW_ ) {
+                    P_g = bocos_P[_SOUTH_]; 
+                    double rho_in    = rho_field[I1D(i,j+1,k)]; 
+                    double sos_in    = sos_field[I1D(i,j+1,k)];
+                    double Ma_in     = u_in/sos_in;
+                    double P_in_in   = P_field[I1D(i,j+2,k)]; 
+                    double u_in_in   = u_field[I1D(i,j+2,k)];
+                    //double v_in_in   = v_field[I1D(i,j+2,k)];
+                    double w_in_in   = w_field[I1D(i,j+2,k)];
+                    double rho_in_in = rho_field[I1D(i,j+2,k)];
+                    double Delta_b   = mesh->y[j+1] - mesh->y[j];
+                    double Delta     = mesh->y[j+2] - mesh->y[j+1];
+                    double lambda_2  = v_in;
+                    double lambda_3  = v_in;
+                    double lambda_4  = v_in;
+                    //double lambda_5  = v_in + sos_in;
+		    double L_1       = sos_in*( 1.0 - Ma_in )*( P_in - P_g )/Delta_b;
+		    double L_2       = lambda_2*( sos_in*sos_in*( ( rho_in_in - rho_in )/Delta ) - ( ( P_in_in - P_in )/Delta ) );
+		    double L_3       = lambda_3*( ( u_in_in - u_in )/Delta );
+		    double L_4       = lambda_4*( ( w_in_in - w_in )/Delta );
+		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( v_in_in - v_in )/Delta ) );
+		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
+                    T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+                }
                 thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
@@ -748,7 +889,7 @@ void FlowSolverRHEA::updateBoundaries() {
     }
 
     /// North boundary points: rho, rhou, rhov, rhow and rhoE
-    if( bocos_type[_NORTH_] == _DIRICHLET_ ) {
+    if( ( bocos_type[_NORTH_] == _DIRICHLET_ ) or ( bocos_type[_NORTH_] == _SUBSONIC_INFLOW_ ) ) {
         wg_g  = 1.0 - ( mesh->getGloby(mesh->getGNy()+1) - ( y_0 + L_y ) )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
         wg_in = 1.0 - ( ( y_0 + L_y ) - mesh->getGloby(mesh->getGNy()) )/( mesh->getGloby(mesh->getGNy()+1) - mesh->getGloby(mesh->getGNy()) );
     }
@@ -779,6 +920,45 @@ void FlowSolverRHEA::updateBoundaries() {
                 } else {
                     T_g = ( bocos_T[_NORTH_] - wg_in*T_in )/wg_g;
                 }
+                if( bocos_type[_NORTH_] == _SUBSONIC_INFLOW_ ) {
+                    double rho_in   = rho_field[I1D(i,j-1,k)]; 
+                    double sos_in   = sos_field[I1D(i,j-1,k)];
+                    double P_in_in  = P_field[I1D(i,j-2,k)]; 
+                    double v_in_in  = v_field[I1D(i,j-2,k)]; 
+                    double Delta    = mesh->y[j-2] - mesh->y[j-1];
+                    double lambda_1 = v_in - sos_in;
+		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( v_in_in - v_in )/Delta ) );
+		    double L_5      = L_1;	// Steady-state velocity assumption
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_order )*0.5*( L_1 + L_5 );
+                    T_g = ( bocos_T[_NORTH_] - wg_in*T_in )/wg_g;
+		} else if( bocos_type[_NORTH_] == _SUBSONIC_OUTFLOW_ ) {
+                    P_g = bocos_P[_NORTH_]; 
+                    double rho_in    = rho_field[I1D(i,j-1,k)]; 
+                    double sos_in    = sos_field[I1D(i,j-1,k)];
+                    double Ma_in     = u_in/sos_in;
+                    double P_in_in   = P_field[I1D(i,j-2,k)]; 
+                    double u_in_in   = u_field[I1D(i,j-2,k)];
+                    //double v_in_in   = v_field[I1D(i,j-2,k)];
+                    double w_in_in   = w_field[I1D(i,j-2,k)];
+                    double rho_in_in = rho_field[I1D(i,j-2,k)];
+                    double Delta_b   = mesh->y[j] - mesh->y[j-1];
+                    double Delta     = mesh->y[j-2] - mesh->y[j-1];
+                    double lambda_2  = v_in;
+                    double lambda_3  = v_in;
+                    double lambda_4  = v_in;
+                    //double lambda_5  = v_in + sos_in;
+		    double L_1       = sos_in*( 1.0 - Ma_in )*( P_in - P_g )/Delta_b;
+		    double L_2       = lambda_2*( sos_in*sos_in*( ( rho_in_in - rho_in )/Delta ) - ( ( P_in_in - P_in )/Delta ) );
+		    double L_3       = lambda_3*( ( u_in_in - u_in )/Delta );
+		    double L_4       = lambda_4*( ( w_in_in - w_in )/Delta );
+		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( v_in_in - v_in )/Delta ) );
+		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
+                    T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+                }
                 thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
@@ -801,7 +981,7 @@ void FlowSolverRHEA::updateBoundaries() {
     }
 
     /// Back boundary points: rho, rhou, rhov, rhow and rhoE
-    if( bocos_type[_BACK_] == _DIRICHLET_ ) {
+    if( ( bocos_type[_BACK_] == _DIRICHLET_ ) or ( bocos_type[_BACK_] == _SUBSONIC_INFLOW_ ) ) {
         wg_g  = 1.0 - ( z_0 - mesh->getGlobz(0) )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
         wg_in = 1.0 - ( mesh->getGlobz(1) - z_0 )/( mesh->getGlobz(1) - mesh->getGlobz(0) );
     }
@@ -832,6 +1012,45 @@ void FlowSolverRHEA::updateBoundaries() {
                 } else {
                     T_g = ( bocos_T[_BACK_] - wg_in*T_in )/wg_g;
                 }
+                if( bocos_type[_BACK_] == _SUBSONIC_INFLOW_ ) {
+                    double rho_in   = rho_field[I1D(i,j,k+1)]; 
+                    double sos_in   = sos_field[I1D(i,j,k+1)];
+                    double P_in_in  = P_field[I1D(i,j,k+2)]; 
+                    double w_in_in  = w_field[I1D(i,j,k+2)]; 
+                    double Delta    = mesh->z[k+2] - mesh->z[k+1];
+                    double lambda_1 = w_in - sos_in;
+		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( w_in_in - w_in )/Delta ) );
+		    double L_5      = L_1;	// Steady-state velocity assumption
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_order )*0.5*( L_1 + L_5 );
+                    T_g = ( bocos_T[_BACK_] - wg_in*T_in )/wg_g;
+		} else if( bocos_type[_BACK_] == _SUBSONIC_OUTFLOW_ ) {
+                    P_g = bocos_P[_BACK_]; 
+                    double rho_in    = rho_field[I1D(i,j,k+1)]; 
+                    double sos_in    = sos_field[I1D(i,j,k+1)];
+                    double Ma_in     = u_in/sos_in;
+                    double P_in_in   = P_field[I1D(i,j,k+2)]; 
+                    double u_in_in   = u_field[I1D(i,j,k+2)];
+                    double v_in_in   = v_field[I1D(i,j,k+2)];
+                    //double w_in_in   = w_field[I1D(i,j,k+2)];
+                    double rho_in_in = rho_field[I1D(i,j,k+2)];
+                    double Delta_b   = mesh->z[k+1] - mesh->z[k];
+                    double Delta     = mesh->z[k+2] - mesh->z[k+1];
+                    double lambda_2  = w_in;
+                    double lambda_3  = w_in;
+                    double lambda_4  = w_in;
+                    //double lambda_5  = w_in + sos_in;
+		    double L_1       = sos_in*( 1.0 - Ma_in )*( P_in - P_g )/Delta_b;
+		    double L_2       = lambda_2*( sos_in*sos_in*( ( rho_in_in - rho_in )/Delta ) - ( ( P_in_in - P_in )/Delta ) );
+		    double L_3       = lambda_3*( ( v_in_in - v_in )/Delta );
+		    double L_4       = lambda_4*( ( u_in_in - u_in )/Delta );
+		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( w_in_in - w_in )/Delta ) );
+		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
+                    T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+                }
                 thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
                 E_g  = e_g + ke_g;
@@ -854,7 +1073,7 @@ void FlowSolverRHEA::updateBoundaries() {
     }
 
     /// Front boundary points: rho, rhou, rhov, rhow and rhoE
-    if( bocos_type[_FRONT_] == _DIRICHLET_ ) {
+    if( ( bocos_type[_FRONT_] == _DIRICHLET_ ) or ( bocos_type[_FRONT_] == _SUBSONIC_INFLOW_ ) ) {
         wg_g  = 1.0 - ( mesh->getGlobz(mesh->getGNz()+1) - ( z_0 + L_z ) )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
         wg_in = 1.0 - ( ( z_0 + L_z ) - mesh->getGlobz(mesh->getGNz()) )/( mesh->getGlobz(mesh->getGNz()+1) - mesh->getGlobz(mesh->getGNz()) );
     }
@@ -884,6 +1103,45 @@ void FlowSolverRHEA::updateBoundaries() {
                     T_g = T_in;
                 } else {
                     T_g = ( bocos_T[_FRONT_] - wg_in*T_in )/wg_g;
+                }
+                if( bocos_type[_FRONT_] == _SUBSONIC_INFLOW_ ) {
+                    double rho_in   = rho_field[I1D(i,j,k-1)]; 
+                    double sos_in   = sos_field[I1D(i,j,k-1)];
+                    double P_in_in  = P_field[I1D(i,j,k-2)]; 
+                    double w_in_in  = w_field[I1D(i,j,k-2)]; 
+                    double Delta    = mesh->z[k-2] - mesh->z[k-1];
+                    double lambda_1 = w_in - sos_in;
+		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( w_in_in - w_in )/Delta ) );
+		    double L_5      = L_1;	// Steady-state velocity assumption
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_order )*0.5*( L_1 + L_5 );
+                    T_g = ( bocos_T[_FRONT_] - wg_in*T_in )/wg_g;
+		} else if( bocos_type[_FRONT_] == _SUBSONIC_OUTFLOW_ ) {
+                    P_g = bocos_P[_FRONT_]; 
+                    double rho_in    = rho_field[I1D(i,j,k-1)]; 
+                    double sos_in    = sos_field[I1D(i,j,k-1)];
+                    double Ma_in     = u_in/sos_in;
+                    double P_in_in   = P_field[I1D(i,j,k-2)]; 
+                    double u_in_in   = u_field[I1D(i,j,k-2)];
+                    double v_in_in   = v_field[I1D(i,j,k-2)];
+                    //double w_in_in   = w_field[I1D(i,j,k-2)];
+                    double rho_in_in = rho_field[I1D(i,j,k-2)];
+                    double Delta_b   = mesh->z[k] - mesh->z[k-1];
+                    double Delta     = mesh->z[k-2] - mesh->z[k-1];
+                    double lambda_2  = w_in;
+                    double lambda_3  = w_in;
+                    double lambda_4  = w_in;
+                    //double lambda_5  = w_in + sos_in;
+		    double L_1       = sos_in*( 1.0 - Ma_in )*( P_in - P_g )/Delta_b;
+		    double L_2       = lambda_2*( sos_in*sos_in*( ( rho_in_in - rho_in )/Delta ) - ( ( P_in_in - P_in )/Delta ) );
+		    double L_3       = lambda_3*( ( v_in_in - v_in )/Delta );
+		    double L_4       = lambda_4*( ( u_in_in - u_in )/Delta );
+		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( w_in_in - w_in )/Delta ) );
+		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
+                    T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
                 }
                 thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
