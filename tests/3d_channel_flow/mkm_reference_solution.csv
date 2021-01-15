@@ -2,7 +2,7 @@
 # R. D. Moser, J. Kim, N. N. Mansour.
 # Direct numerical simulation of turbulent channel flow up to Re_tau = 590.
 # Physics of Fluids, 11, 943-945, 1999.
-# y+,u+,u_rms+,v_rms+,w_rms+
+# y+,u+,R_uu+,R_vv+,R_ww+
 0.0000000,0.000000,0.00000,0.00000,0.00000
 0.0536500,0.053640,0.00038,0.00000,0.00011
 0.2145600,0.214430,0.00607,0.00000,0.00171
