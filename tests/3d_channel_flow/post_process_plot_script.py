@@ -18,7 +18,6 @@ plt.rcParams['text.latex.preamble'] = [ r'\usepackage{amsmath}', r'\usepackage{a
 data_file = h5py.File( '3d_channel_flow_640000.h5', 'r' )
 #list( data_file.keys() )
 y_data         = data_file['y'][:,:,:]
-avg_rho_data   = data_file['avg_rho'][:,:,:]
 avg_rhou_data  = data_file['avg_rhou'][:,:,:]
 avg_rhov_data  = data_file['avg_rhov'][:,:,:]
 avg_rhow_data  = data_file['avg_rhow'][:,:,:]
@@ -26,9 +25,9 @@ rmsf_rho_data  = data_file['rmsf_rho'][:,:,:]
 rmsf_rhou_data = data_file['rmsf_rhou'][:,:,:]
 rmsf_rhov_data = data_file['rmsf_rhov'][:,:,:]
 rmsf_rhow_data = data_file['rmsf_rhow'][:,:,:]
-num_points_x  = avg_rho_data[0,0,:].size
-num_points_y  = avg_rho_data[0,:,0].size
-num_points_z  = avg_rho_data[:,0,0].size
+num_points_x  = avg_rhou_data[0,0,:].size
+num_points_y  = avg_rhou_data[0,:,0].size
+num_points_z  = avg_rhou_data[:,0,0].size
 num_points_xz = num_points_x*num_points_z
 
 
@@ -61,10 +60,10 @@ for j in range( 0, num_points_y ):
             if( j > ( int( 0.5*num_points_y ) - 1 ) ):
                 aux_j = num_points_y - j - 1
             avg_y_plus[aux_j]  += ( 0.5/num_points_xz )*y_data[k,aux_j,i]*( u_tau/nu_ref )
-            avg_u_plus[aux_j]  += ( 0.5/num_points_xz )*( avg_rhou_data[k,j,i]/avg_rho_data[k,j,i] )*( 1.0/u_tau )
-            rmsf_u_plus[aux_j] += ( 0.5/num_points_xz )*( rmsf_rhou_data[k,j,i]/rmsf_rho_data[k,j,i] )*( 1.0/u_tau )
-            rmsf_v_plus[aux_j] += ( 0.5/num_points_xz )*( rmsf_rhov_data[k,j,i]/rmsf_rho_data[k,j,i] )*( 1.0/u_tau )
-            rmsf_w_plus[aux_j] += ( 0.5/num_points_xz )*( rmsf_rhow_data[k,j,i]/rmsf_rho_data[k,j,i] )*( 1.0/u_tau )
+            avg_u_plus[aux_j]  += ( 0.5/num_points_xz )*( avg_rhou_data[k,j,i]/rho_0 )*( 1.0/u_tau )
+            rmsf_u_plus[aux_j] += ( 0.5/num_points_xz )*( rmsf_rhou_data[k,j,i]/rho_0 )*( 1.0/u_tau )
+            rmsf_v_plus[aux_j] += ( 0.5/num_points_xz )*( rmsf_rhov_data[k,j,i]/rho_0 )*( 1.0/u_tau )
+            rmsf_w_plus[aux_j] += ( 0.5/num_points_xz )*( rmsf_rhow_data[k,j,i]/rho_0 )*( 1.0/u_tau )
 #print( avg_y_plus )
 #print( avg_u_plus )
 #print( rmsf_u_plus )
