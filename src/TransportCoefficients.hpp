@@ -53,14 +53,14 @@ class BaseTransportCoefficients {
         ////////// PARAMETERS //////////
 
         /// Transport coefficients
-        double mu;						/// Dynamic viscosity [Pa·s]
-        double kappa;						/// Thermal conductivity [W/(m·k)]
+        double mu;								/// Dynamic viscosity [Pa·s]
+        double kappa;								/// Thermal conductivity [W/(m·k)]
 
         /// Thermodynamic properties
-        double R_universal = 8.31446261815324;			/// Universal (ideal-gas) gas constant [J/(mol·K)]
+        double R_universal = 8.31446261815324;					/// Universal (ideal-gas) gas constant [J/(mol·K)]
 
         /// Model parameters
-        string configuration_file;				/// Configuration file name (YAML language)
+        string configuration_file;						/// Configuration file name (YAML language)
 
     private:
 

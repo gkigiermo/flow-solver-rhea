@@ -3,7 +3,7 @@
 # 1D high-pressure framework test (Nitrogen, 4MPa, 100-200K):
 # P. J. Linstrom and W. G. Mallard.
 # Chemistry WebBook, NIST Standard Reference Database.
-# URL (2020): http://webbook.nist.gov/chemistry/fluid/
+# http://webbook.nist.gov/chemistry/fluid/
 ---
 
 ##### FLUID & FLOW PROPERTIES #####
@@ -11,24 +11,28 @@ fluid_flow_properties:
    # Thermodynamic models: IDEAL_GAS (provide R_specific, gamma), STIFFENED_GAS (provide R_specific, gamma, P_inf, e_0, c_v),
    # PENG_ROBINSON (provide R_specific, molecular_weight, acentric_factor, critical temperature, critical pressure, critical molar volume, NASA 7-coefficient polynomial)
    thermodynamic_model: 'PENG_ROBINSON'			  		# Thermodynamic model
-   R_specific: 296.80                 					# Specific gas constant [J/(kg·K)]
-   gamma: 1.4                          					# Heat capacity ratio (ideal-gas) [-]
-   P_inf: 0.0                         					# Pressure infinity (liquid stiffness) [Pa]
-   e_0: 0.0                         					# Internal energy zero point [J/kg]
-   c_v: 0.0                         					# Specific isochoric heat capacity [J/(kg·K)]
-   molecular_weight: 0.0280134              				# Molecular weight [kg/mol]
-   acentric_factor: 0.0372               				# Acentric factor [-]
-   critical_temperature: 126.192           				# Critical temperature [K]
-   critical_pressure: 3395800.0           				# Critical pressure [Pa]
-   critical_molar_volume: 0.000089412       				# Critical molar volume [m3/mol]
-   NASA_coefficients: [2.95257637, 0.0013969004, -0.000000492631603, 0.000000000078601019, -0.000000000000004607552, -923.948688, 5.87188762, 3.53100528, -0.00012366098, -0.000000502999433, 0.00000000243530612, -0.0000000000014088124, -1046.97628, 2.96747038, 0.0]	# NASA 7-coefficient polynomial (15 values)
+   #R_specific: 296.80                 					# Specific gas constant [J/(kg·K)]
+   #gamma: 1.4                          					# Heat capacity ratio (ideal-gas) [-]
+   #P_inf: 0.0                         					# Pressure infinity (liquid stiffness) [Pa]
+   #e_0: 0.0                         					# Internal energy zero point [J/kg]
+   #c_v: 0.0                         					# Specific isochoric heat capacity [J/(kg·K)]
+   #molecular_weight: 0.0280134              				# Molecular weight [kg/mol]
+   #acentric_factor: 0.0372               				# Acentric factor [-]
+   #critical_temperature: 126.192           				# Critical temperature [K]
+   #critical_pressure: 3395800.0           				# Critical pressure [Pa]
+   #critical_molar_volume: 0.000089412       				# Critical molar volume [m3/mol]
+   #NASA_coefficients: [2.95257637, 0.0013969004, -0.000000492631603, 0.000000000078601019, -0.000000000000004607552, -923.948688, 5.87188762, 3.53100528, -0.00012366098, -0.000000502999433, 0.00000000243530612, -0.0000000000014088124, -1046.97628, 2.96747038, 0.0]	# NASA 7-coefficient polynomial (15 values)
    # Transport coefficients models: CONSTANT (provide mu, kappa),
    # HIGH_PRESSURE (provide molecular weight, critical temperature, critical molar volume, acentric factor, dipole moment, association factor, NASA 7-coefficient polynomial)
    transport_coefficients_model: 'HIGH_PRESSURE'	  		# Transport coefficients model
-   mu: 0.0                          					# Dynamic viscosity [Pa·s]
-   kappa: 0.0                          					# Thermal conductivity [W/(m·k)]
-   dipole_moment: 0.0               					# Dipole moment [D]
-   association_factor: 0.0             					# Association factor [-]
+   #mu: 0.0                          					# Dynamic viscosity [Pa·s]
+   #kappa: 0.0                          				# Thermal conductivity [W/(m·k)]
+   #dipole_moment: 0.0               					# Dipole moment [D]
+   #association_factor: 0.0             				# Association factor [-]
+   # Substances: NITROGEN
+   # Optional. Define substance to read from library file: R_specific, gamma, P_inf, e_0, c_v, molecular_weight, acentric_factor, critical_temperature, critical_pressure, critical_molar_volume, NASA_coefficients, dipole_moment, association_factor
+   substance: 'NITROGEN'             					# Substance [-]
+   substances_library_file: '../../src/substances_library_file.yaml'    # Substances library file [-]
 
 
 ##### PROBLEM PARAMETERS #####

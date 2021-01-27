@@ -66,12 +66,12 @@ class BaseThermodynamicModel {
         ////////// PARAMETERS //////////
 
         /// Thermodynamic properties
-        double R_universal = 8.31446261815324;			/// Universal (ideal-gas) gas constant [J/(mol·K)]
-        double R_specific;					/// Specific gas constant [J/(kg·K)]
+        double R_universal = 8.31446261815324;					/// Universal (ideal-gas) gas constant [J/(mol·K)]
+        double R_specific;							/// Specific gas constant [J/(kg·K)]
 
         /// Model parameters
-        string configuration_file;				/// Configuration file name (YAML language)
-
+        string configuration_file;						/// Configuration file name (YAML language)
+        
     private:
 
 };

@@ -1,0 +1,41 @@
+# LIBRARY OF SUBSTANCES FILE (YAML LANGUAGE)
+#
+# P. J. Linstrom and W. G. Mallard.
+# Chemistry WebBook, NIST Standard Reference Database.
+# http://webbook.nist.gov/chemistry/fluid/
+#
+# A. Burcat and B. Ruscic
+# Third Millennium Ideal Gas and Condensed Phase Thermochemical Database
+# for Combustion with Updates from Active Thermochemical Tables.
+# ANL-05/20, TAE 960
+---
+
+##### NITROGEN #####
+NITROGEN:
+   R_specific: 296.80                 					# Specific gas constant [J/(kg·K)]
+   gamma: 1.4                          					# Heat capacity ratio (ideal-gas) [-]
+   P_inf: 0.0                         					# Pressure infinity (liquid stiffness) [Pa]
+   e_0: 0.0                         					# Internal energy zero point [J/kg]
+   c_v: 0.0                         					# Specific isochoric heat capacity [J/(kg·K)]
+   molecular_weight: 0.0280134              				# Molecular weight [kg/mol]
+   acentric_factor: 0.0372               				# Acentric factor [-]
+   critical_temperature: 126.192           				# Critical temperature [K]
+   critical_pressure: 3395800.0           				# Critical pressure [Pa]
+   critical_molar_volume: 0.000089412       				# Critical molar volume [m3/mol]
+   NASA_coefficients: [ 2.952576370000000000000,
+                        0.001396900400000000000,
+                       -0.000000492631603000000,
+                        0.000000000078601019000,
+                       -0.000000000000004607552,
+                       -923.9486880000000000000,
+                        5.871887620000000000000,
+                        3.531005280000000000000,
+                       -0.000123660980000000000,
+                       -0.000000502999433000000,
+                        0.000000002435306120000,
+                       -0.000000000001408812400,
+                       -1046.976280000000000000,
+                        2.967470380000000000000,
+                        0.000000000000000000000]                        # NASA 7-coefficient polynomial (15 values)
+   dipole_moment: 0.0               					# Dipole moment [D]
+   association_factor: 0.0             					# Association factor [-]

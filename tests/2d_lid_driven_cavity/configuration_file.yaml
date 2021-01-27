@@ -29,6 +29,10 @@ fluid_flow_properties:
    kappa: 14.151                      					# Thermal conductivity [W/(m·k)]
    dipole_moment: 0.0               					# Dipole moment [D]
    association_factor: 0.0             					# Association factor [-]
+   # Substances: NITROGEN
+   # Optional. Define substance to read from library file: R_specific, gamma, P_inf, e_0, c_v, molecular_weight, acentric_factor, critical_temperature, critical_pressure, critical_molar_volume, NASA_coefficients, dipole_moment, association_factor
+   #substance: 'NITROGEN'             					# Substance [-]
+   #substances_library_file: '../../src/substances_library_file.yaml'   # Substances library file [-]
 
 
 ##### PROBLEM PARAMETERS #####
