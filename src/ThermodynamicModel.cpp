@@ -34,22 +34,23 @@ void IdealGasModel::readConfigurationFile() {
 
     /// Fluid & flow properties
     const YAML::Node & fluid_flow_properties = configuration["fluid_flow_properties"];
-    if( fluid_flow_properties["substance"] ) {
-
-	string substance               = fluid_flow_properties["substance"].as<string>();
-	string substances_library_file = fluid_flow_properties["substances_library_file"].as<string>();
+    if( fluid_flow_properties["substance_name"] ) {
 
         /// Create YAML object
-        YAML::Node substances_library = YAML::LoadFile( substances_library_file );
+	string substance_name          = fluid_flow_properties["substance_name"].as<string>();
+	string substances_library_file = fluid_flow_properties["substances_library_file"].as<string>();
+        YAML::Node substances_library  = YAML::LoadFile( substances_library_file );
+        YAML::Node substance;
 
-	if( substance == "NITROGEN" ) {
-            const YAML::Node & nitrogen = substances_library["NITROGEN"];
-            R_specific = nitrogen["R_specific"].as<double>();
-            gamma      = nitrogen["gamma"].as<double>();
+	if( substance_name == "NITROGEN" ) {
+            substance = substances_library["NITROGEN"];
 	} else {
             cout << "Substance not available!" << endl;
             MPI_Abort( MPI_COMM_WORLD, 1 );
 	}
+
+        R_specific = substance["R_specific"].as<double>();
+        gamma      = substance["gamma"].as<double>();
 
     } else {
 
@@ -149,25 +150,26 @@ void StiffenedGasModel::readConfigurationFile() {
 
     /// Fluid & flow properties
     const YAML::Node & fluid_flow_properties = configuration["fluid_flow_properties"];
-    if( fluid_flow_properties["substance"] ) {
-
-	string substance               = fluid_flow_properties["substance"].as<string>();
-	string substances_library_file = fluid_flow_properties["substances_library_file"].as<string>();
+    if( fluid_flow_properties["substance_name"] ) {
 
         /// Create YAML object
-        YAML::Node substances_library = YAML::LoadFile( substances_library_file );
+	string substance_name          = fluid_flow_properties["substance_name"].as<string>();
+	string substances_library_file = fluid_flow_properties["substances_library_file"].as<string>();
+        YAML::Node substances_library  = YAML::LoadFile( substances_library_file );
+        YAML::Node substance;
 
-	if( substance == "NITROGEN" ) {
-            const YAML::Node & nitrogen = substances_library["NITROGEN"];
-            R_specific = nitrogen["R_specific"].as<double>();
-            gamma      = nitrogen["gamma"].as<double>();
-            P_inf      = nitrogen["P_inf"].as<double>();
-            e_0        = nitrogen["e_0"].as<double>();
-            c_v        = nitrogen["c_v"].as<double>();
+	if( substance_name == "NITROGEN" ) {
+            substance = substances_library["NITROGEN"];
 	} else {
             cout << "Substance not available!" << endl;
             MPI_Abort( MPI_COMM_WORLD, 1 );
-	}	
+	}
+
+        R_specific = substance["R_specific"].as<double>();
+        gamma      = substance["gamma"].as<double>();
+        P_inf      = substance["P_inf"].as<double>();
+        e_0        = substance["e_0"].as<double>();
+        c_v        = substance["c_v"].as<double>();
 
     } else {
 
@@ -285,41 +287,42 @@ void PengRobinsonModel::readConfigurationFile() {
 
     /// Fluid & flow properties
     const YAML::Node & fluid_flow_properties = configuration["fluid_flow_properties"];
-    if( fluid_flow_properties["substance"] ) {
-
-	string substance               = fluid_flow_properties["substance"].as<string>();
-	string substances_library_file = fluid_flow_properties["substances_library_file"].as<string>();
+    if( fluid_flow_properties["substance_name"] ) {
 
         /// Create YAML object
-        YAML::Node substances_library = YAML::LoadFile( substances_library_file );
+	string substance_name          = fluid_flow_properties["substance_name"].as<string>();
+	string substances_library_file = fluid_flow_properties["substances_library_file"].as<string>();
+        YAML::Node substances_library  = YAML::LoadFile( substances_library_file );
+        YAML::Node substance;
 
-	if( substance == "NITROGEN" ) {
-            const YAML::Node & nitrogen = substances_library["NITROGEN"];
-            R_specific            = nitrogen["R_specific"].as<double>();
-            molecular_weight      = nitrogen["molecular_weight"].as<double>();
-            acentric_factor       = nitrogen["acentric_factor"].as<double>();
-            critical_temperature  = nitrogen["critical_temperature"].as<double>();
-            critical_pressure     = nitrogen["critical_pressure"].as<double>();
-            critical_molar_volume = nitrogen["critical_molar_volume"].as<double>();
-            NASA_coefficients[0]  = nitrogen["NASA_coefficients"][0].as<double>();
-            NASA_coefficients[1]  = nitrogen["NASA_coefficients"][1].as<double>();
-            NASA_coefficients[2]  = nitrogen["NASA_coefficients"][2].as<double>();
-            NASA_coefficients[3]  = nitrogen["NASA_coefficients"][3].as<double>();
-            NASA_coefficients[4]  = nitrogen["NASA_coefficients"][4].as<double>();
-            NASA_coefficients[5]  = nitrogen["NASA_coefficients"][5].as<double>();
-            NASA_coefficients[6]  = nitrogen["NASA_coefficients"][6].as<double>();
-            NASA_coefficients[7]  = nitrogen["NASA_coefficients"][7].as<double>();
-            NASA_coefficients[8]  = nitrogen["NASA_coefficients"][8].as<double>();
-            NASA_coefficients[9]  = nitrogen["NASA_coefficients"][9].as<double>();
-            NASA_coefficients[10] = nitrogen["NASA_coefficients"][10].as<double>();
-            NASA_coefficients[11] = nitrogen["NASA_coefficients"][11].as<double>();
-            NASA_coefficients[12] = nitrogen["NASA_coefficients"][12].as<double>();
-            NASA_coefficients[13] = nitrogen["NASA_coefficients"][13].as<double>();
-            NASA_coefficients[14] = nitrogen["NASA_coefficients"][14].as<double>();
+	if( substance_name == "NITROGEN" ) {
+            substance = substances_library["NITROGEN"];
 	} else {
             cout << "Substance not available!" << endl;
             MPI_Abort( MPI_COMM_WORLD, 1 );
-	}	
+	}
+
+        R_specific            = substance["R_specific"].as<double>();
+        molecular_weight      = substance["molecular_weight"].as<double>();
+        acentric_factor       = substance["acentric_factor"].as<double>();
+        critical_temperature  = substance["critical_temperature"].as<double>();
+        critical_pressure     = substance["critical_pressure"].as<double>();
+        critical_molar_volume = substance["critical_molar_volume"].as<double>();
+        NASA_coefficients[0]  = substance["NASA_coefficients"][0].as<double>();
+        NASA_coefficients[1]  = substance["NASA_coefficients"][1].as<double>();
+        NASA_coefficients[2]  = substance["NASA_coefficients"][2].as<double>();
+        NASA_coefficients[3]  = substance["NASA_coefficients"][3].as<double>();
+        NASA_coefficients[4]  = substance["NASA_coefficients"][4].as<double>();
+        NASA_coefficients[5]  = substance["NASA_coefficients"][5].as<double>();
+        NASA_coefficients[6]  = substance["NASA_coefficients"][6].as<double>();
+        NASA_coefficients[7]  = substance["NASA_coefficients"][7].as<double>();
+        NASA_coefficients[8]  = substance["NASA_coefficients"][8].as<double>();
+        NASA_coefficients[9]  = substance["NASA_coefficients"][9].as<double>();
+        NASA_coefficients[10] = substance["NASA_coefficients"][10].as<double>();
+        NASA_coefficients[11] = substance["NASA_coefficients"][11].as<double>();
+        NASA_coefficients[12] = substance["NASA_coefficients"][12].as<double>();
+        NASA_coefficients[13] = substance["NASA_coefficients"][13].as<double>();
+        NASA_coefficients[14] = substance["NASA_coefficients"][14].as<double>();
 
     } else {
 

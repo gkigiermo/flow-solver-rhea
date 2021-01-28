@@ -31,7 +31,7 @@ fluid_flow_properties:
    association_factor: 0.0             					# Association factor [-]
    # Substances: NITROGEN
    # Optional. Define substance to read from library file: R_specific, gamma, P_inf, e_0, c_v, molecular_weight, acentric_factor, critical_temperature, critical_pressure, critical_molar_volume, NASA_coefficients, dipole_moment, association_factor
-   #substance: 'NITROGEN'             					# Substance [-]
+   #substance_name: 'NITROGEN'         					# Substance [-]
    #substances_library_file: '../../src/substances_library_file.yaml'   # Substances library file [-]
 
 
