@@ -42,12 +42,7 @@ void ConstantTransportCoefficients::readConfigurationFile() {
         YAML::Node substances_library  = YAML::LoadFile( substances_library_file );
         YAML::Node substance;
 
-	if( substance_name == "NITROGEN" ) {
-            substance = substances_library["NITROGEN"];
-	} else {
-            cout << "Substance not available!" << endl;
-            MPI_Abort( MPI_COMM_WORLD, 1 );
-	}
+        #include "substances_selection.txt"
 
         mu    = substance["mu"].as<double>();
         kappa = substance["kappa"].as<double>();
@@ -145,12 +140,7 @@ void HighPressureTransportCoefficients::readConfigurationFile() {
         YAML::Node substances_library  = YAML::LoadFile( substances_library_file );
         YAML::Node substance;
 
-	if( substance_name == "NITROGEN" ) {
-            substance = substances_library["NITROGEN"];
-	} else {
-            cout << "Substance not available!" << endl;
-            MPI_Abort( MPI_COMM_WORLD, 1 );
-	}
+        #include "substances_selection.txt"
 
         molecular_weight      = substance["molecular_weight"].as<double>();
         critical_temperature  = substance["critical_temperature"].as<double>();

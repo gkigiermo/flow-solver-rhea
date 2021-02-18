@@ -42,12 +42,7 @@ void IdealGasModel::readConfigurationFile() {
         YAML::Node substances_library  = YAML::LoadFile( substances_library_file );
         YAML::Node substance;
 
-	if( substance_name == "NITROGEN" ) {
-            substance = substances_library["NITROGEN"];
-	} else {
-            cout << "Substance not available!" << endl;
-            MPI_Abort( MPI_COMM_WORLD, 1 );
-	}
+        #include "substances_selection.txt"
 
         R_specific = substance["R_specific"].as<double>();
         gamma      = substance["gamma"].as<double>();
@@ -158,12 +153,7 @@ void StiffenedGasModel::readConfigurationFile() {
         YAML::Node substances_library  = YAML::LoadFile( substances_library_file );
         YAML::Node substance;
 
-	if( substance_name == "NITROGEN" ) {
-            substance = substances_library["NITROGEN"];
-	} else {
-            cout << "Substance not available!" << endl;
-            MPI_Abort( MPI_COMM_WORLD, 1 );
-	}
+        #include "substances_selection.txt"
 
         R_specific = substance["R_specific"].as<double>();
         gamma      = substance["gamma"].as<double>();
@@ -295,12 +285,7 @@ void PengRobinsonModel::readConfigurationFile() {
         YAML::Node substances_library  = YAML::LoadFile( substances_library_file );
         YAML::Node substance;
 
-	if( substance_name == "NITROGEN" ) {
-            substance = substances_library["NITROGEN"];
-	} else {
-            cout << "Substance not available!" << endl;
-            MPI_Abort( MPI_COMM_WORLD, 1 );
-	}
+        #include "substances_selection.txt"
 
         R_specific            = substance["R_specific"].as<double>();
         molecular_weight      = substance["molecular_weight"].as<double>();
