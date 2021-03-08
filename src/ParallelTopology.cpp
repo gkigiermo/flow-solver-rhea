@@ -3233,17 +3233,17 @@ void ParallelTopology::create_complex_toSend_iters()
 
     //EAST NORTH FRONT
     if(neighb[_EAST_N_F_] != _NO_NEIGHBOUR_ ) {
-          if(neighb[_WEST_] != _NO_NEIGHBOUR_ && neighb[_NORTH_] != _NO_NEIGHBOUR_ &&  neighb[_FRONT_] != _NO_NEIGHBOUR_ ){  
+          if(neighb[_EAST_] != _NO_NEIGHBOUR_ && neighb[_NORTH_] != _NO_NEIGHBOUR_ &&  neighb[_FRONT_] != _NO_NEIGHBOUR_ ){  
 
-       iter_toSend[_EAST_N_F_][_INIX_] = lNx-2; // <=this
-        iter_toSend[_EAST_N_F_][_ENDX_] = lNx-2;
-        iter_toSend[_EAST_N_F_][_INIY_] = lNy-2;
-        iter_toSend[_EAST_N_F_][_ENDY_] = lNy-2;
-        iter_toSend[_EAST_N_F_][_INIZ_] = lNz-2;
-        iter_toSend[_EAST_N_F_][_ENDZ_] = lNz-2;
+              iter_toSend[_EAST_N_F_][_INIX_] = lNx-2; // <=this
+              iter_toSend[_EAST_N_F_][_ENDX_] = lNx-2;
+              iter_toSend[_EAST_N_F_][_INIY_] = lNy-2;
+              iter_toSend[_EAST_N_F_][_ENDY_] = lNy-2;
+              iter_toSend[_EAST_N_F_][_INIZ_] = lNz-2;
+              iter_toSend[_EAST_N_F_][_ENDZ_] = lNz-2;
           }
 
-        else
+          else
         {
             if(neighb[_EAST_N_] != _NO_NEIGHBOUR_ && neighb[_FRONT_] == _NO_NEIGHBOUR_ ){ 
 
