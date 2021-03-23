@@ -15,7 +15,7 @@ plt.rcParams['text.latex.preamble'] = [ r'\usepackage{amsmath}', r'\usepackage{a
 
 
 ### Open data file
-data_file = h5py.File( '2d_developing_plane_poiseuille_flow_341782.h5', 'r' )
+data_file = h5py.File( '2d_developing_plane_poiseuille_flow_427447.h5', 'r' )
 # Read data
 x_index    = 195
 x_data     = data_file['x'][1,:,x_index];     x_data     = np.asarray( x_data.flatten() )
@@ -58,7 +58,7 @@ plt.clf()
 
 # Read & Plot data
 plt.scatter( y_data*u_tau/nu, u_data/u_tau, marker = 'p', s = 50, color = 'firebrick', zorder = 1, label = r'$\textrm{RHEA}$' )
-plt.plot( y_points*u_tau/nu, u_profile/u_tau, linestyle = '-', linewidth = 1, color = 'black', zorder = 0, label = r'$\textrm{Exact}$' )
+plt.plot( y_points*u_tau/nu, u_profile/u_tau, linestyle = '-', linewidth = 1, color = 'black', zorder = 0, label = r'$\textrm{Poiseuille flow (periodic)}$' )
 
 # Configure plot
 plt.xlim( 0.0, 60.0 )
