@@ -9,6 +9,7 @@ The flow solver RHEA solves the conservation equations of fluid motion for singl
 INSTALLATION:
 - Requisites: C++ compiler and MPI, YAML & HDF5 libraries/modules
 - Clone/Download/Copy repository into working directory
+- Set environment variable with RHEA's path: export RHEA_PATH='path_to_rhea_root_directory' 
 - Modify Makefile (paths & flags) according to the computing system
 
 COMPILATION:

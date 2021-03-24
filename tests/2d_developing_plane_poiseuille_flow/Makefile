@@ -1,8 +1,9 @@
 EXECUTABLE   = RHEA.exe
 MAIN         = myRHEA.cpp
-SRC_DIR      = ../../src
+PROJECT_PATH = $(RHEA_PATH)
+SRC_DIR      = $(PROJECT_PATH)/src
 CXX          = mpic++
-CXXFLAGS     = -O3 -Wall -std=c++0x
+CXXFLAGS     = -O3 -Wall -std=c++0x -I$(PROJECT_PATH)
 # UBUNTU - LINUX
 INC_LIB_YAML =
 INC_DIR_YAML =
