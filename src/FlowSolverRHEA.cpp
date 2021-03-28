@@ -51,6 +51,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     /// Construct (initialize) Riemann solver
     if( riemann_solver_scheme == "CENTRAL" ) {
         riemann_solver = new CentralFluxApproximateRiemannSolver();
+    } else if( riemann_solver_scheme == "HYBRID-CD-UD" ) {
+        riemann_solver = new HybridCentralUpwindFluxApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HLL" ) {
         riemann_solver = new HllApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HLL-LM" ) {
@@ -2209,6 +2211,35 @@ double CentralFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
     /// Central scheme obtained from a central differencing of the first derivative of the flux term:
 
     double F = 0.5*( F_L + F_R );
+
+    return( F );
+
+};
+
+
+////////// HybridCentralUpwindFluxApproximateRiemannSolver CLASS //////////
+
+HybridCentralUpwindFluxApproximateRiemannSolver::HybridCentralUpwindFluxApproximateRiemannSolver() : BaseRiemannSolver() {};
+
+HybridCentralUpwindFluxApproximateRiemannSolver::~HybridCentralUpwindFluxApproximateRiemannSolver() {};
+
+double HybridCentralUpwindFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
+
+    /// Central scheme
+    double CD = 0.5*( F_L + F_R );
+
+    /// Upwind scheme
+    double S_L, S_R;
+    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
+    double UD = F_L;
+    if( S_R <= 0.0 ) {
+        UD = F_R;
+    }
+
+    /// Hybrid scheme
+    double Ma_local = max( abs( u_L/a_L ), abs( u_R/a_R ) );
+    double phi      = 1.0 - max( 0.0, pow( sin( min( 1.0, Ma_local )*0.5*pi ), 4.0 ) );		// taylored function   
+    double F        = phi*CD + ( 1.0 - phi )*UD;
 
     return( F );
 

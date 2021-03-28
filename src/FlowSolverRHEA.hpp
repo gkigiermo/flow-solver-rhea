@@ -26,6 +26,7 @@ using namespace std;
 class FlowSolverRHEA;					/// Flow solver RHEA
 class BaseRiemannSolver;				/// Base Riemann solver
 class CentralFluxApproximateRiemannSolver;		/// Central scheme approximate Riemann solver
+class HybridCentralUpwindFluxApproximateRiemannSolver;	/// Hybrid central-upwind scheme approximate Riemann solver
 class HllApproximateRiemannSolver;			/// HLL approximate Riemann solver
 class HllLmApproximateRiemannSolver;			/// HLL-LM approximate Riemann solver
 class HllcApproximateRiemannSolver;			/// HLLC approximate Riemann solver
@@ -354,6 +355,32 @@ class CentralFluxApproximateRiemannSolver : public BaseRiemannSolver {
 
         ////////// PARAMETERS //////////
 
+    private:
+
+};
+
+////////// HybridCentralUpwindFluxApproximateRiemannSolver CLASS //////////
+class HybridCentralUpwindFluxApproximateRiemannSolver : public BaseRiemannSolver {
+   
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        HybridCentralUpwindFluxApproximateRiemannSolver();				/// Default constructor
+        virtual ~HybridCentralUpwindFluxApproximateRiemannSolver();			/// Destructor
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+       
+        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+        double calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+
+    protected:
+
+        ////////// PARAMETERS //////////
+	
     private:
 
 };
