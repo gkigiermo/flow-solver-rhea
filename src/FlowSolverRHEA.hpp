@@ -382,7 +382,7 @@ class HybridCentralUpwindFluxApproximateRiemannSolver : public BaseRiemannSolver
         ////////// PARAMETERS //////////
 
         /// Low-Mach-number correction parameters
-        double Ma_limit = 1.0;                                  /// Correction applied if local Mach number is larger than this limit
+        double Ma_limit = 0.3;                                  /// Correction applied if local Mach number is larger than this limit
 
     private:
 

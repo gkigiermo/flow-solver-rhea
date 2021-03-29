@@ -2238,9 +2238,9 @@ double HybridCentralUpwindFluxApproximateRiemannSolver::calculateIntercellFlux(c
 
     /// Hybrid scheme
     double Ma_local = max( abs( u_L/a_L ), abs( u_R/a_R ) );
-    //double phi      = 1.0 - max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );          // original function      
-    double phi      = 1.0 - max( 0.0, min( 1.0, Ma_local/Ma_limit ) );				// taylored function      
-    double F        = phi*CD + ( 1.0 - phi )*UD;
+    double phi      = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );	   			// original function
+    //double phi      = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );		// taylored function	    
+    double F        = ( 1.0 - phi )*CD + phi*UD;
 
     return( F );
 
