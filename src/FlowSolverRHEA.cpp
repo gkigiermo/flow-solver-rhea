@@ -53,6 +53,10 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
         riemann_solver = new CentralFluxApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HYBRID-CD-UD" ) {
         riemann_solver = new HybridCentralUpwindFluxApproximateRiemannSolver();
+    } else if( riemann_solver_scheme == "HYBRID-CD-HLL" ) {
+        riemann_solver = new HybridCentralHllFluxApproximateRiemannSolver();
+    } else if( riemann_solver_scheme == "HYBRID-CD-HLLC" ) {
+        riemann_solver = new HybridCentralHllcFluxApproximateRiemannSolver();	
     } else if( riemann_solver_scheme == "HLL" ) {
         riemann_solver = new HllApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HLL-LM" ) {
@@ -2238,9 +2242,101 @@ double HybridCentralUpwindFluxApproximateRiemannSolver::calculateIntercellFlux(c
 
     /// Hybrid scheme
     double Ma_local = max( abs( u_L/a_L ), abs( u_R/a_R ) );
-    //double phi      = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );   			// original function
-    double phi      = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 2.0 ) );		// taylored function
+    double phi      = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );   			// original function
+    //double phi      = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );		// taylored function
     double F        = ( 1.0 - phi )*CD + phi*UD;
+
+    return( F );
+
+};
+
+
+////////// HybridCentralHllFluxApproximateRiemannSolver CLASS //////////
+
+HybridCentralHllFluxApproximateRiemannSolver::HybridCentralHllFluxApproximateRiemannSolver() : BaseRiemannSolver() {};
+
+HybridCentralHllFluxApproximateRiemannSolver::~HybridCentralHllFluxApproximateRiemannSolver() {};
+
+double HybridCentralHllFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
+
+    /// Central scheme
+    double CD = 0.5*( F_L + F_R );
+
+    /// HLL scheme
+    double S_L, S_R;
+    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
+
+    double HLL = 0.0;
+    if( 0.0 <= S_L ) {
+        HLL = F_L;
+    } else if( 0.0 >= S_R ) {
+        HLL = F_R;
+    } else {
+        HLL = ( S_R*F_L - S_L*F_R + S_L*S_R*( U_R - U_L ) )/( S_R - S_L );
+    }
+
+    /// Hybrid scheme
+    double Ma_local = max( abs( u_L/a_L ), abs( u_R/a_R ) );
+    double phi      = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );   			// original function
+    //double phi      = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );		// taylored function
+    double F        = ( 1.0 - phi )*CD + phi*HLL;
+
+    return( F );
+
+};
+
+
+////////// HybridCentralHllcFluxApproximateRiemannSolver CLASS //////////
+
+HybridCentralHllcFluxApproximateRiemannSolver::HybridCentralHllcFluxApproximateRiemannSolver() : BaseRiemannSolver() {};
+
+HybridCentralHllcFluxApproximateRiemannSolver::~HybridCentralHllcFluxApproximateRiemannSolver() {};
+
+double HybridCentralHllcFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
+
+    /// Central scheme
+    double CD = 0.5*( F_L + F_R );
+
+    /// HLLC scheme
+    double S_L, S_R;
+    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
+
+    double S_star   = ( P_R - P_L + rho_L*u_L*( S_L - u_L ) - rho_R*u_R*( S_R - u_R ) )/( rho_L*( S_L - u_L ) - rho_R*( S_R - u_R ) );
+    double U_star_L = rho_L*( ( S_L - u_L )/( S_L - S_star ) );
+    double U_star_R = rho_R*( ( S_R - u_R )/( S_R - S_star ) );
+    if( var_type == 0 ) {
+        U_star_L *= 1.0;
+        U_star_R *= 1.0;       
+    } else if( var_type == 1 ) {
+        U_star_L *= S_star;
+        U_star_R *= S_star;
+    } else if( var_type == 2 ) {
+        U_star_L *= v_L;
+        U_star_R *= v_R;
+    } else if( var_type == 3 ) {
+        U_star_L *= w_L;
+        U_star_R *= w_R;
+    } else if( var_type == 4 ) {
+        U_star_L *= ( E_L + ( S_star - u_L )*( S_star + P_L/( rho_L*( S_L - u_L ) ) ) );
+        U_star_R *= ( E_R + ( S_star - u_R )*( S_star + P_R/( rho_R*( S_R - u_R ) ) ) );
+    }
+
+    double HLLC = 0.0;
+    if( 0.0 <= S_L ) {
+        HLLC = F_L;
+    } else if( ( S_L <= 0.0 ) && ( 0.0 <= S_star ) ) {
+        HLLC = F_L + S_L*( U_star_L - U_L );
+    } else if( ( S_star <= 0.0 ) && ( 0.0 <= S_R ) ) {
+        HLLC = F_R + S_R*( U_star_R - U_R );
+    } else if( 0.0 >= S_R ) {
+        HLLC = F_R;
+    }
+
+    /// Hybrid scheme
+    double Ma_local = max( abs( u_L/a_L ), abs( u_R/a_R ) );
+    double phi      = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );   			// original function
+    //double phi      = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );		// taylored function
+    double F        = ( 1.0 - phi )*CD + phi*HLLC;
 
     return( F );
 
@@ -2300,8 +2396,8 @@ double HllLmApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, 
         F = F_R;
     } else {
         double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
-        //double phi           = sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi );	    			// original function
-        double phi           = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );	// taylored function	    
+        double phi           = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );   		// original function
+        //double phi           = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );	// taylored function	    
         double S_L_corrected = phi*S_L;
         double S_R_corrected = phi*S_R;
 
@@ -2390,8 +2486,8 @@ double HllcLmApproximateRiemannSolver::calculateIntercellFlux(const double &F_L,
         F = F_R;
     } else {
         double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
-        //double phi           = sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi );	    			// original function
-        double phi           = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );	// taylored function	    
+        double phi           = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );   		// original function
+        //double phi           = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );	// taylored function	    
         double S_L_corrected = phi*S_L;
         double S_R_corrected = phi*S_R;
 
