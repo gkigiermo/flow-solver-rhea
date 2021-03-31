@@ -2,10 +2,6 @@
 
 using namespace std;
 
-
-////////// COMPILATION DIRECTIVES //////////
-#define _DYNAMICALLY_ADJUST_PRESSURE_GRADIENT_ 0		/// Based on averaged velocity, adjust pressure gradient on the fly
-
 /// Pi number
 //const double pi = 2.0*asin( 1.0 );
 
@@ -75,39 +71,11 @@ void myRHEA::calculateSourceTerms() {
 
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
-#if _DYNAMICALLY_ADJUST_PRESSURE_GRADIENT_
-    /// Calculate local delta_avg & u_avg values
-    double delta_avg_local = 0.0;
-    double u_avg_local     = 0.0;
-    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
-        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
-            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                double delta_y   = 0.5*( mesh->y[j+1] - mesh->y[j-1] );
-		delta_avg_local += delta_y;
-		u_avg_local     += delta_y*u_field[I1D(i,j,k)];
-            }
-        }
-    }
-
-    /// Calculate global delta_avg & u_avg values and u_avg
-    int my_rank, world_size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-    double delta_avg_global, u_avg_global;
-    MPI_Allreduce(&delta_avg_local, &delta_avg_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    MPI_Allreduce(&u_avg_local, &u_avg_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    double u_avg = u_avg_global/delta_avg_global;
-#endif
-
     /// Inner points: f_rhou, f_rhov, f_rhow and f_rhoE
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-#if _DYNAMICALLY_ADJUST_PRESSURE_GRADIENT_
-                f_rhou_field[I1D(i,j,k)] = ( u_avg_ref/u_avg )*( tau_w/delta );		    
-#else
 		f_rhou_field[I1D(i,j,k)] = tau_w/delta;
-#endif
                 f_rhov_field[I1D(i,j,k)] = 0.0;
                 f_rhow_field[I1D(i,j,k)] = 0.0;
                 f_rhoE_field[I1D(i,j,k)] = ( -1.0 )*( f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)] );
