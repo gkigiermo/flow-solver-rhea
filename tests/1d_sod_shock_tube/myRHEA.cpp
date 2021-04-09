@@ -24,7 +24,7 @@ void myRHEA::setInitialConditions() {
                     v_field[I1D(i,j,k)] = 0.0;
                     w_field[I1D(i,j,k)] = 0.0;
                     P_field[I1D(i,j,k)] = 0.1;
-                    T_field[I1D(i,j,k)] = thermodynamics->calculateTemperatureFromPressureDensity( P_field[I1D(i,j,k)], 0.0125 );
+                    T_field[I1D(i,j,k)] = thermodynamics->calculateTemperatureFromPressureDensity( P_field[I1D(i,j,k)], 0.125 );
 		}		
             }
         }
