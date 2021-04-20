@@ -479,7 +479,30 @@ void FlowSolverRHEA::initializeFromRestart() {
     current_time      = writer_reader->getAttributeDouble( "Time" );
     current_time_iter = writer_reader->getAttributeInt( "Iteration" );
     averaging_time    = writer_reader->getAttributeDouble( "AveragingTime" );
-    if( reset_time_averaging ) averaging_time = 0.0;
+    if( reset_time_averaging ) {
+
+	/// Reset time averaging
+        averaging_time = 0.0;
+
+	/// Reset avg and rmsf fields
+        avg_rho_field   = 0.0;
+        avg_rhou_field  = 0.0;
+        avg_rhov_field  = 0.0;
+        avg_rhow_field  = 0.0;
+        avg_rhoE_field  = 0.0;
+        avg_P_field     = 0.0;
+        avg_T_field     = 0.0;
+        avg_sos_field   = 0.0;
+        rmsf_rho_field  = 0.0;
+        rmsf_rhou_field = 0.0;
+        rmsf_rhov_field = 0.0;
+        rmsf_rhow_field = 0.0;
+        rmsf_rhoE_field = 0.0;
+        rmsf_P_field    = 0.0;
+        rmsf_T_field    = 0.0;
+        rmsf_sos_field  = 0.0;
+
+    }
 
     /// Update halo values
     rho_field.update();
