@@ -23,9 +23,12 @@ const double Re_b       = pow( Re_tau/0.09, 1.0/0.88 );		/// Bulk (approximated)
 const double u_b        = nu*Re_b/( 2.0*delta );		/// Bulk (approximated) velocity
 const double P_0        = rho_0*u_b*u_b/( gamma_0*Ma*Ma );	/// Reference pressure
 //const double L_x        = 4.0*pi*delta;				/// Streamwise length
-const double L_y        = 2.0*delta;				/// Wall-normal height
+//const double L_y        = 2.0*delta;				/// Wall-normal height
 //const double L_z        = 4.0*pi*delta/3.0;			/// Spanwise width
-const double alpha      = 0.5;					/// Magnitude of velocity perturbation
+const double kappa_vK   = 0.41;                                 /// von Kármán constant
+const double y_0        = nu/( 9.0*u_tau );                     /// Smooth-wall roughness
+const double u_0        = ( u_tau/kappa_vK )*( log( delta/y_0 ) + ( y_0/delta ) - 1.0 );        /// Volume average of a log-law velocity profile
+const double alpha      = 0.5;                                  /// Magnitude of velocity perturbation
 
 ////////// myRHEA CLASS //////////
 
@@ -39,15 +42,15 @@ void myRHEA::setInitialConditions() {
     srand( my_rank );
 
     /// All (inner, halo, boundary): u, v, w, P and T
-    double rand_number, y_pos;
+    double random_number, y_dist;
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                rand_number         = (double) rand()/( RAND_MAX );
-                y_pos               = mesh->y[j];
-                u_field[I1D(i,j,k)] = ( 1.0 + alpha*( 2.0*rand_number - 1.0 ) )*0.25*( ( tau_w/delta )/( 2.0*mu ) )*y_pos*( L_y - y_pos );
-                v_field[I1D(i,j,k)] = ( 2.0*rand_number - 1.0 )*0.25*alpha*u_b;
-                w_field[I1D(i,j,k)] = ( 2.0*rand_number - 1.0 )*0.25*alpha*u_b;
+                random_number       = 2.0*( (double) rand()/( RAND_MAX ) ) - 1.0;
+                y_dist              = min( mesh->y[j], 2.0*delta - mesh->y[j] );
+                u_field[I1D(i,j,k)] = ( 2.0*u_0*y_dist/delta ) + alpha*u_0*random_number;
+                v_field[I1D(i,j,k)] = 0.0;
+                w_field[I1D(i,j,k)] = 0.0;
                 P_field[I1D(i,j,k)] = P_0;
                 T_field[I1D(i,j,k)] = thermodynamics->calculateTemperatureFromPressureDensity( P_field[I1D(i,j,k)], rho_0 );
             }
