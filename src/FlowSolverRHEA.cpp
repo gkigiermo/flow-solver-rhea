@@ -1386,7 +1386,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 /// Shock sensor
 		//phi = max( 0.0, min( 1.0, ( div_uvw*div_uvw )/( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) ); 
 		//phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) ); 
-		phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/( sqrt( div_uvw*div_uvw ) + sqrt( mag_omega*mag_omega ) + sqrt( epsilon*epsilon ) ) ) ); 
+		phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + ( 1.0/3.0 )*mag_omega*mag_omega + epsilon*epsilon ) ) ); 
                 /// x-direction i+1/2
                 index_L = i;                           index_R = i + 1;
                 rho_L   = rho_field[I1D(index_L,j,k)]; rho_R   = rho_field[I1D(index_R,j,k)]; 
