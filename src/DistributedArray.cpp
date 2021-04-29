@@ -67,7 +67,7 @@ void DistributedArray::operator=(double val)
 
 void DistributedArray::fillEdgeCornerBoundaries() {
 
-    int _lNx_ = mydomain->getlNx();
+    //int _lNx_ = mydomain->getlNx();
     int _lNy_ = mydomain->getlNy();
     int _lNz_ = mydomain->getlNz();
 
