@@ -67,9 +67,9 @@ void DistributedArray::operator=(double val)
 
 void DistributedArray::fillEdgeCornerBoundaries() {
 
-    int _lNx_ = mydomain->getlNx();
+    //int _lNx_ = mydomain->getlNx();
     int _lNy_ = mydomain->getlNy();
-    //int _lNz_ = mydomain->getlNz();
+    int _lNz_ = mydomain->getlNz();
 
 
     /// West-South boundary points: rho, rhou, rhov, rhow and rhoE

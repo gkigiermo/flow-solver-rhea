@@ -3582,7 +3582,7 @@ void ParallelTopology::pack_simple(double *vec)
         for(int j=iter_toSend[_WEST_][_INIY_]; j<= iter_toSend[_WEST_][_ENDY_]; j++)
             for(int k=iter_toSend[_WEST_][_INIZ_]; k<= iter_toSend[_WEST_][_ENDZ_]; k++)
             {
-                pack_send_w[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_w[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3593,7 +3593,7 @@ void ParallelTopology::pack_simple(double *vec)
         for(int j=iter_toSend[_EAST_][_INIY_]; j<= iter_toSend[_EAST_][_ENDY_]; j++)
             for(int k=iter_toSend[_EAST_][_INIZ_]; k<= iter_toSend[_EAST_][_ENDZ_]; k++)
             {
-                pack_send_e[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_e[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++;
             }
 
@@ -3604,7 +3604,7 @@ void ParallelTopology::pack_simple(double *vec)
         for(int j=iter_toSend[_SOUTH_][_INIY_]; j<= iter_toSend[_SOUTH_][_ENDY_]; j++)
             for(int k=iter_toSend[_SOUTH_][_INIZ_]; k<= iter_toSend[_SOUTH_][_ENDZ_]; k++)
             {
-                pack_send_s[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_s[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++;
             }
 
@@ -3615,7 +3615,7 @@ void ParallelTopology::pack_simple(double *vec)
         for(int j=iter_toSend[_NORTH_][_INIY_]; j<= iter_toSend[_NORTH_][_ENDY_]; j++)
             for(int k=iter_toSend[_NORTH_][_INIZ_]; k<= iter_toSend[_NORTH_][_ENDZ_]; k++)
             {
-                pack_send_n[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_n[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++;
             }
 
@@ -3625,7 +3625,7 @@ void ParallelTopology::pack_simple(double *vec)
         for(int j=iter_toSend[_BACK_][_INIY_]; j<= iter_toSend[_BACK_][_ENDY_]; j++)
             for(int k=iter_toSend[_BACK_][_INIZ_]; k<= iter_toSend[_BACK_][_ENDZ_]; k++)
             {
-                pack_send_b[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_b[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++;
             }
 
@@ -3636,7 +3636,7 @@ void ParallelTopology::pack_simple(double *vec)
         for(int j=iter_toSend[_FRONT_][_INIY_]; j<= iter_toSend[_FRONT_][_ENDY_]; j++)
             for(int k=iter_toSend[_FRONT_][_INIZ_]; k<= iter_toSend[_FRONT_][_ENDZ_]; k++)
             {
-                pack_send_f[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_f[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++;
             }
 
@@ -3652,7 +3652,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_WEST_][_INIY_]; j<= iter_toSend[_WEST_][_ENDY_]; j++)
             for(int k=iter_toSend[_WEST_][_INIZ_]; k<= iter_toSend[_WEST_][_ENDZ_]; k++)
             {
-                pack_send_w[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_w[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3663,7 +3663,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_EAST_][_INIY_]; j<= iter_toSend[_EAST_][_ENDY_]; j++)
             for(int k=iter_toSend[_EAST_][_INIZ_]; k<= iter_toSend[_EAST_][_ENDZ_]; k++)
             {
-                pack_send_e[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_e[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++;
             }
 
@@ -3674,7 +3674,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_SOUTH_][_INIY_]; j<= iter_toSend[_SOUTH_][_ENDY_]; j++)
             for(int k=iter_toSend[_SOUTH_][_INIZ_]; k<= iter_toSend[_SOUTH_][_ENDZ_]; k++)
             {
-                pack_send_s[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_s[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++;
             }
 
@@ -3685,7 +3685,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_NORTH_][_INIY_]; j<= iter_toSend[_NORTH_][_ENDY_]; j++)
             for(int k=iter_toSend[_NORTH_][_INIZ_]; k<= iter_toSend[_NORTH_][_ENDZ_]; k++)
             {
-                pack_send_n[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_n[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++;
             }
 
@@ -3695,7 +3695,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_BACK_][_INIY_]; j<= iter_toSend[_BACK_][_ENDY_]; j++)
             for(int k=iter_toSend[_BACK_][_INIZ_]; k<= iter_toSend[_BACK_][_ENDZ_]; k++)
             {
-                pack_send_b[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_b[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++;
             }
 
@@ -3706,7 +3706,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_FRONT_][_INIY_]; j<= iter_toSend[_FRONT_][_ENDY_]; j++)
             for(int k=iter_toSend[_FRONT_][_INIZ_]; k<= iter_toSend[_FRONT_][_ENDZ_]; k++)
             {
-                pack_send_f[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_f[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++;
             }
 
@@ -3717,7 +3717,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_WEST_S_][_INIY_]; j<= iter_toSend[_WEST_S_][_ENDY_]; j++)
             for(int k=iter_toSend[_WEST_S_][_INIZ_]; k<= iter_toSend[_WEST_S_][_ENDZ_]; k++)
             {
-                pack_send_ws[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_ws[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3727,7 +3727,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_WEST_N_][_INIY_]; j<= iter_toSend[_WEST_N_][_ENDY_]; j++)
             for(int k=iter_toSend[_WEST_N_][_INIZ_]; k<= iter_toSend[_WEST_N_][_ENDZ_]; k++)
             {
-                pack_send_wn[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_wn[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3737,7 +3737,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_WEST_B_][_INIY_]; j<= iter_toSend[_WEST_B_][_ENDY_]; j++)
             for(int k=iter_toSend[_WEST_B_][_INIZ_]; k<= iter_toSend[_WEST_B_][_ENDZ_]; k++)
             {
-                pack_send_wb[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_wb[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3747,7 +3747,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_WEST_F_][_INIY_]; j<= iter_toSend[_WEST_F_][_ENDY_]; j++)
             for(int k=iter_toSend[_WEST_F_][_INIZ_]; k<= iter_toSend[_WEST_F_][_ENDZ_]; k++)
             {
-                pack_send_wf[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_wf[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3757,7 +3757,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_EAST_S_][_INIY_]; j<= iter_toSend[_EAST_S_][_ENDY_]; j++)
             for(int k=iter_toSend[_EAST_S_][_INIZ_]; k<= iter_toSend[_EAST_S_][_ENDZ_]; k++)
             {
-                pack_send_es[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_es[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3767,7 +3767,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_EAST_N_][_INIY_]; j<= iter_toSend[_EAST_N_][_ENDY_]; j++)
             for(int k=iter_toSend[_EAST_N_][_INIZ_]; k<= iter_toSend[_EAST_N_][_ENDZ_]; k++)
             {
-                pack_send_en[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_en[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3777,7 +3777,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_EAST_B_][_INIY_]; j<= iter_toSend[_EAST_B_][_ENDY_]; j++)
             for(int k=iter_toSend[_EAST_B_][_INIZ_]; k<= iter_toSend[_EAST_B_][_ENDZ_]; k++)
             {
-                pack_send_eb[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_eb[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3787,7 +3787,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_EAST_F_][_INIY_]; j<= iter_toSend[_EAST_F_][_ENDY_]; j++)
             for(int k=iter_toSend[_EAST_F_][_INIZ_]; k<= iter_toSend[_EAST_F_][_ENDZ_]; k++)
             {
-                pack_send_ef[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_ef[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3797,7 +3797,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_SOUTH_B_][_INIY_]; j<= iter_toSend[_SOUTH_B_][_ENDY_]; j++)
             for(int k=iter_toSend[_SOUTH_B_][_INIZ_]; k<= iter_toSend[_SOUTH_B_][_ENDZ_]; k++)
             {
-                pack_send_sb[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_sb[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3807,7 +3807,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_SOUTH_F_][_INIY_]; j<= iter_toSend[_SOUTH_F_][_ENDY_]; j++)
             for(int k=iter_toSend[_SOUTH_F_][_INIZ_]; k<= iter_toSend[_SOUTH_F_][_ENDZ_]; k++)
             {
-                pack_send_sf[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_sf[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3817,7 +3817,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_NORTH_B_][_INIY_]; j<= iter_toSend[_NORTH_B_][_ENDY_]; j++)
             for(int k=iter_toSend[_NORTH_B_][_INIZ_]; k<= iter_toSend[_NORTH_B_][_ENDZ_]; k++)
             {
-                pack_send_nb[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_nb[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3827,7 +3827,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_NORTH_F_][_INIY_]; j<= iter_toSend[_NORTH_F_][_ENDY_]; j++)
             for(int k=iter_toSend[_NORTH_F_][_INIZ_]; k<= iter_toSend[_NORTH_F_][_ENDZ_]; k++)
             {
-                pack_send_nf[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_nf[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
  
@@ -3837,7 +3837,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_WEST_S_B_][_INIY_]; j<= iter_toSend[_WEST_S_B_][_ENDY_]; j++)
             for(int k=iter_toSend[_WEST_S_B_][_INIZ_]; k<= iter_toSend[_WEST_S_B_][_ENDZ_]; k++)
             {
-                pack_send_wsb[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_wsb[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3847,7 +3847,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_WEST_N_B_][_INIY_]; j<= iter_toSend[_WEST_N_B_][_ENDY_]; j++)
             for(int k=iter_toSend[_WEST_N_B_][_INIZ_]; k<= iter_toSend[_WEST_N_B_][_ENDZ_]; k++)
             {
-                pack_send_wnb[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_wnb[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3857,7 +3857,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_WEST_S_F_][_INIY_]; j<= iter_toSend[_WEST_S_F_][_ENDY_]; j++)
             for(int k=iter_toSend[_WEST_S_F_][_INIZ_]; k<= iter_toSend[_WEST_S_F_][_ENDZ_]; k++)
             {
-                pack_send_wsf[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_wsf[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3867,7 +3867,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_WEST_N_F_][_INIY_]; j<= iter_toSend[_WEST_N_F_][_ENDY_]; j++)
             for(int k=iter_toSend[_WEST_N_F_][_INIZ_]; k<= iter_toSend[_WEST_N_F_][_ENDZ_]; k++)
             {
-                pack_send_wnf[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_wnf[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3877,7 +3877,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_EAST_S_B_][_INIY_]; j<= iter_toSend[_EAST_S_B_][_ENDY_]; j++)
             for(int k=iter_toSend[_EAST_S_B_][_INIZ_]; k<= iter_toSend[_EAST_S_B_][_ENDZ_]; k++)
             {
-                pack_send_esb[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_esb[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3887,7 +3887,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_EAST_N_B_][_INIY_]; j<= iter_toSend[_EAST_N_B_][_ENDY_]; j++)
             for(int k=iter_toSend[_EAST_N_B_][_INIZ_]; k<= iter_toSend[_EAST_N_B_][_ENDZ_]; k++)
             {
-                pack_send_enb[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_enb[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
  
@@ -3897,7 +3897,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_EAST_S_F_][_INIY_]; j<= iter_toSend[_EAST_S_F_][_ENDY_]; j++)
             for(int k=iter_toSend[_EAST_S_F_][_INIZ_]; k<= iter_toSend[_EAST_S_F_][_ENDZ_]; k++)
             {
-                pack_send_esf[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_esf[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3907,7 +3907,7 @@ void ParallelTopology::pack(double *vec)
         for(int j=iter_toSend[_EAST_N_F_][_INIY_]; j<= iter_toSend[_EAST_N_F_][_ENDY_]; j++)
             for(int k=iter_toSend[_EAST_N_F_][_INIZ_]; k<= iter_toSend[_EAST_N_F_][_ENDZ_]; k++)
             {
-                pack_send_enf[l] = vec[ R_INDX( i , j, k, lNx, lNy)];
+                pack_send_enf[l] = vec[ R_INDX( i, j, k, lNx, lNy, lNz )];
                 l++; 
             }
 
@@ -3922,7 +3922,7 @@ void ParallelTopology::unpack_simple(double *vec)
         for(int j=iter_toRecv[_WEST_][_INIY_]; j<= iter_toRecv[_WEST_][_ENDY_]; j++)
             for(int k=iter_toRecv[_WEST_][_INIZ_]; k<= iter_toRecv[_WEST_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_w[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_w[l];
                 l++;
             }
 
@@ -3932,7 +3932,7 @@ void ParallelTopology::unpack_simple(double *vec)
         for(int j=iter_toRecv[_EAST_][_INIY_]; j<= iter_toRecv[_EAST_][_ENDY_]; j++)
             for(int k=iter_toRecv[_EAST_][_INIZ_]; k<= iter_toRecv[_EAST_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_e[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_e[l];
                 l++;
             }
 
@@ -3942,7 +3942,7 @@ void ParallelTopology::unpack_simple(double *vec)
         for(int j=iter_toRecv[_SOUTH_][_INIY_]; j<= iter_toRecv[_SOUTH_][_ENDY_]; j++)
             for(int k=iter_toRecv[_SOUTH_][_INIZ_]; k<= iter_toRecv[_SOUTH_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_s[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_s[l];
                 l++;
             }
 
@@ -3952,7 +3952,7 @@ void ParallelTopology::unpack_simple(double *vec)
         for(int j=iter_toRecv[_NORTH_][_INIY_]; j<= iter_toRecv[_NORTH_][_ENDY_]; j++)
             for(int k=iter_toRecv[_NORTH_][_INIZ_]; k<= iter_toRecv[_NORTH_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_n[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_n[l];
                 l++;
             }
 
@@ -3962,7 +3962,7 @@ void ParallelTopology::unpack_simple(double *vec)
         for(int j=iter_toRecv[_BACK_][_INIY_]; j<= iter_toRecv[_BACK_][_ENDY_]; j++)
             for(int k=iter_toRecv[_BACK_][_INIZ_]; k<= iter_toRecv[_BACK_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_b[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_b[l];
                 l++;
             }
 
@@ -3972,7 +3972,7 @@ void ParallelTopology::unpack_simple(double *vec)
         for(int j=iter_toRecv[_FRONT_][_INIY_]; j<= iter_toRecv[_FRONT_][_ENDY_]; j++)
             for(int k=iter_toRecv[_FRONT_][_INIZ_]; k<= iter_toRecv[_FRONT_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_f[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_f[l];
                 l++;
             }
 }
@@ -3985,7 +3985,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_WEST_][_INIY_]; j<= iter_toRecv[_WEST_][_ENDY_]; j++)
             for(int k=iter_toRecv[_WEST_][_INIZ_]; k<= iter_toRecv[_WEST_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_w[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_w[l];
                 l++;
             }
 
@@ -3995,7 +3995,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_EAST_][_INIY_]; j<= iter_toRecv[_EAST_][_ENDY_]; j++)
             for(int k=iter_toRecv[_EAST_][_INIZ_]; k<= iter_toRecv[_EAST_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_e[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_e[l];
                 l++;
             }
 
@@ -4005,7 +4005,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_SOUTH_][_INIY_]; j<= iter_toRecv[_SOUTH_][_ENDY_]; j++)
             for(int k=iter_toRecv[_SOUTH_][_INIZ_]; k<= iter_toRecv[_SOUTH_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_s[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_s[l];
                 l++;
             }
 
@@ -4015,7 +4015,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_NORTH_][_INIY_]; j<= iter_toRecv[_NORTH_][_ENDY_]; j++)
             for(int k=iter_toRecv[_NORTH_][_INIZ_]; k<= iter_toRecv[_NORTH_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_n[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_n[l];
                 l++;
             }
 
@@ -4025,7 +4025,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_BACK_][_INIY_]; j<= iter_toRecv[_BACK_][_ENDY_]; j++)
             for(int k=iter_toRecv[_BACK_][_INIZ_]; k<= iter_toRecv[_BACK_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_b[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_b[l];
                 l++;
             }
 
@@ -4035,7 +4035,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_FRONT_][_INIY_]; j<= iter_toRecv[_FRONT_][_ENDY_]; j++)
             for(int k=iter_toRecv[_FRONT_][_INIZ_]; k<= iter_toRecv[_FRONT_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_f[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_f[l];
                 l++;
             }
     
@@ -4047,7 +4047,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_WEST_S_][_INIY_]; j<= iter_toRecv[_WEST_S_][_ENDY_]; j++)
             for(int k=iter_toRecv[_WEST_S_][_INIZ_]; k<= iter_toRecv[_WEST_S_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_ws[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_ws[l];
                 l++;
             }
 
@@ -4057,7 +4057,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_WEST_N_][_INIY_]; j<= iter_toRecv[_WEST_N_][_ENDY_]; j++)
             for(int k=iter_toRecv[_WEST_N_][_INIZ_]; k<= iter_toRecv[_WEST_N_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_wn[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_wn[l];
                 l++;
             }
 
@@ -4067,7 +4067,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_WEST_B_][_INIY_]; j<= iter_toRecv[_WEST_B_][_ENDY_]; j++)
             for(int k=iter_toRecv[_WEST_B_][_INIZ_]; k<= iter_toRecv[_WEST_B_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_wb[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_wb[l];
                 l++;
             }
 
@@ -4077,7 +4077,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_WEST_F_][_INIY_]; j<= iter_toRecv[_WEST_F_][_ENDY_]; j++)
             for(int k=iter_toRecv[_WEST_F_][_INIZ_]; k<= iter_toRecv[_WEST_F_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_wf[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_wf[l];
                 l++;
             }
 
@@ -4087,7 +4087,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_EAST_S_][_INIY_]; j<= iter_toRecv[_EAST_S_][_ENDY_]; j++)
             for(int k=iter_toRecv[_EAST_S_][_INIZ_]; k<= iter_toRecv[_EAST_S_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_es[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_es[l];
                 l++;
             }
 
@@ -4097,7 +4097,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_EAST_N_][_INIY_]; j<= iter_toRecv[_EAST_N_][_ENDY_]; j++)
             for(int k=iter_toRecv[_EAST_N_][_INIZ_]; k<= iter_toRecv[_EAST_N_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_en[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_en[l];
                 l++;
             }
 
@@ -4107,7 +4107,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_EAST_B_][_INIY_]; j<= iter_toRecv[_EAST_B_][_ENDY_]; j++)
             for(int k=iter_toRecv[_EAST_B_][_INIZ_]; k<= iter_toRecv[_EAST_B_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_eb[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_eb[l];
                 l++;
             }
 
@@ -4117,7 +4117,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_EAST_F_][_INIY_]; j<= iter_toRecv[_EAST_F_][_ENDY_]; j++)
             for(int k=iter_toRecv[_EAST_F_][_INIZ_]; k<= iter_toRecv[_EAST_F_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_ef[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_ef[l];
                 l++;
             }
 
@@ -4127,7 +4127,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_SOUTH_B_][_INIY_]; j<= iter_toRecv[_SOUTH_B_][_ENDY_]; j++)
             for(int k=iter_toRecv[_SOUTH_B_][_INIZ_]; k<= iter_toRecv[_SOUTH_B_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_sb[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_sb[l];
                 l++;
             }
 
@@ -4137,7 +4137,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_SOUTH_F_][_INIY_]; j<= iter_toRecv[_SOUTH_F_][_ENDY_]; j++)
             for(int k=iter_toRecv[_SOUTH_F_][_INIZ_]; k<= iter_toRecv[_SOUTH_F_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_sf[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_sf[l];
                 l++;
             }
 
@@ -4147,7 +4147,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_NORTH_B_][_INIY_]; j<= iter_toRecv[_NORTH_B_][_ENDY_]; j++)
             for(int k=iter_toRecv[_NORTH_B_][_INIZ_]; k<= iter_toRecv[_NORTH_B_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_nb[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_nb[l];
                 l++;
             }
 
@@ -4157,7 +4157,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_NORTH_F_][_INIY_]; j<= iter_toRecv[_NORTH_F_][_ENDY_]; j++)
             for(int k=iter_toRecv[_NORTH_F_][_INIZ_]; k<= iter_toRecv[_NORTH_F_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_nf[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_nf[l];
                 l++;
             }
 
@@ -4167,7 +4167,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_WEST_S_B_][_INIY_]; j<= iter_toRecv[_WEST_S_B_][_ENDY_]; j++)
             for(int k=iter_toRecv[_WEST_S_B_][_INIZ_]; k<= iter_toRecv[_WEST_S_B_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_wsb[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_wsb[l];
                 l++;
             }
 
@@ -4177,7 +4177,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_WEST_N_B_][_INIY_]; j<= iter_toRecv[_WEST_N_B_][_ENDY_]; j++)
             for(int k=iter_toRecv[_WEST_N_B_][_INIZ_]; k<= iter_toRecv[_WEST_N_B_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_wnb[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_wnb[l];
                 l++;
             }
 
@@ -4187,7 +4187,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_WEST_S_F_][_INIY_]; j<= iter_toRecv[_WEST_S_F_][_ENDY_]; j++)
             for(int k=iter_toRecv[_WEST_S_F_][_INIZ_]; k<= iter_toRecv[_WEST_S_F_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_wsf[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_wsf[l];
                 l++;
             }
 
@@ -4197,7 +4197,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_WEST_N_F_][_INIY_]; j<= iter_toRecv[_WEST_N_F_][_ENDY_]; j++)
             for(int k=iter_toRecv[_WEST_N_F_][_INIZ_]; k<= iter_toRecv[_WEST_N_F_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_wnf[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_wnf[l];
                 l++;
             }
 
@@ -4207,7 +4207,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_EAST_S_B_][_INIY_]; j<= iter_toRecv[_EAST_S_B_][_ENDY_]; j++)
             for(int k=iter_toRecv[_EAST_S_B_][_INIZ_]; k<= iter_toRecv[_EAST_S_B_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_esb[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_esb[l];
                 l++;
             }
 
@@ -4217,7 +4217,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_EAST_N_B_][_INIY_]; j<= iter_toRecv[_EAST_N_B_][_ENDY_]; j++)
             for(int k=iter_toRecv[_EAST_N_B_][_INIZ_]; k<= iter_toRecv[_EAST_N_B_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_enb[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_enb[l];
                 l++;
             }
 
@@ -4227,7 +4227,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_EAST_S_F_][_INIY_]; j<= iter_toRecv[_EAST_S_F_][_ENDY_]; j++)
             for(int k=iter_toRecv[_EAST_S_F_][_INIZ_]; k<= iter_toRecv[_EAST_S_F_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_esf[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_esf[l];
                 l++;
             }
 
@@ -4237,7 +4237,7 @@ void ParallelTopology::unpack(double *vec)
         for(int j=iter_toRecv[_EAST_N_F_][_INIY_]; j<= iter_toRecv[_EAST_N_F_][_ENDY_]; j++)
             for(int k=iter_toRecv[_EAST_N_F_][_INIZ_]; k<= iter_toRecv[_EAST_N_F_][_ENDZ_]; k++)
             {
-                vec[ R_INDX( i , j, k, lNx, lNy)] = pack_recv_enf[l];
+                vec[ R_INDX( i, j, k, lNx, lNy, lNz )] = pack_recv_enf[l];
                 l++;
             }
 
