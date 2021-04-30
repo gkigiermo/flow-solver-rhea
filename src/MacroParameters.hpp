@@ -56,7 +56,7 @@
 #define _SUBSONIC_INFLOW_  4
 #define _SUBSONIC_OUTFLOW_ 5
 
-//#define I1D(i, j, k) ((k)*(_lNx_*_lNy_) + ((j)*_lNx_) + (i))
-#define I1D(i, j, k) ((i)*(_lNz_*_lNy_) + ((j)*_lNz_) + (k))
+#define I1D(i, j, k) ((k)*(_lNx_*_lNy_) + ((j)*_lNx_) + (i))
+//#define I1D(i, j, k) ((i)*(_lNz_*_lNy_) + ((j)*_lNz_) + (k))
 
 #define _NO_NEIGHBOUR_ -1
