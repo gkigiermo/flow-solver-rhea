@@ -2329,7 +2329,14 @@ double HybridCentralHllFluxApproximateRiemannSolver::calculateIntercellFlux(cons
     } else if( 0.0 >= S_R ) {
         HLL = F_R;
     } else {
-        HLL = ( S_R*F_L - S_L*F_R + S_L*S_R*( U_R - U_L ) )/( S_R - S_L );
+        double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
+        double phi_Ma        = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );     // taylored function        
+        double S_L_corrected = phi_Ma*S_L;
+        double S_R_corrected = phi_Ma*S_R;
+
+        double U_HLL = ( S_R*U_R - S_L*U_L + F_L - F_R )/( S_R - S_L );
+
+        HLL = 0.5*( F_L + F_R ) + 0.5*( S_L_corrected*( U_HLL - U_L ) + S_R_corrected*( U_HLL - U_R ) );
     }
 
     /// Hybrid scheme
@@ -2363,7 +2370,7 @@ double HybridCentralHllcFluxApproximateRiemannSolver::calculateIntercellFlux(con
     double U_star_R = rho_R*( ( S_R - u_R )/( S_R - S_star ) );
     if( var_type == 0 ) {
         U_star_L *= 1.0;
-        U_star_R *= 1.0;       
+        U_star_R *= 1.0;
     } else if( var_type == 1 ) {
         U_star_L *= S_star;
         U_star_R *= S_star;
@@ -2379,14 +2386,19 @@ double HybridCentralHllcFluxApproximateRiemannSolver::calculateIntercellFlux(con
     }
 
     double HLLC = 0.0;
-    if( 0.0 <= S_L ) {
+    if( S_L >= 0.0 ) {
         HLLC = F_L;
-    } else if( ( S_L <= 0.0 ) && ( 0.0 <= S_star ) ) {
-        HLLC = F_L + S_L*( U_star_L - U_L );
-    } else if( ( S_star <= 0.0 ) && ( 0.0 <= S_R ) ) {
-        HLLC = F_R + S_R*( U_star_R - U_R );
-    } else if( 0.0 >= S_R ) {
+    } else if( S_R <= 0.0 ) {
         HLLC = F_R;
+    } else {
+        double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
+        double phi_Ma        = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );     // taylored function        
+        double S_L_corrected = phi_Ma*S_L;
+        double S_R_corrected = phi_Ma*S_R;
+
+        double S_star   = ( P_R - P_L + rho_L*u_L*( S_L - u_L ) - rho_R*u_R*( S_R - u_R ) )/( rho_L*( S_L - u_L ) - rho_R*( S_R - u_R ) );
+
+        HLLC = 0.5*( F_L + F_R ) + 0.5*( S_L_corrected*( U_star_L - U_L ) + abs( S_star )*( U_star_L - U_star_R ) + S_R_corrected*( U_star_R - U_R ) );
     }
 
     /// Hybrid scheme
