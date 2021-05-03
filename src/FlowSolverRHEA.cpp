@@ -1350,8 +1350,8 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
     int index_L, index_R, var_type;
     double delta_x, delta_y, delta_z;
     double d_u_x, d_u_y, d_u_z, d_v_x, d_v_y, d_v_z, d_w_x, d_w_y, d_w_z;
-    //double div_uvw, omega_x, omega_y, omega_z, mag_omega, phi;
-    double div_uvw, omega_x, omega_y, omega_z, min_omega, phi;
+    double div_uvw, omega_x, omega_y, omega_z, mag_omega, phi;
+    //double div_uvw, omega_x, omega_y, omega_z, min_omega, phi;
     double rho_L, u_L, v_L, w_L, E_L, P_L, a_L;
     double rho_R, u_R, v_R, w_R, E_R, P_R, a_R;
     double rho_F_L, rho_U_L, rho_F_R, rho_U_R, rho_F_p, rho_F_m;
@@ -1383,13 +1383,13 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
 		omega_y   = d_u_z - d_w_x;
 		omega_z   = d_v_x - d_u_y;
                 /// Magnitude of vorticity
-		//mag_omega = sqrt( omega_x*omega_x + omega_y*omega_y + omega_z*omega_z );
+		mag_omega = sqrt( omega_x*omega_x + omega_y*omega_y + omega_z*omega_z );
                 /// Minimum vorticity component
-		min_omega = min( sqrt( omega_x*omega_x ), min( sqrt( omega_y*omega_y ),  sqrt( omega_z*omega_z ) ) );
+		//min_omega = min( sqrt( omega_x*omega_x ), min( sqrt( omega_y*omega_y ),  sqrt( omega_z*omega_z ) ) );
                 /// Shock sensor
-		//phi = max( 0.0, min( 1.0, ( div_uvw*div_uvw )/( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) ); 
+		phi = max( 0.0, min( 1.0, ( div_uvw*div_uvw )/( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) ); 
 		//phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) ); 
-		phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + min_omega*min_omega + epsilon*epsilon ) ) ); 
+		//phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + min_omega*min_omega + epsilon*epsilon ) ) ); 
                 /// x-direction i+1/2
                 index_L = i;                           index_R = i + 1;
                 rho_L   = rho_field[I1D(index_L,j,k)]; rho_R   = rho_field[I1D(index_R,j,k)]; 
