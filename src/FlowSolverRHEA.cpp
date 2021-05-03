@@ -1387,8 +1387,8 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 /// Minimum vorticity component
 		//min_omega = min( sqrt( omega_x*omega_x ), min( sqrt( omega_y*omega_y ),  sqrt( omega_z*omega_z ) ) );
                 /// Shock sensor
-		//phi = max( 0.0, min( 1.0, ( div_uvw*div_uvw )/( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) ); 
-		phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) ); 
+		phi = max( 0.0, min( 1.0, ( div_uvw*div_uvw )/( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) ); 
+		//phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) ); 
 		//phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + min_omega*min_omega + epsilon*epsilon ) ) ); 
                 /// x-direction i+1/2
                 index_L = i;                           index_R = i + 1;
@@ -2288,10 +2288,9 @@ double HybridCentralUpwindFluxApproximateRiemannSolver::calculateIntercellFlux(c
     double CD = 0.5*( F_L + F_R );
 
     /// Upwind scheme
-    double S_L, S_R;
-    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
-    double UD = F_L;
-    if( S_R < 0.0 ) {
+    double u_LR = 0.5*( u_L + u_R );
+    double UD   = F_L;
+    if( u_LR < 0.0 ) {
         UD = F_R;
     }
 
