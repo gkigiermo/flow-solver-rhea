@@ -2288,10 +2288,13 @@ double HybridCentralUpwindFluxApproximateRiemannSolver::calculateIntercellFlux(c
     double CD = 0.5*( F_L + F_R );
 
     /// Upwind scheme
-    double u_LR = 0.5*( u_L + u_R );
-    double UD   = F_L;
-    if( u_LR < 0.0 ) {
-        UD = F_R;
+    double S_L, S_R;
+    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
+    double S_LR = 0.5*( S_L + S_R );
+
+    double UD = F_R;
+    if( 0.0 < S_LR ) {
+        UD = F_L;
     }
 
     /// Hybrid scheme
