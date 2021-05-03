@@ -1387,8 +1387,8 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 /// Minimum vorticity component
 		//min_omega = min( sqrt( omega_x*omega_x ), min( sqrt( omega_y*omega_y ),  sqrt( omega_z*omega_z ) ) );
                 /// Shock sensor
-		phi = max( 0.0, min( 1.0, ( div_uvw*div_uvw )/( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) ); 
-		//phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) ); 
+		//phi = max( 0.0, min( 1.0, ( div_uvw*div_uvw )/( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) ); 
+		phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) ); 
 		//phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + min_omega*min_omega + epsilon*epsilon ) ) ); 
                 /// x-direction i+1/2
                 index_L = i;                           index_R = i + 1;
