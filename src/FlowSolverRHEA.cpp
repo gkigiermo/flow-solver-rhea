@@ -2457,23 +2457,15 @@ double HllLmApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, 
 
     double S_L, S_R;
     this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
+        
+    double U_star = ( S_R*U_R - S_L*U_L + F_L - F_R )/( S_R - S_L );
 
-    double F = 0.0;
-    if( S_L >= 0.0 ) {
-        F = F_L;
-    } else if( S_R <= 0.0 ) {
-        F = F_R;
-    } else {
-        double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
-        //double phi_Ma        = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );   		// original function
-        double phi_Ma        = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );	// taylored function	    
-        double S_L_corrected = phi_Ma*S_L;
-        double S_R_corrected = phi_Ma*S_R;
+    double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
+    double phi_Ma        = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );   		// original function
+    double S_L_corrected = phi_Ma*S_L;
+    double S_R_corrected = phi_Ma*S_R;
 
-        double U_HLL = ( S_R*U_R - S_L*U_L + F_L - F_R )/( S_R - S_L );
-
-        F = 0.5*( F_L + F_R ) + 0.5*( S_L_corrected*( U_HLL - U_L ) + S_R_corrected*( U_HLL - U_R ) );
-    }
+    double F = 0.5*( F_L + F_R ) - 0.5*( abs( S_L_corrected )*( U_star - U_L ) + abs( S_R_corrected )*( U_R - U_star ) );
 
     return( F );
 
@@ -2548,40 +2540,32 @@ double HllcLmApproximateRiemannSolver::calculateIntercellFlux(const double &F_L,
     double S_L, S_R;
     this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
 
-    double F = 0.0;
-    if( S_L >= 0.0 ) {
-        F = F_L;
-    } else if( S_R <= 0.0 ) {
-        F = F_R;
-    } else {
-        double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
-        //double phi_Ma        = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );   		// original function
-        double phi_Ma        = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );	// taylored function	    
-        double S_L_corrected = phi_Ma*S_L;
-        double S_R_corrected = phi_Ma*S_R;
-
-        double S_star   = ( P_R - P_L + rho_L*u_L*( S_L - u_L ) - rho_R*u_R*( S_R - u_R ) )/( rho_L*( S_L - u_L ) - rho_R*( S_R - u_R ) );
-        double U_star_L = rho_L*( ( S_L - u_L )/( S_L - S_star ) );
-        double U_star_R = rho_R*( ( S_R - u_R )/( S_R - S_star ) );
-        if( var_type == 0 ) {
-            U_star_L *= 1.0;
-            U_star_R *= 1.0;       
-        } else if( var_type == 1 ) {
-            U_star_L *= S_star;
-            U_star_R *= S_star;
-        } else if( var_type == 2 ) {
-            U_star_L *= v_L;
-            U_star_R *= v_R;
-        } else if( var_type == 3 ) {
-            U_star_L *= w_L;
-            U_star_R *= w_R;
-        } else if( var_type == 4 ) {
-            U_star_L *= ( E_L + ( S_star - u_L )*( S_star + P_L/( rho_L*( S_L - u_L ) ) ) );
-            U_star_R *= ( E_R + ( S_star - u_R )*( S_star + P_R/( rho_R*( S_R - u_R ) ) ) );
-        }
-
-        F = 0.5*( F_L + F_R ) + 0.5*( S_L_corrected*( U_star_L - U_L ) + abs( S_star )*( U_star_L - U_star_R ) + S_R_corrected*( U_star_R - U_R ) );
+    double S_star   = ( P_R - P_L + rho_L*u_L*( S_L - u_L ) - rho_R*u_R*( S_R - u_R ) )/( rho_L*( S_L - u_L ) - rho_R*( S_R - u_R ) );
+    double U_star_L = rho_L*( ( S_L - u_L )/( S_L - S_star ) );
+    double U_star_R = rho_R*( ( S_R - u_R )/( S_R - S_star ) );
+    if( var_type == 0 ) {
+        U_star_L *= 1.0;
+        U_star_R *= 1.0;       
+    } else if( var_type == 1 ) {
+        U_star_L *= S_star;
+        U_star_R *= S_star;
+    } else if( var_type == 2 ) {
+        U_star_L *= v_L;
+        U_star_R *= v_R;
+    } else if( var_type == 3 ) {
+        U_star_L *= w_L;
+        U_star_R *= w_R;
+    } else if( var_type == 4 ) {
+        U_star_L *= ( E_L + ( S_star - u_L )*( S_star + P_L/( rho_L*( S_L - u_L ) ) ) );
+        U_star_R *= ( E_R + ( S_star - u_R )*( S_star + P_R/( rho_R*( S_R - u_R ) ) ) );
     }
+
+    double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
+    double phi_Ma        = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );			// original function
+    double S_L_corrected = phi_Ma*S_L;
+    double S_R_corrected = phi_Ma*S_R;
+
+    double F = 0.5*( F_L + F_R ) - 0.5*( abs( S_L_corrected )*( U_star_L - U_L ) + abs( S_star )*( U_star_R - U_star_L ) + abs( S_R_corrected )*( U_R - U_star_R ) );
 
     return( F );
 
