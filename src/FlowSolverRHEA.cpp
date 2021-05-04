@@ -2287,7 +2287,8 @@ double HllLmApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, 
     double U_star = ( S_R*U_R - S_L*U_L + F_L - F_R )/( S_R - S_L );
 
     double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
-    double phi_Ma        = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );   		// original function
+    //double phi_Ma        = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );   		// original function
+    double phi_Ma        = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 2.0 ) );         // taylored function
     double S_L_corrected = phi_Ma*S_L;
     double S_R_corrected = phi_Ma*S_R;
 
@@ -2387,7 +2388,8 @@ double HllcLmApproximateRiemannSolver::calculateIntercellFlux(const double &F_L,
     }
 
     double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
-    double phi_Ma        = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );			// original function
+    //double phi_Ma        = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );   		// original function
+    double phi_Ma        = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 2.0 ) );         // taylored function
     double S_L_corrected = phi_Ma*S_L;
     double S_R_corrected = phi_Ma*S_R;
 
