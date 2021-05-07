@@ -525,7 +525,10 @@ void FlowSolverRHEA::initializeFromRestart() {
     rmsf_P_field.update();
     rmsf_T_field.update();
     rmsf_sos_field.update();
-    
+   
+    /// Fill x, y and z fields
+    this->fillMeshCoordinateFields();
+
 };
 
 void FlowSolverRHEA::initializeThermodynamics() {
