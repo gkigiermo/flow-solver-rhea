@@ -2318,6 +2318,7 @@ double HllLmApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, 
         
     double U_star = ( S_R*U_R - S_L*U_L + F_L - F_R )/( S_R - S_L );
 
+    /// Modified scheme: shock sensor + full dissipation attenuation    
     double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
     double phi_Ma        = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );			// original function
     //double phi_Ma        = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );       // taylored function
@@ -2421,15 +2422,16 @@ double HllcLmApproximateRiemannSolver::calculateIntercellFlux(const double &F_L,
         U_star_R *= ( E_R + ( S_star - u_R )*( S_star + P_R/( rho_R*( S_R - u_R ) ) ) );
     }
 
+    /// Modified scheme: shock sensor + full dissipation attenuation    
     double Ma_local      = max( abs( u_L/a_L ), abs( u_R/a_R ) );
     double phi_Ma        = max( 0.0, sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ) );			// original function
     //double phi_Ma        = max( 0.0, pow( sin( min( 1.0, Ma_local/Ma_limit )*0.5*pi ), 3.0 ) );       // taylored function
     double phi_min       = min( phi, phi_Ma );
-    double S_L_corrected = phi_min*S_L;
-    double S_R_corrected = phi_min*S_R;
+    //double S_L_corrected = phi_min*S_L;
+    //double S_R_corrected = phi_min*S_R;
 
-    double F = 0.5*( F_L + F_R ) - 0.5*( abs( S_L_corrected )*( U_star_L - U_L ) + abs( S_star )*( U_star_R - U_star_L ) + abs( S_R_corrected )*( U_R - U_star_R ) );
-    //double F = 0.5*( F_L + F_R ) - 0.5*phi_min*( abs( S_L )*( U_star_L - U_L ) + abs( S_star )*( U_star_R - U_star_L ) + abs( S_R )*( U_R - U_star_R ) );
+    //double F = 0.5*( F_L + F_R ) - 0.5*( abs( S_L_corrected )*( U_star_L - U_L ) + abs( S_star )*( U_star_R - U_star_L ) + abs( S_R_corrected )*( U_R - U_star_R ) );
+    double F = 0.5*( F_L + F_R ) - 0.5*phi_min*( abs( S_L )*( U_star_L - U_L ) + abs( S_star )*( U_star_R - U_star_L ) + abs( S_R )*( U_R - U_star_R ) );
 
     return( F );
 
