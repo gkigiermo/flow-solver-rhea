@@ -1346,8 +1346,10 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
     /// Inner points: rho, rhou, rhov, rhow and rhoE
     int index_L, index_R, var_type;
     double delta_x, delta_y, delta_z;
-    double d_u_x, d_u_y, d_u_z, d_v_x, d_v_y, d_v_z, d_w_x, d_w_y, d_w_z;
-    double div_uvw, omega_x, omega_y, omega_z, mag_omega, phi;    
+    //double d_u_x, d_u_y, d_u_z, d_v_x, d_v_y, d_v_z, d_w_x, d_w_y, d_w_z;
+    double d_u_x, d_v_y, d_w_z;
+    //double div_uvw, omega_x, omega_y, omega_z, mag_omega, phi;    
+    double div_uvw, delta, mag_vel, phi;    
     double rho_L, u_L, v_L, w_L, E_L, P_L, a_L;
     double rho_R, u_R, v_R, w_R, E_R, P_R, a_R;
     double rho_F_L, rho_U_L, rho_F_R, rho_U_R, rho_F_p, rho_F_m;
@@ -1364,26 +1366,30 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 delta_z = 0.5*( mesh->z[k+1] - mesh->z[k-1] );       
                 /// Velocity derivatives
                 d_u_x = ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/delta_x;
-                d_u_y = ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j-1,k)] )/delta_y;
-                d_u_z = ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k-1)] )/delta_z;
-                d_v_x = ( v_field[I1D(i+1,j,k)] - v_field[I1D(i-1,j,k)] )/delta_x;
+                //d_u_y = ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j-1,k)] )/delta_y;
+                //d_u_z = ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k-1)] )/delta_z;
+                //d_v_x = ( v_field[I1D(i+1,j,k)] - v_field[I1D(i-1,j,k)] )/delta_x;
                 d_v_y = ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j-1,k)] )/delta_y;
-                d_v_z = ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k-1)] )/delta_z;
-                d_w_x = ( w_field[I1D(i+1,j,k)] - w_field[I1D(i-1,j,k)] )/delta_x;
-                d_w_y = ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j-1,k)] )/delta_y;
+                //d_v_z = ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k-1)] )/delta_z;
+                //d_w_x = ( w_field[I1D(i+1,j,k)] - w_field[I1D(i-1,j,k)] )/delta_x;
+                //d_w_y = ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j-1,k)] )/delta_y;
                 d_w_z = ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k-1)] )/delta_z;
                 /// Divergence of velocity
                 div_uvw = d_u_x + d_v_y + d_w_z;
-                /// Vorticity vector
-		omega_x   = d_w_y - d_v_z;
-		omega_y   = d_u_z - d_w_x;
-		omega_z   = d_v_x - d_u_y;
-                /// Magnitude of vorticity
-		mag_omega = sqrt( omega_x*omega_x + omega_y*omega_y + omega_z*omega_z );     
+                ///// Vorticity vector
+		//omega_x   = d_w_y - d_v_z;
+		//omega_y   = d_u_z - d_w_x;
+		//omega_z   = d_v_x - d_u_y;
+                ///// Magnitude of vorticity
+		//mag_omega = sqrt( omega_x*omega_x + omega_y*omega_y + omega_z*omega_z );  
+                /// Length and velocity scales
+		delta   = pow( delta_x*delta_y*delta_z, 1.0/3.0 ); 
+		mag_vel = sqrt( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) );   
                 /// Shock sensor
 		//phi = max( 0.0, min( 1.0, ( div_uvw*div_uvw )/( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) );
 		//phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) );	
-		phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + ( 1.0/3.0 )*mag_omega*mag_omega + epsilon*epsilon ) ) );
+		////phi = max( 0.0, min( 1.0, sqrt( div_uvw*div_uvw )/sqrt( div_uvw*div_uvw + ( 1.0/3.0 )*mag_omega*mag_omega + epsilon*epsilon ) ) );
+		phi = max( 0.0, min( 1.0, abs( div_uvw )*delta/( mag_vel + epsilon ) ) );		
                 /// x-direction i+1/2
                 index_L = i;                           index_R = i + 1;
                 rho_L   = rho_field[I1D(index_L,j,k)]; rho_R   = rho_field[I1D(index_R,j,k)]; 
