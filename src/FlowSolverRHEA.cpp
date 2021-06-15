@@ -2255,8 +2255,7 @@ double RusanovFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
     /// USSR Computational Mathematics and Mathematical Physics, 1, 267-279, 1961.
 
     /// Wave speed
-    double S_L, S_R;
-    this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
+    double S_L = abs( u_L ) + a_L, S_R = abs( u_R ) + a_R;
     double S = max( S_L, S_R );
 
     /// Rusanov flux
@@ -2278,7 +2277,9 @@ double JofreFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F
     /// Jofre Riemman solver:
 
     /// Wave speed
-    double S = abs( u_L - u_R );
+    //double S = abs( u_L - u_R );
+    double S_L = abs( u_L ) + a_L, S_R = abs( u_R ) + a_R;
+    double S = abs( S_L - S_R );
 
     /// Jofre flux
     double F = 0.5*( F_L + F_R ) - 0.5*S*( U_R - U_L );
@@ -2299,7 +2300,7 @@ double HllApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, co
     /// Harten-Lax-van Leer (HLL) Riemman solver:
     /// A. Harten, P. D. Lax, B. van Leer.
     /// On upstream differencing and Godunov-type schemes for hyperbolic conservation laws.
-    /// SIAM review, 25, 35-61, 1983.
+    /// SIAM Review, 25, 35-61, 1983.
 
     double S_L, S_R;
     this->calculateWavesSpeed( S_L, S_R, rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R );
