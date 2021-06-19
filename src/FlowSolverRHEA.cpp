@@ -2249,9 +2249,9 @@ double JofreFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F
 
     /// Jofre Riemman solver:
 
-    /// Waves speed
+    // Waves speed
     double a = 0.5*( a_L + a_R );
-    double S_L = abs( u_L ) + a, S_R = abs( u_R ) + a;
+    double S_L = u_L + a, S_R = u_R + a;
     double S = abs( S_L - S_R );
 
     /// Jofre flux
