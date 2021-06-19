@@ -51,8 +51,6 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     /// Construct (initialize) Riemann solver
     if( riemann_solver_scheme == "CENTRAL" ) {
         riemann_solver = new CentralFluxApproximateRiemannSolver();
-    } else if( riemann_solver_scheme == "RUSANOV" ) {
-        riemann_solver = new RusanovFluxApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "JOFRE" ) {
         riemann_solver = new JofreFluxApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HLL" ) {
@@ -2235,31 +2233,6 @@ double CentralFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
     /// Central scheme obtained from a central differencing of the first derivative of the flux term:
 
     double F = 0.5*( F_L + F_R );
-
-    return( F );
-
-};
-
-
-////////// RusanovFluxApproximateRiemannSolver CLASS //////////
-
-RusanovFluxApproximateRiemannSolver::RusanovFluxApproximateRiemannSolver() : BaseRiemannSolver() {};
-
-RusanovFluxApproximateRiemannSolver::~RusanovFluxApproximateRiemannSolver() {};
-
-double RusanovFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
-
-    /// Rusanov Riemman solver:
-    /// V. V. Rusanov.
-    /// Calculation of interaction of non-steady shock waves with obstacles.
-    /// USSR Computational Mathematics and Mathematical Physics, 1, 267-279, 1961.
-
-    /// Waves speed
-    double S_L = abs( u_L ) + a_L, S_R = abs( u_R ) + a_R;
-    double S = max( S_L, S_R );
-
-    /// Rusanov flux
-    double F = 0.5*( F_L + F_R ) - 0.5*S*( U_R - U_L );
 
     return( F );
 
