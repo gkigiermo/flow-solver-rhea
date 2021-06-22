@@ -2249,13 +2249,27 @@ double JofreFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F
 
     /// Jofre Riemman solver:
 
-    // Waves speed
-    double a = 0.5*( a_L + a_R );
-    double S_L = u_L + a, S_R = u_R + a;
-    double S = abs( S_L - S_R );
+    // Murman-Roe wave speed
+    double S = abs( ( F_L - F_R )/( U_L - U_R + epsilon ) );
 
-    /// Jofre flux
-    double F = 0.5*( F_L + F_R ) - 0.5*S*( U_R - U_L );
+    /// Weighting strategy:
+    /// S. Jaisankar, S.V. Raghurama Rao.
+    /// Diffusion regulation for Euler solvers.
+    /// Journal of Computational Physics, 221, 577-599, 2007.
+    
+    //double delta = 0.5, kappa = 10.0;	// original parameters
+    double delta = 0.5, kappa = 100.0;	// taylored parameters
+    double Ma_L = abs( u_L/a_L ), Ma_R = abs( u_R/a_R ), Ma = 0.5*( Ma_L + Ma_R );
+    double delta_Ma = abs( Ma_L - Ma_R );
+    double phi = delta_Ma;
+    if( delta_Ma <= delta ) {
+        phi = ( ( delta_Ma*delta_Ma + delta*delta )/( 2.0*delta ) )*( 1.0 - exp( ( -1.0 )*kappa*Ma ) );
+    } else if( delta_Ma > 1.0 ) {
+        phi = 1.0;
+    }
+
+    /// Rusanov-type flux
+    double F = 0.5*( F_L + F_R ) - 0.5*phi*S*( U_R - U_L );
 
     return( F );
 
