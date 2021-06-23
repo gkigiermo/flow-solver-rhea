@@ -2253,9 +2253,10 @@ double JofreFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F
     double S = abs( ( F_L - F_R )/( U_L - U_R + epsilon ) );
 
     /// Weighting strategy:
+    double delta_Ma_limit = 0.3;
     double Ma_L = abs( u_L/a_L ), Ma_R = abs( u_R/a_R );
     double delta_Ma = abs( Ma_L - Ma_R );
-    double phi = max( 0.0, sin( min( 1.0, delta_Ma/0.5 )*0.5*pi ) );
+    double phi = max( 0.0, sin( min( 1.0, delta_Ma/delta_Ma_limit )*0.5*pi ) );
 
     /// Rusanov-type flux
     double F = 0.5*( F_L + F_R ) - 0.5*phi*S*( U_R - U_L );
