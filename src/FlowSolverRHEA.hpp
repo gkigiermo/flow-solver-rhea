@@ -26,7 +26,8 @@ using namespace std;
 class FlowSolverRHEA;					/// Flow solver RHEA
 class BaseRiemannSolver;				/// Base Riemann solver
 class CentralFluxApproximateRiemannSolver;		/// Central scheme approximate Riemann solver
-class JofreFluxApproximateRiemannSolver;		/// Jofre scheme approximate Riemann solver
+class MurmanRoeFluxApproximateRiemannSolver;		/// Murman-Roe scheme approximate Riemann solver
+class MurmanRoeLmFluxApproximateRiemannSolver;		/// Murman-Roe low-Mach scheme approximate Riemann solver
 class HllApproximateRiemannSolver;			/// HLL approximate Riemann solver
 class HllcApproximateRiemannSolver;			/// HLLC approximate Riemann solver
 class HllcPlusApproximateRiemannSolver;			/// HLLC+ approximate Riemann solver
@@ -357,14 +358,40 @@ class CentralFluxApproximateRiemannSolver : public BaseRiemannSolver {
 
 };
 
-////////// JofreFluxApproximateRiemannSolver CLASS //////////
-class JofreFluxApproximateRiemannSolver : public BaseRiemannSolver {
+////////// MurmanRoeFluxApproximateRiemannSolver CLASS //////////
+class MurmanRoeFluxApproximateRiemannSolver : public BaseRiemannSolver {
    
     public:
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        JofreFluxApproximateRiemannSolver();						/// Default constructor
-        virtual ~JofreFluxApproximateRiemannSolver();					/// Destructor
+        MurmanRoeFluxApproximateRiemannSolver();					/// Default constructor
+        virtual ~MurmanRoeFluxApproximateRiemannSolver();				/// Destructor
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+       
+        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+        double calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+
+    protected:
+
+        ////////// PARAMETERS //////////
+
+    private:
+
+};
+
+////////// MurmanRoeLmFluxApproximateRiemannSolver CLASS //////////
+class MurmanRoeLmFluxApproximateRiemannSolver : public BaseRiemannSolver {
+   
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        MurmanRoeLmFluxApproximateRiemannSolver();					/// Default constructor
+        virtual ~MurmanRoeLmFluxApproximateRiemannSolver();				/// Destructor
 
 	////////// GET FUNCTIONS //////////
 

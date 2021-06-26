@@ -51,8 +51,10 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     /// Construct (initialize) Riemann solver
     if( riemann_solver_scheme == "CENTRAL" ) {
         riemann_solver = new CentralFluxApproximateRiemannSolver();
-    } else if( riemann_solver_scheme == "JOFRE" ) {
-        riemann_solver = new JofreFluxApproximateRiemannSolver();
+    } else if( riemann_solver_scheme == "MURMAN-ROE" ) {
+        riemann_solver = new MurmanRoeFluxApproximateRiemannSolver();
+    } else if( riemann_solver_scheme == "MURMAN-ROE-LM" ) {
+        riemann_solver = new MurmanRoeLmFluxApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HLL" ) {
         riemann_solver = new HllApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HLLC" ) {
@@ -2239,17 +2241,41 @@ double CentralFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
 };
 
 
-////////// JofreFluxApproximateRiemannSolver CLASS //////////
+////////// MurmanRoeFluxApproximateRiemannSolver CLASS //////////
 
-JofreFluxApproximateRiemannSolver::JofreFluxApproximateRiemannSolver() : BaseRiemannSolver() {};
+MurmanRoeFluxApproximateRiemannSolver::MurmanRoeFluxApproximateRiemannSolver() : BaseRiemannSolver() {};
 
-JofreFluxApproximateRiemannSolver::~JofreFluxApproximateRiemannSolver() {};
+MurmanRoeFluxApproximateRiemannSolver::~MurmanRoeFluxApproximateRiemannSolver() {};
 
-double JofreFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
+double MurmanRoeFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
-    /// Jofre Riemman solver:
+    /// Murman-Roe Riemman solver:
+    /// P. L. Roe.
+    /// Approximate Riemann solvers, parameter vectors and difference schemes.
+    /// Journal of Computational Physics, 43, 357-372, 1981.
 
-    // Murman-Roe wave speed
+    /// Wave speed
+    double S = abs( ( F_L - F_R )/( U_L - U_R + epsilon ) );
+
+    /// Conservative split flux form
+    double F = 0.5*( F_L + F_R ) - 0.5*S*( U_R - U_L );
+
+    return( F );
+
+};
+
+
+////////// MurmanRoeLmFluxApproximateRiemannSolver CLASS //////////
+
+MurmanRoeLmFluxApproximateRiemannSolver::MurmanRoeLmFluxApproximateRiemannSolver() : BaseRiemannSolver() {};
+
+MurmanRoeLmFluxApproximateRiemannSolver::~MurmanRoeLmFluxApproximateRiemannSolver() {};
+
+double MurmanRoeLmFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
+
+    /// Murman-Roe low-Mach Riemman solver:
+
+    /// Wave speed
     double S = abs( ( F_L - F_R )/( U_L - U_R + epsilon ) );
 
     /// Weighting strategy
@@ -2258,7 +2284,7 @@ double JofreFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F
     double delta_Ma = abs( Ma_L - Ma_R );
     double phi = max( 0.0, pow( sin( min( 1.0, delta_Ma/delta_Ma_limit )*0.5*pi ), 2.0 ) );
 
-    /// Rusanov-type flux
+    /// Conservative split flux form
     double F = 0.5*( F_L + F_R ) - 0.5*phi*S*( U_R - U_L );
 
     return( F );
