@@ -28,7 +28,7 @@ const double P_0        = rho_0*u_b*u_b/( gamma_0*Ma*Ma );	/// Reference pressur
 const double kappa_vK   = 0.41;                                 /// von Kármán constant
 const double y_0        = nu/( 9.0*u_tau );                     /// Smooth-wall roughness
 const double u_0        = ( u_tau/kappa_vK )*( log( delta/y_0 ) + ( y_0/delta ) - 1.0 );        /// Volume average of a log-law velocity profile
-const double alpha      = 0.1;                                  /// Magnitude of velocity perturbation
+const double alpha      = 0.5;                                  /// Magnitude of velocity perturbation
 
 ////////// myRHEA CLASS //////////
 
