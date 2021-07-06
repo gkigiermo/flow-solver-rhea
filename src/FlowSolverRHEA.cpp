@@ -1338,17 +1338,9 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
     /// Riemann solvers and numerical methods for fluid dynamics.
     /// Springer, 2009.
 
-    /// Shock sensor for hybrid convection schemes:
-    /// M. Bernardini, D. Modesti, F. Salvadore, S. Pirozzoli.
-    /// STREAmS: A high-fidelity accelerated solver for direct numerical simulation of compressible turbulent flows.
-    /// Computer Physics Communications, 263, 107906, 2021.
-
     /// Inner points: rho, rhou, rhov, rhow and rhoE
     int index_L, index_R, var_type;
     double delta_x, delta_y, delta_z;
-    //double d_u_x, d_u_y, d_u_z, d_v_x, d_v_y, d_v_z, d_w_x, d_w_y, d_w_z;
-    //double div_uvw, omega_x, omega_y, omega_z, mag_omega, phi;    
-    double phi;    
     double rho_L, u_L, v_L, w_L, E_L, P_L, a_L;
     double rho_R, u_R, v_R, w_R, E_R, P_R, a_R;
     double rho_F_L, rho_U_L, rho_F_R, rho_U_R, rho_F_p, rho_F_m;
@@ -1363,27 +1355,6 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 delta_x = 0.5*( mesh->x[i+1] - mesh->x[i-1] ); 
                 delta_y = 0.5*( mesh->y[j+1] - mesh->y[j-1] ); 
                 delta_z = 0.5*( mesh->z[k+1] - mesh->z[k-1] );  
-                ///// Velocity derivatives
-                //d_u_x = ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/delta_x;
-                //d_u_y = ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j-1,k)] )/delta_y;
-                //d_u_z = ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k-1)] )/delta_z;
-                //d_v_x = ( v_field[I1D(i+1,j,k)] - v_field[I1D(i-1,j,k)] )/delta_x;
-                //d_v_y = ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j-1,k)] )/delta_y;
-                //d_v_z = ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k-1)] )/delta_z;
-                //d_w_x = ( w_field[I1D(i+1,j,k)] - w_field[I1D(i-1,j,k)] )/delta_x;
-                //d_w_y = ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j-1,k)] )/delta_y;
-                //d_w_z = ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k-1)] )/delta_z;
-                ///// Divergence of velocity
-                //div_uvw = d_u_x + d_v_y + d_w_z;
-                ///// Vorticity vector
-		//omega_x   = d_w_y - d_v_z;
-		//omega_y   = d_u_z - d_w_x;
-		//omega_z   = d_v_x - d_u_y;
-                ///// Magnitude of vorticity
-		//mag_omega = sqrt( omega_x*omega_x + omega_y*omega_y + omega_z*omega_z ); 
-                /// Shock sensor, i.e., conservative-dissipative weight
-		//phi = max( 0.0, min( 1.0, ( ( -1.0 )*div_uvw )/sqrt( div_uvw*div_uvw + mag_omega*mag_omega + epsilon*epsilon ) ) );
-		phi = 0.0;
                 /// x-direction i+1/2
                 index_L = i;                           index_R = i + 1;
                 rho_L   = rho_field[I1D(index_L,j,k)]; rho_R   = rho_field[I1D(index_R,j,k)]; 
@@ -1399,35 +1370,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_R*u_R;
                 rho_U_L  = rho_L;
                 rho_U_R  = rho_R;
-                rho_F_p  = riemann_solver->calculateIntercellFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rho_F_p  = riemann_solver->calculateIntercellFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 1;
                 rhou_F_L = rho_L*u_L*u_L + P_L;
                 rhou_F_R = rho_R*u_R*u_R + P_R;
                 rhou_U_L = rho_L*u_L;
                 rhou_U_R = rho_R*u_R;
-                rhou_F_p = riemann_solver->calculateIntercellFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhou_F_p = riemann_solver->calculateIntercellFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 rhov_F_L = rho_L*u_L*v_L;
                 rhov_F_R = rho_R*u_R*v_R;
                 rhov_U_L = rho_L*v_L;
                 rhov_U_R = rho_R*v_R;
-                rhov_F_p = riemann_solver->calculateIntercellFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhov_F_p = riemann_solver->calculateIntercellFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 rhow_F_L = rho_L*u_L*w_L;
                 rhow_F_R = rho_R*u_R*w_R;
                 rhow_U_L = rho_L*w_L;
                 rhow_U_R = rho_R*w_R;
-                rhow_F_p = riemann_solver->calculateIntercellFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhow_F_p = riemann_solver->calculateIntercellFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_L*u_L*E_L + u_L*P_L;
                 rhoE_F_R = rho_R*u_R*E_R + u_R*P_R;
                 rhoE_U_L = rho_L*E_L;
                 rhoE_U_R = rho_R*E_R;
-                rhoE_F_p = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhoE_F_p = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// x-direction i-1/2
                 index_L = i - 1;                       index_R = i;
                 rho_L   = rho_field[I1D(index_L,j,k)]; rho_R   = rho_field[I1D(index_R,j,k)];
@@ -1443,35 +1414,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_R*u_R;
                 rho_U_L  = rho_L;
                 rho_U_R  = rho_R;
-                rho_F_m  = riemann_solver->calculateIntercellFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rho_F_m  = riemann_solver->calculateIntercellFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 1;
                 rhou_F_L = rho_L*u_L*u_L + P_L;
                 rhou_F_R = rho_R*u_R*u_R + P_R;
                 rhou_U_L = rho_L*u_L;
                 rhou_U_R = rho_R*u_R;
-                rhou_F_m = riemann_solver->calculateIntercellFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhou_F_m = riemann_solver->calculateIntercellFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 rhov_F_L = rho_L*u_L*v_L;
                 rhov_F_R = rho_R*u_R*v_R;
                 rhov_U_L = rho_L*v_L;
                 rhov_U_R = rho_R*v_R;
-                rhov_F_m = riemann_solver->calculateIntercellFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhov_F_m = riemann_solver->calculateIntercellFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 rhow_F_L = rho_L*u_L*w_L;
                 rhow_F_R = rho_R*u_R*w_R;
                 rhow_U_L = rho_L*w_L;
                 rhow_U_R = rho_R*w_R;
-                rhow_F_m = riemann_solver->calculateIntercellFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhow_F_m = riemann_solver->calculateIntercellFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_L*u_L*E_L + u_L*P_L;
                 rhoE_F_R = rho_R*u_R*E_R + u_R*P_R;
                 rhoE_U_L = rho_L*E_L;
                 rhoE_U_R = rho_R*E_R;
-                rhoE_F_m = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhoE_F_m = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes x-direction
                 rho_inv_flux[I1D(i,j,k)]  = ( rho_F_p - rho_F_m )/delta_x;
                 rhou_inv_flux[I1D(i,j,k)] = ( rhou_F_p - rhou_F_m )/delta_x;
@@ -1493,35 +1464,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_R*v_R;
                 rho_U_L  = rho_L;
                 rho_U_R  = rho_R;
-                rho_F_p  = riemann_solver->calculateIntercellFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rho_F_p  = riemann_solver->calculateIntercellFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 2;
                 rhou_F_L = rho_L*v_L*u_L;
                 rhou_F_R = rho_R*v_R*u_R;
                 rhou_U_L = rho_L*u_L;
                 rhou_U_R = rho_R*u_R;
-                rhou_F_p = riemann_solver->calculateIntercellFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhou_F_p = riemann_solver->calculateIntercellFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 1;
                 rhov_F_L = rho_L*v_L*v_L + P_L;
                 rhov_F_R = rho_R*v_R*v_R + P_R;
                 rhov_U_L = rho_L*v_L;
                 rhov_U_R = rho_R*v_R;
-                rhov_F_p = riemann_solver->calculateIntercellFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhov_F_p = riemann_solver->calculateIntercellFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 rhow_F_L = rho_L*v_L*w_L;
                 rhow_F_R = rho_R*v_R*w_R;
                 rhow_U_L = rho_L*w_L;
                 rhow_U_R = rho_R*w_R;
-                rhow_F_p = riemann_solver->calculateIntercellFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhow_F_p = riemann_solver->calculateIntercellFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_L*v_L*E_L + v_L*P_L;
                 rhoE_F_R = rho_R*v_R*E_R + v_R*P_R;
                 rhoE_U_L = rho_L*E_L;
                 rhoE_U_R = rho_R*E_R;
-                rhoE_F_p = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhoE_F_p = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// y-direction j-1/2
                 index_L = j - 1;                       index_R = j;
                 rho_L   = rho_field[I1D(i,index_L,k)]; rho_R   = rho_field[I1D(i,index_R,k)];
@@ -1537,35 +1508,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_R*v_R;
                 rho_U_L  = rho_L;
                 rho_U_R  = rho_R;
-                rho_F_m  = riemann_solver->calculateIntercellFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rho_F_m  = riemann_solver->calculateIntercellFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 2;
                 rhou_F_L = rho_L*v_L*u_L;
                 rhou_F_R = rho_R*v_R*u_R;
                 rhou_U_L = rho_L*u_L;
                 rhou_U_R = rho_R*u_R;
-                rhou_F_m = riemann_solver->calculateIntercellFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhou_F_m = riemann_solver->calculateIntercellFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 1;
                 rhov_F_L = rho_L*v_L*v_L + P_L;
                 rhov_F_R = rho_R*v_R*v_R + P_R;
                 rhov_U_L = rho_L*v_L;
                 rhov_U_R = rho_R*v_R;
-                rhov_F_m = riemann_solver->calculateIntercellFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhov_F_m = riemann_solver->calculateIntercellFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 rhow_F_L = rho_L*v_L*w_L;
                 rhow_F_R = rho_R*v_R*w_R;
                 rhow_U_L = rho_L*w_L;
                 rhow_U_R = rho_R*w_R;
-                rhow_F_m = riemann_solver->calculateIntercellFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhow_F_m = riemann_solver->calculateIntercellFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_L*v_L*E_L + v_L*P_L;
                 rhoE_F_R = rho_R*v_R*E_R + v_R*P_R;
                 rhoE_U_L = rho_L*E_L;
                 rhoE_U_R = rho_R*E_R;
-                rhoE_F_m = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhoE_F_m = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes y-direction
                 rho_inv_flux[I1D(i,j,k)]  += ( rho_F_p - rho_F_m )/delta_y;
                 rhou_inv_flux[I1D(i,j,k)] += ( rhou_F_p - rhou_F_m )/delta_y;
@@ -1587,35 +1558,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_R*w_R;
                 rho_U_L  = rho_L;
                 rho_U_R  = rho_R;
-                rho_F_p  = riemann_solver->calculateIntercellFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rho_F_p  = riemann_solver->calculateIntercellFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 3;
                 rhou_F_L = rho_L*w_L*u_L;
                 rhou_F_R = rho_R*w_R*u_R;
                 rhou_U_L = rho_L*u_L;
                 rhou_U_R = rho_R*u_R;
-                rhou_F_p = riemann_solver->calculateIntercellFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhou_F_p = riemann_solver->calculateIntercellFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 rhov_F_L = rho_L*w_L*v_L;
                 rhov_F_R = rho_R*w_R*v_R;
                 rhov_U_L = rho_L*v_L;
                 rhov_U_R = rho_R*v_R;
-                rhov_F_p = riemann_solver->calculateIntercellFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhov_F_p = riemann_solver->calculateIntercellFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 1;
                 rhow_F_L = rho_L*w_L*w_L + P_L;
                 rhow_F_R = rho_R*w_R*w_R + P_R;
                 rhow_U_L = rho_L*w_L;
                 rhow_U_R = rho_R*w_R;
-                rhow_F_p = riemann_solver->calculateIntercellFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhow_F_p = riemann_solver->calculateIntercellFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_L*w_L*E_L + w_L*P_L;
                 rhoE_F_R = rho_R*w_R*E_R + w_R*P_R;
                 rhoE_U_L = rho_L*E_L;
                 rhoE_U_R = rho_R*E_R;
-                rhoE_F_p = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhoE_F_p = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// z-direction k-1/2
                 index_L = k - 1;                       index_R = k;
                 rho_L   = rho_field[I1D(i,j,index_L)]; rho_R   = rho_field[I1D(i,j,index_R)];
@@ -1631,35 +1602,35 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rho_F_R  = rho_R*w_R;
                 rho_U_L  = rho_L;
                 rho_U_R  = rho_R;
-                rho_F_m  = riemann_solver->calculateIntercellFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rho_F_m  = riemann_solver->calculateIntercellFlux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 3;
                 rhou_F_L = rho_L*w_L*u_L;
                 rhou_F_R = rho_R*w_R*u_R;
                 rhou_U_L = rho_L*u_L;
                 rhou_U_R = rho_R*u_R;
-                rhou_F_m = riemann_solver->calculateIntercellFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhou_F_m = riemann_solver->calculateIntercellFlux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 rhov_F_L = rho_L*w_L*v_L;
                 rhov_F_R = rho_R*w_R*v_R;
                 rhov_U_L = rho_L*v_L;
                 rhov_U_R = rho_R*v_R;
-                rhov_F_m = riemann_solver->calculateIntercellFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhov_F_m = riemann_solver->calculateIntercellFlux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 1;
                 rhow_F_L = rho_L*w_L*w_L + P_L;
                 rhow_F_R = rho_R*w_R*w_R + P_R;
                 rhow_U_L = rho_L*w_L;
                 rhow_U_R = rho_R*w_R;
-                rhow_F_m = riemann_solver->calculateIntercellFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhow_F_m = riemann_solver->calculateIntercellFlux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 rhoE_F_L = rho_L*w_L*E_L + w_L*P_L;
                 rhoE_F_R = rho_R*w_R*E_R + w_R*P_R;
                 rhoE_U_L = rho_L*E_L;
                 rhoE_U_R = rho_R*E_R;
-                rhoE_F_m = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type, phi );
+                rhoE_F_m = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes z-direction
                 rho_inv_flux[I1D(i,j,k)]  += ( rho_F_p - rho_F_m )/delta_z;
                 rhou_inv_flux[I1D(i,j,k)] += ( rhou_F_p - rhou_F_m )/delta_z;
@@ -2259,7 +2230,7 @@ CentralFluxApproximateRiemannSolver::CentralFluxApproximateRiemannSolver() : Bas
 
 CentralFluxApproximateRiemannSolver::~CentralFluxApproximateRiemannSolver() {};
 
-double CentralFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type, const double &phi) {
+double CentralFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
     /// Central scheme obtained from a central differencing of the first derivative of the flux term:
 
@@ -2276,7 +2247,7 @@ MurmanRoeFluxApproximateRiemannSolver::MurmanRoeFluxApproximateRiemannSolver() :
 
 MurmanRoeFluxApproximateRiemannSolver::~MurmanRoeFluxApproximateRiemannSolver() {};
 
-double MurmanRoeFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type, const double &phi) {
+double MurmanRoeFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
     /// Murman-Roe Riemman solver:
     /// P. L. Roe.
@@ -2300,7 +2271,7 @@ MurmanRoeLmFluxApproximateRiemannSolver::MurmanRoeLmFluxApproximateRiemannSolver
 
 MurmanRoeLmFluxApproximateRiemannSolver::~MurmanRoeLmFluxApproximateRiemannSolver() {};
 
-double MurmanRoeLmFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type, const double &phi) {
+double MurmanRoeLmFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
     /// Murman-Roe low-Mach Riemman solver:
 
@@ -2311,13 +2282,10 @@ double MurmanRoeLmFluxApproximateRiemannSolver::calculateIntercellFlux(const dou
     double delta_Ma_limit = 0.3;
     double Ma_L = abs( u_L/a_L ), Ma_R = abs( u_R/a_R );
     double delta_Ma = abs( Ma_L - Ma_R );
-    double phi_local = max( 0.0, sin( min( 1.0, delta_Ma/delta_Ma_limit )*0.5*pi ) );
+    double phi = max( 0.0, sin( min( 1.0, delta_Ma/delta_Ma_limit )*0.5*pi ) );
 
     /// Conservative + (weighted) dissipative flux
-    double F = 0.5*( F_L + F_R ) - 0.5*phi_local*S*( U_R - U_L );
-
-    ///// Conservative + (weighted) dissipative flux form
-    //double F = 0.5*( F_L + F_R ) - 0.5*phi*S*( U_R - U_L );
+    double F = 0.5*( F_L + F_R ) - 0.5*phi*S*( U_R - U_L );
 
     return( F );
 
@@ -2330,7 +2298,7 @@ HllApproximateRiemannSolver::HllApproximateRiemannSolver() : BaseRiemannSolver()
 
 HllApproximateRiemannSolver::~HllApproximateRiemannSolver() {};
 
-double HllApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type, const double &phi) {
+double HllApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
     /// Harten-Lax-van Leer (HLL) Riemman solver:
     /// A. Harten, P. D. Lax, B. van Leer.
@@ -2360,7 +2328,7 @@ HllcApproximateRiemannSolver::HllcApproximateRiemannSolver() : BaseRiemannSolver
 
 HllcApproximateRiemannSolver::~HllcApproximateRiemannSolver() {};
 
-double HllcApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type, const double &phi) {
+double HllcApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
     /// Harten-Lax-van Leer-Contact (HLLC) Riemman solver:
     /// E. F. Toro, M. Spruce, W. Speares.
@@ -2412,7 +2380,7 @@ HllcPlusApproximateRiemannSolver::HllcPlusApproximateRiemannSolver() : BaseRiema
 
 HllcPlusApproximateRiemannSolver::~HllcPlusApproximateRiemannSolver() {};
 
-double HllcPlusApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type, const double &phi) {
+double HllcPlusApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
     /// HLLC-type Riemann solver for all-speed flows:
     /// S. Chen, B. Lin, Y. Li, C. Yan.
