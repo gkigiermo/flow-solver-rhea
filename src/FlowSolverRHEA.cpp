@@ -2279,7 +2279,7 @@ double MurmanRoeLmFluxApproximateRiemannSolver::calculateIntercellFlux(const dou
     double S = abs( ( F_L - F_R )/( U_L - U_R + epsilon ) );
 
     /// Weighting strategy
-    double delta_Ma_limit = 0.2;
+    double delta_Ma_limit = 0.1;
     double Ma_L = abs( u_L/a_L ), Ma_R = abs( u_R/a_R );
     double delta_Ma = abs( Ma_L - Ma_R );
     double phi = max( 0.0, pow( sin( min( 1.0, delta_Ma/delta_Ma_limit )*0.5*pi ), 3.0 ) );
