@@ -53,8 +53,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
         riemann_solver = new CentralFluxApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "MURMAN-ROE" ) {
         riemann_solver = new MurmanRoeFluxApproximateRiemannSolver();
-    } else if( riemann_solver_scheme == "MURMAN-ROE-LM" ) {
-        riemann_solver = new MurmanRoeLmFluxApproximateRiemannSolver();
+    } else if( riemann_solver_scheme == "KGP" ) {
+        riemann_solver = new KgpFluxApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HLL" ) {
         riemann_solver = new HllApproximateRiemannSolver();
     } else if( riemann_solver_scheme == "HLLC" ) {
@@ -2265,27 +2265,33 @@ double MurmanRoeFluxApproximateRiemannSolver::calculateIntercellFlux(const doubl
 };
 
 
-////////// MurmanRoeLmFluxApproximateRiemannSolver CLASS //////////
+////////// KgpFluxApproximateRiemannSolver CLASS //////////
 
-MurmanRoeLmFluxApproximateRiemannSolver::MurmanRoeLmFluxApproximateRiemannSolver() : BaseRiemannSolver() {};
+KgpFluxApproximateRiemannSolver::KgpFluxApproximateRiemannSolver() : BaseRiemannSolver() {};
 
-MurmanRoeLmFluxApproximateRiemannSolver::~MurmanRoeLmFluxApproximateRiemannSolver() {};
+KgpFluxApproximateRiemannSolver::~KgpFluxApproximateRiemannSolver() {};
 
-double MurmanRoeLmFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
+double KgpFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
-    /// Murman-Roe low-Mach Riemman solver:
+    /// Kennedy, Gruber & Pirozzoli (KGP) scheme:
+    /// G. Coppola , F. Capuano , S. Pirozzoli, L. de Luca.
+    /// Numerically stable formulations of convective terms for turbulent compressible flows.
+    /// Journal of Computational Physics, 382, 86-104, 2019.
 
-    /// Wave speed
-    double S = abs( ( F_L - F_R )/( U_L - U_R + epsilon ) );
-
-    /// Weighting strategy
-    double delta_Ma_limit = 0.1;
-    double Ma_L = abs( u_L/a_L ), Ma_R = abs( u_R/a_R );
-    double delta_Ma = abs( Ma_L - Ma_R );
-    double phi = max( 0.0, pow( sin( min( 1.0, delta_Ma/delta_Ma_limit )*0.5*pi ), 3.0 ) );
-
-    /// Conservative + (weighted) dissipative flux
-    double F = 0.5*( F_L + F_R ) - 0.5*phi*S*( U_R - U_L );
+    double F = ( 1.0/8.0 )*( rho_L + rho_R )*( u_L + u_R );
+    if( var_type == 0 ) {
+        F *= 1.0 + 1.0;
+    } else if ( var_type == 1 ) {
+        F *= u_L + u_R;
+        F += ( 1.0/2.0 )*( P_L + P_R );
+    } else if ( var_type == 2 ) {
+        F *= v_L + v_R;
+    } else if ( var_type == 3 ) {
+        F *= w_L + w_R;
+    } else if ( var_type == 4 ) {
+        F *= E_L + E_R;
+        F += ( 1.0/4.0 )*( u_L + u_R )*( P_L + P_R );
+    }
 
     return( F );
 

@@ -27,7 +27,7 @@ class FlowSolverRHEA;					/// Flow solver RHEA
 class BaseRiemannSolver;				/// Base Riemann solver
 class CentralFluxApproximateRiemannSolver;		/// Central scheme approximate Riemann solver
 class MurmanRoeFluxApproximateRiemannSolver;		/// Murman-Roe scheme approximate Riemann solver
-class MurmanRoeLmFluxApproximateRiemannSolver;		/// Murman-Roe low-Mach scheme approximate Riemann solver
+class KgpFluxApproximateRiemannSolver;			/// KGP scheme approximate Riemann solver
 class HllApproximateRiemannSolver;			/// HLL approximate Riemann solver
 class HllcApproximateRiemannSolver;			/// HLLC approximate Riemann solver
 class HllcPlusApproximateRiemannSolver;			/// HLLC+ approximate Riemann solver
@@ -384,14 +384,14 @@ class MurmanRoeFluxApproximateRiemannSolver : public BaseRiemannSolver {
 
 };
 
-////////// MurmanRoeLmFluxApproximateRiemannSolver CLASS //////////
-class MurmanRoeLmFluxApproximateRiemannSolver : public BaseRiemannSolver {
+////////// KgpFluxApproximateRiemannSolver CLASS //////////
+class KgpFluxApproximateRiemannSolver : public BaseRiemannSolver {
    
     public:
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        MurmanRoeLmFluxApproximateRiemannSolver();					/// Default constructor
-        virtual ~MurmanRoeLmFluxApproximateRiemannSolver();				/// Destructor
+        KgpFluxApproximateRiemannSolver();						/// Default constructor
+        virtual ~KgpFluxApproximateRiemannSolver();					/// Destructor
 
 	////////// GET FUNCTIONS //////////
 
