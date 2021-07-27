@@ -2274,7 +2274,7 @@ KgpFluxApproximateRiemannSolver::~KgpFluxApproximateRiemannSolver() {};
 double KgpFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
     /// Kennedy, Gruber & Pirozzoli (KGP) scheme:
-    /// G. Coppola , F. Capuano , S. Pirozzoli, L. de Luca.
+    /// G. Coppola, F. Capuano, S. Pirozzoli, L. de Luca.
     /// Numerically stable formulations of convective terms for turbulent compressible flows.
     /// Journal of Computational Physics, 382, 86-104, 2019.
 
