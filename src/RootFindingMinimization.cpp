@@ -49,7 +49,11 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
     vector<double> p(n),xold(n);
     vector < vector < double > > fjac(n,vector<double> (n));
 
-    //f=fmin(xmin);
+    double f;
+    f=fmin(xmin);
+    if(f < 0.01*TOLF) {
+      return;
+    }
     test=0.0;
     for(i=0;i<n;i++) {
       if(fabs(fvec[i]) > test) fxmin = test=fabs(fvec[i]);
