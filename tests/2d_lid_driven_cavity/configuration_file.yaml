@@ -59,6 +59,7 @@ computational_parameters:
    CFL: 0.3                  					        # CFL coefficient
    # Riemann solver scheme: CENTRAL, MURMAN-ROE, KGP, HLL, HLLC, HLLC+
    riemann_solver_scheme: 'HLLC+'               	  		# Riemann solver scheme
+   temporarily_freeze_internal_energy: 'FALSE'          	  	# Extra stability for calorically imperfect fluids
    final_time_iter: 10000000       					# Final time iteration
 
 

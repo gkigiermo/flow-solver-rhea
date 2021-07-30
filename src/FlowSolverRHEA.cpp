@@ -259,15 +259,16 @@ void FlowSolverRHEA::readConfigurationFile() {
 
     /// Computational parameters
     const YAML::Node & computational_parameters = configuration["computational_parameters"];
-    num_grid_x            = computational_parameters["num_grid_x"].as<int>();
-    num_grid_y            = computational_parameters["num_grid_y"].as<int>();
-    num_grid_z            = computational_parameters["num_grid_z"].as<int>();
-    A_x                   = computational_parameters["A_x"].as<double>();
-    A_y                   = computational_parameters["A_y"].as<double>();
-    A_z                   = computational_parameters["A_z"].as<double>();
-    CFL                   = computational_parameters["CFL"].as<double>();
-    riemann_solver_scheme = computational_parameters["riemann_solver_scheme"].as<string>();
-    final_time_iter       = computational_parameters["final_time_iter"].as<int>();
+    num_grid_x                         = computational_parameters["num_grid_x"].as<int>();
+    num_grid_y                         = computational_parameters["num_grid_y"].as<int>();
+    num_grid_z                         = computational_parameters["num_grid_z"].as<int>();
+    A_x                                = computational_parameters["A_x"].as<double>();
+    A_y                                = computational_parameters["A_y"].as<double>();
+    A_z                                = computational_parameters["A_z"].as<double>();
+    CFL                                = computational_parameters["CFL"].as<double>();
+    riemann_solver_scheme              = computational_parameters["riemann_solver_scheme"].as<string>();
+    final_time_iter                    = computational_parameters["final_time_iter"].as<int>();
+    temporarily_freeze_internal_energy = computational_parameters["temporarily_freeze_internal_energy"].as<bool>();
 
     /// Boundary conditions
     string dummy_type_boco;
@@ -578,7 +579,7 @@ void FlowSolverRHEA::primitiveToConservedVariables() {
 
 void FlowSolverRHEA::conservedToPrimitiveVariables() {
 
-    /// Inner: u, v, w and E
+    /// Inner points: u, v, w and E
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -605,8 +606,13 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                ke                    = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
-                e                     = E_field[I1D(i,j,k)] - ke;
+                if( temporarily_freeze_internal_energy ) {
+                    ke = 0.5*( pow( rhou_0_field[I1D(i,j,k)]/rho_0_field[I1D(i,j,k)], 2.0 ) + pow( rhov_0_field[I1D(i,j,k)]/rho_0_field[I1D(i,j,k)], 2.0 ) + pow( rhow_0_field[I1D(i,j,k)]/rho_0_field[I1D(i,j,k)], 2.0 ) ); 
+                    e  = ( rhoE_0_field[I1D(i,j,k)]/rho_0_field[I1D(i,j,k)] ) - ke;
+                } else {	
+                    ke = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
+                    e  = E_field[I1D(i,j,k)] - ke;
+		}
                 P = P_field[I1D(i,j,k)];	/// Initial pressure guess
                 T = T_field[I1D(i,j,k)]; 	/// Initial temperature guess
                 thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P, T, rho_field[I1D(i,j,k)], e );
@@ -2274,7 +2280,7 @@ KgpFluxApproximateRiemannSolver::~KgpFluxApproximateRiemannSolver() {};
 double KgpFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
     /// Kennedy, Gruber & Pirozzoli (KGP) scheme:
-    /// G. Coppola, F. Capuano, S. Pirozzoli, L. de Luca.
+    /// G. Coppola , F. Capuano , S. Pirozzoli, L. de Luca.
     /// Numerically stable formulations of convective terms for turbulent compressible flows.
     /// Journal of Computational Physics, 382, 86-104, 2019.
 
