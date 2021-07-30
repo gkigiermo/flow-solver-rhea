@@ -342,12 +342,12 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         double eos_ac, eos_kappa;				/// EoS dimensionless parameters
 
         /// Aitken's delta-squared process parameters
-        int max_aitken_iter              = 100;			/// Maximum number of iterations
-        double aitken_relative_tolerance = 1.0e-5;		/// Relative tolerance
+        int max_aitken_iter              = 1000;		/// Maximum number of iterations
+        double aitken_relative_tolerance = 1.0e-8;		/// Relative tolerance
 
         /// Newton-Raphson solver parameters
-        int max_nr_iter              = 100;			/// Maximum number of iterations
-        double nr_relative_tolerance = 1.0e-5;			/// Relative tolerance
+        int max_nr_iter              = 1000;			/// Maximum number of iterations
+        double nr_relative_tolerance = 1.0e-8;			/// Relative tolerance
         bool nr_sing                 = false;			/// At run time, output Newton-Raphson information about intermediate steps
         NR_P_T_from_rho_e *nr_PT_solver;			/// Pointer to NR_P_T_from_rho_e
         vector<double> nr_PT_unknowns;				/// NR_P_T_from_rho_e unknowns: P & T

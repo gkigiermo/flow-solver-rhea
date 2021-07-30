@@ -82,12 +82,12 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
 	temp=(fabs(xmin[i]-xold[i]))/max(fabs(xmin[i]),1.0);
 	if (temp > test) fxmin = test=temp;
       }
-      if(sing) cout << "Newton-Raphson's minimization TOLX error: " << test << " ( iteration: " << iter << " )" << endl;
       if(test < TOLX) {
+        if(sing) cout << "Newton-Raphson's minimization TOLX error: " << test << " ( iteration: " << iter << " )" << endl;
 	return;
       }
     }
-    cout << "MAXITS exceeded in Newton-Raphson" << endl;
+    if(sing) cout << "MAXITS exceeded in Newton-Raphson" << endl;
 
 };
 
