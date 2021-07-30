@@ -172,7 +172,6 @@ class FlowSolverRHEA {
         int final_time_iter;					/// Final time iteration
         int rk_order = 3;					/// Order of Runge-Kutta method (fixed)
         string riemann_solver_scheme;				/// Riemann solver scheme
-        bool temporarily_freeze_internal_energy;		/// Extra stability for calorically imperfect fluids
 
         /// Local mesh values for I1D macro
         int _lNx_;

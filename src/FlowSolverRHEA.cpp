@@ -268,7 +268,6 @@ void FlowSolverRHEA::readConfigurationFile() {
     CFL                                = computational_parameters["CFL"].as<double>();
     riemann_solver_scheme              = computational_parameters["riemann_solver_scheme"].as<string>();
     final_time_iter                    = computational_parameters["final_time_iter"].as<int>();
-    temporarily_freeze_internal_energy = computational_parameters["temporarily_freeze_internal_energy"].as<bool>();
 
     /// Boundary conditions
     string dummy_type_boco;
@@ -606,13 +605,8 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                if( temporarily_freeze_internal_energy ) {
-                    ke = 0.5*( pow( rhou_0_field[I1D(i,j,k)]/rho_0_field[I1D(i,j,k)], 2.0 ) + pow( rhov_0_field[I1D(i,j,k)]/rho_0_field[I1D(i,j,k)], 2.0 ) + pow( rhow_0_field[I1D(i,j,k)]/rho_0_field[I1D(i,j,k)], 2.0 ) ); 
-                    e  = ( rhoE_0_field[I1D(i,j,k)]/rho_0_field[I1D(i,j,k)] ) - ke;
-                } else {	
-                    ke = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
-                    e  = E_field[I1D(i,j,k)] - ke;
-		}
+                ke = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
+                e  = E_field[I1D(i,j,k)] - ke;
                 P = P_field[I1D(i,j,k)];	/// Initial pressure guess
                 T = T_field[I1D(i,j,k)]; 	/// Initial temperature guess
                 thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P, T, rho_field[I1D(i,j,k)], e );
