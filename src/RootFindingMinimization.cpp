@@ -100,14 +100,14 @@ void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double>
 
     const double sigma   = 0.01;
     const double Tau     = 0.1;
-    const double alamMin = 1e-6;
+    //const double alamMin = 1e-6;
+    const double alamMin = 5e-2;
 
     //bool check=false;
     int n=xold.size();
 
     double f0=0.0;
-    for ( int i=0; i<n; ++i ) 
-       f0 += p[i]*p[i];
+    for ( int i=0; i<n; ++i ) f0 += p[i]*p[i];
     f0 = sqrt(f0/n);
     f0 *= 0.5*f0;
 
@@ -122,8 +122,7 @@ void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double>
        for( int i=0; i<n; i++) myp[i] = -fvec[i];
        lubksb(fjac,indx,myp);
        double f=0.0;
-       for ( int i=0; i<n; ++i ) 
-          f += myp[i]*myp[i];
+       for ( int i=0; i<n; ++i ) f += myp[i]*myp[i];
        f = sqrt(f/n);
        f *= 0.5*f;
        //cout << f0 << endl;
@@ -135,17 +134,14 @@ void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double>
           alam = ( Tau*alam > tmp ) ? Tau*alam : tmp;
           if ( alam < alamMin ) { 
              alam = 10.0 * alamMin;
-             for (int i=0; i<n; ++i)
-                x[i]=xold[i]+alam*p[i];
+             for (int i=0; i<n; ++i) x[i]=xold[i]+alam*p[i];
              //cout << alam << endl;
              break;
           }
-       }
-       else {
+       } else {
           // Lamdba is good
           //cout << alam << endl;
-          //for (int i=0; i<n; ++i)
-          //x[i]=xold[i]+alam*p[i];
+          for (int i=0; i<n; ++i) x[i]=xold[i]+alam*p[i];
           break;
        }
     }
