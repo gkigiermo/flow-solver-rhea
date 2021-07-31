@@ -93,55 +93,46 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
 
 void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double> &x,vector< vector<double> > &fjac, vector<int> &indx) {
 
-    /// Newton-Raphson method using approximated derivatives:
-    /// W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery.
-    /// Numerical recipes in C++.
-    /// Cambridge University Press, 2001.
+    /// Taylored linear search:
 
     const double sigma   = 0.01;
     const double Tau     = 0.1;
     //const double alamMin = 1e-6;
     const double alamMin = 5e-2;
 
-    //bool check=false;
-    int n=xold.size();
+    int n = xold.size();
 
-    double f0=0.0;
-    for ( int i=0; i<n; ++i ) f0 += p[i]*p[i];
+    double f0 = 0.0;
+    for(int i = 0; i < n; ++i) f0 += p[i]*p[i];
     f0 = sqrt(f0/n);
     f0 *= 0.5*f0;
 
     vector<double> myp(n);
-    for (int i=0; i<n; ++i) myp[i]=p[i];
+    for(int i = 0; i < n; ++i) myp[i] = p[i];
 
     double alam = 1.0;
-    for (;;) {
-       //  compute f( x + Lambda*dx )
-       for (int i=0; i<n; ++i) x[i]=xold[i]+alam*p[i];
-       //double tmp1 = fmin(x);
-       for( int i=0; i<n; i++) myp[i] = -fvec[i];
+    for(;;) {
+       /// Compute f( x + Lambda*dx )
+       for(int i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
+       for(int i = 0; i < n; i++) myp[i] = -fvec[i];
        lubksb(fjac,indx,myp);
-       double f=0.0;
-       for ( int i=0; i<n; ++i ) f += myp[i]*myp[i];
+       double f = 0.0;
+       for(int i = 0; i < n; ++i) f += myp[i]*myp[i];
        f = sqrt(f/n);
        f *= 0.5*f;
-       //cout << f0 << endl;
 
-       const double fMax = ( 1.0 - 2.0*alam*sigma ) *f0;
-
-       if ( f > fMax ) {
-          double tmp = alam*alam*f0/( (2.0*alam - 1.0)*f0 + f );
+       double fMax = ( 1.0 - 2.0*alam*sigma )*f0;
+       if(f > fMax) {
+          double tmp = alam*alam*f0/( ( 2.0*alam - 1.0 )*f0 + f );
           alam = ( Tau*alam > tmp ) ? Tau*alam : tmp;
-          if ( alam < alamMin ) { 
-             alam = 10.0 * alamMin;
-             for (int i=0; i<n; ++i) x[i]=xold[i]+alam*p[i];
-             //cout << alam << endl;
+          if(alam < alamMin) { 
+             alam = 10.0*alamMin;
+             for(int i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
              break;
           }
        } else {
           // Lamdba is good
-          //cout << alam << endl;
-          for (int i=0; i<n; ++i) x[i]=xold[i]+alam*p[i];
+          //for(int i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
           break;
        }
     }
