@@ -44,50 +44,50 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
     //double d,f,fold,stpmax,sum,temp,test;
     double d,sum,temp,test;
 
-    int n=xmin.size();
+    int n = xmin.size();
     vector<int> indx(n);
     vector<double> p(n),xold(n);
     vector < vector < double > > fjac(n,vector<double> (n));
 
     //f=fmin(xmin);    
     function_vector(xmin,fvec);
-    test=0.0;
-    for(i=0;i<n;i++) {
-      if(fabs(fvec[i]) > test) fxmin = test=fabs(fvec[i]);
+    test = 0.0;
+    for(i = 0; i < n; i++) {
+      if( fabs( fvec[i] ) > test ) fxmin = test = fabs( fvec[i] );
     }
-    if(test < 0.01*TOLF) {
+    if( test < 0.01*TOLF ) {
       return;
     }
-    sum=0.0;
-    for(i=0;i<n;i++) sum += SQR(xmin[i]);
-    //stpmax=STPMX*max(sqrt(sum),double(n));
-    for(iter=0;iter<MAXITS;iter++) {
+    sum = 0.0;
+    for(i = 0; i < n; i++) sum += SQR( xmin[i] );
+    //stpmax = STPMX*max( sqrt( sum ), double( n ) );
+    for(iter = 0; iter < MAXITS; iter++) {
       fdjac(xmin,fjac);
-      for(i=0;i<n;i++) xold[i]=xmin[i];
-      //fold=f;
-      for(i=0;i<n;i++) p[i] = -fvec[i];
+      for(i = 0; i < n; i++) xold[i] = xmin[i];
+      //fold = f;
+      for(i = 0; i < n; i++) p[i] = -fvec[i];
       ludcmp(fjac,indx,d);
       lubksb(fjac,indx,p);
       lnsrch(xold,p,xmin,fjac,indx);
-      test=0.0;
-      for(i=0;i<n;i++) {
-        if(fabs(fvec[i]) > test) fxmin = test=fabs(fvec[i]);
+      test = 0.0;
+      for(i = 0; i < n; i++) {
+        if( fabs( fvec[i] ) > test ) fxmin = test = fabs( fvec[i] );
       }
-      if(test < TOLF) {
-        if(sing) cout << "Newton-Raphson's minimization TOLF error: " << test << " ( iteration: " << iter << " )" << endl;
+      if( test < TOLF ) {
+        if( sing ) cout << "Newton-Raphson's minimization TOLF error: " << test << " ( iteration: " << iter << " )" << endl;
 	return;
       }
-      test=0.0;
-      for(i=0;i<n;i++) {
-	temp=(fabs(xmin[i]-xold[i]))/max(fabs(xmin[i]),1.0);
-	if (temp > test) fxmin = test=temp;
+      test = 0.0;
+      for(i = 0; i < n; i++) {
+	temp = ( fabs( xmin[i] - xold[i] ) )/max( fabs(xmin[i]), 1.0 );
+	if( temp > test ) fxmin = test = temp;
       }
-      if(test < TOLX) {
-        if(sing) cout << "Newton-Raphson's minimization TOLX error: " << test << " ( iteration: " << iter << " )" << endl;
+      if( test < TOLX ) {
+        if( sing ) cout << "Newton-Raphson's minimization TOLX error: " << test << " ( iteration: " << iter << " )" << endl;
 	return;
       }
     }
-    if(sing) cout << "MAXITS exceeded in Newton-Raphson" << endl;
+    if( sing ) cout << "MAXITS exceeded in Newton-Raphson" << endl;
 
 };
 
@@ -98,7 +98,7 @@ void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double>
     const double sigma   = 0.01;
     const double Tau     = 0.1;
     //const double alamMin = 1e-6;
-    const double alamMin = 5e-2;
+    const double alamMin = 1.0e-1;
 
     int n = xold.size();
 
@@ -122,10 +122,10 @@ void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double>
        f *= 0.5*f;
 
        double fMax = ( 1.0 - 2.0*alam*sigma )*f0;
-       if(f > fMax) {
+       if( f > fMax ) {
           double tmp = alam*alam*f0/( ( 2.0*alam - 1.0 )*f0 + f );
           alam = ( Tau*alam > tmp ) ? Tau*alam : tmp;
-          if(alam < alamMin) { 
+          if( alam < alamMin ) { 
              alam = 10.0*alamMin;
              for(int i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
              break;
@@ -264,22 +264,23 @@ void NewtonRaphson::fdjac(vector<double> &x, vector< vector<double> > &df) {
       }
     }
 #else
-    const double EPS=1.0e-8;
+    const double EPS = 1.0e-8;
     int i,j;
     double h,temp;
 
-    int n=x.size();
+    int n = x.size();
     vector<double> f(n);
-    for(j=0;j<n;j++) {
-      temp=x[j];
-      h=EPS*fabs(temp);
-      if(h == 0.0) h=EPS;
-      x[j]=temp+h;
-      h=x[j]-temp;
+
+    for(j = 0; j < n; j++) {
+      temp = x[j];
+      h = EPS*fabs( temp );
+      if(h == 0.0) h = EPS;
+      x[j] = temp + h;
+      h = x[j] - temp;
       function_vector(x,f);
-      x[j]=temp;
-      for(i=0;i<n;i++) {
-        df[i][j]=(f[i]-fvec[i])/h;
+      x[j] = temp;
+      for(i = 0;i < n; i++) {
+        df[i][j] = ( f[i] - fvec[i] )/h;
       }
     }    
 #endif
