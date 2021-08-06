@@ -18,7 +18,7 @@ plt.rcParams['text.latex.preamble'] = [ r'\usepackage{amsmath}', r'\usepackage{a
 
 
 ### Open data file
-data_file = h5py.File( '3d_channel_flow_2050000.h5', 'r' )
+data_file = h5py.File( '3d_channel_flow_2100000.h5', 'r' )
 #list( data_file.keys() )
 y_data         = data_file['y'][:,:,:]
 avg_rho_data   = data_file['avg_rho'][:,:,:]
