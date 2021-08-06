@@ -7,6 +7,9 @@ import h5py
 import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
 from matplotlib import rc,rcParams
+import matplotlib.colors as colors
+from matplotlib import ticker
+import matplotlib.cm as cm
 #np.set_printoptions(threshold=sys.maxsize)
 plt.rc( 'text', usetex = True )
 rc('font', family='sanserif')
@@ -15,7 +18,7 @@ plt.rcParams['text.latex.preamble'] = [ r'\usepackage{amsmath}', r'\usepackage{a
 
 
 ### Open data file
-data_file = h5py.File( '3d_channel_flow_500000.h5', 'r' )
+data_file = h5py.File( '3d_channel_flow_2050000.h5', 'r' )
 #list( data_file.keys() )
 y_data         = data_file['y'][:,:,:]
 avg_rho_data   = data_file['avg_rho'][:,:,:]
@@ -33,7 +36,7 @@ num_points_xz = num_points_x*num_points_z
 
 
 ### Open reference solution file
-y_plus_ref, u_plus_ref, R_uu_plus_ref, R_vv_plus_ref, R_ww_plus_ref = np.loadtxt( 'mkm_reference_solution.csv', delimiter=',', unpack = 'True' )
+y_plus_ref, u_plus_ref, rmsf_uu_plus_ref, rmsf_vv_plus_ref, rmsf_ww_plus_ref = np.loadtxt( 'reference_solution.csv', delimiter=',', unpack = 'True' )
 
 
 ### Reference parameters
@@ -78,8 +81,8 @@ for j in range( 0, num_points_y ):
 plt.clf()
 
 # Read & Plot data
+plt.plot( y_plus_ref, u_plus_ref, linestyle = '-', linewidth = 1, color = 'black', zorder = 0, label = r'$\textrm{Moser et al., }Re_\tau = 180$' )
 plt.scatter( avg_y_plus, avg_u_plus, marker = 'p', s = 50, color = 'firebrick', zorder = 1, label = r'$\textrm{RHEA}$' )
-plt.plot( y_plus_ref, u_plus_ref, linestyle = '-', linewidth = 1, color = 'black', zorder = 0, label = r'$\textrm{Moser et al.}$' )
 
 # Configure plot
 plt.xlim( 1.0e-1, 2.0e2 )
@@ -103,12 +106,12 @@ plt.savefig( 'u_plus_vs_y_plus.eps', format = 'eps', bbox_inches = 'tight' )
 plt.clf()
 
 # Read & Plot data
+plt.plot( y_plus_ref, rmsf_uu_plus_ref, linestyle = '-', linewidth = 1, color = 'black', zorder = 0 )
+plt.plot( y_plus_ref, rmsf_vv_plus_ref, linestyle = '-', linewidth = 1, color = 'black', zorder = 0 )
+plt.plot( y_plus_ref, rmsf_ww_plus_ref, linestyle = '-', linewidth = 1, color = 'black', zorder = 0 )
 plt.scatter( avg_y_plus, rmsf_u_plus, marker = 'p', s = 50, color = 'firebrick', zorder = 1 )
 plt.scatter( avg_y_plus, rmsf_v_plus, marker = 'p', s = 50, color = 'firebrick', zorder = 1 )
 plt.scatter( avg_y_plus, rmsf_w_plus, marker = 'p', s = 50, color = 'firebrick', zorder = 1 )
-plt.plot( y_plus_ref, np.sqrt( R_uu_plus_ref ), linestyle = '-', linewidth = 1, color = 'black', zorder = 0 )
-plt.plot( y_plus_ref, np.sqrt( R_vv_plus_ref ), linestyle = '-', linewidth = 1, color = 'black', zorder = 0 )
-plt.plot( y_plus_ref, np.sqrt( R_ww_plus_ref ), linestyle = '-', linewidth = 1, color = 'black', zorder = 0 )
 
 # Configure plot
 plt.xlim( 1.0e-1, 2.0e2 )
