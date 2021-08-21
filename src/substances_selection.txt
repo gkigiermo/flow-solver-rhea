@@ -1,15 +1,19 @@
-if( substance_name == "NITROGEN" ) {
+if( substance_name == "AIR" ) {
+    substance = substances_library["AIR"];
+} else if ( substance_name == "CARBON_DIOXIDE" ) {
+    substance = substances_library["CARBON_DIOXIDE"];
+} else if ( substance_name == "DODECANE" ) {
+    substance = substances_library["DODECANE"];
+} else if ( substance_name == "HYDROGEN" ) {
+    substance = substances_library["HYDROGEN"];
+} else if ( substance_name == "METHANE" ) {
+    substance = substances_library["METHANE"];
+} else if( substance_name == "NITROGEN" ) {
     substance = substances_library["NITROGEN"];
 } else if ( substance_name == "OXYGEN" ) {
     substance = substances_library["OXYGEN"];
-} else if ( substance_name == "HYDROGEN" ) {
-    substance = substances_library["HYDROGEN"];
-} else if ( substance_name == "CARBON_DIOXIDE" ) {
-    substance = substances_library["CARBON_DIOXIDE"];
-} else if ( substance_name == "METHANE" ) {
-    substance = substances_library["METHANE"];
-} else if ( substance_name == "DODECANE" ) {
-    substance = substances_library["DODECANE"];
+} else if ( substance_name == "WATER" ) {
+    substance = substances_library["WATER"];
 }else {
     cout << "Substance not available!" << endl;
     MPI_Abort( MPI_COMM_WORLD, 1 );

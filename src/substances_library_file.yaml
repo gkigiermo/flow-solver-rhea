@@ -12,11 +12,11 @@
 
 ##### NITROGEN #####
 NITROGEN:
-   R_specific: 296.80                 					# Specific gas constant [J/(kg·K)]
+   R_specific: 296.8                 					# Specific gas constant [J/(kg·K)]
    gamma: 1.4                          					# Heat capacity ratio (ideal-gas) [-]
-   P_inf: 0.0                         					# Pressure infinity (liquid stiffness) [Pa]
-   e_0: 0.0                         					# Internal energy zero point [J/kg]
-   c_v: 0.0                         					# Specific isochoric heat capacity [J/(kg·K)]
+   P_inf: 4000000.0                    					# Pressure infinity (liquid stiffness) [Pa]
+   e_0: 0.222                         					# Internal energy zero point [J/kg]
+   c_v: 743.0                         					# Specific isochoric heat capacity [J/(kg·K)]
    molecular_weight: 0.0280134              				# Molecular weight [kg/mol]
    acentric_factor: 0.0372               				# Acentric factor [-]
    critical_temperature: 126.192           				# Critical temperature [K]
@@ -37,5 +37,35 @@ NITROGEN:
                        -1046.976280000000000000,
                         2.967470380000000000000,
                         0.000000000000000000000]                        # NASA 7-coefficient polynomial (15 values)
+   dipole_moment: 0.0               					# Dipole moment [D]
+   association_factor: 0.0             					# Association factor [-]
+
+##### OXYGEN #####
+OXYGEN:
+   R_specific: 259.8                 					# Specific gas constant [J/(kg·K)]
+   gamma: 1.395                        					# Heat capacity ratio (ideal-gas) [-]
+   P_inf: 6000000.0                   					# Pressure infinity (liquid stiffness) [Pa]
+   e_0: 0.195                         					# Internal energy zero point [J/kg]
+   c_v: 658.0                         					# Specific isochoric heat capacity [J/(kg·K)]
+   molecular_weight: 0.032              				# Molecular weight [kg/mol]
+   acentric_factor: 0.0222               				# Acentric factor [-]
+   critical_temperature: 154.6           				# Critical temperature [K]
+   critical_pressure: 5045985.0           				# Critical pressure [Pa]
+   critical_molar_volume: 0.00007338       				# Critical molar volume [m3/mol]
+   NASA_coefficients: [ 3.66096083000000000000000,
+			0.00065636552300000000000,
+		       -0.00000014114948500000000,
+			0.00000000002057976580000,
+		       -0.00000000000000129913248,
+		       -1215.97725000000000000000,
+			3.41536184000000000000000,
+			3.78245636000000000000000,
+		       -0.00299673415000000000000,
+			0.00000984730200000000000,
+		       -0.00000000968129508000000,
+			0.00000000000324372836000,
+		       -1063.94356000000000000000,
+			3.65767573000000000000000,
+			0.00000000000000000000000]                      # NASA 7-coefficient polynomial (15 values)
    dipole_moment: 0.0               					# Dipole moment [D]
    association_factor: 0.0             					# Association factor [-]
