@@ -3,7 +3,7 @@
 using namespace std;
 
 ////////// FIXED PARAMETERS //////////
-#define _TAYLORED_FDJAC_ 1
+#define _TAYLORED_FDJAC_ 0
 
 
 ////////// BaseRootFindingMinimization CLASS //////////
@@ -98,8 +98,7 @@ void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double>
     const double sigma   = 0.01;
     const double Tau     = 0.1;
     //const double alamMin = 1e-6;
-    const double alamMin = 1.0e-2;
-    //const double alamMin = 1.0e-1;
+    const double alamMin = 1.0e-1;
 
     int n = xold.size();
 
