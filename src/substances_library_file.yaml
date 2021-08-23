@@ -10,6 +10,66 @@
 # ANL-05/20, TAE 960
 ---
 
+##### CARBON_DIOXIDE #####
+CARBON_DIOXIDE:
+   R_specific: 188.92                 					# Specific gas constant [J/(kg·K)]
+   gamma: 1.289                         				# Heat capacity ratio (ideal-gas) [-]
+   P_inf: 8000000.0                    					# Pressure infinity (liquid stiffness) [Pa]
+   e_0: 451340.0                         				# Internal energy zero point [J/kg]
+   c_v: 658.0                         					# Specific isochoric heat capacity [J/(kg·K)]
+   molecular_weight: 0.04401              				# Molecular weight [kg/mol]
+   acentric_factor: 0.22394               				# Acentric factor [-]
+   critical_temperature: 304.1282           				# Critical temperature [K]
+   critical_pressure: 7377270.6           				# Critical pressure [Pa]
+   critical_molar_volume: 0.0000941189     				# Critical molar volume [m3/mol]
+   NASA_coefficients: [ 4.6365111000000000000000,
+			0.0027414569000000000000,
+		       -0.0000009958975900000000,
+			0.0000000001603866600000,
+		       -0.0000000000000091619857,
+		       -49024.904000000000000000,
+		       -1.9348955000000000000000,
+			2.3568130000000000000000,
+			0.0089841299000000000000,
+		       -0.0000071220632000000000,
+			0.0000000024573008000000,
+		       -0.0000000000001428854800,
+		       -48371.971000000000000000,
+			9.9009035000000000000000,
+		       -47328.105000000000000000]                       # NASA 7-coefficient polynomial (15 values)
+   dipole_moment: 0.0               					# Dipole moment [D]
+   association_factor: 0.0             					# Association factor [-]
+
+##### HYDROGEN #####
+HYDROGEN:
+   R_specific: 4.124                 					# Specific gas constant [J/(kg·K)]
+   gamma: 1.41                        					# Heat capacity ratio (ideal-gas) [-]
+   P_inf: 2000000.0                   					# Pressure infinity (liquid stiffness) [Pa]
+   e_0: 2720000.0                      					# Internal energy zero point [J/kg]
+   c_v: 10185.0                        					# Specific isochoric heat capacity [J/(kg·K)]
+   molecular_weight: 0.00100794           				# Molecular weight [kg/mol]
+   acentric_factor: -0.219	             				# Acentric factor [-]
+   critical_temperature: 33.145           				# Critical temperature [K]
+   critical_pressure: 1296352.05          				# Critical pressure [Pa]
+   critical_molar_volume: 0.00003224067     				# Critical molar volume [m3/mol]
+   NASA_coefficients: [ 2.93283050000000000000000,
+			0.00082659802000000000000,
+		       -0.00000014640057000000000,
+			0.00000000001540985100000,
+		       -0.00000000000000068879615,
+		       -813.055820000000000000000,
+		       -1.02431640000000000000000,
+			2.34430290000000000000000,
+			0.00798042480000000000000,
+		       -0.00001947791700000000000,
+			0.00000002015696700000000,
+		       -0.00000000000737602890000,
+		       -917.924130000000000000000,
+			0.68300218000000000000000,
+			0.00000000000000000000000]                      # NASA 7-coefficient polynomial (15 values)
+   dipole_moment: 0.0               					# Dipole moment [D]
+   association_factor: 0.0             					# Association factor [-]
+
 ##### NITROGEN #####
 NITROGEN:
    R_specific: 296.8                 					# Specific gas constant [J/(kg·K)]
@@ -69,3 +129,33 @@ OXYGEN:
 			0.00000000000000000000000]                      # NASA 7-coefficient polynomial (15 values)
    dipole_moment: 0.0               					# Dipole moment [D]
    association_factor: 0.0             					# Association factor [-]
+
+##### WATER #####
+WATER:
+   R_specific: 461.5                 					# Specific gas constant [J/(kg·K)]
+   gamma: 1.33                        					# Heat capacity ratio (ideal-gas) [-]
+   P_inf: 30000000.0                   					# Pressure infinity (liquid stiffness) [Pa]
+   e_0: 2411600.0                      					# Internal energy zero point [J/kg]
+   c_v: 1442.2                         					# Specific isochoric heat capacity [J/(kg·K)]
+   molecular_weight: 0.018015              				# Molecular weight [kg/mol]
+   acentric_factor: 0.3443               				# Acentric factor [-]
+   critical_temperature: 647.096         				# Critical temperature [K]
+   critical_pressure: 22064025.4           				# Critical pressure [Pa]
+   critical_molar_volume: 0.000055947       				# Critical molar volume [m3/mol]
+   NASA_coefficients: [ 2.6770389000000000000000,
+ 			0.0029731816000000000000,
+		       -0.0000007737688900000000,
+ 			0.0000000000944335140000,
+		       -0.0000000000000042689991,
+ 			29885.894000000000000000,
+ 			6.8825500000000000000000,
+ 			4.1986352000000000000000,
+		       -0.0020364017000000000000,
+ 			0.0000065203416000000000,
+		       -0.0000000054879269000000,
+ 			0.0000000000017719680000,
+		       -30293.726000000000000000,
+		       -0.8490090100000000000000,
+		       -29084.817000000000000000]                       # NASA 7-coefficient polynomial (15 values)
+   dipole_moment: 1.855               					# Dipole moment [D]
+   association_factor: 0.076           					# Association factor [-]
