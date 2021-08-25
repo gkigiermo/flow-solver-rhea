@@ -190,6 +190,8 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 
 	////////// GET FUNCTIONS //////////
         inline double getMolecularWeight() { return( molecular_weight ); };
+        inline double getCriticalPressure() { return( critical_pressure ); };
+        inline double getCriticalTemperature() { return( critical_temperature ); };
 
 	////////// SET FUNCTIONS //////////
         inline void setMolecularWeight(double molecular_weight_) { molecular_weight = molecular_weight_; };
