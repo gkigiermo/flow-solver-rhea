@@ -284,6 +284,10 @@ void FlowSolverRHEA::readConfigurationFile() {
         bocos_type[_WEST_] = _SUBSONIC_INFLOW_;
     } else if( dummy_type_boco == "SUBSONIC_OUTFLOW" ) {
         bocos_type[_WEST_] = _SUBSONIC_OUTFLOW_;
+    } else if( dummy_type_boco == "SUPERSONIC_INFLOW" ) {
+        bocos_type[_WEST_] = _SUPERSONIC_INFLOW_;
+    } else if( dummy_type_boco == "SUPERSONIC_OUTFLOW" ) {
+        bocos_type[_WEST_] = _SUPERSONIC_OUTFLOW_;
     } else {
         cout << "West boundary condition not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -305,6 +309,10 @@ void FlowSolverRHEA::readConfigurationFile() {
         bocos_type[_EAST_] = _SUBSONIC_INFLOW_;
     } else if( dummy_type_boco == "SUBSONIC_OUTFLOW" ) {
         bocos_type[_EAST_] = _SUBSONIC_OUTFLOW_;
+    } else if( dummy_type_boco == "SUPERSONIC_INFLOW" ) {
+        bocos_type[_EAST_] = _SUPERSONIC_INFLOW_;
+    } else if( dummy_type_boco == "SUPERSONIC_OUTFLOW" ) {
+        bocos_type[_EAST_] = _SUPERSONIC_OUTFLOW_;
     } else {
         cout << "East boundary condition not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -326,6 +334,10 @@ void FlowSolverRHEA::readConfigurationFile() {
         bocos_type[_SOUTH_] = _SUBSONIC_INFLOW_;
     } else if( dummy_type_boco == "SUBSONIC_OUTFLOW" ) {
         bocos_type[_SOUTH_] = _SUBSONIC_OUTFLOW_;
+    } else if( dummy_type_boco == "SUPERSONIC_INFLOW" ) {
+        bocos_type[_SOUTH_] = _SUPERSONIC_INFLOW_;
+    } else if( dummy_type_boco == "SUPERSONIC_OUTFLOW" ) {
+        bocos_type[_SOUTH_] = _SUPERSONIC_OUTFLOW_;
     } else {
         cout << "South boundary condition not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -347,6 +359,10 @@ void FlowSolverRHEA::readConfigurationFile() {
         bocos_type[_NORTH_] = _SUBSONIC_INFLOW_;
     } else if( dummy_type_boco == "SUBSONIC_OUTFLOW" ) {
         bocos_type[_NORTH_] = _SUBSONIC_OUTFLOW_;
+    } else if( dummy_type_boco == "SUPERSONIC_INFLOW" ) {
+        bocos_type[_NORTH_] = _SUPERSONIC_INFLOW_;
+    } else if( dummy_type_boco == "SUPERSONIC_OUTFLOW" ) {
+        bocos_type[_NORTH_] = _SUPERSONIC_OUTFLOW_;
     } else {
         cout << "North boundary condition not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -368,6 +384,10 @@ void FlowSolverRHEA::readConfigurationFile() {
         bocos_type[_BACK_] = _SUBSONIC_INFLOW_;
     } else if( dummy_type_boco == "SUBSONIC_OUTFLOW" ) {
         bocos_type[_BACK_] = _SUBSONIC_OUTFLOW_;
+    } else if( dummy_type_boco == "SUPERSONIC_INFLOW" ) {
+        bocos_type[_BACK_] = _SUPERSONIC_INFLOW_;
+    } else if( dummy_type_boco == "SUPERSONIC_OUTFLOW" ) {
+        bocos_type[_BACK_] = _SUPERSONIC_OUTFLOW_;
     } else {
         cout << "Back boundary condition not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -389,6 +409,10 @@ void FlowSolverRHEA::readConfigurationFile() {
         bocos_type[_FRONT_] = _SUBSONIC_INFLOW_;
     } else if( dummy_type_boco == "SUBSONIC_OUTFLOW" ) {
         bocos_type[_FRONT_] = _SUBSONIC_OUTFLOW_;
+    } else if( dummy_type_boco == "SUPERSONIC_INFLOW" ) {
+        bocos_type[_FRONT_] = _SUPERSONIC_INFLOW_;
+    } else if( dummy_type_boco == "SUPERSONIC_OUTFLOW" ) {
+        bocos_type[_FRONT_] = _SUPERSONIC_OUTFLOW_;
     } else {
         cout << "Front boundary condition not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -651,15 +675,15 @@ void FlowSolverRHEA::updateBoundaries() {
         for(int j = topo->iter_bound[_WEST_][_INIY_]; j <= topo->iter_bound[_WEST_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_WEST_][_INIZ_]; k <= topo->iter_bound[_WEST_][_ENDZ_]; k++) {
 		/// Get/calculate inner values
-                u_in   = u_field[I1D(i+1,j,k)];
-                v_in   = v_field[I1D(i+1,j,k)];
-                w_in   = w_field[I1D(i+1,j,k)];
-                P_in   = P_field[I1D(i+1,j,k)];
-                T_in   = T_field[I1D(i+1,j,k)];	
+                u_in = u_field[I1D(i+1,j,k)];
+                v_in = v_field[I1D(i+1,j,k)];
+                w_in = w_field[I1D(i+1,j,k)];
+                P_in = P_field[I1D(i+1,j,k)];
+                T_in = T_field[I1D(i+1,j,k)];	
 		/// Calculate ghost primitive variables
-                u_g  = ( bocos_u[_WEST_] - wg_in*u_in )/wg_g;
-                v_g  = ( bocos_v[_WEST_] - wg_in*v_in )/wg_g;
-                w_g  = ( bocos_w[_WEST_] - wg_in*w_in )/wg_g;
+                u_g = ( bocos_u[_WEST_] - wg_in*u_in )/wg_g;
+                v_g = ( bocos_v[_WEST_] - wg_in*v_in )/wg_g;
+                w_g = ( bocos_w[_WEST_] - wg_in*w_in )/wg_g;
                 if( ( bocos_type[_WEST_] == _DIRICHLET_ ) and ( bocos_P[_WEST_] < 0.0 ) ) {
                     P_g = P_in;
                 } else {
@@ -708,6 +732,18 @@ void FlowSolverRHEA::updateBoundaries() {
                     v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
                     w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+		} else if( bocos_type[_WEST_] == _SUPERSONIC_INFLOW_ ) {
+                    u_g = bocos_u[_WEST_];
+                    v_g = bocos_v[_WEST_];
+                    w_g = bocos_w[_WEST_];
+                    P_g = bocos_P[_WEST_];
+                    T_g = bocos_T[_WEST_];
+		} else if( bocos_type[_WEST_] == _SUPERSONIC_OUTFLOW_ ) {
+                    u_g = u_in;
+                    v_g = v_in;
+                    w_g = w_in;
+                    P_g = P_in;
+                    T_g = T_in;
                 }
                 thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
@@ -743,15 +779,15 @@ void FlowSolverRHEA::updateBoundaries() {
         for(int j = topo->iter_bound[_EAST_][_INIY_]; j <= topo->iter_bound[_EAST_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_EAST_][_INIZ_]; k <= topo->iter_bound[_EAST_][_ENDZ_]; k++) {
 		/// Get/calculate inner values
-                u_in   = u_field[I1D(i-1,j,k)];
-                v_in   = v_field[I1D(i-1,j,k)];
-                w_in   = w_field[I1D(i-1,j,k)];
-                P_in   = P_field[I1D(i-1,j,k)];
-                T_in   = T_field[I1D(i-1,j,k)];	
+                u_in = u_field[I1D(i-1,j,k)];
+                v_in = v_field[I1D(i-1,j,k)];
+                w_in = w_field[I1D(i-1,j,k)];
+                P_in = P_field[I1D(i-1,j,k)];
+                T_in = T_field[I1D(i-1,j,k)];	
 		/// Calculate ghost primitive variables
-                u_g  = ( bocos_u[_EAST_] - wg_in*u_in )/wg_g;
-                v_g  = ( bocos_v[_EAST_] - wg_in*v_in )/wg_g;
-                w_g  = ( bocos_w[_EAST_] - wg_in*w_in )/wg_g;
+                u_g = ( bocos_u[_EAST_] - wg_in*u_in )/wg_g;
+                v_g = ( bocos_v[_EAST_] - wg_in*v_in )/wg_g;
+                w_g = ( bocos_w[_EAST_] - wg_in*w_in )/wg_g;
                 if( ( bocos_type[_EAST_] == _DIRICHLET_ ) and ( bocos_P[_EAST_] < 0.0 ) ) {
                     P_g = P_in;
                 } else {
@@ -800,6 +836,18 @@ void FlowSolverRHEA::updateBoundaries() {
                     v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
                     w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+		} else if( bocos_type[_EAST_] == _SUPERSONIC_INFLOW_ ) {
+                    u_g = bocos_u[_EAST_];
+                    v_g = bocos_v[_EAST_];
+                    w_g = bocos_w[_EAST_];
+                    P_g = bocos_P[_EAST_];
+                    T_g = bocos_T[_EAST_];
+		} else if( bocos_type[_EAST_] == _SUPERSONIC_OUTFLOW_ ) {
+                    u_g = u_in;
+                    v_g = v_in;
+                    w_g = w_in;
+                    P_g = P_in;
+                    T_g = T_in;
                 }
                 thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
@@ -835,15 +883,15 @@ void FlowSolverRHEA::updateBoundaries() {
         for(int j = topo->iter_bound[_SOUTH_][_INIY_]; j <= topo->iter_bound[_SOUTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_SOUTH_][_INIZ_]; k <= topo->iter_bound[_SOUTH_][_ENDZ_]; k++) {
 		/// Get/calculate inner values
-                u_in   = u_field[I1D(i,j+1,k)];
-                v_in   = v_field[I1D(i,j+1,k)];
-                w_in   = w_field[I1D(i,j+1,k)];
-                P_in   = P_field[I1D(i,j+1,k)];
-                T_in   = T_field[I1D(i,j+1,k)];	
+                u_in = u_field[I1D(i,j+1,k)];
+                v_in = v_field[I1D(i,j+1,k)];
+                w_in = w_field[I1D(i,j+1,k)];
+                P_in = P_field[I1D(i,j+1,k)];
+                T_in = T_field[I1D(i,j+1,k)];	
 		/// Calculate ghost primitive variables
-                u_g  = ( bocos_u[_SOUTH_] - wg_in*u_in )/wg_g;
-                v_g  = ( bocos_v[_SOUTH_] - wg_in*v_in )/wg_g;
-                w_g  = ( bocos_w[_SOUTH_] - wg_in*w_in )/wg_g;
+                u_g = ( bocos_u[_SOUTH_] - wg_in*u_in )/wg_g;
+                v_g = ( bocos_v[_SOUTH_] - wg_in*v_in )/wg_g;
+                w_g = ( bocos_w[_SOUTH_] - wg_in*w_in )/wg_g;
                 if( ( bocos_type[_SOUTH_] == _DIRICHLET_ ) and ( bocos_P[_SOUTH_] < 0.0 ) ) {
                     P_g = P_in;
                 } else {
@@ -892,6 +940,18 @@ void FlowSolverRHEA::updateBoundaries() {
                     v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
                     w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+		} else if( bocos_type[_SOUTH_] == _SUPERSONIC_INFLOW_ ) {
+                    u_g = bocos_u[_SOUTH_];
+                    v_g = bocos_v[_SOUTH_];
+                    w_g = bocos_w[_SOUTH_];
+                    P_g = bocos_P[_SOUTH_];
+                    T_g = bocos_T[_SOUTH_];
+		} else if( bocos_type[_SOUTH_] == _SUPERSONIC_OUTFLOW_ ) {
+                    u_g = u_in;
+                    v_g = v_in;
+                    w_g = w_in;
+                    P_g = P_in;
+                    T_g = T_in;
                 }
                 thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
@@ -927,15 +987,15 @@ void FlowSolverRHEA::updateBoundaries() {
         for(int j = topo->iter_bound[_NORTH_][_INIY_]; j <= topo->iter_bound[_NORTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_NORTH_][_INIZ_]; k <= topo->iter_bound[_NORTH_][_ENDZ_]; k++) {
 		/// Get/calculate inner values
-                u_in   = u_field[I1D(i,j-1,k)];
-                v_in   = v_field[I1D(i,j-1,k)];
-                w_in   = w_field[I1D(i,j-1,k)];
-                P_in   = P_field[I1D(i,j-1,k)];
-                T_in   = T_field[I1D(i,j-1,k)];	
+                u_in = u_field[I1D(i,j-1,k)];
+                v_in = v_field[I1D(i,j-1,k)];
+                w_in = w_field[I1D(i,j-1,k)];
+                P_in = P_field[I1D(i,j-1,k)];
+                T_in = T_field[I1D(i,j-1,k)];	
 		/// Calculate ghost primitive variables
-                u_g  = ( bocos_u[_NORTH_] - wg_in*u_in )/wg_g;
-                v_g  = ( bocos_v[_NORTH_] - wg_in*v_in )/wg_g;
-                w_g  = ( bocos_w[_NORTH_] - wg_in*w_in )/wg_g;
+                u_g = ( bocos_u[_NORTH_] - wg_in*u_in )/wg_g;
+                v_g = ( bocos_v[_NORTH_] - wg_in*v_in )/wg_g;
+                w_g = ( bocos_w[_NORTH_] - wg_in*w_in )/wg_g;
                 if( ( bocos_type[_NORTH_] == _DIRICHLET_ ) and ( bocos_P[_NORTH_] < 0.0 ) ) {
                     P_g = P_in;
                 } else {
@@ -984,6 +1044,18 @@ void FlowSolverRHEA::updateBoundaries() {
                     v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
                     w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+		} else if( bocos_type[_NORTH_] == _SUPERSONIC_INFLOW_ ) {
+                    u_g = bocos_u[_NORTH_];
+                    v_g = bocos_v[_NORTH_];
+                    w_g = bocos_w[_NORTH_];
+                    P_g = bocos_P[_NORTH_];
+                    T_g = bocos_T[_NORTH_];
+		} else if( bocos_type[_NORTH_] == _SUPERSONIC_OUTFLOW_ ) {
+                    u_g = u_in;
+                    v_g = v_in;
+                    w_g = w_in;
+                    P_g = P_in;
+                    T_g = T_in;
                 }
                 thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
@@ -1019,15 +1091,15 @@ void FlowSolverRHEA::updateBoundaries() {
         for(int j = topo->iter_bound[_BACK_][_INIY_]; j <= topo->iter_bound[_BACK_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_BACK_][_INIZ_]; k <= topo->iter_bound[_BACK_][_ENDZ_]; k++) {
 		/// Get/calculate inner values
-                u_in   = u_field[I1D(i,j,k+1)];
-                v_in   = v_field[I1D(i,j,k+1)];
-                w_in   = w_field[I1D(i,j,k+1)];
-                P_in   = P_field[I1D(i,j,k+1)];
-                T_in   = T_field[I1D(i,j,k+1)];	
+                u_in = u_field[I1D(i,j,k+1)];
+                v_in = v_field[I1D(i,j,k+1)];
+                w_in = w_field[I1D(i,j,k+1)];
+                P_in = P_field[I1D(i,j,k+1)];
+                T_in = T_field[I1D(i,j,k+1)];	
 		/// Calculate ghost primitive variables
-                u_g  = ( bocos_u[_BACK_] - wg_in*u_in )/wg_g;
-                v_g  = ( bocos_v[_BACK_] - wg_in*v_in )/wg_g;
-                w_g  = ( bocos_w[_BACK_] - wg_in*w_in )/wg_g;
+                u_g = ( bocos_u[_BACK_] - wg_in*u_in )/wg_g;
+                v_g = ( bocos_v[_BACK_] - wg_in*v_in )/wg_g;
+                w_g = ( bocos_w[_BACK_] - wg_in*w_in )/wg_g;
                 if( ( bocos_type[_BACK_] == _DIRICHLET_ ) and ( bocos_P[_BACK_] < 0.0 ) ) {
                     P_g = P_in;
                 } else {
@@ -1076,6 +1148,18 @@ void FlowSolverRHEA::updateBoundaries() {
                     v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
                     w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+		} else if( bocos_type[_BACK_] == _SUPERSONIC_INFLOW_ ) {
+                    u_g = bocos_u[_BACK_];
+                    v_g = bocos_v[_BACK_];
+                    w_g = bocos_w[_BACK_];
+                    P_g = bocos_P[_BACK_];
+                    T_g = bocos_T[_BACK_];
+		} else if( bocos_type[_BACK_] == _SUPERSONIC_OUTFLOW_ ) {
+                    u_g = u_in;
+                    v_g = v_in;
+                    w_g = w_in;
+                    P_g = P_in;
+                    T_g = T_in;
                 }
                 thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );
@@ -1111,15 +1195,15 @@ void FlowSolverRHEA::updateBoundaries() {
         for(int j = topo->iter_bound[_FRONT_][_INIY_]; j <= topo->iter_bound[_FRONT_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_FRONT_][_INIZ_]; k <= topo->iter_bound[_FRONT_][_ENDZ_]; k++) {
 		/// Get/calculate inner values
-                u_in   = u_field[I1D(i,j,k-1)];
-                v_in   = v_field[I1D(i,j,k-1)];
-                w_in   = w_field[I1D(i,j,k-1)];
-                P_in   = P_field[I1D(i,j,k-1)];
-                T_in   = T_field[I1D(i,j,k-1)];	
+                u_in = u_field[I1D(i,j,k-1)];
+                v_in = v_field[I1D(i,j,k-1)];
+                w_in = w_field[I1D(i,j,k-1)];
+                P_in = P_field[I1D(i,j,k-1)];
+                T_in = T_field[I1D(i,j,k-1)];	
 		/// Calculate ghost primitive variables
-                u_g  = ( bocos_u[_FRONT_] - wg_in*u_in )/wg_g;
-                v_g  = ( bocos_v[_FRONT_] - wg_in*v_in )/wg_g;
-                w_g  = ( bocos_w[_FRONT_] - wg_in*w_in )/wg_g;
+                u_g = ( bocos_u[_FRONT_] - wg_in*u_in )/wg_g;
+                v_g = ( bocos_v[_FRONT_] - wg_in*v_in )/wg_g;
+                w_g = ( bocos_w[_FRONT_] - wg_in*w_in )/wg_g;
                 if( ( bocos_type[_FRONT_] == _DIRICHLET_ ) and ( bocos_P[_FRONT_] < 0.0 ) ) {
                     P_g = P_in;
                 } else {
@@ -1168,6 +1252,18 @@ void FlowSolverRHEA::updateBoundaries() {
                     v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
                     w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+		} else if( bocos_type[_FRONT_] == _SUPERSONIC_INFLOW_ ) {
+                    u_g = bocos_u[_FRONT_];
+                    v_g = bocos_v[_FRONT_];
+                    w_g = bocos_w[_FRONT_];
+                    P_g = bocos_P[_FRONT_];
+                    T_g = bocos_T[_FRONT_];
+		} else if( bocos_type[_FRONT_] == _SUPERSONIC_OUTFLOW_ ) {
+                    u_g = u_in;
+                    v_g = v_in;
+                    w_g = w_in;
+                    P_g = P_in;
+                    T_g = T_in;
                 }
                 thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho_g, e_g, P_g, T_g );
                 ke_g = 0.5*( u_g*u_g + v_g*v_g + w_g*w_g );

@@ -70,6 +70,8 @@ boundary_conditions:
    #                 PERIODIC (no value/derivative needed)
    #                 SUBSONIC_INFLOW (provide u, v, w, T)
    #                 SUBSONIC_OUTFLOW (provide P_inf)
+   #                 SUPERSONIC_INFLOW (provide u, v, w, P, T)
+   #                 SUPERSONIC_OUTFLOW (no value/derivative needed)
    west_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 0.34836]			# West boundary condition
    east_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 0.34836]			# East boundary condition
    south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 0.34836] 		# South boundary condition

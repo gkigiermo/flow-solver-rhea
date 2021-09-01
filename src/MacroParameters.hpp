@@ -50,12 +50,14 @@
 #define _INNER_ 0
 #define _ALL_   1
 
-#define _NO_BOCO_   0
-#define _DIRICHLET_ 1
-#define _NEUMANN_   2
-#define _PERIODIC_  3
-#define _SUBSONIC_INFLOW_  4
-#define _SUBSONIC_OUTFLOW_ 5
+#define _NO_BOCO_            0
+#define _DIRICHLET_          1
+#define _NEUMANN_            2
+#define _PERIODIC_           3
+#define _SUBSONIC_INFLOW_    4
+#define _SUBSONIC_OUTFLOW_   5
+#define _SUPERSONIC_INFLOW_  6
+#define _SUPERSONIC_OUTFLOW_ 7
 
 //#define I1D(i, j, k) ((k)*(_lNx_*_lNy_) + ((j)*_lNx_) + (i))
 #define I1D(i, j, k) ((i)*(_lNz_*_lNy_) + ((j)*_lNz_) + (k))
