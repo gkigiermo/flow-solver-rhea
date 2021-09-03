@@ -277,6 +277,10 @@ class FlowSolverRHEA {
         DistributedArray avg_rhov_field;			/// 3-D field of time-averaged rhov
         DistributedArray avg_rhow_field;			/// 3-D field of time-averaged rhow
         DistributedArray avg_rhoE_field;			/// 3-D field of time-averaged rhoE
+        DistributedArray avg_u_field;				/// 3-D field of time-averaged u
+        DistributedArray avg_v_field;				/// 3-D field of time-averaged v
+        DistributedArray avg_w_field;				/// 3-D field of time-averaged w
+        DistributedArray avg_E_field;				/// 3-D field of time-averaged E
         DistributedArray avg_P_field;				/// 3-D field of time-averaged P
         DistributedArray avg_T_field;				/// 3-D field of time-averaged T
         DistributedArray avg_sos_field;				/// 3-D field of time-averaged sos
@@ -285,6 +289,10 @@ class FlowSolverRHEA {
         DistributedArray rmsf_rhov_field;			/// 3-D field of root-mean-square-fluctuation rhov
         DistributedArray rmsf_rhow_field;			/// 3-D field of root-mean-square-fluctuation rhow
         DistributedArray rmsf_rhoE_field;			/// 3-D field of root-mean-square-fluctuation rhoE
+        DistributedArray rmsf_u_field;				/// 3-D field of root-mean-square-fluctuation u
+        DistributedArray rmsf_v_field;				/// 3-D field of root-mean-square-fluctuation v
+        DistributedArray rmsf_w_field;				/// 3-D field of root-mean-square-fluctuation w
+        DistributedArray rmsf_E_field;				/// 3-D field of root-mean-square-fluctuation E
         DistributedArray rmsf_P_field;				/// 3-D field of root-mean-square-fluctuation P
         DistributedArray rmsf_T_field;				/// 3-D field of root-mean-square-fluctuation T
         DistributedArray rmsf_sos_field;			/// 3-D field of root-mean-square-fluctuation sos
