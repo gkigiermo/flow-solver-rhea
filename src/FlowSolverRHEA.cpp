@@ -102,6 +102,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     sos_field.setTopology(topo,"sos");
     mu_field.setTopology(topo,"mu");
     kappa_field.setTopology(topo,"kappa");
+    c_v_field.setTopology(topo,"c_v");
+    c_p_field.setTopology(topo,"c_p");
 
     /// Set parallel topology of time-integration variables	
     rho_0_field.setTopology(topo,"rho_0");
@@ -159,6 +161,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     avg_P_field.setTopology(topo,"avg_P");
     avg_T_field.setTopology(topo,"avg_T");
     avg_sos_field.setTopology(topo,"avg_sos");
+    avg_c_v_field.setTopology(topo,"avg_c_v");
+    avg_c_p_field.setTopology(topo,"avg_c_p");
     rmsf_rho_field.setTopology(topo,"rmsf_rho");
     rmsf_rhou_field.setTopology(topo,"rmsf_rhou");
     rmsf_rhov_field.setTopology(topo,"rmsf_rhov");
@@ -171,6 +175,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     rmsf_P_field.setTopology(topo,"rmsf_P");
     rmsf_T_field.setTopology(topo,"rmsf_T");
     rmsf_sos_field.setTopology(topo,"rmsf_sos");
+    rmsf_c_v_field.setTopology(topo,"rmsf_c_v");
+    rmsf_c_p_field.setTopology(topo,"rmsf_c_p");
 
     /// Fill x, y and z fields
     this->fillMeshCoordinateFields();
@@ -195,6 +201,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     writer_reader->addField(&sos_field);
     writer_reader->addField(&mu_field);
     writer_reader->addField(&kappa_field);
+    writer_reader->addField(&c_v_field);
+    writer_reader->addField(&c_p_field);
     writer_reader->addField(&avg_rho_field);
     writer_reader->addField(&avg_rhou_field);
     writer_reader->addField(&avg_rhov_field);
@@ -207,6 +215,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     writer_reader->addField(&avg_P_field);
     writer_reader->addField(&avg_T_field);
     writer_reader->addField(&avg_sos_field);
+    writer_reader->addField(&avg_c_v_field);
+    writer_reader->addField(&avg_c_p_field);
     writer_reader->addField(&rmsf_rho_field);
     writer_reader->addField(&rmsf_rhou_field);
     writer_reader->addField(&rmsf_rhov_field);
@@ -219,6 +229,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     writer_reader->addField(&rmsf_P_field);
     writer_reader->addField(&rmsf_T_field);
     writer_reader->addField(&rmsf_sos_field);
+    writer_reader->addField(&rmsf_c_v_field);
+    writer_reader->addField(&rmsf_c_p_field);
 
     /// Construct (initialize) timers
     timers = new ParallelTimer();
@@ -531,6 +543,8 @@ void FlowSolverRHEA::initializeFromRestart() {
         avg_P_field     = 0.0;
         avg_T_field     = 0.0;
         avg_sos_field   = 0.0;
+        avg_c_v_field   = 0.0;
+        avg_c_p_field   = 0.0;
         rmsf_rho_field  = 0.0;
         rmsf_rhou_field = 0.0;
         rmsf_rhov_field = 0.0;
@@ -543,6 +557,8 @@ void FlowSolverRHEA::initializeFromRestart() {
         rmsf_P_field    = 0.0;
         rmsf_T_field    = 0.0;
         rmsf_sos_field  = 0.0;
+        rmsf_c_v_field  = 0.0;
+        rmsf_c_p_field  = 0.0;
 
     }
 
@@ -557,6 +573,8 @@ void FlowSolverRHEA::initializeFromRestart() {
     sos_field.update();
     mu_field.update();
     kappa_field.update();
+    c_v_field.update();
+    c_p_field.update();
     avg_rho_field.update();
     avg_rhou_field.update();
     avg_rhov_field.update();
@@ -569,6 +587,8 @@ void FlowSolverRHEA::initializeFromRestart() {
     avg_P_field.update();
     avg_T_field.update();
     avg_sos_field.update();
+    avg_c_v_field.update();
+    avg_c_p_field.update();
     rmsf_rho_field.update();
     rmsf_rhou_field.update();
     rmsf_rhov_field.update();
@@ -581,6 +601,8 @@ void FlowSolverRHEA::initializeFromRestart() {
     rmsf_P_field.update();
     rmsf_T_field.update();
     rmsf_sos_field.update();
+    rmsf_c_v_field.update();
+    rmsf_c_p_field.update();
    
     /// Fill x, y and z fields
     this->fillMeshCoordinateFields();
@@ -589,8 +611,8 @@ void FlowSolverRHEA::initializeFromRestart() {
 
 void FlowSolverRHEA::initializeThermodynamics() {
 
-    /// All (inner, halo, boundary): rho, E and sos
-    double rho, e, ke;
+    /// All (inner, halo, boundary): rho, E, sos, c_v and c_p
+    double rho, e, ke, c_v, c_p;
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -599,6 +621,9 @@ void FlowSolverRHEA::initializeThermodynamics() {
                 ke                    = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) );
                 E_field[I1D(i,j,k)]   = e + ke;
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                c_v_field[I1D(i,j,k)] = c_v;
+                c_p_field[I1D(i,j,k)] = c_p;
             }
         }
     }
@@ -607,6 +632,8 @@ void FlowSolverRHEA::initializeThermodynamics() {
     rho_field.update();
     E_field.update();
     sos_field.update();
+    c_v_field.update();
+    c_p_field.update();
 
 };
 
@@ -656,8 +683,8 @@ void FlowSolverRHEA::conservedToPrimitiveVariables() {
 
 void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
 
-    /// Inner points: P, T and sos
-    double ke, e, P, T;
+    /// Inner points: P, T, sos, c_v and c_p
+    double ke, e, P, T, c_v, c_p;
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -669,6 +696,9 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
                 P_field[I1D(i,j,k)]   = P; 
                 T_field[I1D(i,j,k)]   = T; 
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                c_v_field[I1D(i,j,k)] = c_v;
+                c_p_field[I1D(i,j,k)] = c_p;
             }
         }
     }
@@ -677,6 +707,8 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
     //P_field.update();
     //T_field.update();
     //sos_field.update();
+    //c_v_field.update();
+    //c_p_field.update();
 
 };
 
@@ -794,6 +826,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
+		/// Update c_v and c_p
+		double c_v, c_p;
+                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                c_v_field[I1D(i,j,k)] = c_v;
+                c_p_field[I1D(i,j,k)] = c_p;
             }
         }
     }
@@ -898,6 +935,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
+		/// Update c_v and c_p
+		double c_v, c_p;
+                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                c_v_field[I1D(i,j,k)] = c_v;
+                c_p_field[I1D(i,j,k)] = c_p;		
             }
         }
     }
@@ -1002,6 +1044,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
+		/// Update c_v and c_p
+		double c_v, c_p;
+                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                c_v_field[I1D(i,j,k)] = c_v;
+                c_p_field[I1D(i,j,k)] = c_p;
             }
         }
     }
@@ -1106,6 +1153,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
+		/// Update c_v and c_p
+		double c_v, c_p;
+                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                c_v_field[I1D(i,j,k)] = c_v;
+                c_p_field[I1D(i,j,k)] = c_p;
             }
         }
     }
@@ -1210,6 +1262,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
+		/// Update c_v and c_p
+		double c_v, c_p;
+                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                c_v_field[I1D(i,j,k)] = c_v;
+                c_p_field[I1D(i,j,k)] = c_p;
             }
         }
     }
@@ -1314,6 +1371,11 @@ void FlowSolverRHEA::updateBoundaries() {
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
+		/// Update c_v and c_p
+		double c_v, c_p;
+                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                c_v_field[I1D(i,j,k)] = c_v;
+                c_p_field[I1D(i,j,k)] = c_p;
             }
         }
     }
@@ -1331,6 +1393,8 @@ void FlowSolverRHEA::updateBoundaries() {
     P_field.update();
     T_field.update();
     sos_field.update();
+    c_v_field.update();
+    c_p_field.update();
 
 };
 
@@ -2067,6 +2131,8 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
                 avg_P_field[I1D(i,j,k)]    = ( avg_P_field[I1D(i,j,k)]*averaging_time + P_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
                 avg_T_field[I1D(i,j,k)]    = ( avg_T_field[I1D(i,j,k)]*averaging_time + T_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
                 avg_sos_field[I1D(i,j,k)]  = ( avg_sos_field[I1D(i,j,k)]*averaging_time + sos_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
+                avg_c_v_field[I1D(i,j,k)]  = ( avg_c_v_field[I1D(i,j,k)]*averaging_time + c_v_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
+                avg_c_p_field[I1D(i,j,k)]  = ( avg_c_p_field[I1D(i,j,k)]*averaging_time + c_p_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
                 /// Root-mean-square-fluctuation quantities
                 rmsf_rho_field[I1D(i,j,k)]  = sqrt( ( pow( rmsf_rho_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( rho_field[I1D(i,j,k)] - avg_rho_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
                 rmsf_rhou_field[I1D(i,j,k)] = sqrt( ( pow( rmsf_rhou_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( rhou_field[I1D(i,j,k)] - avg_rhou_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
@@ -2080,6 +2146,8 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
                 rmsf_P_field[I1D(i,j,k)]    = sqrt( ( pow( rmsf_P_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( P_field[I1D(i,j,k)] - avg_P_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
                 rmsf_T_field[I1D(i,j,k)]    = sqrt( ( pow( rmsf_T_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( T_field[I1D(i,j,k)] - avg_T_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
                 rmsf_sos_field[I1D(i,j,k)]  = sqrt( ( pow( rmsf_sos_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( sos_field[I1D(i,j,k)] - avg_sos_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
+                rmsf_c_v_field[I1D(i,j,k)]  = sqrt( ( pow( rmsf_c_v_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( c_v_field[I1D(i,j,k)] - avg_c_v_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
+                rmsf_c_p_field[I1D(i,j,k)]  = sqrt( ( pow( rmsf_c_p_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( c_p_field[I1D(i,j,k)] - avg_c_p_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
             }
         }
     }
@@ -2100,6 +2168,8 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
     avg_P_field.update();
     avg_T_field.update();
     avg_sos_field.update();
+    avg_c_v_field.update();
+    avg_c_p_field.update();
     rmsf_rho_field.update();
     rmsf_rhou_field.update();
     rmsf_rhov_field.update();
@@ -2112,6 +2182,8 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
     rmsf_P_field.update();
     rmsf_T_field.update();
     rmsf_sos_field.update();
+    rmsf_c_v_field.update();
+    rmsf_c_p_field.update();
 
 };
 

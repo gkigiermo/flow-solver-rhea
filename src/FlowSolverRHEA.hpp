@@ -227,6 +227,8 @@ class FlowSolverRHEA {
         DistributedArray sos_field;				/// 3-D field of sos
         DistributedArray mu_field;				/// 3-D field of mu
         DistributedArray kappa_field;				/// 3-D field of kappa
+        DistributedArray c_v_field;				/// 3-D field of c_v
+        DistributedArray c_p_field;				/// 3-D field of c_p
 
         /// Time-integration variables
         DistributedArray rho_0_field;				/// 3-D previous field of rho
@@ -284,6 +286,8 @@ class FlowSolverRHEA {
         DistributedArray avg_P_field;				/// 3-D field of time-averaged P
         DistributedArray avg_T_field;				/// 3-D field of time-averaged T
         DistributedArray avg_sos_field;				/// 3-D field of time-averaged sos
+        DistributedArray avg_c_v_field;				/// 3-D field of time-averaged c_v
+        DistributedArray avg_c_p_field;				/// 3-D field of time-averaged c_p
         DistributedArray rmsf_rho_field;			/// 3-D field of root-mean-square-fluctuation rho
         DistributedArray rmsf_rhou_field;			/// 3-D field of root-mean-square-fluctuation rhou
         DistributedArray rmsf_rhov_field;			/// 3-D field of root-mean-square-fluctuation rhov
@@ -296,6 +300,8 @@ class FlowSolverRHEA {
         DistributedArray rmsf_P_field;				/// 3-D field of root-mean-square-fluctuation P
         DistributedArray rmsf_T_field;				/// 3-D field of root-mean-square-fluctuation T
         DistributedArray rmsf_sos_field;			/// 3-D field of root-mean-square-fluctuation sos
+        DistributedArray rmsf_c_v_field;			/// 3-D field of root-mean-square-fluctuation c_v
+        DistributedArray rmsf_c_p_field;			/// 3-D field of root-mean-square-fluctuation c_p
 
 	////////// THERMODYNAMIC MODEL, TRANSPORT COEFFICIENTS, RIEMANN SOLVER //////////
 	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER, PARALLEL TIMER //////////
