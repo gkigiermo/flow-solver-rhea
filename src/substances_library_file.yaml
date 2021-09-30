@@ -40,6 +40,37 @@ CARBON_DIOXIDE:
    dipole_moment: 0.0               					# Dipole moment [D]
    association_factor: 0.0             					# Association factor [-]
 
+##### DODECANE #####
+DODECANE:
+   R_specific: 48.814                 					# Specific gas constant [J/(kg·K)]
+   gamma: 1.023                         				# Heat capacity ratio (ideal-gas) [-]
+   P_inf: 2000000.0                    					# Pressure infinity (liquid stiffness) [Pa]
+   e_0: -488540.0                         				# Internal energy zero point [J/kg]
+   c_v: 367.686                        					# Specific isochoric heat capacity [J/(kg·K)]
+   molecular_weight: 0.17033              				# Molecular weight [kg/mol]
+   acentric_factor: 0.574               				# Acentric factor [-]
+   critical_temperature: 658.1           				# Critical temperature [K]
+   critical_pressure: 1816959.9           				# Critical pressure [Pa]
+   critical_molar_volume: 0.000750374     				# Critical molar volume [m3/mol]
+   NASA_coefficients: [ 37.01879250000000000000,
+                        0.055472148800000000000,
+                       -0.000019207954800000000,
+                        0.000000003081755740000,
+                       -0.000000000000184800617,
+                       -52698.44580000000000000,
+                       -161.4535010000000000000,
+                        21.32644800000000000000,
+                       -0.038639400200000000000,
+                        0.000399476113000000000,
+                       -0.000000506681097000000,
+                        0.000000000200697878000,
+                       -42247.50530000000000000,
+                       -48.58483000000000000000,
+                       -34983.62260000000000000]                        # NASA 7-coefficient polynomial (15 values)
+
+   dipole_moment: 0.0               					# Dipole moment [D]
+   association_factor: 0.0             					# Association factor [-]
+
 ##### HYDROGEN #####
 HYDROGEN:
    R_specific: 4.124                 					# Specific gas constant [J/(kg·K)]
@@ -67,6 +98,36 @@ HYDROGEN:
 		       -917.924130000000000000000,
 			0.68300218000000000000000,
 			0.00000000000000000000000]                      # NASA 7-coefficient polynomial (15 values)
+   dipole_moment: 0.0               					# Dipole moment [D]
+   association_factor: 0.0             					# Association factor [-]
+
+##### METHANE #####
+METHANE:
+   R_specific: 518.277                 					# Specific gas constant [J/(kg·K)]
+   gamma: 1.303                        					# Heat capacity ratio (ideal-gas) [-]
+   P_inf: 5000000.0                   					# Pressure infinity (liquid stiffness) [Pa]
+   e_0: 758870.0                      					# Internal energy zero point [J/kg]
+   c_v: 27.486                        					# Specific isochoric heat capacity [J/(kg·K)]
+   molecular_weight: 0.0160425          				# Molecular weight [kg/mol]
+   acentric_factor: 0.01142	             				# Acentric factor [-]
+   critical_temperature: 190.56           				# Critical temperature [K]
+   critical_pressure: 4599200.0          				# Critical pressure [Pa]
+   critical_molar_volume: 0.000098626     				# Critical molar volume [m3/mol]
+   NASA_coefficients: [ 1.9117860000000000000000,
+                        0.0096026796000000000000,
+                        0.0000033838784100000000,
+                        0.0000000005387972400000,
+                       -0.0000000000000319306807,
+                       -10099.213600000000000000,
+                        8.4824186100000000000000,
+                        5.1482573200000000000000,
+                       -0.0137002410000000000000,
+                        0.0000493749414000000000,
+                       -0.0000000491952339000000,
+                        0.0000000000170097299000,
+                       -10245.322200000000000000,
+                       -4.6332272600000000000000,
+                       -8972.2665600000000000000]                       # NASA 7-coefficient polynomial (15 values)
    dipole_moment: 0.0               					# Dipole moment [D]
    association_factor: 0.0             					# Association factor [-]
 
