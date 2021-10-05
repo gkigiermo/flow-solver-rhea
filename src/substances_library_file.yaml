@@ -71,6 +71,36 @@ DODECANE:
    dipole_moment: 0.0               					# Dipole moment [D]
    association_factor: 0.0             					# Association factor [-]
 
+##### HFC-134a #####
+HFC-134a:
+   R_specific: 81.490                 					# Specific gas constant [J/(kg·K)]
+   gamma: 1.2                           				# Heat capacity ratio (ideal-gas) [-]
+   P_inf: 5000000.0                    					# Pressure infinity (liquid stiffness) [Pa]
+   e_0: 402160.0                         				# Internal energy zero point [J/kg]
+   c_v: 755.1101211                    					# Specific isochoric heat capacity [J/(kg·K)]
+   molecular_weight: 0.10203              				# Molecular weight [kg/mol]
+   acentric_factor: 0.32684               				# Acentric factor [-]
+   critical_temperature: 374.21           				# Critical temperature [K]
+   critical_pressure: 4059280.0           				# Critical pressure [Pa]
+   critical_molar_volume: 0.00019931     				# Critical molar volume [m3/mol]
+   NASA_coefficients: [ 12.555111500000000000000,
+			0.0084018607100000000000,
+		       -0.0000031207729100000000,
+			0.0000000005122845720000,
+		       -0.0000000000000310110291,
+		       -114846.31900000000000000,
+		       -38.037432900000000000000,
+			2.2923968100000000000000,
+			0.0303108483000000000000,
+		       -0.0000053371398500000000,
+		       -0.0000000219456612000000,
+			0.0000000000129970288000,
+		       -111790.43100000000000000,
+		        16.283056800000000000000,
+		       -109844.11600000000000000]                       # NASA 7-coefficient polynomial (15 values)
+   dipole_moment: 2.058               					# Dipole moment [D]
+   association_factor: 0.0             					# Association factor [-]
+
 ##### HYDROGEN #####
 HYDROGEN:
    R_specific: 4.124                 					# Specific gas constant [J/(kg·K)]
