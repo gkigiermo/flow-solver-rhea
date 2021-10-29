@@ -377,7 +377,7 @@ void PengRobinsonModel::calculatePressureTemperatureFromDensityInternalEnergy(do
     nr_PT_unknowns[0] = P/P_norm;										/// Initialize unknown with previous pressure (normalized)
     nr_PT_unknowns[1] = T/T_norm;										/// Initialize unknown with previous temperature (normalized)
     nr_PT_solver->setExternalParameters( rho, e, P_norm, T_norm );						/// Set parameters of the solver
-    nr_PT_solver->solve( nr_f, nr_PT_unknowns, max_nr_iter, nr_num_iter, nr_sing, nr_relative_tolerance );	/// Newton-Raphson solver 
+    nr_PT_solver->solve( nr_f, nr_PT_unknowns, max_nr_iter, nr_num_iter, nr_relative_tolerance );		/// Newton-Raphson solver 
     P = nr_PT_unknowns[0]*P_norm;										/// Update P & T from Newton-Raphson solver (unnormalized)
     T = nr_PT_unknowns[1]*T_norm;
 

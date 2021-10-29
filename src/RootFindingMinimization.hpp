@@ -35,7 +35,7 @@ class BaseRootFindingMinimization {
         inline double SQR(const double &a) { return a*a; };	
 
         /// Runs the minimization algorithm, calculating the minimum (fxmin) and its independent variables (xmin)
-        virtual void solve(double &fxmin, vector<double> &xmin, const int &max_iter, int &iter, const bool &sing, const double &tolerance) = 0; 
+        virtual void solve(double &fxmin, vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance) = 0; 
         
         /// Evaluates the functions (residuals) in position x
         virtual void function_vector(vector<double> &x, vector<double> &fx) {}; 
@@ -68,7 +68,7 @@ class NewtonRaphson : public BaseRootFindingMinimization {
 	////////// METHODS //////////
 
         /// Runs the minimization algorithm, calculating the minimum (fxmin) and its independent variables (xmin)
-        void solve(double &fxmin, vector<double> &xmin, const int &max_iter, int &iter, const bool &sing, const double &tolerance);
+        void solve(double &fxmin, vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance);
 
         /// Performs minimization linear search
         void lnsrch(vector<double> &xold, vector<double> &p, vector<double> &x, vector< vector<double> > &fjac, vector<int> &indx);

@@ -352,7 +352,6 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         /// Newton-Raphson solver parameters
         int max_nr_iter              = 1000;			/// Maximum number of iterations
         double nr_relative_tolerance = 1.0e-5;			/// Relative tolerance
-        bool nr_sing                 = false;			/// At run time, output Newton-Raphson information about intermediate steps
         NR_P_T_from_rho_e *nr_PT_solver;			/// Pointer to NR_P_T_from_rho_e
         vector<double> nr_PT_unknowns;				/// NR_P_T_from_rho_e unknowns: P & T
         vector<double> nr_PT_r_vec;				/// NR_P_T_from_rho_e vector of functions residuals

@@ -4,6 +4,7 @@ using namespace std;
 
 ////////// FIXED PARAMETERS //////////
 #define _TAYLORED_FDJAC_ 0
+#define _ACTIVATE_COUT_ 0
 
 
 ////////// BaseRootFindingMinimization CLASS //////////
@@ -19,7 +20,8 @@ BaseRootFindingMinimization::~BaseRootFindingMinimization() {};
 
 NewtonRaphson::NewtonRaphson(vector<double> &fvec_) : BaseRootFindingMinimization(), fvec(fvec_) {
 
-  for( int i = 0; i < int( fvec.size() ); i++ ) {
+  int i, n = int( fvec.size() );
+  for( i = 0; i < n; i++ ) {
     norm_inv.push_back( 1.0 );
   }
 
@@ -27,7 +29,7 @@ NewtonRaphson::NewtonRaphson(vector<double> &fvec_) : BaseRootFindingMinimizatio
 
 NewtonRaphson::~NewtonRaphson() {};                                                                           
 
-void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_iter, int &iter, const bool &sing, const double &tolerance) {
+void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance) {
 
     /// Newton-Raphson method using approximated derivatives:
     /// W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery.
@@ -74,7 +76,9 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
         if( fabs( fvec[i] ) > test ) fxmin = test = fabs( fvec[i] );
       }
       if( test < TOLF ) {
-        if( sing ) cout << "Newton-Raphson's minimization TOLF error: " << test << " ( iteration: " << iter << " )" << endl;
+#if _ACTIVATE_COUT_
+        cout << "Newton-Raphson's minimization TOLF error: " << test << " ( iteration: " << iter << " )" << endl;
+#endif
 	return;
       }
       test = 0.0;
@@ -83,11 +87,15 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
 	if( temp > test ) fxmin = test = temp;
       }
       if( test < TOLX ) {
-        if( sing ) cout << "Newton-Raphson's minimization TOLX error: " << test << " ( iteration: " << iter << " )" << endl;
+#if _ACTIVATE_COUT_
+        cout << "Newton-Raphson's minimization TOLX error: " << test << " ( iteration: " << iter << " )" << endl;
+#endif
 	return;
       }
     }
-    if( sing ) cout << "MAXITS exceeded in Newton-Raphson" << endl;
+#if _ACTIVATE_COUT_
+    cout << "MAXITS exceeded in Newton-Raphson" << endl;
+#endif
 
 };
 
@@ -100,34 +108,35 @@ void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double>
     //const double alamMin = 1e-6;
     const double alamMin = 1.0e-1;
 
-    int n = xold.size();
+    int i, n = xold.size();
 
     double f0 = 0.0;
-    for(int i = 0; i < n; ++i) f0 += p[i]*p[i];
+    for(i = 0; i < n; ++i) f0 += p[i]*p[i];
     f0 = sqrt(f0/n);
     f0 *= 0.5*f0;
 
     vector<double> myp(n);
-    for(int i = 0; i < n; ++i) myp[i] = p[i];
+    for(i = 0; i < n; ++i) myp[i] = p[i];
 
     double alam = 1.0;
+    double f, fMax, tmp;
     for(;;) {
        /// Compute f( x + Lambda*dx )
-       for(int i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
-       for(int i = 0; i < n; i++) myp[i] = -fvec[i];
+       for(i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
+       for(i = 0; i < n; i++) myp[i] = -fvec[i];
        lubksb(fjac,indx,myp);
-       double f = 0.0;
-       for(int i = 0; i < n; ++i) f += myp[i]*myp[i];
+       f = 0.0;
+       for(i = 0; i < n; ++i) f += myp[i]*myp[i];
        f = sqrt(f/n);
        f *= 0.5*f;
 
-       double fMax = ( 1.0 - 2.0*alam*sigma )*f0;
+       fMax = ( 1.0 - 2.0*alam*sigma )*f0;
        if( f > fMax ) {
-          double tmp = alam*alam*f0/( ( 2.0*alam - 1.0 )*f0 + f );
+          tmp = alam*alam*f0/( ( 2.0*alam - 1.0 )*f0 + f );
           alam = ( Tau*alam > tmp ) ? Tau*alam : tmp;
           if( alam < alamMin ) { 
              alam = 10.0*alamMin;
-             for(int i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
+             for(i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
              break;
           }
        } else {
@@ -187,7 +196,9 @@ void NewtonRaphson::ludcmp(vector< vector<double> > &a, vector<int> &indx, doubl
       for(j=0;j<n;j++) {
 	if ((temp=fabs(a[i][j])) > big) big=temp;
       }
+#if _ACTIVATE_COUT_
       if(big == 0.0) cout << "Singular matrix in routine ludcmp" <<endl;
+#endif
       vv[i]=1.0/big;
     }
     for(j=0;j<n;j++) {
