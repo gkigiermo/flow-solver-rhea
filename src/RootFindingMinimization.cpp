@@ -18,14 +18,7 @@ BaseRootFindingMinimization::~BaseRootFindingMinimization() {};
 
 //NewtonRaphson::NewtonRaphson() : BaseRootFindingMinimization() {};
 
-NewtonRaphson::NewtonRaphson(vector<double> &fvec_) : BaseRootFindingMinimization(), fvec(fvec_) {
-
-  int i, n = int( fvec.size() );
-  for( i = 0; i < n; i++ ) {
-    norm_inv.push_back( 1.0 );
-  }
-
-} 
+NewtonRaphson::NewtonRaphson(vector<double> &fvec_) : BaseRootFindingMinimization(), fvec(fvec_) {};
 
 NewtonRaphson::~NewtonRaphson() {};                                                                           
 
@@ -51,7 +44,6 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
     vector<double> p(n),xold(n);
     vector < vector < double > > fjac(n,vector<double> (n));
 
-    //f=fmin(xmin);    
     function_vector(xmin,fvec);
     test = 0.0;
     for(i = 0; i < n; i++) {
@@ -145,7 +137,8 @@ void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double>
           break;
        }
     }
- };
+
+};
 
 void NewtonRaphson::lubksb(vector< vector<double> > &a, vector<int> &indx, vector<double> &b) {
 
@@ -290,46 +283,10 @@ void NewtonRaphson::fdjac(vector<double> &x, vector< vector<double> > &df) {
       h = x[j] - temp;
       function_vector(x,f);
       x[j] = temp;
-      for(i = 0;i < n; i++) {
+      for(i = 0; i < n; i++) {
         df[i][j] = ( f[i] - fvec[i] )/h;
       }
-    }    
-#endif
-
-    // Update normalization inverses & normalize vector of functions and Jacobian
-    for( j = 0; j < n; j++ ) {
-      norm_inv[j] = ( fabs( df[j][j] ) > 1e-15 ) ? 1.0 / df[j][j] : 1.0;                                             
-      fvec[j] *= norm_inv[j];                                                                                        
-      for( i = 0; i < n; i++ ) {
-        df[j][i] *= norm_inv[j];  
-      }
     }   
-
-}
-
-double NewtonRaphson::fmin(vector<double> &x) {
-
-    /// Newton-Raphson method using approximated derivatives:
-    /// W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery.
-    /// Numerical recipes in C++.
-    /// Cambridge University Press, 2001.
-
-    int i;
-    double sum;
-
-    int n=x.size();
-    function_vector(x,fvec);
-    for(sum=0.0,i=0;i<n;i++) sum += SQR(fvec[i]);
-
-    // Normalize vector of functions
-    for( i = 0; i < n; i++ ) {
-
-      fvec[i] *= norm_inv[i];
-
-    }
-
-    //for(sum=0.0,i=0;i<n;i++) sum += SQR(fvec[i]);
-
-    return 0.5*sum;
+#endif
 
 };

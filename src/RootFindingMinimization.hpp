@@ -82,18 +82,12 @@ class NewtonRaphson : public BaseRootFindingMinimization {
         /// Numerical recipes in C++ Jacobian method
         void fdjac(vector<double> &x, vector< vector<double> > &df);
 
-        /// Numerical recipes in C++ fmin method
-        double fmin(vector<double> &x);
-
     protected:
 
         ////////// PARAMETERS //////////
 
 	/// Vector of functions to be zeroed
 	vector<double> &fvec;
-
-	/// Vector of normalization inverses
-	vector<double> norm_inv;
 
 };
 
