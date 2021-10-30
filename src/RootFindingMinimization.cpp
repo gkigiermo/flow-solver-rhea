@@ -101,7 +101,7 @@ void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double>
     const double alamMin = 1.0e-1;
     const int max_iter   = 10;
 
-    int i, n = xold.size();
+    int i, j, n = xold.size();
 
     double f0 = 0.0;
     for(i = 0; i < n; ++i) f0 += p[i]*p[i];
