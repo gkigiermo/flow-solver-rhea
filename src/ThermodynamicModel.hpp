@@ -309,8 +309,8 @@ class PengRobinsonModel : public BaseThermodynamicModel {
                 double bar_e_guess = pr_model.calculateMolarInternalEnergyFromPressureTemperatureMolarVolume( P, T, target_v );
         
                 /// Compute fx (residuals)
-                fx[0] = P - P_guess;			/// no need to normalize, the solver will do it internally
-                fx[1] = target_bar_e - bar_e_guess;	/// no need to normalize, the solver will do it internally
+                fx[0] = ( P - P_guess )/( P + 1.0e-14 );				/// function normalized
+                fx[1] = ( target_bar_e - bar_e_guess )/( target_bar_e + 1.0e-14 );	/// function normalized
         
             };
       
