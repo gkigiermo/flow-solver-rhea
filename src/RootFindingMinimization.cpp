@@ -99,6 +99,7 @@ void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double>
     const double Tau     = 0.1;
     //const double alamMin = 1e-6;
     const double alamMin = 1.0e-1;
+    const int max_iter   = 10;
 
     int i, n = xold.size();
 
@@ -112,7 +113,7 @@ void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double>
 
     double alam = 1.0;
     double f, fMax, tmp;
-    for(;;) {
+    for( j = 0; j < max_iter; j++ ) {
        /// Compute f( x + Lambda*dx )
        for(i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
        for(i = 0; i < n; i++) myp[i] = -fvec[i];
@@ -268,7 +269,8 @@ void NewtonRaphson::fdjac(vector<double> &x, vector< vector<double> > &df) {
       }
     }
 #else
-    const double EPS = 1.0e-8;
+    const double EPS   = 1.0e-8;
+    const double DELTA = 1.0e-14;
     int i,j;
     double h,temp;
 
@@ -277,10 +279,11 @@ void NewtonRaphson::fdjac(vector<double> &x, vector< vector<double> > &df) {
 
     for(j = 0; j < n; j++) {
       temp = x[j];
-      h = EPS*fabs( temp );
-      if(h == 0.0) h = EPS;
+      //h = EPS*fabs( temp );
+      //if(h == 0.0) h = EPS;
+      h = EPS*fabs( temp ) + DELTA;
       x[j] = temp + h;
-      h = x[j] - temp;
+      //h = x[j] - temp;
       function_vector(x,f);
       x[j] = temp;
       for(i = 0; i < n; i++) {
