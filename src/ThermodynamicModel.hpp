@@ -285,10 +285,10 @@ class PengRobinsonModel : public BaseThermodynamicModel {
             /// Set external (enclosing class) parameters
             void setExternalParameters(const double &rho_, const double &e_, const double &P_norm_, const double &T_norm_) {
 
-                target_v     = pr_model.getMolecularWeight()/rho_;
-                target_bar_e = pr_model.getMolecularWeight()*e_;
-                P_norm       = P_norm_;
-                T_norm       = T_norm_;
+                target_rho = rho_;
+                target__e  = e_;
+                P_norm     = P_norm_;
+                T_norm     = T_norm_;
 
             };
 
@@ -304,21 +304,20 @@ class PengRobinsonModel : public BaseThermodynamicModel {
                 /// P will oscillate for subcritical thermodynamic states
                 /// ... small oscillations close to the critical point (slightly subcritical)
                 /// ... large oscillations far from the critical point (notably subcritical) -> in that case, use two-phase solver
-                double target_rho  = pr_model.getMolecularWeight()/target_v;
-                double P_guess     = pr_model.calculatePressureFromTemperatureDensity( T, target_rho );
-                double bar_e_guess = pr_model.calculateMolarInternalEnergyFromPressureTemperatureMolarVolume( P, T, target_v );
+                double guess_rho, guess_e;
+                pr_model.calculateDensityInternalEnergyFromPressureTemperature( guess_rho, guess_e, P, T );
         
                 /// Compute fx (residuals)
-                fx[0] = ( P - P_guess )/( fabs( P ) + 1.0e-14 );				/// function normalized
-                fx[1] = ( target_bar_e - bar_e_guess )/( fabs( target_bar_e ) + 1.0e-14 );	/// function normalized
+                fx[0] = ( guess_rho - target_rho )/( fabs( target_rho ) + 1.0e-14 );	/// function normalized
+                fx[1] = ( guess_e - target_e )/( fabs( target_e ) + 1.0e-14 );		/// function normalized
         
             };
       
             ////////// PARAMETERS //////////
 
 	    /// External (enclosing) parameters
-            double target_v;			/// External (enclosing class) target molar volume
-            double target_bar_e;		/// External (enclosing class) target molar internal energy
+            double target_rho;			/// External (enclosing class) target density
+            double target_e;			/// External (enclosing class) target specific internal energy
             double P_norm;			/// External (enclosing class) pressure normalization
             double T_norm;			/// External (enclosing class) temperature normalization
 
@@ -347,11 +346,11 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 
         /// Aitken's delta-squared process parameters
         int max_aitken_iter              = 1000;		/// Maximum number of iterations
-        double aitken_relative_tolerance = 1.0e-5;		/// Relative tolerance
+        double aitken_relative_tolerance = 1.0e-8;		/// Relative tolerance
 
         /// Newton-Raphson solver parameters
         int max_nr_iter              = 1000;			/// Maximum number of iterations
-        double nr_relative_tolerance = 1.0e-5;			/// Relative tolerance
+        double nr_relative_tolerance = 1.0e-8;			/// Relative tolerance
         NR_P_T_from_rho_e *nr_PT_solver;			/// Pointer to NR_P_T_from_rho_e
         vector<double> nr_PT_unknowns;				/// NR_P_T_from_rho_e unknowns: P & T
         vector<double> nr_PT_r_vec;				/// NR_P_T_from_rho_e vector of functions residuals
