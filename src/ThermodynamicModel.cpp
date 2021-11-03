@@ -774,11 +774,11 @@ void PengRobinsonModel::calculateRootsCubicPolynomial(complex<double> &root_1, c
         return;
     }	/// End if (disc > 0)
 
-    cout << endl;
-    cout << "The PengRobinsonModel::calculateRootsCubicPolynomial has found more than one real root." << endl;
-    cout << "Vapor-liquid equilibrium conditions must be solved." << endl;
-    cout << "Another option is to avoid calculating rho from P and T." << endl;
-    cout << endl;
+    //cout << endl;
+    //cout << "The PengRobinsonModel::calculateRootsCubicPolynomial has found more than one real root." << endl;
+    //cout << "Vapor-liquid equilibrium conditions must be solved." << endl;
+    //cout << "Another option is to avoid calculating rho from P and T." << endl;
+    //cout << endl;
 
     /// The remaining options are all real
     root_2.imag( 0 );
