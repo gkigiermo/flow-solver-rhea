@@ -286,7 +286,7 @@ class PengRobinsonModel : public BaseThermodynamicModel {
             void setExternalParameters(const double &rho_, const double &e_, const double &P_norm_, const double &T_norm_) {
 
                 target_rho = rho_;
-                target__e  = e_;
+                target_e   = e_;
                 P_norm     = P_norm_;
                 T_norm     = T_norm_;
 
