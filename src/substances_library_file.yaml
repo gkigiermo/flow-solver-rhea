@@ -103,16 +103,16 @@ HFC-134a:
 
 ##### HYDROGEN #####
 HYDROGEN:
-   R_specific: 4.124                 					# Specific gas constant [J/(kg·K)]
+   R_specific: 4124.237                					# Specific gas constant [J/(kg·K)]
    gamma: 1.41                        					# Heat capacity ratio (ideal-gas) [-]
    P_inf: 2000000.0                   					# Pressure infinity (liquid stiffness) [Pa]
    e_0: 2720000.0                      					# Internal energy zero point [J/kg]
-   c_v: 10185.0                        					# Specific isochoric heat capacity [J/(kg·K)]
-   molecular_weight: 0.00100794           				# Molecular weight [kg/mol]
+   c_v: 10185.763                      					# Specific isochoric heat capacity [J/(kg·K)]
+   molecular_weight: 0.002016           				# Molecular weight [kg/mol]
    acentric_factor: -0.219	             				# Acentric factor [-]
    critical_temperature: 33.145           				# Critical temperature [K]
    critical_pressure: 1296352.05          				# Critical pressure [Pa]
-   critical_molar_volume: 0.00003224067     				# Critical molar volume [m3/mol]
+   critical_molar_volume: 0.000066528     				# Critical molar volume [m3/mol]
    NASA_coefficients: [ 2.93283050000000000000000,
 			0.00082659802000000000000,
 		       -0.00000014640057000000000,
@@ -224,14 +224,14 @@ OXYGEN:
 ##### WATER #####
 WATER:
    R_specific: 461.5                 					# Specific gas constant [J/(kg·K)]
-   gamma: 1.33                        					# Heat capacity ratio (ideal-gas) [-]
+   gamma: 1.124                        					# Heat capacity ratio (ideal-gas) [-]
    P_inf: 30000000.0                   					# Pressure infinity (liquid stiffness) [Pa]
    e_0: 2411600.0                      					# Internal energy zero point [J/kg]
-   c_v: 1442.2                         					# Specific isochoric heat capacity [J/(kg·K)]
+   c_v: 3725.5                         					# Specific isochoric heat capacity [J/(kg·K)]
    molecular_weight: 0.018015              				# Molecular weight [kg/mol]
    acentric_factor: 0.3443               				# Acentric factor [-]
    critical_temperature: 647.096         				# Critical temperature [K]
-   critical_pressure: 22064025.4           				# Critical pressure [Pa]
+   critical_pressure: 22064025.4        				# Critical pressure [Pa]
    critical_molar_volume: 0.000055947       				# Critical molar volume [m3/mol]
    NASA_coefficients: [ 2.6770389000000000000000,
  			0.0029731816000000000000,

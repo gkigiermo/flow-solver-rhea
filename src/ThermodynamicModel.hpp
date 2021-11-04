@@ -283,10 +283,10 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 	    ////////// METHODS //////////
 
             /// Set external (enclosing class) parameters
-            void setExternalParameters(const double &rho_, const double &e_, const double &P_norm_, const double &T_norm_) {
+            void setExternalParameters(const double &target_rho_, const double &target_e_, const double &P_norm_, const double &T_norm_) {
 
-                target_rho = rho_;
-                target_e   = e_;
+                target_rho = target_rho_;
+                target_e   = target_e_;
                 P_norm     = P_norm_;
                 T_norm     = T_norm_;
 
@@ -346,11 +346,11 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 
         /// Aitken's delta-squared process parameters
         int max_aitken_iter              = 1000;		/// Maximum number of iterations
-        double aitken_relative_tolerance = 1.0e-8;		/// Relative tolerance
+        double aitken_relative_tolerance = 1.0e-5;		/// Relative tolerance
 
         /// Newton-Raphson solver parameters
         int max_nr_iter              = 1000;			/// Maximum number of iterations
-        double nr_relative_tolerance = 1.0e-8;			/// Relative tolerance
+        double nr_relative_tolerance = 1.0e-5;			/// Relative tolerance
         NR_P_T_from_rho_e *nr_PT_solver;			/// Pointer to NR_P_T_from_rho_e
         vector<double> nr_PT_unknowns;				/// NR_P_T_from_rho_e unknowns: P & T
         vector<double> nr_PT_r_vec;				/// NR_P_T_from_rho_e vector of functions residuals

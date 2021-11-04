@@ -98,6 +98,7 @@ void NewtonRaphson::lnsrch(vector<double> &xold,vector<double> &p,vector<double>
     const double sigma   = 0.01;
     const double Tau     = 0.1;
     //const double alamMin = 1e-6;
+    //const double alamMin = 5.0e-2;
     const double alamMin = 1.0e-1;
     const int max_iter   = 10;
 
