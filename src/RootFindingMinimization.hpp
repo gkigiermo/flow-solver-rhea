@@ -71,7 +71,7 @@ class NewtonRaphson : public BaseRootFindingMinimization {
         void solve(double &fxmin, vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance);
 
         /// Performs minimization linear search
-        void lnsrch(vector<double> &xold, vector<double> &p, vector<double> &x, vector< vector<double> > &fjac, vector<int> &indx);
+        void lnsrch(vector<double> &xold, double &fold, vector<double> &g, vector<double> &p, vector<double> &x,double &f, double &stpmax, bool &check, vector< vector<double> > &fjac, vector<int> &indx);
 
         /// Numerical recipes in C++ LU decomposition method
 	void lubksb(vector< vector<double> > &a, vector<int> &indx, vector<double> &b);
@@ -81,6 +81,9 @@ class NewtonRaphson : public BaseRootFindingMinimization {
 
         /// Numerical recipes in C++ Jacobian method
         void fdjac(vector<double> &x, vector< vector<double> > &df);
+
+        /// Numerical recipes in C++ fmin method
+        double fmin(vector<double> &x);
 
     protected:
 

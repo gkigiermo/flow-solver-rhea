@@ -298,7 +298,7 @@ class PengRobinsonModel : public BaseThermodynamicModel {
                 /// Set state to x
                 double P = x[0]*P_norm;		// Unnormalize pressure
                 double T = x[1]*T_norm;		// Unnormalize temperature
-        
+ 
                 /// For single-component systems:
                 /// P will not oscillate for supercritical thermodynamic states
                 /// P will oscillate for subcritical thermodynamic states
