@@ -368,17 +368,19 @@ double PengRobinsonModel::calculateTemperatureFromPressureDensity(const double &
 
 void PengRobinsonModel::calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {
 
-    double P_norm   = critical_pressure;	/// Set pressure normalization factor
-    double T_norm   = critical_temperature;	/// Set temperature normalization factor
-    double nr_f     = -1.0;			/// Newton-Raphson residual value
-    int nr_num_iter = 0;			/// Number of iterations required to obtain the solution
+    //double P_norm   = this->critical_pressure;	/// Set pressure normalization factor
+    double P_norm   = fabs( P ) + 1.0e-14;		/// Set pressure normalization factor
+    //double T_norm   = this->critical_temperature;	/// Set temperature normalization factor
+    double T_norm   = fabs( T ) + 1.0e-14;		/// Set temperature normalization factor
+    double nr_f     = -1.0;				/// Newton-Raphson residual value
+    int nr_num_iter = 0;				/// Number of iterations required to obtain the solution
 
     /// Calculate P & T from rho & e by means of a Newton-Raphson solver
-    nr_PT_unknowns[0] = P/P_norm;										/// Initialize unknown with previous pressure (normalized)
-    nr_PT_unknowns[1] = T/T_norm;										/// Initialize unknown with previous temperature (normalized)
-    nr_PT_solver->setExternalParameters( rho, e, P_norm, T_norm );						/// Set parameters of the solver
-    nr_PT_solver->solve( nr_f, nr_PT_unknowns, max_nr_iter, nr_num_iter, nr_relative_tolerance );		/// Newton-Raphson solver 
-    P = nr_PT_unknowns[0]*P_norm;										/// Update P & T from Newton-Raphson solver (unnormalized)
+    nr_PT_unknowns[0] = P/P_norm;									/// Initialize unknown with previous pressure (normalized)
+    nr_PT_unknowns[1] = T/T_norm;									/// Initialize unknown with previous temperature (normalized)
+    nr_PT_solver->setExternalParameters( rho, e, P_norm, T_norm );					/// Set parameters of the solver
+    nr_PT_solver->solve( nr_f, nr_PT_unknowns, max_nr_iter, nr_num_iter, nr_relative_tolerance );	/// Newton-Raphson solver 
+    P = nr_PT_unknowns[0]*P_norm;									/// Update P & T from Newton-Raphson solver (unnormalized)
     T = nr_PT_unknowns[1]*T_norm;
 
 };
