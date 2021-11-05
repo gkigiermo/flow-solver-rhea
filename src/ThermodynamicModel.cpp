@@ -368,7 +368,7 @@ double PengRobinsonModel::calculateTemperatureFromPressureDensity(const double &
 
 void PengRobinsonModel::calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {
 
-    //double P_norm   = this->critical_pressure;		/// Set pressure normalization factor
+    //double P_norm   = this->critical_pressure;	/// Set pressure normalization factor
     double P_norm   = fabs( P ) + 1.0e-14;		/// Set pressure normalization factor
     //double T_norm   = this->critical_temperature;	/// Set temperature normalization factor
     double T_norm   = fabs( T ) + 1.0e-14;		/// Set temperature normalization factor
