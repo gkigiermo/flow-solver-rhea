@@ -112,7 +112,7 @@ HYDROGEN:
    acentric_factor: -0.219	             				# Acentric factor [-]
    critical_temperature: 33.145           				# Critical temperature [K]
    critical_pressure: 1296352.05          				# Critical pressure [Pa]
-   critical_molar_volume: 0.000066528     				# Critical molar volume [m3/mol]
+   critical_molar_volume: 0.000064481   				# Critical molar volume [m3/mol]
    NASA_coefficients: [ 2.93283050000000000000000,
 			0.00082659802000000000000,
 		       -0.00000014640057000000000,
