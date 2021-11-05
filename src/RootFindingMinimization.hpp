@@ -6,6 +6,7 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
+#include <limits>
 
 ////////// NAMESPACES //////////
 using namespace std;
@@ -71,7 +72,7 @@ class NewtonRaphson : public BaseRootFindingMinimization {
         void solve(double &fxmin, vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance);
 
         /// Performs minimization linear search
-        void lnsrch(vector<double> &xold, double &fold, vector<double> &g, vector<double> &p, vector<double> &x,double &f, double &stpmax, bool &check, vector< vector<double> > &fjac, vector<int> &indx);
+        void lnsrch(vector<double> &xold, double &fold, vector<double> &g, vector<double> &p, vector<double> &x,double &f, double &stpmax, bool &check);
 
         /// Numerical recipes in C++ LU decomposition method
 	void lubksb(vector< vector<double> > &a, vector<int> &indx, vector<double> &b);

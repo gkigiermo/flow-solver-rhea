@@ -30,15 +30,11 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
 
     //const int MAXITS=200;
     const int MAXITS=max_iter;
-    //const double EPS=numeric_limits<double>::epsilon();
-    const double EPS=tolerance;
-    //const double TOLF=1.0e-8, TOLX=EPS, STPMX=100.0, TOLMIN=1.0e-12;
-    const double TOLF=EPS, TOLX=EPS, STPMX=100.0, TOLMIN=1.0e-12;
-    int i, j;
+    const double TOLF=1.0e-8, TOLX=numeric_limits<double>::epsilon(), STPMX=100.0, TOLMIN=1.0e-12;
+    int i, j, n = xmin.size();
     bool check;
     double den,d,f,fold,stpmax,sum,temp,test;
 
-    int n = xmin.size();
     vector<int> indx(n);
     vector<double> g(n), p(n), xold(n);
     vector < vector < double > > fjac(n,vector<double> (n));
@@ -67,7 +63,7 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
       for(i = 0; i < n; i++) p[i] = -fvec[i];
       ludcmp(fjac,indx,d);
       lubksb(fjac,indx,p);
-      lnsrch(xold,fold,g,p,xmin,f,stpmax,check,fjac,indx);
+      lnsrch(xold,fold,g,p,xmin,f,stpmax,check);
       test = 0.0;
       for(i = 0; i < n; i++) {
         if( fabs( fvec[i] ) > test ) fxmin = test = fabs( fvec[i] );
@@ -107,9 +103,14 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
 
 };
 
-void NewtonRaphson::lnsrch(vector<double> &xold, double &fold, vector<double> &g, vector<double> &p, vector<double> &x,double &f, double &stpmax, bool &check, vector< vector<double> > &fjac, vector<int> &indx) {
+void NewtonRaphson::lnsrch(vector<double> &xold, double &fold, vector<double> &g, vector<double> &p, vector<double> &x,double &f, double &stpmax, bool &check) {
 
-    const double ALF = 1.0e-4, TOLX = 1.0e-14;
+    /// Newton-Raphson method using approximated derivatives:
+    /// W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery.
+    /// Numerical recipes in C++.
+    /// Cambridge University Press, 2001.
+
+    const double ALF = 1.0e-4, TOLX = numeric_limits<double>::epsilon();
     double a, alam, alam2 = 0.0, alamin, b, disc, f2 = 0.0;
     double rhs1, rhs2, slope = 0.0, sum = 0.0, temp, test, tmplam;
     int i, n = xold.size();
@@ -124,7 +125,7 @@ void NewtonRaphson::lnsrch(vector<double> &xold, double &fold, vector<double> &g
 #if _ACTIVATE_COUT_
     if(slope >= 0.0) cout << "Roundoff problem in lnsrch" << endl;
 #endif
-    test=0.0;
+    test = 0.0;
     for( i = 0; i < n; i++ ) {
         temp = fabs( p[i] )/max( fabs( xold[i] ), 1.0 );
         if( temp > test ) test = temp;
@@ -133,7 +134,7 @@ void NewtonRaphson::lnsrch(vector<double> &xold, double &fold, vector<double> &g
     alam = 1.0;
     for(;;) {
         for( i = 0; i < n; i++ ) x[i] = xold[i] + alam*p[i];
-        function_vector(x,fvec);
+        f = fmin( x );
         if( alam < alamin ) {
             for( i = 0; i < n; i++ ) x[i] = xold[i];
             check = true;
@@ -263,23 +264,19 @@ void NewtonRaphson::fdjac(vector<double> &x, vector< vector<double> > &df) {
     /// Cambridge University Press, 2001.
 
     const double EPS = 1.0e-8;
-    int i, j;
     double h, temp;
-    int n = x.size();
+    int i, j, n = x.size();
     vector<double> f(n);
 
-    // Update fvec
-    function_vector(x,fvec);
-
-    for(j = 0; j < n; j++) {
+    for( j = 0; j < n; j++ ) {
       temp = x[j];
       h = EPS*fabs( temp );
-      if(h == 0.0) h = EPS;
+      if( h == 0.0 ) h = EPS;
       x[j] = temp + h;
       h = x[j] - temp;
       function_vector(x,f);
       x[j] = temp;
-      for(i = 0; i < n; i++) {
+      for( i = 0; i < n; i++ ) {
         df[i][j] = ( f[i] - fvec[i] )/h;
       }
     }   
@@ -293,14 +290,13 @@ double NewtonRaphson::fmin(vector<double> &x) {
     /// Numerical recipes in C++.
     /// Cambridge University Press, 2001.
 
-    int i;
-    double sum;
-    int n = x.size();
+    int i, n = x.size();
+    double sum = 0.0;
 
     function_vector(x,fvec);
-    for( sum = 0.0, i = 0; i < n; i++ ) sum += SQR( fvec[i] );
+    for( i = 0; i < n; i++ ) sum += SQR( fvec[i] );
 
-    return 0.5*sum;
+    return( 0.5*sum );
 
 };
 
