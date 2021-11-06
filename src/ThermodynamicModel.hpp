@@ -304,12 +304,14 @@ class PengRobinsonModel : public BaseThermodynamicModel {
                 /// P will oscillate for subcritical thermodynamic states
                 /// ... small oscillations close to the critical point (slightly subcritical)
                 /// ... large oscillations far from the critical point (notably subcritical) -> in that case, use two-phase solver
-                double guess_rho, guess_e;
-                pr_model.calculateDensityInternalEnergyFromPressureTemperature( guess_rho, guess_e, P, T );
-        
+                double molecular_weight = pr_model.getMolecularWeight(); 
+                double target_molar_v   = molecular_weight/target_rho;
+                double guess_P = pr_model.calculatePressureFromTemperatureDensity( T, target_rho );
+                double guess_e = pr_model.calculateMolarInternalEnergyFromPressureTemperatureMolarVolume( P, T, target_molar_v )/molecular_weight;
+ 
                 /// Compute fx (residuals)
-                fx[0] = ( guess_rho - target_rho )/( fabs( target_rho ) + 1.0e-14 );	/// function normalized
-                fx[1] = ( guess_e - target_e )/( fabs( target_e ) + 1.0e-14 );		/// function normalized
+                fx[0] = ( guess_P - P )/( fabs( P_norm ) + 1.0e-14 );		/// function normalized
+                fx[1] = ( guess_e - target_e )/( fabs( target_e ) + 1.0e-14 );	/// function normalized
         
             };
       
