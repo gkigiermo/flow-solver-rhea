@@ -112,9 +112,10 @@ void NewtonRaphson::lnsrch(vector<double> &xold, double &fold, vector<double> &g
     const double Tau     = 0.1;
     //const double alamMin = 1e-6;
     const double alamMin = 1.0e-1;
-    const int max_iter   = 10;
+    //const int max_iter   = 10;
 
-    int i, j, n = xold.size();
+    //int i, j, n = xold.size();
+    int i, n = xold.size();
 
     double f0 = 0.0;
     check = false;
@@ -126,7 +127,8 @@ void NewtonRaphson::lnsrch(vector<double> &xold, double &fold, vector<double> &g
     for(i = 0; i < n; ++i) myp[i] = p[i];
 
     double alam = 1.0;
-    for( j = 0; j < max_iter; j++ ) {
+    //for( j = 0; j < max_iter; j++ ) {
+    for( ; ; ) {
        /// Compute f( x + Lambda*dx )
        for(i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
        for(i = 0; i < n; i++) myp[i] = -fvec[i];
