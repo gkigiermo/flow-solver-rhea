@@ -1,11 +1,9 @@
 RHEA DEVELOPMENT AGENDA:
 
 - Solve run problem bug (it may be connected to having only one cell in a direction) ... Willy
-- Solve h5/xdmf/visualization problem on BSC ... Lluís/Willy
 
 - ...
 
-- Check heat problem changing direction of axes
 - Incorporate message that HDF5 labels cannot include special characters
 - Create/check destructors of Willy's classes
 - Implement regression tests using gitlab machinery
