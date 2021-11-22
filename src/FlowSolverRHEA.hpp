@@ -313,6 +313,15 @@ class FlowSolverRHEA {
         ManagerHDF5 *writer_reader;				/// HDF5 data writer/reader
         ParallelTimer *timers;					/// Parallel timer
 
+	////////// VERSION STUFF //////////
+        /// Version numbers consist of three numbers separated by dots; i.e., 1.2.3.
+        /// The leftmost number (1) is the major version.
+        /// The middle number (2) is the minor version.
+        /// The rightmost number (3) is the revision, but it may also refer to a "point release" or "subminor version".
+	
+        /// Version number (input/output data)
+        string version_number = "1.0.0";			/// Version number	
+
     private:
 
 };

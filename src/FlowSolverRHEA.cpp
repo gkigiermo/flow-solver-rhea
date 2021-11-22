@@ -2197,7 +2197,7 @@ void FlowSolverRHEA::execute() {
     cout.precision( cout_presicion );
 
     /// Start RHEA simulation
-    if( my_rank == 0 ) cout << "RHEA: START SIMULATION" << endl;
+    if( my_rank == 0 ) cout << "RHEA (v" << version_number << "): START SIMULATION" << endl;
 
     /// Initialize variables from restart file or by setting initial conditions
     if( use_restart ) {
@@ -2393,7 +2393,7 @@ void FlowSolverRHEA::execute() {
     this->outputCurrentStateData();
 
     /// End RHEA simulation
-    if( my_rank == 0 ) cout << "RHEA: END SIMULATION" << endl;
+    if( my_rank == 0 ) cout << "RHEA (v" << version_number << "): END SIMULATION" << endl;
 
 };
 
