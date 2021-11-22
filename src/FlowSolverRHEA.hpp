@@ -319,7 +319,7 @@ class FlowSolverRHEA {
         /// The middle number (2) is the minor version.
         /// The rightmost number (3) is the revision, but it may also refer to a "point release" or "subminor version".
 	
-        /// Version number (input/output data)
+        /// Version number (updated 22/11/2021)
         string version_number = "1.0.0";			/// Version number	
 
     private:
