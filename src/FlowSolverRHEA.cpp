@@ -234,6 +234,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
 
     /// Construct (initialize) timers
     timers = new ParallelTimer();
+    timers->createTimer( "execute" );
     timers->createTimer( "time_iteration_loop" );
     timers->createTimer( "calculate_time_step" );
     timers->createTimer( "output_solver_state" );
@@ -2188,6 +2189,9 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
 };
 
 void FlowSolverRHEA::execute() {
+    
+    /// Start timer: execute
+    timers->start( "execute" );
 
     int my_rank, world_size;
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -2241,6 +2245,9 @@ void FlowSolverRHEA::execute() {
         /// Stop timer: calculate_time_step
         timers->stop( "calculate_time_step" );
 
+        /// Stop timer: execute
+        timers->stop( "execute" );
+
         /// Start timer: output_solver_state
         timers->start( "output_solver_state" );
 
@@ -2248,7 +2255,8 @@ void FlowSolverRHEA::execute() {
         if( ( current_time_iter%print_frequency_iter == 0 ) and ( my_rank == 0 ) ) {
             cout << "Time iteration " << current_time_iter << ": " 
                  << "time = " << scientific << current_time << " [s], "
-                 << "time-step = " << scientific << delta_t << " [s]" << endl;
+                 << "time-step = " << scientific << delta_t << " [s], "
+                 << "execution time = " << scientific << timers->getAccumulatedMaxTime( "execute" )/3600.0 << " [h]" << endl;
         }
 
         /// Output current state data to file (if criterion satisfied)
@@ -2256,6 +2264,9 @@ void FlowSolverRHEA::execute() {
 
         /// Stop timer: output_solver_state
         timers->stop( "output_solver_state" );
+
+        /// Start timer: execute
+        timers->start( "execute" );
 
         /// Start timer: rk_iteration_loop
         timers->start( "rk_iteration_loop" );
@@ -2394,6 +2405,9 @@ void FlowSolverRHEA::execute() {
 
     /// End RHEA simulation
     if( my_rank == 0 ) cout << "RHEA (v" << version_number << "): END SIMULATION" << endl;
+    
+    /// Stop timer: execute
+    timers->stop( "execute" );
 
 };
 
