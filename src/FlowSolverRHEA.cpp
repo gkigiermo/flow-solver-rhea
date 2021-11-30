@@ -2256,7 +2256,7 @@ void FlowSolverRHEA::execute() {
             cout << "Time iteration " << current_time_iter << ": " 
                  << "time = " << scientific << current_time << " [s], "
                  << "time-step = " << scientific << delta_t << " [s], "
-                 << "execution time = " << scientific << timers->getAccumulatedMaxTime( "execute" )/3600.0 << " [h]" << endl;
+                 << "wall-clock time = " << scientific << timers->getAccumulatedMaxTime( "execute" )/3600.0 << " [h]" << endl;
         }
 
         /// Output current state data to file (if criterion satisfied)
