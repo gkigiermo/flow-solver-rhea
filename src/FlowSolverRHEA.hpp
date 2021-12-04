@@ -34,6 +34,8 @@ class HllcApproximateRiemannSolver;			/// HLLC approximate Riemann solver
 class HllcPlusApproximateRiemannSolver;			/// HLLC+ approximate Riemann solver
 
 class BaseExplicitRungeKuttaMethod;			/// Base explicit Runge-Kutta method
+class RungeKutta1Method;				/// Runge-Kutta 1 (RK1) method
+class StrongStabilityPreservingRungeKutta2Method;	/// Strong stability preserving Runge-Kutta 2 (SSP-RK2) method
 class StrongStabilityPreservingRungeKutta3Method;	/// Strong stability preserving Runge-Kutta 3 (SSP-RK3) method
 
 ////////// FUNCTION DECLARATION //////////
@@ -171,7 +173,7 @@ class FlowSolverRHEA {
         double delta_t;		      				/// Time step [s]
         int current_time_iter;					/// Current time iteration
         int final_time_iter;					/// Final time iteration
-        int rk_time_order;					/// Order of Runge-Kutta time discretization method
+        int rk_number_stages;					/// Number of stages of Runge-Kutta time discretization method
         string riemann_solver_scheme;				/// Riemann solver scheme
         string runge_kutta_time_scheme;				/// Runge-Kutta time scheme
 
@@ -512,8 +514,60 @@ class BaseExplicitRungeKuttaMethod {
 
 	////////// METHODS //////////
        
-        /// Set sub-step coefficients: y_rk+1 = rk_a*y_n + rk_b*y_rk + rk_c*delta_t*f( y_rk )
-        virtual void setSubStepCoefficients(double &rk_a, double &rk_b, double &rk_c, const int &rk_time_sub_step) = 0;
+        /// Set stage coefficients: y_rk+1 = rk_a*y_n + rk_b*y_rk + rk_c*delta_t*f( y_rk )
+        virtual void setStageCoefficients(double &rk_a, double &rk_b, double &rk_c, const int &rk_time_stage) = 0;
+
+    protected:
+
+        ////////// PARAMETERS //////////
+
+    private:
+
+};
+
+////////// RungeKutta1Method CLASS //////////
+class RungeKutta1Method : public BaseExplicitRungeKuttaMethod {
+   
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        RungeKutta1Method();				/// Default constructor
+        virtual ~RungeKutta1Method();			/// Destructor
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+        
+        /// Set stage coefficients: y_rk+1 = rk_a*y_n + rk_b*y_rk + rk_c*delta_t*f( y_rk )
+        void setStageCoefficients(double &rk_a, double &rk_b, double &rk_c, const int &rk_time_stage);
+
+    protected:
+
+        ////////// PARAMETERS //////////
+
+    private:
+
+};
+
+////////// StrongStabilityPreservingRungeKutta2Method CLASS //////////
+class StrongStabilityPreservingRungeKutta2Method : public BaseExplicitRungeKuttaMethod {
+   
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        StrongStabilityPreservingRungeKutta2Method();				/// Default constructor
+        virtual ~StrongStabilityPreservingRungeKutta2Method();			/// Destructor
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+        
+        /// Set stage coefficients: y_rk+1 = rk_a*y_n + rk_b*y_rk + rk_c*delta_t*f( y_rk )
+        void setStageCoefficients(double &rk_a, double &rk_b, double &rk_c, const int &rk_time_stage);
 
     protected:
 
@@ -538,8 +592,8 @@ class StrongStabilityPreservingRungeKutta3Method : public BaseExplicitRungeKutta
 
 	////////// METHODS //////////
         
-        /// Set sub-step coefficients: y_rk+1 = rk_a*y_n + rk_b*y_rk + rk_c*delta_t*f( y_rk )
-        void setSubStepCoefficients(double &rk_a, double &rk_b, double &rk_c, const int &rk_time_sub_step);
+        /// Set stage coefficients: y_rk+1 = rk_a*y_n + rk_b*y_rk + rk_c*delta_t*f( y_rk )
+        void setStageCoefficients(double &rk_a, double &rk_b, double &rk_c, const int &rk_time_stage);
 
     protected:
 

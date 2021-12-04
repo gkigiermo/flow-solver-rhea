@@ -67,9 +67,15 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     }
 
     /// Construct (initialize) Runge-Kutta method
-    if( runge_kutta_time_scheme == "SSP-RK3" ) {
+    if( runge_kutta_time_scheme == "RK1" ) {
+        runge_kutta_method = new RungeKutta1Method();
+        rk_number_stages = 1;
+    } else if( runge_kutta_time_scheme == "SSP-RK2" ) {
+        runge_kutta_method = new StrongStabilityPreservingRungeKutta2Method();
+        rk_number_stages = 2;
+    } else if( runge_kutta_time_scheme == "SSP-RK3" ) {
         runge_kutta_method = new StrongStabilityPreservingRungeKutta3Method();
-        rk_time_order = 3;
+        rk_number_stages = 3;
     } else {
         cout << "Runge-Kutta time scheme not available!" << endl;
         MPI_Abort( MPI_COMM_WORLD, 1 );
@@ -761,7 +767,7 @@ void FlowSolverRHEA::updateBoundaries() {
                     double lambda_1 = u_in - sos_in;
 		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( u_in_in - u_in )/Delta ) );
 		    double L_5      = L_1;	// Steady-state velocity assumption
-                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*0.5*( L_1 + L_5 );
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*0.5*( L_1 + L_5 );
                     T_g = ( bocos_T[_WEST_] - wg_in*T_in )/wg_g;
 		} else if( bocos_type[_WEST_] == _SUBSONIC_OUTFLOW_ ) {
                     P_g = bocos_P[_WEST_]; 
@@ -785,10 +791,10 @@ void FlowSolverRHEA::updateBoundaries() {
 		    double L_4       = lambda_4*( ( w_in_in - w_in )/Delta );
 		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( u_in_in - u_in )/Delta ) );
 		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
-                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
-                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
-                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_3;
-                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_4;
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
 		} else if( bocos_type[_WEST_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_WEST_];
@@ -870,7 +876,7 @@ void FlowSolverRHEA::updateBoundaries() {
                     double lambda_1 = u_in - sos_in;
 		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( u_in_in - u_in )/Delta ) );
 		    double L_5      = L_1;	// Steady-state velocity assumption
-                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*0.5*( L_1 + L_5 );
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*0.5*( L_1 + L_5 );
                     T_g = ( bocos_T[_EAST_] - wg_in*T_in )/wg_g;
 		} else if( bocos_type[_EAST_] == _SUBSONIC_OUTFLOW_ ) {
                     P_g = bocos_P[_EAST_]; 
@@ -894,10 +900,10 @@ void FlowSolverRHEA::updateBoundaries() {
 		    double L_4       = lambda_4*( ( w_in_in - w_in )/Delta );
 		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( u_in_in - u_in )/Delta ) );
 		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
-                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
-                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
-                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_3;
-                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_4;
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
 		} else if( bocos_type[_EAST_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_EAST_];
@@ -979,7 +985,7 @@ void FlowSolverRHEA::updateBoundaries() {
                     double lambda_1 = v_in - sos_in;
 		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( v_in_in - v_in )/Delta ) );
 		    double L_5      = L_1;	// Steady-state velocity assumption
-                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*0.5*( L_1 + L_5 );
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*0.5*( L_1 + L_5 );
                     T_g = ( bocos_T[_SOUTH_] - wg_in*T_in )/wg_g;
 		} else if( bocos_type[_SOUTH_] == _SUBSONIC_OUTFLOW_ ) {
                     P_g = bocos_P[_SOUTH_]; 
@@ -1003,10 +1009,10 @@ void FlowSolverRHEA::updateBoundaries() {
 		    double L_4       = lambda_4*( ( w_in_in - w_in )/Delta );
 		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( v_in_in - v_in )/Delta ) );
 		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
-                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
-                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
-                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_3;
-                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_4;
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
 		} else if( bocos_type[_SOUTH_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_SOUTH_];
@@ -1088,7 +1094,7 @@ void FlowSolverRHEA::updateBoundaries() {
                     double lambda_1 = v_in - sos_in;
 		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( v_in_in - v_in )/Delta ) );
 		    double L_5      = L_1;	// Steady-state velocity assumption
-                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*0.5*( L_1 + L_5 );
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*0.5*( L_1 + L_5 );
                     T_g = ( bocos_T[_NORTH_] - wg_in*T_in )/wg_g;
 		} else if( bocos_type[_NORTH_] == _SUBSONIC_OUTFLOW_ ) {
                     P_g = bocos_P[_NORTH_]; 
@@ -1112,10 +1118,10 @@ void FlowSolverRHEA::updateBoundaries() {
 		    double L_4       = lambda_4*( ( w_in_in - w_in )/Delta );
 		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( v_in_in - v_in )/Delta ) );
 		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
-                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
-                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
-                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_3;
-                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_4;
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
 		} else if( bocos_type[_NORTH_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_NORTH_];
@@ -1197,7 +1203,7 @@ void FlowSolverRHEA::updateBoundaries() {
                     double lambda_1 = w_in - sos_in;
 		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( w_in_in - w_in )/Delta ) );
 		    double L_5      = L_1;	// Steady-state velocity assumption
-                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*0.5*( L_1 + L_5 );
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*0.5*( L_1 + L_5 );
                     T_g = ( bocos_T[_BACK_] - wg_in*T_in )/wg_g;
 		} else if( bocos_type[_BACK_] == _SUBSONIC_OUTFLOW_ ) {
                     P_g = bocos_P[_BACK_]; 
@@ -1221,10 +1227,10 @@ void FlowSolverRHEA::updateBoundaries() {
 		    double L_4       = lambda_4*( ( u_in_in - u_in )/Delta );
 		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( w_in_in - w_in )/Delta ) );
 		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
-                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
-                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
-                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_3;
-                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_4;
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
 		} else if( bocos_type[_BACK_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_BACK_];
@@ -1306,7 +1312,7 @@ void FlowSolverRHEA::updateBoundaries() {
                     double lambda_1 = w_in - sos_in;
 		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( w_in_in - w_in )/Delta ) );
 		    double L_5      = L_1;	// Steady-state velocity assumption
-                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*0.5*( L_1 + L_5 );
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*0.5*( L_1 + L_5 );
                     T_g = ( bocos_T[_FRONT_] - wg_in*T_in )/wg_g;
 		} else if( bocos_type[_FRONT_] == _SUBSONIC_OUTFLOW_ ) {
                     P_g = bocos_P[_FRONT_]; 
@@ -1330,10 +1336,10 @@ void FlowSolverRHEA::updateBoundaries() {
 		    double L_4       = lambda_4*( ( u_in_in - u_in )/Delta );
 		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( w_in_in - w_in )/Delta ) );
 		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
-                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
-                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
-                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_3;
-                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_4;
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
 		} else if( bocos_type[_FRONT_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_FRONT_];
@@ -1941,11 +1947,11 @@ void FlowSolverRHEA::calculateViscousFluxes() {
 
 };
 
-void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_sub_step) {
+void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
 
-    /// Coefficients of explicit Runge-Kutta sub-steps
+    /// Coefficients of explicit Runge-Kutta stages
     double rk_a = 0.0, rk_b = 0.0, rk_c = 0.0;
-    runge_kutta_method->setSubStepCoefficients(rk_a,rk_b,rk_c,rk_time_sub_step);    
+    runge_kutta_method->setStageCoefficients(rk_a,rk_b,rk_c,rk_time_stage);    
 
     /// Inner points: rho, rhou, rhov, rhow and rhoE
     double f_rhouvw = 0.0;
@@ -2149,7 +2155,7 @@ void FlowSolverRHEA::execute() {
         timers->start( "rk_iteration_loop" );
 
         /// Runge-Kutta time-integration steps
-        for(int rk_time_sub_step = 1; rk_time_sub_step <= rk_time_order; rk_time_sub_step++) {
+        for(int rk_time_stage = 1; rk_time_stage <= rk_number_stages; rk_time_stage++) {
 
             /// Start timer: calculate_thermophysical_properties
             timers->start( "calculate_thermophysical_properties" );
@@ -2191,7 +2197,7 @@ void FlowSolverRHEA::execute() {
             timers->start( "time_advance_conserved_variables" );
 
             /// Advance conserved variables in time
-            this->timeAdvanceConservedVariables(rk_time_sub_step);
+            this->timeAdvanceConservedVariables(rk_time_stage);
 
             /// Stop timer: time_advance_conserved_variables
             timers->stop( "time_advance_conserved_variables" );
@@ -2556,27 +2562,70 @@ BaseExplicitRungeKuttaMethod::BaseExplicitRungeKuttaMethod() {};
 BaseExplicitRungeKuttaMethod::~BaseExplicitRungeKuttaMethod() {};
 
 
+////////// RungeKutta1Method CLASS //////////
+
+RungeKutta1Method::RungeKutta1Method() : BaseExplicitRungeKuttaMethod() {};
+
+RungeKutta1Method::~RungeKutta1Method() {};
+
+void RungeKutta1Method::setStageCoefficients(double &rk_a, double &rk_b, double &rk_c, const int &rk_time_stage) {
+
+    /// Explicit first-order Runge-Kutta (RK1) method:
+    /// S. Gottlieb, C.-W. Shu & E. Tadmor.
+    /// Strong stability-preserving high-order time discretization methods.
+    /// SIAM Review 43, 89-112, 2001.
+
+    /// First Runge-Kutta stage
+    rk_a = 1.0; rk_b = 0.0; rk_c = 1.0;
+
+};
+
+
+////////// StrongStabilityPreservingRungeKutta2Method CLASS //////////
+
+StrongStabilityPreservingRungeKutta2Method::StrongStabilityPreservingRungeKutta2Method() : BaseExplicitRungeKuttaMethod() {};
+
+StrongStabilityPreservingRungeKutta2Method::~StrongStabilityPreservingRungeKutta2Method() {};
+
+void StrongStabilityPreservingRungeKutta2Method::setStageCoefficients(double &rk_a, double &rk_b, double &rk_c, const int &rk_time_stage) {
+
+    /// Explicit second-order strong-stability-preserving Runge-Kutta (SSP-RK2) method:
+    /// S. Gottlieb, C.-W. Shu & E. Tadmor.
+    /// Strong stability-preserving high-order time discretization methods.
+    /// SIAM Review 43, 89-112, 2001.
+
+    if(rk_time_stage == 1) {
+        /// First Runge-Kutta stage
+        rk_a = 1.0; rk_b = 0.0; rk_c = 1.0;
+    } else if(rk_time_stage == 2) {
+        /// Second Runge-Kutta stage
+        rk_a = 1.0/2.0; rk_b = 1.0/2.0; rk_c = 1.0/2.0;
+    }
+
+};
+
+
 ////////// StrongStabilityPreservingRungeKutta3Method CLASS //////////
 
 StrongStabilityPreservingRungeKutta3Method::StrongStabilityPreservingRungeKutta3Method() : BaseExplicitRungeKuttaMethod() {};
 
 StrongStabilityPreservingRungeKutta3Method::~StrongStabilityPreservingRungeKutta3Method() {};
 
-void StrongStabilityPreservingRungeKutta3Method::setSubStepCoefficients(double &rk_a, double &rk_b, double &rk_c, const int &rk_time_sub_step) {
+void StrongStabilityPreservingRungeKutta3Method::setStageCoefficients(double &rk_a, double &rk_b, double &rk_c, const int &rk_time_stage) {
 
     /// Explicit third-order strong-stability-preserving Runge-Kutta (SSP-RK3) method:
     /// S. Gottlieb, C.-W. Shu & E. Tadmor.
     /// Strong stability-preserving high-order time discretization methods.
     /// SIAM Review 43, 89-112, 2001.
 
-    if(rk_time_sub_step == 1) {
-        /// First Runge-Kutta sub-step
+    if(rk_time_stage == 1) {
+        /// First Runge-Kutta stage
         rk_a = 1.0; rk_b = 0.0; rk_c = 1.0;
-    } else if(rk_time_sub_step == 2) {
-        /// Second Runge-Kutta sub-step
+    } else if(rk_time_stage == 2) {
+        /// Second Runge-Kutta stage
         rk_a = 3.0/4.0; rk_b = 1.0/4.0; rk_c = 1.0/4.0;
-    } else if(rk_time_sub_step == 3) {
-        /// Third Runge-Kutta sub-step
+    } else if(rk_time_stage == 3) {
+        /// Third Runge-Kutta stage
         rk_a = 1.0/3.0; rk_b = 2.0/3.0; rk_c = 2.0/3.0;
     }
 
