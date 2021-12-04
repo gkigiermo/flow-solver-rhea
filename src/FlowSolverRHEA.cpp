@@ -66,6 +66,15 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
         MPI_Abort( MPI_COMM_WORLD, 1 );
     }
 
+    /// Construct (initialize) Runge-Kutta method
+    if( runge_kutta_time_scheme == "SSP-RK3" ) {
+        runge_kutta_method = new StrongStabilityPreservingRungeKutta3Method();
+        rk_time_order = 3;
+    } else {
+        cout << "Runge-Kutta time scheme not available!" << endl;
+        MPI_Abort( MPI_COMM_WORLD, 1 );
+    }
+
     /// Construct (initialize) computational domain
     mesh = new ComputationalDomain(L_x, L_y, L_z, x_0, y_0, z_0, A_x, A_y, A_z, num_grid_x, num_grid_y, num_grid_z);
 
@@ -237,10 +246,11 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
 
 FlowSolverRHEA::~FlowSolverRHEA() {
 
-    /// Free thermodynamics, transport_coefficients, mesh, topo, writer_reader and timers
+    /// Free thermodynamics, transport_coefficients, riemann_solver, runge_kutta_method, mesh, topo, writer_reader and timers
     if( thermodynamics != NULL ) free( thermodynamics );
     if( transport_coefficients != NULL ) free( transport_coefficients );
     if( riemann_solver != NULL ) free( riemann_solver );
+    if( runge_kutta_method != NULL ) free( runge_kutta_method );
     if( mesh != NULL ) free( mesh );	
     if( topo != NULL ) free( topo );
     if( writer_reader != NULL ) free( writer_reader );
@@ -278,6 +288,7 @@ void FlowSolverRHEA::readConfigurationFile() {
     A_z                                = computational_parameters["A_z"].as<double>();
     CFL                                = computational_parameters["CFL"].as<double>();
     riemann_solver_scheme              = computational_parameters["riemann_solver_scheme"].as<string>();
+    runge_kutta_time_scheme            = computational_parameters["runge_kutta_time_scheme"].as<string>();
     final_time_iter                    = computational_parameters["final_time_iter"].as<int>();
 
     /// Boundary conditions
@@ -1930,25 +1941,11 @@ void FlowSolverRHEA::calculateViscousFluxes() {
 
 };
 
-void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_step) {
+void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_sub_step) {
 
-    /// Explicit third-order strong-stability-preserving Runge-Kutta (SSP-RK3) method:
-    /// S. Gottlieb, C.-W. Shu & E. Tadmor.
-    /// Strong stability-preserving high-order time discretization methods.
-    /// SIAM Review 43, 89-112, 2001.
-
-    /// Coefficients Runge-Kutta steps
-    double a = 0.0, b = 0.0, c = 0.0;	
-    if(rk_time_step == 1) {
-        /// First Runge-Kutta step
-        a = 1.0; b = 0.0; c = 1.0;
-    } else if(rk_time_step == 2) {
-        /// Second Runge-Kutta step
-        a = 3.0/4.0; b = 1.0/4.0; c = 1.0/4.0;
-    } else if(rk_time_step == 3) {
-        /// Third Runge-Kutta step
-        a = 1.0/3.0; b = 2.0/3.0; c = 2.0/3.0;
-    }
+    /// Coefficients of explicit Runge-Kutta sub-steps
+    double rk_a = 0.0, rk_b = 0.0, rk_c = 0.0;
+    runge_kutta_method->setSubStepCoefficients(rk_a,rk_b,rk_c,rk_time_sub_step);    
 
     /// Inner points: rho, rhou, rhov, rhow and rhoE
     double f_rhouvw = 0.0;
@@ -1965,11 +1962,11 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_step) {
                 rhow_rhs_flux = ( -1.0 )*rhow_inv_flux[I1D(i,j,k)] + rhow_vis_flux[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]; 
                 rhoE_rhs_flux = ( -1.0 )*rhoE_inv_flux[I1D(i,j,k)] + rhoE_vis_flux[I1D(i,j,k)] + f_rhoE_field[I1D(i,j,k)] + f_rhouvw; 
                 /// Runge-Kutta step
-                rho_field[I1D(i,j,k)]  = a*rho_0_field[I1D(i,j,k)]  + b*rho_field[I1D(i,j,k)]  + c*delta_t*rho_rhs_flux;
-                rhou_field[I1D(i,j,k)] = a*rhou_0_field[I1D(i,j,k)] + b*rhou_field[I1D(i,j,k)] + c*delta_t*rhou_rhs_flux;
-                rhov_field[I1D(i,j,k)] = a*rhov_0_field[I1D(i,j,k)] + b*rhov_field[I1D(i,j,k)] + c*delta_t*rhov_rhs_flux;
-                rhow_field[I1D(i,j,k)] = a*rhow_0_field[I1D(i,j,k)] + b*rhow_field[I1D(i,j,k)] + c*delta_t*rhow_rhs_flux;
-                rhoE_field[I1D(i,j,k)] = a*rhoE_0_field[I1D(i,j,k)] + b*rhoE_field[I1D(i,j,k)] + c*delta_t*rhoE_rhs_flux;
+                rho_field[I1D(i,j,k)]  = rk_a*rho_0_field[I1D(i,j,k)]  + rk_b*rho_field[I1D(i,j,k)]  + rk_c*delta_t*rho_rhs_flux;
+                rhou_field[I1D(i,j,k)] = rk_a*rhou_0_field[I1D(i,j,k)] + rk_b*rhou_field[I1D(i,j,k)] + rk_c*delta_t*rhou_rhs_flux;
+                rhov_field[I1D(i,j,k)] = rk_a*rhov_0_field[I1D(i,j,k)] + rk_b*rhov_field[I1D(i,j,k)] + rk_c*delta_t*rhov_rhs_flux;
+                rhow_field[I1D(i,j,k)] = rk_a*rhow_0_field[I1D(i,j,k)] + rk_b*rhow_field[I1D(i,j,k)] + rk_c*delta_t*rhow_rhs_flux;
+                rhoE_field[I1D(i,j,k)] = rk_a*rhoE_0_field[I1D(i,j,k)] + rk_b*rhoE_field[I1D(i,j,k)] + rk_c*delta_t*rhoE_rhs_flux;
 	    }
         }
     }
@@ -2152,7 +2149,7 @@ void FlowSolverRHEA::execute() {
         timers->start( "rk_iteration_loop" );
 
         /// Runge-Kutta time-integration steps
-        for(int rk_time_step = 1; rk_time_step <= rk_time_order; rk_time_step++) {
+        for(int rk_time_sub_step = 1; rk_time_sub_step <= rk_time_order; rk_time_sub_step++) {
 
             /// Start timer: calculate_thermophysical_properties
             timers->start( "calculate_thermophysical_properties" );
@@ -2194,7 +2191,7 @@ void FlowSolverRHEA::execute() {
             timers->start( "time_advance_conserved_variables" );
 
             /// Advance conserved variables in time
-            this->timeAdvanceConservedVariables(rk_time_step);
+            this->timeAdvanceConservedVariables(rk_time_sub_step);
 
             /// Stop timer: time_advance_conserved_variables
             timers->stop( "time_advance_conserved_variables" );
@@ -2548,5 +2545,39 @@ double HllcPlusApproximateRiemannSolver::calculateIntercellFlux(const double &F_
     }
 
     return( F );
+
+};
+
+
+////////// BaseExplicitRungeKuttaMethod CLASS //////////
+
+BaseExplicitRungeKuttaMethod::BaseExplicitRungeKuttaMethod() {};
+        
+BaseExplicitRungeKuttaMethod::~BaseExplicitRungeKuttaMethod() {};
+
+
+////////// StrongStabilityPreservingRungeKutta3Method CLASS //////////
+
+StrongStabilityPreservingRungeKutta3Method::StrongStabilityPreservingRungeKutta3Method() : BaseExplicitRungeKuttaMethod() {};
+
+StrongStabilityPreservingRungeKutta3Method::~StrongStabilityPreservingRungeKutta3Method() {};
+
+void StrongStabilityPreservingRungeKutta3Method::setSubStepCoefficients(double &rk_a, double &rk_b, double &rk_c, const int &rk_time_sub_step) {
+
+    /// Explicit third-order strong-stability-preserving Runge-Kutta (SSP-RK3) method:
+    /// S. Gottlieb, C.-W. Shu & E. Tadmor.
+    /// Strong stability-preserving high-order time discretization methods.
+    /// SIAM Review 43, 89-112, 2001.
+
+    if(rk_time_sub_step == 1) {
+        /// First Runge-Kutta sub-step
+        rk_a = 1.0; rk_b = 0.0; rk_c = 1.0;
+    } else if(rk_time_sub_step == 2) {
+        /// Second Runge-Kutta sub-step
+        rk_a = 3.0/4.0; rk_b = 1.0/4.0; rk_c = 1.0/4.0;
+    } else if(rk_time_sub_step == 3) {
+        /// Third Runge-Kutta sub-step
+        rk_a = 1.0/3.0; rk_b = 2.0/3.0; rk_c = 2.0/3.0;
+    }
 
 };

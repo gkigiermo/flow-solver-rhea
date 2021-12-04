@@ -24,6 +24,7 @@ using namespace std;
 
 ////////// CLASS DECLARATION //////////
 class FlowSolverRHEA;					/// Flow solver RHEA
+
 class BaseRiemannSolver;				/// Base Riemann solver
 class CentralFluxApproximateRiemannSolver;		/// Central scheme approximate Riemann solver
 class MurmanRoeFluxApproximateRiemannSolver;		/// Murman-Roe scheme approximate Riemann solver
@@ -31,6 +32,9 @@ class KgpFluxApproximateRiemannSolver;			/// KGP scheme approximate Riemann solv
 class HllApproximateRiemannSolver;			/// HLL approximate Riemann solver
 class HllcApproximateRiemannSolver;			/// HLLC approximate Riemann solver
 class HllcPlusApproximateRiemannSolver;			/// HLLC+ approximate Riemann solver
+
+class BaseExplicitRungeKuttaMethod;			/// Base explicit Runge-Kutta method
+class StrongStabilityPreservingRungeKutta3Method;	/// Strong stability preserving Runge-Kutta 3 (SSP-RK3) method
 
 ////////// FUNCTION DECLARATION //////////
 
@@ -167,8 +171,9 @@ class FlowSolverRHEA {
         double delta_t;		      				/// Time step [s]
         int current_time_iter;					/// Current time iteration
         int final_time_iter;					/// Final time iteration
-        int rk_time_order = 3;					/// Order of Runge-Kutta time discretization method
+        int rk_time_order;					/// Order of Runge-Kutta time discretization method
         string riemann_solver_scheme;				/// Riemann solver scheme
+        string runge_kutta_time_scheme;				/// Runge-Kutta time scheme
 
         /// Local mesh values for I1D macro
         int _lNx_;
@@ -283,11 +288,12 @@ class FlowSolverRHEA {
         DistributedArray rmsf_c_v_field;			/// 3-D field of root-mean-square-fluctuation c_v
         DistributedArray rmsf_c_p_field;			/// 3-D field of root-mean-square-fluctuation c_p
 
-	////////// THERMODYNAMIC MODEL, TRANSPORT COEFFICIENTS, RIEMANN SOLVER //////////
+	////////// THERMODYNAMIC MODEL, TRANSPORT COEFFICIENTS, RIEMANN SOLVER, EXPLICIT RUNGE-KUTTA METHOD //////////
 	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER, PARALLEL TIMER //////////
         BaseThermodynamicModel *thermodynamics;			/// Thermodynamic model
         BaseTransportCoefficients *transport_coefficients;	/// Transport coefficients
         BaseRiemannSolver *riemann_solver;			/// Riemann solver
+        BaseExplicitRungeKuttaMethod *runge_kutta_method;	/// Runge-Kutta method
         ComputationalDomain *mesh;				/// Computational domain
         ParallelTopology *topo;					/// Parallel topology
         ManagerHDF5 *writer_reader;				/// HDF5 data writer/reader
@@ -299,8 +305,8 @@ class FlowSolverRHEA {
         /// The middle number (2) is the minor version.
         /// The rightmost number (3) is the revision, but it may also refer to a "point release" or "subminor version".
 	
-        /// Version number (updated 22/11/2021)
-        string version_number = "1.0.0";			/// Version number	
+        /// Version number (updated 04/12/2021)
+        string version_number = "1.1.0";			/// Version number	
 
     private:
 
@@ -482,6 +488,58 @@ class HllcPlusApproximateRiemannSolver : public BaseRiemannSolver {
         
         /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
         double calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+
+    protected:
+
+        ////////// PARAMETERS //////////
+
+    private:
+
+};
+
+////////// BaseExplicitRungeKuttaMethod CLASS //////////
+class BaseExplicitRungeKuttaMethod {
+   
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        BaseExplicitRungeKuttaMethod();				/// Default constructor
+        virtual ~BaseExplicitRungeKuttaMethod();		/// Destructor
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+       
+        /// Set sub-step coefficients: y_rk+1 = rk_a*y_n + rk_b*y_rk + rk_c*delta_t*f( y_rk )
+        virtual void setSubStepCoefficients(double &rk_a, double &rk_b, double &rk_c, const int &rk_time_sub_step) = 0;
+
+    protected:
+
+        ////////// PARAMETERS //////////
+
+    private:
+
+};
+
+////////// StrongStabilityPreservingRungeKutta3Method CLASS //////////
+class StrongStabilityPreservingRungeKutta3Method : public BaseExplicitRungeKuttaMethod {
+   
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        StrongStabilityPreservingRungeKutta3Method();				/// Default constructor
+        virtual ~StrongStabilityPreservingRungeKutta3Method();			/// Destructor
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+        
+        /// Set sub-step coefficients: y_rk+1 = rk_a*y_n + rk_b*y_rk + rk_c*delta_t*f( y_rk )
+        void setSubStepCoefficients(double &rk_a, double &rk_b, double &rk_c, const int &rk_time_sub_step);
 
     protected:
 
