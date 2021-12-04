@@ -112,23 +112,6 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     rhow_0_field.setTopology(topo,"rhow_0");
     rhoE_0_field.setTopology(topo,"rhoE_0");    
 
-    /// Set parallel topology of time-integration fluxes	
-    rho_rk1_flux.setTopology(topo,"rho_rk1");
-    rho_rk2_flux.setTopology(topo,"rho_rk2");
-    rho_rk3_flux.setTopology(topo,"rho_rk3");
-    rhou_rk1_flux.setTopology(topo,"rhou_rk1");
-    rhou_rk2_flux.setTopology(topo,"rhou_rk2");
-    rhou_rk3_flux.setTopology(topo,"rhou_rk3");    
-    rhov_rk1_flux.setTopology(topo,"rhov_rk1");
-    rhov_rk2_flux.setTopology(topo,"rhov_rk2");
-    rhov_rk3_flux.setTopology(topo,"rhov_rk3");    
-    rhow_rk1_flux.setTopology(topo,"rhow_rk1");
-    rhow_rk2_flux.setTopology(topo,"rhow_rk2");
-    rhow_rk3_flux.setTopology(topo,"rhow_rk3");
-    rhoE_rk1_flux.setTopology(topo,"rhoE_rk1");
-    rhoE_rk2_flux.setTopology(topo,"rhoE_rk2");
-    rhoE_rk3_flux.setTopology(topo,"rhoE_rk3");
-
     /// Set parallel topology of inviscid fluxes	
     rho_inv_flux.setTopology(topo,"rho_inv");
     rhou_inv_flux.setTopology(topo,"rhou_inv");
@@ -243,7 +226,6 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     timers->createTimer( "calculate_inviscid_fluxes" );
     timers->createTimer( "calculate_viscous_fluxes" );
     timers->createTimer( "calculate_source_terms" );
-    timers->createTimer( "sum_inviscid_viscous_fluxes_source_terms" );
     timers->createTimer( "time_advance_conserved_variables" );
     timers->createTimer( "update_boundaries" );
     timers->createTimer( "conserved_to_primitive_variables" );
@@ -768,7 +750,7 @@ void FlowSolverRHEA::updateBoundaries() {
                     double lambda_1 = u_in - sos_in;
 		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( u_in_in - u_in )/Delta ) );
 		    double L_5      = L_1;	// Steady-state velocity assumption
-                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_order )*0.5*( L_1 + L_5 );
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*0.5*( L_1 + L_5 );
                     T_g = ( bocos_T[_WEST_] - wg_in*T_in )/wg_g;
 		} else if( bocos_type[_WEST_] == _SUBSONIC_OUTFLOW_ ) {
                     P_g = bocos_P[_WEST_]; 
@@ -792,10 +774,10 @@ void FlowSolverRHEA::updateBoundaries() {
 		    double L_4       = lambda_4*( ( w_in_in - w_in )/Delta );
 		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( u_in_in - u_in )/Delta ) );
 		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
-                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
-                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
-                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
-                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
 		} else if( bocos_type[_WEST_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_WEST_];
@@ -877,7 +859,7 @@ void FlowSolverRHEA::updateBoundaries() {
                     double lambda_1 = u_in - sos_in;
 		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( u_in_in - u_in )/Delta ) );
 		    double L_5      = L_1;	// Steady-state velocity assumption
-                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_order )*0.5*( L_1 + L_5 );
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*0.5*( L_1 + L_5 );
                     T_g = ( bocos_T[_EAST_] - wg_in*T_in )/wg_g;
 		} else if( bocos_type[_EAST_] == _SUBSONIC_OUTFLOW_ ) {
                     P_g = bocos_P[_EAST_]; 
@@ -901,10 +883,10 @@ void FlowSolverRHEA::updateBoundaries() {
 		    double L_4       = lambda_4*( ( w_in_in - w_in )/Delta );
 		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( u_in_in - u_in )/Delta ) );
 		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
-                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
-                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
-                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
-                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
 		} else if( bocos_type[_EAST_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_EAST_];
@@ -986,7 +968,7 @@ void FlowSolverRHEA::updateBoundaries() {
                     double lambda_1 = v_in - sos_in;
 		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( v_in_in - v_in )/Delta ) );
 		    double L_5      = L_1;	// Steady-state velocity assumption
-                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_order )*0.5*( L_1 + L_5 );
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*0.5*( L_1 + L_5 );
                     T_g = ( bocos_T[_SOUTH_] - wg_in*T_in )/wg_g;
 		} else if( bocos_type[_SOUTH_] == _SUBSONIC_OUTFLOW_ ) {
                     P_g = bocos_P[_SOUTH_]; 
@@ -1010,10 +992,10 @@ void FlowSolverRHEA::updateBoundaries() {
 		    double L_4       = lambda_4*( ( w_in_in - w_in )/Delta );
 		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( v_in_in - v_in )/Delta ) );
 		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
-                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
-                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
-                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
-                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
 		} else if( bocos_type[_SOUTH_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_SOUTH_];
@@ -1095,7 +1077,7 @@ void FlowSolverRHEA::updateBoundaries() {
                     double lambda_1 = v_in - sos_in;
 		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( v_in_in - v_in )/Delta ) );
 		    double L_5      = L_1;	// Steady-state velocity assumption
-                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_order )*0.5*( L_1 + L_5 );
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*0.5*( L_1 + L_5 );
                     T_g = ( bocos_T[_NORTH_] - wg_in*T_in )/wg_g;
 		} else if( bocos_type[_NORTH_] == _SUBSONIC_OUTFLOW_ ) {
                     P_g = bocos_P[_NORTH_]; 
@@ -1119,10 +1101,10 @@ void FlowSolverRHEA::updateBoundaries() {
 		    double L_4       = lambda_4*( ( w_in_in - w_in )/Delta );
 		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( v_in_in - v_in )/Delta ) );
 		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
-                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
-                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
-                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
-                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
 		} else if( bocos_type[_NORTH_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_NORTH_];
@@ -1204,7 +1186,7 @@ void FlowSolverRHEA::updateBoundaries() {
                     double lambda_1 = w_in - sos_in;
 		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( w_in_in - w_in )/Delta ) );
 		    double L_5      = L_1;	// Steady-state velocity assumption
-                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_order )*0.5*( L_1 + L_5 );
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*0.5*( L_1 + L_5 );
                     T_g = ( bocos_T[_BACK_] - wg_in*T_in )/wg_g;
 		} else if( bocos_type[_BACK_] == _SUBSONIC_OUTFLOW_ ) {
                     P_g = bocos_P[_BACK_]; 
@@ -1228,10 +1210,10 @@ void FlowSolverRHEA::updateBoundaries() {
 		    double L_4       = lambda_4*( ( u_in_in - u_in )/Delta );
 		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( w_in_in - w_in )/Delta ) );
 		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
-                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
-                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
-                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
-                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
 		} else if( bocos_type[_BACK_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_BACK_];
@@ -1313,7 +1295,7 @@ void FlowSolverRHEA::updateBoundaries() {
                     double lambda_1 = w_in - sos_in;
 		    double L_1      = lambda_1*( ( ( P_in_in - P_in )/Delta ) - rho_in*sos_in*( ( w_in_in - w_in )/Delta ) );
 		    double L_5      = L_1;	// Steady-state velocity assumption
-                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_order )*0.5*( L_1 + L_5 );
+                    P_g = P_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*0.5*( L_1 + L_5 );
                     T_g = ( bocos_T[_FRONT_] - wg_in*T_in )/wg_g;
 		} else if( bocos_type[_FRONT_] == _SUBSONIC_OUTFLOW_ ) {
                     P_g = bocos_P[_FRONT_]; 
@@ -1337,10 +1319,10 @@ void FlowSolverRHEA::updateBoundaries() {
 		    double L_4       = lambda_4*( ( u_in_in - u_in )/Delta );
 		    //double L_5       = lambda_5*( ( ( P_in_in - P_in )/Delta ) + rho_in*sos_in*( ( w_in_in - w_in )/Delta ) );
 		    double L_5       = ( -1.0 )*L_1;		// Steady-state pressure assumption
-                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
-                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
-                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_3;
-                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_order )*L_4;
+                    rho_g = rho_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( sos_in*sos_in ) )*( L_2 + 0.5*( L_1 + L_5 ) );
+                    u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
+                    v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_3;
+                    w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_time_order )*L_4;
                     T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
 		} else if( bocos_type[_FRONT_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_FRONT_];
@@ -1948,149 +1930,47 @@ void FlowSolverRHEA::calculateViscousFluxes() {
 
 };
 
-void FlowSolverRHEA::sumInviscidViscousFluxesSourceTerms(const int &rk_step) {
-
-    /// First Runge-Kutta step
-    if(rk_step == 1) {
-
-        /// Inner points: rho, rhou, rhov, rhow and rhoE
-        double f_rhouvw = 0.0;
-        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
-            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
-                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                    /// Work of momentum sources
-                    f_rhouvw = f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)];
-                    /// Sum all fluxes
-                    rho_rk1_flux[I1D(i,j,k)]  = ( -1.0 )*rho_inv_flux[I1D(i,j,k)]; 
-                    rhou_rk1_flux[I1D(i,j,k)] = ( -1.0 )*rhou_inv_flux[I1D(i,j,k)] + rhou_vis_flux[I1D(i,j,k)] + f_rhou_field[I1D(i,j,k)]; 
-                    rhov_rk1_flux[I1D(i,j,k)] = ( -1.0 )*rhov_inv_flux[I1D(i,j,k)] + rhov_vis_flux[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]; 
-                    rhow_rk1_flux[I1D(i,j,k)] = ( -1.0 )*rhow_inv_flux[I1D(i,j,k)] + rhow_vis_flux[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]; 
-                    rhoE_rk1_flux[I1D(i,j,k)] = ( -1.0 )*rhoE_inv_flux[I1D(i,j,k)] + rhoE_vis_flux[I1D(i,j,k)] + f_rhoE_field[I1D(i,j,k)] + f_rhouvw; 
-                }
-            }
-        }
-
-        /// Update halo values
-        //rho_rk1_flux.update();
-        //rhou_rk1_flux.update();
-        //rhov_rk1_flux.update();
-        //rhow_rk1_flux.update();
-        //rhoE_rk1_flux.update();
-
-    }
-
-    /// Second Runge-Kutta step
-    if(rk_step == 2) {
-
-        /// Inner points: rho, rhou, rhov, rhow and rhoE
-        double f_rhouvw = 0.0;
-        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
-            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
-                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                    /// Work of momentum sources
-                    f_rhouvw = f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)];
-                    /// Sum all fluxes
-                    rho_rk2_flux[I1D(i,j,k)]  = ( -1.0 )*rho_inv_flux[I1D(i,j,k)]; 
-                    rhou_rk2_flux[I1D(i,j,k)] = ( -1.0 )*rhou_inv_flux[I1D(i,j,k)] + rhou_vis_flux[I1D(i,j,k)] + f_rhou_field[I1D(i,j,k)]; 
-                    rhov_rk2_flux[I1D(i,j,k)] = ( -1.0 )*rhov_inv_flux[I1D(i,j,k)] + rhov_vis_flux[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]; 
-                    rhow_rk2_flux[I1D(i,j,k)] = ( -1.0 )*rhow_inv_flux[I1D(i,j,k)] + rhow_vis_flux[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]; 
-                    rhoE_rk2_flux[I1D(i,j,k)] = ( -1.0 )*rhoE_inv_flux[I1D(i,j,k)] + rhoE_vis_flux[I1D(i,j,k)] + f_rhoE_field[I1D(i,j,k)] + f_rhouvw; 
-                }
-            }
-        }
-
-        /// Update halo values
-        //rho_rk2_flux.update();
-        //rhou_rk2_flux.update();
-        //rhov_rk2_flux.update();
-        //rhow_rk2_flux.update();
-        //rhoE_rk2_flux.update();
-
-    }
-
-    /// Third Runge-Kutta step
-    if(rk_step == 3) {
-
-        /// Inner points: rho, rhou, rhov, rhow and rhoE
-        double f_rhouvw = 0.0;
-        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
-            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
-                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                    /// Work of momentum sources
-                    f_rhouvw = f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)];
-                    /// Sum all fluxes
-                    rho_rk3_flux[I1D(i,j,k)]  = ( -1.0 )*rho_inv_flux[I1D(i,j,k)]; 
-                    rhou_rk3_flux[I1D(i,j,k)] = ( -1.0 )*rhou_inv_flux[I1D(i,j,k)] + rhou_vis_flux[I1D(i,j,k)] + f_rhou_field[I1D(i,j,k)]; 
-                    rhov_rk3_flux[I1D(i,j,k)] = ( -1.0 )*rhov_inv_flux[I1D(i,j,k)] + rhov_vis_flux[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]; 
-                    rhow_rk3_flux[I1D(i,j,k)] = ( -1.0 )*rhow_inv_flux[I1D(i,j,k)] + rhow_vis_flux[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]; 
-                    rhoE_rk3_flux[I1D(i,j,k)] = ( -1.0 )*rhoE_inv_flux[I1D(i,j,k)] + rhoE_vis_flux[I1D(i,j,k)] + f_rhoE_field[I1D(i,j,k)] + f_rhouvw; 
-                }
-            }
-        }
-
-        /// Update halo values
-        //rho_rk3_flux.update();
-        //rhou_rk3_flux.update();
-        //rhov_rk3_flux.update();
-        //rhow_rk3_flux.update();
-        //rhoE_rk3_flux.update();
-
-    }
-
-};
-
-void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_step) {
+void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_step) {
 
     /// Explicit third-order strong-stability-preserving Runge-Kutta (SSP-RK3) method:
     /// S. Gottlieb, C.-W. Shu & E. Tadmor.
     /// Strong stability-preserving high-order time discretization methods.
     /// SIAM Review 43, 89-112, 2001.
 
-    /// First Runge-Kutta step
-    if(rk_step == 1) {
-        /// Inner points: rho, rhou, rhov, rhow and rhoE
-        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
-            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
-                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                    rho_field[I1D(i,j,k)]  = rho_0_field[I1D(i,j,k)] + delta_t*rho_rk1_flux[I1D(i,j,k)];
-                    rhou_field[I1D(i,j,k)] = rhou_0_field[I1D(i,j,k)] + delta_t*rhou_rk1_flux[I1D(i,j,k)];
-                    rhov_field[I1D(i,j,k)] = rhov_0_field[I1D(i,j,k)] + delta_t*rhov_rk1_flux[I1D(i,j,k)];
-                    rhow_field[I1D(i,j,k)] = rhow_0_field[I1D(i,j,k)] + delta_t*rhow_rk1_flux[I1D(i,j,k)];
-                    rhoE_field[I1D(i,j,k)] = rhoE_0_field[I1D(i,j,k)] + delta_t*rhoE_rk1_flux[I1D(i,j,k)];
-                }
-            }
-        }
+    /// Coefficients Runge-Kutta steps
+    double a = 0.0, b = 0.0, c = 0.0;	
+    if(rk_time_step == 1) {
+        /// First Runge-Kutta step
+        a = 1.0; b = 0.0; c = 1.0;
+    } else if(rk_time_step == 2) {
+        /// Second Runge-Kutta step
+        a = 3.0/4.0; b = 1.0/4.0; c = 1.0/4.0;
+    } else if(rk_time_step == 3) {
+        /// Third Runge-Kutta step
+        a = 1.0/3.0; b = 2.0/3.0; c = 2.0/3.0;
     }
 
-    /// Second Runge-Kutta step
-    if(rk_step == 2) {
-        /// Inner points: rho, rhou, rhov, rhow and rhoE
-        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
-            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
-                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                    rho_field[I1D(i,j,k)]  = rho_0_field[I1D(i,j,k)] + ( delta_t/4.0 )*( rho_rk1_flux[I1D(i,j,k)] + rho_rk2_flux[I1D(i,j,k)] );
-                    rhou_field[I1D(i,j,k)] = rhou_0_field[I1D(i,j,k)] + ( delta_t/4.0 )*( rhou_rk1_flux[I1D(i,j,k)] + rhou_rk2_flux[I1D(i,j,k)] );
-                    rhov_field[I1D(i,j,k)] = rhov_0_field[I1D(i,j,k)] + ( delta_t/4.0 )*( rhov_rk1_flux[I1D(i,j,k)] + rhov_rk2_flux[I1D(i,j,k)] );
-                    rhow_field[I1D(i,j,k)] = rhow_0_field[I1D(i,j,k)] + ( delta_t/4.0 )*( rhow_rk1_flux[I1D(i,j,k)] + rhow_rk2_flux[I1D(i,j,k)] );
-                    rhoE_field[I1D(i,j,k)] = rhoE_0_field[I1D(i,j,k)] + ( delta_t/4.0 )*( rhoE_rk1_flux[I1D(i,j,k)] + rhoE_rk2_flux[I1D(i,j,k)] );
-                }
-            }
-        }
-    }
-
-    /// Third Runge-Kutta step
-    if(rk_step == 3) {
-        /// Inner points: rho, rhou, rhov, rhow and rhoE
-        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
-            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
-                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                    rho_field[I1D(i,j,k)]  = rho_0_field[I1D(i,j,k)] + ( delta_t/6.0 )*( rho_rk1_flux[I1D(i,j,k)] + rho_rk2_flux[I1D(i,j,k)] + 4.0*rho_rk3_flux[I1D(i,j,k)] );
-                    rhou_field[I1D(i,j,k)] = rhou_0_field[I1D(i,j,k)] + ( delta_t/6.0 )*( rhou_rk1_flux[I1D(i,j,k)] + rhou_rk2_flux[I1D(i,j,k)] + 4.0*rhou_rk3_flux[I1D(i,j,k)] );
-                    rhov_field[I1D(i,j,k)] = rhov_0_field[I1D(i,j,k)] + ( delta_t/6.0 )*( rhov_rk1_flux[I1D(i,j,k)] + rhov_rk2_flux[I1D(i,j,k)] + 4.0*rhov_rk3_flux[I1D(i,j,k)] );
-                    rhow_field[I1D(i,j,k)] = rhow_0_field[I1D(i,j,k)] + ( delta_t/6.0 )*( rhow_rk1_flux[I1D(i,j,k)] + rhow_rk2_flux[I1D(i,j,k)] + 4.0*rhow_rk3_flux[I1D(i,j,k)] );
-                    rhoE_field[I1D(i,j,k)] = rhoE_0_field[I1D(i,j,k)] + ( delta_t/6.0 )*( rhoE_rk1_flux[I1D(i,j,k)] + rhoE_rk2_flux[I1D(i,j,k)] + 4.0*rhoE_rk3_flux[I1D(i,j,k)] );
-                }
-            }
+    /// Inner points: rho, rhou, rhov, rhow and rhoE
+    double f_rhouvw = 0.0;
+    double rho_rhs_flux = 0.0, rhou_rhs_flux = 0.0, rhov_rhs_flux = 0.0, rhow_rhs_flux = 0.0, rhoE_rhs_flux = 0.0;
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                /// Work of momentum sources
+                f_rhouvw = f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)];
+                /// Sum right-hand-side (RHS) fluxes
+                rho_rhs_flux  = ( -1.0 )*rho_inv_flux[I1D(i,j,k)]; 
+                rhou_rhs_flux = ( -1.0 )*rhou_inv_flux[I1D(i,j,k)] + rhou_vis_flux[I1D(i,j,k)] + f_rhou_field[I1D(i,j,k)]; 
+                rhov_rhs_flux = ( -1.0 )*rhov_inv_flux[I1D(i,j,k)] + rhov_vis_flux[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]; 
+                rhow_rhs_flux = ( -1.0 )*rhow_inv_flux[I1D(i,j,k)] + rhow_vis_flux[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]; 
+                rhoE_rhs_flux = ( -1.0 )*rhoE_inv_flux[I1D(i,j,k)] + rhoE_vis_flux[I1D(i,j,k)] + f_rhoE_field[I1D(i,j,k)] + f_rhouvw; 
+                /// Runge-Kutta step
+                rho_field[I1D(i,j,k)]  = a*rho_0_field[I1D(i,j,k)]  + b*rho_field[I1D(i,j,k)]  + c*delta_t*rho_rhs_flux;
+                rhou_field[I1D(i,j,k)] = a*rhou_0_field[I1D(i,j,k)] + b*rhou_field[I1D(i,j,k)] + c*delta_t*rhou_rhs_flux;
+                rhov_field[I1D(i,j,k)] = a*rhov_0_field[I1D(i,j,k)] + b*rhov_field[I1D(i,j,k)] + c*delta_t*rhov_rhs_flux;
+                rhow_field[I1D(i,j,k)] = a*rhow_0_field[I1D(i,j,k)] + b*rhow_field[I1D(i,j,k)] + c*delta_t*rhow_rhs_flux;
+                rhoE_field[I1D(i,j,k)] = a*rhoE_0_field[I1D(i,j,k)] + b*rhoE_field[I1D(i,j,k)] + c*delta_t*rhoE_rhs_flux;
+	    }
         }
     }
 
@@ -2272,7 +2152,7 @@ void FlowSolverRHEA::execute() {
         timers->start( "rk_iteration_loop" );
 
         /// Runge-Kutta time-integration steps
-        for(int rk_step = 1; rk_step <= rk_order; rk_step++) {
+        for(int rk_time_step = 1; rk_time_step <= rk_time_order; rk_time_step++) {
 
             /// Start timer: calculate_thermophysical_properties
             timers->start( "calculate_thermophysical_properties" );
@@ -2310,20 +2190,11 @@ void FlowSolverRHEA::execute() {
             /// Stop timer: calculate_source_terms
             timers->stop( "calculate_source_terms" );
 
-            /// Start timer: sum_inviscid_viscous_fluxes_source_terms
-            timers->start( "sum_inviscid_viscous_fluxes_source_terms" );
-
-            /// Sum inviscid & viscous fluxes, and source terms (right-hand side)
-            this->sumInviscidViscousFluxesSourceTerms(rk_step);
-
-            /// Stop timer: sum_inviscid_viscous_fluxes_source_terms
-            timers->stop( "sum_inviscid_viscous_fluxes_source_terms" );
-
             /// Start timer: time_advance_conserved_variables
             timers->start( "time_advance_conserved_variables" );
 
             /// Advance conserved variables in time
-            this->timeAdvanceConservedVariables(rk_step);
+            this->timeAdvanceConservedVariables(rk_time_step);
 
             /// Stop timer: time_advance_conserved_variables
             timers->stop( "time_advance_conserved_variables" );

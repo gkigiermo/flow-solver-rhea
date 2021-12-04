@@ -127,9 +127,6 @@ class FlowSolverRHEA {
         /// Calculate viscous fluxes
         virtual void calculateViscousFluxes();
 
-        /// Sum inviscid & viscous fluxes, and source terms
-        virtual void sumInviscidViscousFluxesSourceTerms(const int &rk_step);
-
         /// Advance conserved variables in time
         virtual void timeAdvanceConservedVariables(const int &rk_step);
 
@@ -170,7 +167,7 @@ class FlowSolverRHEA {
         double delta_t;		      				/// Time step [s]
         int current_time_iter;					/// Current time iteration
         int final_time_iter;					/// Final time iteration
-        int rk_order = 3;					/// Order of Runge-Kutta method (fixed)
+        int rk_time_order = 3;					/// Order of Runge-Kutta time discretization method
         string riemann_solver_scheme;				/// Riemann solver scheme
 
         /// Local mesh values for I1D macro
@@ -236,23 +233,6 @@ class FlowSolverRHEA {
         DistributedArray rhov_0_field;				/// 3-D previous field of rhov
         DistributedArray rhow_0_field;				/// 3-D previous field of rhow
         DistributedArray rhoE_0_field;				/// 3-D previous field of rhoE
-
-        /// Time-integration fluxes
-        DistributedArray rho_rk1_flux;				/// 3-D Runge-Kutta flux 1 of rho
-        DistributedArray rho_rk2_flux;				/// 3-D Runge-Kutta flux 2 of rho
-        DistributedArray rho_rk3_flux;				/// 3-D Runge-Kutta flux 3 of rho
-        DistributedArray rhou_rk1_flux;				/// 3-D Runge-Kutta flux 1 of rhou
-        DistributedArray rhou_rk2_flux;				/// 3-D Runge-Kutta flux 2 of rhou
-        DistributedArray rhou_rk3_flux;				/// 3-D Runge-Kutta flux 3 of rhou
-        DistributedArray rhov_rk1_flux;				/// 3-D Runge-Kutta flux 1 of rhov
-        DistributedArray rhov_rk2_flux;				/// 3-D Runge-Kutta flux 2 of rhov
-        DistributedArray rhov_rk3_flux;				/// 3-D Runge-Kutta flux 3 of rhov
-        DistributedArray rhow_rk1_flux;				/// 3-D Runge-Kutta flux 1 of rhow
-        DistributedArray rhow_rk2_flux;				/// 3-D Runge-Kutta flux 2 of rhow
-        DistributedArray rhow_rk3_flux;				/// 3-D Runge-Kutta flux 3 of rhow
-        DistributedArray rhoE_rk1_flux;				/// 3-D Runge-Kutta flux 1 of rhoE
-        DistributedArray rhoE_rk2_flux;				/// 3-D Runge-Kutta flux 2 of rhoE
-        DistributedArray rhoE_rk3_flux;				/// 3-D Runge-Kutta flux 3 of rhoE
 
         /// Inviscid fluxes
         DistributedArray rho_inv_flux;				/// 3-D inviscid fluxes of rho
