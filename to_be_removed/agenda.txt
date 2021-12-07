@@ -1,7 +1,8 @@
 RHEA DEVELOPMENT AGENDA:
 
-- Solve run problem bug (it may be connected to having only one cell in a direction) ... Willy
-
+- Solve run problem bug (it may be connected to having only one cell in a direction)
+- Improve partition to allow non-divisible configurations
+- Implement OpenACC acceleration
 - ...
 
 - Incorporate message that HDF5 labels cannot include special characters
