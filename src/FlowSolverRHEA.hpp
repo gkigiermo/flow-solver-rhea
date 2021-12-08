@@ -29,6 +29,7 @@ class BaseRiemannSolver;				/// Base Riemann solver
 class CentralFluxApproximateRiemannSolver;		/// Central scheme approximate Riemann solver
 class MurmanRoeFluxApproximateRiemannSolver;		/// Murman-Roe scheme approximate Riemann solver
 class KgpFluxApproximateRiemannSolver;			/// KGP scheme approximate Riemann solver
+class KgpPlusFluxApproximateRiemannSolver;		/// KGP+ scheme approximate Riemann solver
 class HllApproximateRiemannSolver;			/// HLL approximate Riemann solver
 class HllcApproximateRiemannSolver;			/// HLLC approximate Riemann solver
 class HllcPlusApproximateRiemannSolver;			/// HLLC+ approximate Riemann solver
@@ -403,6 +404,32 @@ class KgpFluxApproximateRiemannSolver : public BaseRiemannSolver {
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
         KgpFluxApproximateRiemannSolver();						/// Default constructor
         virtual ~KgpFluxApproximateRiemannSolver();					/// Destructor
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+       
+        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+        double calculateIntercellFlux(const double &F_L, const double &F_R, const double &U_L, const double &U_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+
+    protected:
+
+        ////////// PARAMETERS //////////
+
+    private:
+
+};
+
+////////// KgpPlusFluxApproximateRiemannSolver CLASS //////////
+class KgpPlusFluxApproximateRiemannSolver : public BaseRiemannSolver {
+   
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        KgpPlusFluxApproximateRiemannSolver();						/// Default constructor
+        virtual ~KgpPlusFluxApproximateRiemannSolver();					/// Destructor
 
 	////////// GET FUNCTIONS //////////
 
