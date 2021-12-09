@@ -2,8 +2,9 @@
 
 using namespace std;
 
-/// Pi number
-const double pi = 2.0*asin( 1.0 );
+////////// FIXED PARAMETERS //////////
+const double epsilon = 1.0e-15;					/// Small epsilon number (fixed)
+const double pi      = 2.0*asin(1.0);				/// pi number (fixed)
 
 /// PROBLEM PARAMETERS ///
 const double rho_b      = 785.49;                               /// Density bottom wall [kg/m3]
@@ -24,9 +25,10 @@ const double y_0        = nu_b/( 9.0*u_tau_b );                 /// Smooth-wall 
 const double u_0        = ( u_tau_b/kappa_vK )*( log( delta/y_0 ) + ( y_0/delta ) - 1.0 );        /// Volume average of a log-law velocity profile
 const double alpha      = 0.25;                                 /// Magnitude of perturbations
 
-/// Pressure-gradient force
-double modulation_ratio_old = 1.0;                              /// Previous modulation ratio
-double blending_weight      = 0.25;                             /// Blending weight ( new value )
+/// Estimated uniform body force to drive the flow
+double controller_output = tau_w_b/delta;		        /// Initialize controller output
+double controller_error  = 0.0;			        	/// Initialize controller error
+double controller_K_p    = 1.0e-1;		        	/// Controller proportional gain
 
 
 ////////// myRHEA CLASS //////////
@@ -73,13 +75,16 @@ void myRHEA::calculateSourceTerms() {
     /// Evaluate numerical shear stress at bottom wall
 
     /// Calculate local values
-    double local_sum_u_inner_b = 0.0;
+    double local_sum_u_inner_b    = 0.0;
+    double local_sum_u_boundary_b = 0.0;
     double local_number_grid_points_b  = 0.0;
     for(int i = topo->iter_bound[_SOUTH_][_INIX_]; i <= topo->iter_bound[_SOUTH_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_SOUTH_][_INIY_]; j <= topo->iter_bound[_SOUTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_SOUTH_][_INIZ_]; k <= topo->iter_bound[_SOUTH_][_ENDZ_]; k++) {
                 /// Sum inner values
                 local_sum_u_inner_b += u_field[I1D(i,j+1,k)];
+                /// Sum boundary values
+                local_sum_u_boundary_b += u_field[I1D(i,j,k)];
                 /// Sum number grid points
                 local_number_grid_points_b += 1.0;
             }
@@ -89,31 +94,34 @@ void myRHEA::calculateSourceTerms() {
     /// Communicate local values to obtain global & average values
     double global_sum_u_inner_b;
     MPI_Allreduce(&local_sum_u_inner_b, &global_sum_u_inner_b, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    double global_sum_u_boundary_b;
+    MPI_Allreduce(&local_sum_u_boundary_b, &global_sum_u_boundary_b, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     double global_number_grid_points_b;
     MPI_Allreduce(&local_number_grid_points_b, &global_number_grid_points_b, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    double global_avg_u_inner_b = global_sum_u_inner_b/global_number_grid_points_b;
+    double global_avg_u_inner_b    = global_sum_u_inner_b/global_number_grid_points_b;
+    double global_avg_u_boundary_b = global_sum_u_boundary_b/global_number_grid_points_b;
 
     /// Calculate delta_y
-    double delta_y = 0.5*( mesh->getGloby(1) - mesh->getGloby(0) );
+    double delta_y = mesh->getGloby(1) - mesh->getGloby(0);
 
     /// Calculate tau_w_b_numerical
-    double tau_w_b_numerical = mu_b*global_avg_u_inner_b/delta_y;
+    double tau_w_b_numerical = mu_b*( global_avg_u_inner_b - global_avg_u_boundary_b )/delta_y;
     
-    /// Calculate modulation_ratio & update modulation_ratio_old
-    double modulation_ratio = blending_weight*( tau_w_b/( tau_w_b_numerical + 1.0e-15 ) ) + ( 1.0 - blending_weight )*modulation_ratio_old;
-    modulation_ratio_old    = modulation_ratio;
+    /// Update controller variables
+    controller_error   = ( tau_w_b - tau_w_b_numerical )/delta;
+    controller_output += controller_K_p*controller_error;
 
     //int my_rank, world_size;
     //MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     //MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-    //if( my_rank == 0 ) cout << tau_w_b << "  " << tau_w_b_numerical << "  " << modulation_ratio << endl;
+    //if( my_rank == 0 ) cout << tau_w_b << "  " << tau_w_b_numerical << "  " << controller_output << "  " << controller_error << endl;
 
     /// Inner points: f_rhou, f_rhov, f_rhow and f_rhoE
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 //f_rhou_field[I1D(i,j,k)] = tau_w_b/delta;
-                f_rhou_field[I1D(i,j,k)] = modulation_ratio*tau_w_b/delta;
+                f_rhou_field[I1D(i,j,k)] = controller_output;
                 f_rhov_field[I1D(i,j,k)] = 0.0;
                 f_rhow_field[I1D(i,j,k)] = 0.0;
                 f_rhoE_field[I1D(i,j,k)] = ( -1.0 )*( f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)] );
