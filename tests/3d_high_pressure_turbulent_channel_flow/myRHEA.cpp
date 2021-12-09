@@ -289,6 +289,30 @@ void myRHEA::execute() {
             /// Stop timer: calculate_thermodynamics_from_primitive_variables
             timers->stop( "calculate_thermodynamics_from_primitive_variables" );
 
+            /// Energy source/sink to maintain thermodynamic pressure to P_0
+	    double rho, ke, e, c_v, c_p;
+            for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+                for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+                    for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                        if( x_field[I1D(i,j,k)] < ( x_0 + L_x/num_grid_x ) ) {
+                            P_field[I1D(i,j,k)] = P_0;
+                            thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho, e, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
+                            rho_field[I1D(i,j,k)] = rho; 
+                            ke = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) );
+                            E_field[I1D(i,j,k)] = e + ke;
+                            sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                            thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                            c_v_field[I1D(i,j,k)] = c_v;
+                            c_p_field[I1D(i,j,k)] = c_p;		       	
+                            rhou_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*u_field[I1D(i,j,k)]; 
+                            rhov_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*v_field[I1D(i,j,k)]; 
+                            rhow_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*w_field[I1D(i,j,k)]; 
+                            rhoE_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*E_field[I1D(i,j,k)]; 
+		        }
+	            }
+                }
+            }
+
             /// Start timer: update_boundaries
             timers->start( "update_boundaries" );
 
@@ -311,30 +335,6 @@ void myRHEA::execute() {
 
         /// Stop timer: update_time_averaged_quantities
         timers->stop( "update_time_averaged_quantities" );
-
-	/// Energy source/sink to maintain thermodynamic pressure to P_0
-	double ke, rho, e, c_v, c_p;
-        for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
-            for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
-                for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                    if( x_field[I1D(i,j,k)] < ( x_0 + L_x/num_grid_x ) ) {
-                        ke = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) );
-                        P_field[I1D(i,j,k)] = P_0;
-                        thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho, e, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)] );
-                        rho_field[I1D(i,j,k)] = rho; 
-                        E_field[I1D(i,j,k)] = e + ke;
-                        sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
-                        thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
-                        c_v_field[I1D(i,j,k)] = c_v;
-                        c_p_field[I1D(i,j,k)] = c_p;		       	
-                        rhou_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*u_field[I1D(i,j,k)]; 
-                        rhov_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*v_field[I1D(i,j,k)]; 
-                        rhow_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*w_field[I1D(i,j,k)]; 
-                        rhoE_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*E_field[I1D(i,j,k)]; 
-		    }
-	        }
-            }
-        }		    
 
         /// Start timer: update_previous_state_conserved_variables
         timers->start( "update_previous_state_conserved_variables" );
