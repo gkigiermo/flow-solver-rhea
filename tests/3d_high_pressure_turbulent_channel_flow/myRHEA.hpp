@@ -24,6 +24,9 @@ class myRHEA : public FlowSolverRHEA {
         /// Calculate rhou, rhov, rhow and rhoE source terms ... needs to be modified/overwritten according to the problem under consideration
         void calculateSourceTerms();
 
+	/// Execute (aggregated method) RHEA
+        void execute();
+
     protected:
 
     private:
