@@ -93,7 +93,7 @@ class FlowSolverRHEA {
         virtual void readConfigurationFile();
 
         /// Fill mesh x, y, z, delta_x, delta_y, delta_z fields
-        virtual void fillMeshCoordinateSizeFields();
+        virtual void fillMeshCoordinatesSizesFields();
 
         /// Set initial conditions: u, v, w, P and T ... needs to be modified/overwritten according to the problem under consideration
         virtual void setInitialConditions();
@@ -128,10 +128,7 @@ class FlowSolverRHEA {
         /// Calculate rhou, rhov, rhow and rhoE source terms ... needs to be modified/overwritten according to the problem under consideration
         virtual void calculateSourceTerms();
 
-        /// Clear inviscid fluxes
-        virtual void clearInviscidFluxes();
-
-        /// Calculate inviscid fluxes in x-direction
+        /// Calculate inviscid fluxes in x-direction ( required to be first! )
         virtual void calculateInviscidFluxesX();
 
         /// Calculate inviscid fluxes in y-direction

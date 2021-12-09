@@ -184,7 +184,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     rmsf_c_p_field.setTopology(topo,"rmsf_c_p");
 
     /// Fill mesh x, y, z, delta_x, delta_y, delta_z fields
-    this->fillMeshCoordinateSizeFields();
+    this->fillMeshCoordinatesSizesFields();
 
     /// Construct (initialize) writer/reader
     char char_array[ output_data_file_name.length() + 1 ]; 
@@ -482,7 +482,7 @@ void FlowSolverRHEA::readConfigurationFile() {
 
 };
 
-void FlowSolverRHEA::fillMeshCoordinateSizeFields() {
+void FlowSolverRHEA::fillMeshCoordinatesSizesFields() {
 
     /// All (inner, halo, boundary) points: x, y and z
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
@@ -633,7 +633,7 @@ void FlowSolverRHEA::initializeFromRestart() {
     rmsf_c_p_field.update();
    
     /// Fill mesh x, y, z, delta_x, delta_y, delta_z fields
-    this->fillMeshCoordinateSizeFields();
+    this->fillMeshCoordinatesSizesFields();
 
 };
 
@@ -1551,34 +1551,6 @@ void FlowSolverRHEA::calculateSourceTerms() {
 
 };
 
-void FlowSolverRHEA::clearInviscidFluxes() {
-
-    /// Clear inviscid fluxes:
-    /// Set values to zero
-
-    /// Inner points: rho, rhou, rhov, rhow and rhoE
-    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
-        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
-            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                /// Set values to zero
-                rho_inv_flux[I1D(i,j,k)]  = 0.0;
-                rhou_inv_flux[I1D(i,j,k)] = 0.0;
-                rhov_inv_flux[I1D(i,j,k)] = 0.0;
-                rhow_inv_flux[I1D(i,j,k)] = 0.0;
-                rhoE_inv_flux[I1D(i,j,k)] = 0.0;
-            }
-        }
-    }
-
-    /// Update halo values
-    //rho_inv_flux.update();
-    //rhou_inv_flux.update();
-    //rhov_inv_flux.update();
-    //rhow_inv_flux.update();
-    //rhoE_inv_flux.update();
-
-};
-
 void FlowSolverRHEA::calculateInviscidFluxesX() {
 
     /// First-order Godunov-type unsplit method for Euler equations in x-direction:
@@ -1690,11 +1662,11 @@ void FlowSolverRHEA::calculateInviscidFluxesX() {
                 rhoE_U_R = rho_R*E_R;
                 rhoE_F_m = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes x-direction
-                rho_inv_flux[I1D(i,j,k)]  += ( rho_F_p - rho_F_m )/delta_x;
-                rhou_inv_flux[I1D(i,j,k)] += ( rhou_F_p - rhou_F_m )/delta_x;
-                rhov_inv_flux[I1D(i,j,k)] += ( rhov_F_p - rhov_F_m )/delta_x;
-                rhow_inv_flux[I1D(i,j,k)] += ( rhow_F_p - rhow_F_m )/delta_x;
-                rhoE_inv_flux[I1D(i,j,k)] += ( rhoE_F_p - rhoE_F_m )/delta_x;
+                rho_inv_flux[I1D(i,j,k)]  = ( rho_F_p - rho_F_m )/delta_x;
+                rhou_inv_flux[I1D(i,j,k)] = ( rhou_F_p - rhou_F_m )/delta_x;
+                rhov_inv_flux[I1D(i,j,k)] = ( rhov_F_p - rhov_F_m )/delta_x;
+                rhow_inv_flux[I1D(i,j,k)] = ( rhow_F_p - rhow_F_m )/delta_x;
+                rhoE_inv_flux[I1D(i,j,k)] = ( rhoE_F_p - rhoE_F_m )/delta_x;
             }
         }
     }
@@ -1715,7 +1687,7 @@ void FlowSolverRHEA::calculateInviscidFluxesY() {
     /// Riemann solvers and numerical methods for fluid dynamics.
     /// Springer, 2009.
 
-    /// Inner points: rho, rhou, rhov, rhow and rhoE
+    /// Inner points: rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux and rhoE_inv_flux
     int index_L, index_R, var_type;
     double delta_y;
     double rho_L, u_L, v_L, w_L, E_L, P_L, a_L;
@@ -1844,7 +1816,7 @@ void FlowSolverRHEA::calculateInviscidFluxesZ() {
     /// Riemann solvers and numerical methods for fluid dynamics.
     /// Springer, 2009.
 
-    /// Inner points: rho, rhou, rhov, rhow and rhoE
+    /// Inner points: rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux and rhoE_inv_flux
     int index_L, index_R, var_type;
     double delta_z;
     double rho_L, u_L, v_L, w_L, E_L, P_L, a_L;
@@ -1973,7 +1945,7 @@ void FlowSolverRHEA::calculateViscousFluxes() {
     /// Fundamentals of engineering numerical analysis.
     /// Cambridge University Press, 2010.
 
-    /// Inner points: rhou, rhov, rhow and rhoE
+    /// Inner points: rho_vis_flux, rhou_vis_flux, rhov_vis_flux, rhow_vis_flux and rhoE_vis_flux
     double delta_x, delta_y, delta_z;
     double d_u_x, d_u_y, d_u_z, d_v_x, d_v_y, d_v_z, d_w_x, d_w_y, d_w_z;
     double div_uvw, tau_xx, tau_xy, tau_xz, tau_yy, tau_yz, tau_zz;
@@ -2310,8 +2282,7 @@ void FlowSolverRHEA::execute() {
             /// Start timer: calculate_inviscid_fluxes
             timers->start( "calculate_inviscid_fluxes" );
 
-            /// Calculate inviscid fluxes
-            this->clearInviscidFluxes();
+            /// Calculate inviscid fluxes ( x-direction is required to be first! )
             this->calculateInviscidFluxesX();
             this->calculateInviscidFluxesY();
             this->calculateInviscidFluxesZ();
