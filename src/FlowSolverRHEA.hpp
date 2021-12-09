@@ -143,6 +143,12 @@ class FlowSolverRHEA {
         /// Update time-averaged quantities
         virtual void updateTimeAveragedQuantities();
 
+        /// Update time mean quantity
+        virtual double updateTimeMeanQuantity(const double &quantity, const double &mean_quantity, const double &delta_t, const double &averaging_time);
+
+        /// Update time rmsf quantity
+        virtual double updateTimeRmsfQuantity(const double &quantity, const double &mean_quantity, const double &rmsf_quantity, const double &delta_t, const double &averaging_time);
+
     protected:
 
         ////////// SOLVER PARAMETERS //////////

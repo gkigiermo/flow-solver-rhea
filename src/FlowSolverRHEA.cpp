@@ -2005,35 +2005,36 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 /// Time-averaged quantities
-                avg_rho_field[I1D(i,j,k)]  = ( avg_rho_field[I1D(i,j,k)]*averaging_time + rho_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
-                avg_rhou_field[I1D(i,j,k)] = ( avg_rhou_field[I1D(i,j,k)]*averaging_time + rhou_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
-                avg_rhov_field[I1D(i,j,k)] = ( avg_rhov_field[I1D(i,j,k)]*averaging_time + rhov_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
-                avg_rhow_field[I1D(i,j,k)] = ( avg_rhow_field[I1D(i,j,k)]*averaging_time + rhow_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
-                avg_rhoE_field[I1D(i,j,k)] = ( avg_rhoE_field[I1D(i,j,k)]*averaging_time + rhoE_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
-                avg_u_field[I1D(i,j,k)]    = ( avg_u_field[I1D(i,j,k)]*averaging_time + u_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
-                avg_v_field[I1D(i,j,k)]    = ( avg_v_field[I1D(i,j,k)]*averaging_time + v_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
-                avg_w_field[I1D(i,j,k)]    = ( avg_w_field[I1D(i,j,k)]*averaging_time + w_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
-                avg_E_field[I1D(i,j,k)]    = ( avg_E_field[I1D(i,j,k)]*averaging_time + E_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
-                avg_P_field[I1D(i,j,k)]    = ( avg_P_field[I1D(i,j,k)]*averaging_time + P_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
-                avg_T_field[I1D(i,j,k)]    = ( avg_T_field[I1D(i,j,k)]*averaging_time + T_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
-                avg_sos_field[I1D(i,j,k)]  = ( avg_sos_field[I1D(i,j,k)]*averaging_time + sos_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
-                avg_c_v_field[I1D(i,j,k)]  = ( avg_c_v_field[I1D(i,j,k)]*averaging_time + c_v_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
-                avg_c_p_field[I1D(i,j,k)]  = ( avg_c_p_field[I1D(i,j,k)]*averaging_time + c_p_field[I1D(i,j,k)]*delta_t )/( averaging_time + delta_t );
+                avg_rho_field[I1D(i,j,k)]  = this->updateTimeMeanQuantity(rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_rhou_field[I1D(i,j,k)] = this->updateTimeMeanQuantity(rhou_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_rhov_field[I1D(i,j,k)] = this->updateTimeMeanQuantity(rhov_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_rhow_field[I1D(i,j,k)] = this->updateTimeMeanQuantity(rhow_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_rhoE_field[I1D(i,j,k)] = this->updateTimeMeanQuantity(rhoE_field[I1D(i,j,k)],avg_rhoE_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_u_field[I1D(i,j,k)]    = this->updateTimeMeanQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_v_field[I1D(i,j,k)]    = this->updateTimeMeanQuantity(v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_w_field[I1D(i,j,k)]    = this->updateTimeMeanQuantity(w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_E_field[I1D(i,j,k)]    = this->updateTimeMeanQuantity(E_field[I1D(i,j,k)],avg_E_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_P_field[I1D(i,j,k)]    = this->updateTimeMeanQuantity(P_field[I1D(i,j,k)],avg_P_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_T_field[I1D(i,j,k)]    = this->updateTimeMeanQuantity(T_field[I1D(i,j,k)],avg_T_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_sos_field[I1D(i,j,k)]  = this->updateTimeMeanQuantity(sos_field[I1D(i,j,k)],avg_sos_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_c_v_field[I1D(i,j,k)]  = this->updateTimeMeanQuantity(c_v_field[I1D(i,j,k)],avg_c_v_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_c_p_field[I1D(i,j,k)]  = this->updateTimeMeanQuantity(c_p_field[I1D(i,j,k)],avg_c_p_field[I1D(i,j,k)],delta_t,averaging_time);
+
                 /// Root-mean-square-fluctuation quantities
-                rmsf_rho_field[I1D(i,j,k)]  = sqrt( ( pow( rmsf_rho_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( rho_field[I1D(i,j,k)] - avg_rho_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
-                rmsf_rhou_field[I1D(i,j,k)] = sqrt( ( pow( rmsf_rhou_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( rhou_field[I1D(i,j,k)] - avg_rhou_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
-                rmsf_rhov_field[I1D(i,j,k)] = sqrt( ( pow( rmsf_rhov_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( rhov_field[I1D(i,j,k)] - avg_rhov_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
-                rmsf_rhow_field[I1D(i,j,k)] = sqrt( ( pow( rmsf_rhow_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( rhow_field[I1D(i,j,k)] - avg_rhow_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
-                rmsf_rhoE_field[I1D(i,j,k)] = sqrt( ( pow( rmsf_rhoE_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( rhoE_field[I1D(i,j,k)] - avg_rhoE_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
-                rmsf_u_field[I1D(i,j,k)]    = sqrt( ( pow( rmsf_u_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( u_field[I1D(i,j,k)] - avg_u_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
-                rmsf_v_field[I1D(i,j,k)]    = sqrt( ( pow( rmsf_v_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( v_field[I1D(i,j,k)] - avg_v_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
-                rmsf_w_field[I1D(i,j,k)]    = sqrt( ( pow( rmsf_w_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( w_field[I1D(i,j,k)] - avg_w_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
-                rmsf_E_field[I1D(i,j,k)]    = sqrt( ( pow( rmsf_E_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( E_field[I1D(i,j,k)] - avg_E_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
-                rmsf_P_field[I1D(i,j,k)]    = sqrt( ( pow( rmsf_P_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( P_field[I1D(i,j,k)] - avg_P_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
-                rmsf_T_field[I1D(i,j,k)]    = sqrt( ( pow( rmsf_T_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( T_field[I1D(i,j,k)] - avg_T_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
-                rmsf_sos_field[I1D(i,j,k)]  = sqrt( ( pow( rmsf_sos_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( sos_field[I1D(i,j,k)] - avg_sos_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
-                rmsf_c_v_field[I1D(i,j,k)]  = sqrt( ( pow( rmsf_c_v_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( c_v_field[I1D(i,j,k)] - avg_c_v_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
-                rmsf_c_p_field[I1D(i,j,k)]  = sqrt( ( pow( rmsf_c_p_field[I1D(i,j,k)], 2.0 )*averaging_time + pow( c_p_field[I1D(i,j,k)] - avg_c_p_field[I1D(i,j,k)], 2.0 )*delta_t )/( averaging_time + delta_t ) );
+                rmsf_rho_field[I1D(i,j,k)]  = this->updateTimeRmsfQuantity(rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],rmsf_rho_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_rhou_field[I1D(i,j,k)] = this->updateTimeRmsfQuantity(rhou_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],rmsf_rhou_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_rhov_field[I1D(i,j,k)] = this->updateTimeRmsfQuantity(rhov_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],rmsf_rhov_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_rhow_field[I1D(i,j,k)] = this->updateTimeRmsfQuantity(rhow_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rmsf_rhow_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_rhoE_field[I1D(i,j,k)] = this->updateTimeRmsfQuantity(rhoE_field[I1D(i,j,k)],avg_rhoE_field[I1D(i,j,k)],rmsf_rhoE_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_u_field[I1D(i,j,k)]    = this->updateTimeRmsfQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],rmsf_u_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_v_field[I1D(i,j,k)]    = this->updateTimeRmsfQuantity(v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],rmsf_v_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_w_field[I1D(i,j,k)]    = this->updateTimeRmsfQuantity(w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],rmsf_w_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_E_field[I1D(i,j,k)]    = this->updateTimeRmsfQuantity(E_field[I1D(i,j,k)],avg_E_field[I1D(i,j,k)],rmsf_E_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_P_field[I1D(i,j,k)]    = this->updateTimeRmsfQuantity(P_field[I1D(i,j,k)],avg_P_field[I1D(i,j,k)],rmsf_P_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_T_field[I1D(i,j,k)]    = this->updateTimeRmsfQuantity(T_field[I1D(i,j,k)],avg_T_field[I1D(i,j,k)],rmsf_T_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_sos_field[I1D(i,j,k)]  = this->updateTimeRmsfQuantity(sos_field[I1D(i,j,k)],avg_sos_field[I1D(i,j,k)],rmsf_sos_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_c_v_field[I1D(i,j,k)]  = this->updateTimeRmsfQuantity(c_v_field[I1D(i,j,k)],avg_c_v_field[I1D(i,j,k)],rmsf_c_v_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_c_p_field[I1D(i,j,k)]  = this->updateTimeRmsfQuantity(c_p_field[I1D(i,j,k)],avg_c_p_field[I1D(i,j,k)],rmsf_c_p_field[I1D(i,j,k)],delta_t,averaging_time);
             }
         }
     }
@@ -2070,6 +2071,22 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
     rmsf_sos_field.update();
     rmsf_c_v_field.update();
     rmsf_c_p_field.update();
+
+};
+
+double FlowSolverRHEA::updateTimeMeanQuantity(const double &quantity, const double &mean_quantity, const double &delta_t, const double &averaging_time) {
+
+    const double updated_mean_quantity = ( mean_quantity*averaging_time + quantity*delta_t )/( averaging_time + delta_t ); 
+
+    return( updated_mean_quantity );
+
+};
+
+double FlowSolverRHEA::updateTimeRmsfQuantity(const double &quantity, const double &mean_quantity, const double &rmsf_quantity, const double &delta_t, const double &averaging_time) {
+
+    const double updated_rmsf_quantity = sqrt( ( pow( rmsf_quantity, 2.0 )*averaging_time + pow( quantity - mean_quantity, 2.0 )*delta_t )/( averaging_time + delta_t ) ); 
+
+    return( updated_rmsf_quantity );
 
 };
 
@@ -2440,7 +2457,7 @@ double KgpPlusFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
 
     /// Hybrizidation: KGP + Murman-Roe schemes blended with a (dissipative) weight
     double relative_sos_difference = abs( ( a_R - a_L )/( 0.5*( a_R + a_L + epsilon ) ) );
-    double dissipative_weight      = max( 0.0, pow( sin( min( relative_sos_difference, 1.0 )*0.5*pi ), 2.0 ) );
+    double dissipative_weight      = max( 0.0, sin( min( relative_sos_difference, 1.0 )*0.5*pi ) );
     double F = ( 1.0 - dissipative_weight )*F_kgp + dissipative_weight*F_mr;
 
     return( F );
