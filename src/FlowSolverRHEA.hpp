@@ -92,8 +92,8 @@ class FlowSolverRHEA {
         /// Read configuration (input) file written in YAML language
         virtual void readConfigurationFile();
 
-        /// Fill x, y and z mesh coordinate fields (input/output data)
-        virtual void fillMeshCoordinateFields();
+        /// Fill mesh x, y, z, delta_x, delta_y, delta_z fields
+        virtual void fillMeshCoordinateSizeFields();
 
         /// Set initial conditions: u, v, w, P and T ... needs to be modified/overwritten according to the problem under consideration
         virtual void setInitialConditions();
@@ -128,8 +128,17 @@ class FlowSolverRHEA {
         /// Calculate rhou, rhov, rhow and rhoE source terms ... needs to be modified/overwritten according to the problem under consideration
         virtual void calculateSourceTerms();
 
-        /// Calculate inviscid fluxes
-        virtual void calculateInviscidFluxes();
+        /// Clear inviscid fluxes
+        virtual void clearInviscidFluxes();
+
+        /// Calculate inviscid fluxes in x-direction
+        virtual void calculateInviscidFluxesX();
+
+        /// Calculate inviscid fluxes in y-direction
+        virtual void calculateInviscidFluxesY();
+
+        /// Calculate inviscid fluxes in z-direction
+        virtual void calculateInviscidFluxesZ();
 
         /// Calculate viscous fluxes
         virtual void calculateViscousFluxes();
@@ -222,6 +231,11 @@ class FlowSolverRHEA {
         DistributedArray x_field;				/// 3-D field of x-coordinate
         DistributedArray y_field;				/// 3-D field of y-coordinate
         DistributedArray z_field;				/// 3-D field of z-coordinate
+
+        /// Mesh sizes
+        DistributedArray delta_x_field;				/// 3-D field of x sizes
+        DistributedArray delta_y_field;				/// 3-D field of y sizes
+        DistributedArray delta_z_field;				/// 3-D field of z sizes
 
         /// Primitive, conserved, thermodynamic and thermophysical variables
         DistributedArray rho_field;				/// 3-D field of rho

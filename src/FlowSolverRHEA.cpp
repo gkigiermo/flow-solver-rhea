@@ -103,6 +103,11 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     x_field.setTopology(topo,"x");
     y_field.setTopology(topo,"y");
     z_field.setTopology(topo,"z");
+
+    /// Set parallel topology of mesh sizes
+    delta_x_field.setTopology(topo,"delta_x");
+    delta_y_field.setTopology(topo,"delta_y");
+    delta_z_field.setTopology(topo,"delta_z");
 	
     /// Set parallel topology of primitive, conserved, thermodynamic and thermophysical variables	
     rho_field.setTopology(topo,"rho");
@@ -178,8 +183,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     rmsf_c_v_field.setTopology(topo,"rmsf_c_v");
     rmsf_c_p_field.setTopology(topo,"rmsf_c_p");
 
-    /// Fill x, y and z fields
-    this->fillMeshCoordinateFields();
+    /// Fill mesh x, y, z, delta_x, delta_y, delta_z fields
+    this->fillMeshCoordinateSizeFields();
 
     /// Construct (initialize) writer/reader
     char char_array[ output_data_file_name.length() + 1 ]; 
@@ -477,7 +482,7 @@ void FlowSolverRHEA::readConfigurationFile() {
 
 };
 
-void FlowSolverRHEA::fillMeshCoordinateFields() {
+void FlowSolverRHEA::fillMeshCoordinateSizeFields() {
 
     /// All (inner, halo, boundary) points: x, y and z
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
@@ -489,6 +494,27 @@ void FlowSolverRHEA::fillMeshCoordinateFields() {
             }
         }
     }
+
+    /// Update halo values
+    //x_field.update();
+    //y_field.update();
+    //z_field.update();
+
+    /// Inner points: delta_x, delta_y and delta_z
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                delta_x_field[I1D(i,j,k)] = 0.5*( mesh->x[i+1] - mesh->x[i-1] );
+                delta_y_field[I1D(i,j,k)] = 0.5*( mesh->y[j+1] - mesh->y[j-1] );
+                delta_z_field[I1D(i,j,k)] = 0.5*( mesh->z[k+1] - mesh->z[k-1] );
+            }
+        }
+    }
+
+    /// Update halo values
+    delta_x_field.update();
+    delta_y_field.update();
+    delta_z_field.update();
 
 };
 
@@ -606,8 +632,8 @@ void FlowSolverRHEA::initializeFromRestart() {
     rmsf_c_v_field.update();
     rmsf_c_p_field.update();
    
-    /// Fill x, y and z fields
-    this->fillMeshCoordinateFields();
+    /// Fill mesh x, y, z, delta_x, delta_y, delta_z fields
+    this->fillMeshCoordinateSizeFields();
 
 };
 
@@ -1454,9 +1480,9 @@ void FlowSolverRHEA::calculateTimeStep() {
                 Pr = c_p/c_v;
                 if(kappa_field[I1D(i,j,k)] > epsilon) Pr = c_p*mu_field[I1D(i,j,k)]/kappa_field[I1D(i,j,k)];
                 /// Geometric stuff
-                delta_x = 0.5*( mesh->x[i+1] - mesh->x[i-1] ); 
-                delta_y = 0.5*( mesh->y[j+1] - mesh->y[j-1] ); 
-                delta_z = 0.5*( mesh->z[k+1] - mesh->z[k-1] );                
+                delta_x = delta_x_field[I1D(i,j,k)]; 
+                delta_y = delta_y_field[I1D(i,j,k)]; 
+                delta_z = delta_z_field[I1D(i,j,k)];                
                 /// x-direction inviscid & viscous terms
                 S_x           = abs( u_field[I1D(i,j,k)] ) + sos;
                 local_delta_t = min( local_delta_t, CFL*delta_x/S_x );
@@ -1525,16 +1551,44 @@ void FlowSolverRHEA::calculateSourceTerms() {
 
 };
 
-void FlowSolverRHEA::calculateInviscidFluxes() {
+void FlowSolverRHEA::clearInviscidFluxes() {
 
-    /// First-order Godunov-type unsplit method for Euler equations:
+    /// Clear inviscid fluxes:
+    /// Set values to zero
+
+    /// Inner points: rho, rhou, rhov, rhow and rhoE
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                /// Set values to zero
+                rho_inv_flux[I1D(i,j,k)]  = 0.0;
+                rhou_inv_flux[I1D(i,j,k)] = 0.0;
+                rhov_inv_flux[I1D(i,j,k)] = 0.0;
+                rhow_inv_flux[I1D(i,j,k)] = 0.0;
+                rhoE_inv_flux[I1D(i,j,k)] = 0.0;
+            }
+        }
+    }
+
+    /// Update halo values
+    //rho_inv_flux.update();
+    //rhou_inv_flux.update();
+    //rhov_inv_flux.update();
+    //rhow_inv_flux.update();
+    //rhoE_inv_flux.update();
+
+};
+
+void FlowSolverRHEA::calculateInviscidFluxesX() {
+
+    /// First-order Godunov-type unsplit method for Euler equations in x-direction:
     /// E. F. Toro.
     /// Riemann solvers and numerical methods for fluid dynamics.
     /// Springer, 2009.
 
     /// Inner points: rho, rhou, rhov, rhow and rhoE
     int index_L, index_R, var_type;
-    double delta_x, delta_y, delta_z;
+    double delta_x;
     double rho_L, u_L, v_L, w_L, E_L, P_L, a_L;
     double rho_R, u_R, v_R, w_R, E_R, P_R, a_R;
     double rho_F_L, rho_U_L, rho_F_R, rho_U_R, rho_F_p, rho_F_m;
@@ -1546,9 +1600,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 /// Geometric stuff
-                delta_x = 0.5*( mesh->x[i+1] - mesh->x[i-1] ); 
-                delta_y = 0.5*( mesh->y[j+1] - mesh->y[j-1] ); 
-                delta_z = 0.5*( mesh->z[k+1] - mesh->z[k-1] );  
+                delta_x = delta_x_field[I1D(i,j,k)]; 
                 /// x-direction i+1/2
                 index_L = i;                           index_R = i + 1;
                 rho_L   = rho_field[I1D(index_L,j,k)]; rho_R   = rho_field[I1D(index_R,j,k)]; 
@@ -1638,11 +1690,46 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rhoE_U_R = rho_R*E_R;
                 rhoE_F_m = riemann_solver->calculateIntercellFlux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes x-direction
-                rho_inv_flux[I1D(i,j,k)]  = ( rho_F_p - rho_F_m )/delta_x;
-                rhou_inv_flux[I1D(i,j,k)] = ( rhou_F_p - rhou_F_m )/delta_x;
-                rhov_inv_flux[I1D(i,j,k)] = ( rhov_F_p - rhov_F_m )/delta_x;
-                rhow_inv_flux[I1D(i,j,k)] = ( rhow_F_p - rhow_F_m )/delta_x;
-                rhoE_inv_flux[I1D(i,j,k)] = ( rhoE_F_p - rhoE_F_m )/delta_x;
+                rho_inv_flux[I1D(i,j,k)]  += ( rho_F_p - rho_F_m )/delta_x;
+                rhou_inv_flux[I1D(i,j,k)] += ( rhou_F_p - rhou_F_m )/delta_x;
+                rhov_inv_flux[I1D(i,j,k)] += ( rhov_F_p - rhov_F_m )/delta_x;
+                rhow_inv_flux[I1D(i,j,k)] += ( rhow_F_p - rhow_F_m )/delta_x;
+                rhoE_inv_flux[I1D(i,j,k)] += ( rhoE_F_p - rhoE_F_m )/delta_x;
+            }
+        }
+    }
+
+    /// Update halo values
+    //rho_inv_flux.update();
+    //rhou_inv_flux.update();
+    //rhov_inv_flux.update();
+    //rhow_inv_flux.update();
+    //rhoE_inv_flux.update();
+
+};
+
+void FlowSolverRHEA::calculateInviscidFluxesY() {
+
+    /// First-order Godunov-type unsplit method for Euler equations in y-direction:
+    /// E. F. Toro.
+    /// Riemann solvers and numerical methods for fluid dynamics.
+    /// Springer, 2009.
+
+    /// Inner points: rho, rhou, rhov, rhow and rhoE
+    int index_L, index_R, var_type;
+    double delta_y;
+    double rho_L, u_L, v_L, w_L, E_L, P_L, a_L;
+    double rho_R, u_R, v_R, w_R, E_R, P_R, a_R;
+    double rho_F_L, rho_U_L, rho_F_R, rho_U_R, rho_F_p, rho_F_m;
+    double rhou_F_L, rhou_U_L, rhou_F_R, rhou_U_R, rhou_F_p, rhou_F_m;
+    double rhov_F_L, rhov_U_L, rhov_F_R, rhov_U_R, rhov_F_p, rhov_F_m;
+    double rhow_F_L, rhow_U_L, rhow_F_R, rhow_U_R, rhow_F_p, rhow_F_m;
+    double rhoE_F_L, rhoE_U_L, rhoE_F_R, rhoE_U_R, rhoE_F_p, rhoE_F_m;
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                /// Geometric stuff
+                delta_y = delta_y_field[I1D(i,j,k)]; 
                 /// y-direction j+1/2
                 index_L = j;                           index_R = j + 1;
                 rho_L   = rho_field[I1D(i,index_L,k)]; rho_R   = rho_field[I1D(i,index_R,k)];
@@ -1737,6 +1824,41 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 rhov_inv_flux[I1D(i,j,k)] += ( rhov_F_p - rhov_F_m )/delta_y;
                 rhow_inv_flux[I1D(i,j,k)] += ( rhow_F_p - rhow_F_m )/delta_y;
                 rhoE_inv_flux[I1D(i,j,k)] += ( rhoE_F_p - rhoE_F_m )/delta_y;
+            }
+        }
+    }
+
+    /// Update halo values
+    //rho_inv_flux.update();
+    //rhou_inv_flux.update();
+    //rhov_inv_flux.update();
+    //rhow_inv_flux.update();
+    //rhoE_inv_flux.update();
+
+};
+
+void FlowSolverRHEA::calculateInviscidFluxesZ() {
+
+    /// First-order Godunov-type unsplit method for Euler equations in z-direction:
+    /// E. F. Toro.
+    /// Riemann solvers and numerical methods for fluid dynamics.
+    /// Springer, 2009.
+
+    /// Inner points: rho, rhou, rhov, rhow and rhoE
+    int index_L, index_R, var_type;
+    double delta_z;
+    double rho_L, u_L, v_L, w_L, E_L, P_L, a_L;
+    double rho_R, u_R, v_R, w_R, E_R, P_R, a_R;
+    double rho_F_L, rho_U_L, rho_F_R, rho_U_R, rho_F_p, rho_F_m;
+    double rhou_F_L, rhou_U_L, rhou_F_R, rhou_U_R, rhou_F_p, rhou_F_m;
+    double rhov_F_L, rhov_U_L, rhov_F_R, rhov_U_R, rhov_F_p, rhov_F_m;
+    double rhow_F_L, rhow_U_L, rhow_F_R, rhow_U_R, rhow_F_p, rhow_F_m;
+    double rhoE_F_L, rhoE_U_L, rhoE_F_R, rhoE_U_R, rhoE_F_p, rhoE_F_m;
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                /// Geometric stuff
+                delta_z = delta_z_field[I1D(i,j,k)];  
                 /// z-direction k+1/2
                 index_L = k;                           index_R = k + 1;
                 rho_L   = rho_field[I1D(i,j,index_L)]; rho_R   = rho_field[I1D(i,j,index_R)];
@@ -1861,9 +1983,9 @@ void FlowSolverRHEA::calculateViscousFluxes() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 /// Geometric stuff
-                delta_x = mesh->x[i+1] - mesh->x[i-1]; 
-                delta_y = mesh->y[j+1] - mesh->y[j-1]; 
-                delta_z = mesh->z[k+1] - mesh->z[k-1];
+                delta_x = delta_x_field[I1D(i,j,k)]; 
+                delta_y = delta_y_field[I1D(i,j,k)]; 
+                delta_z = delta_z_field[I1D(i,j,k)];
                 /// Velocity derivatives
                 d_u_x = ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/delta_x;
                 d_u_y = ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j-1,k)] )/delta_y;
@@ -2189,7 +2311,10 @@ void FlowSolverRHEA::execute() {
             timers->start( "calculate_inviscid_fluxes" );
 
             /// Calculate inviscid fluxes
-            this->calculateInviscidFluxes();
+            this->clearInviscidFluxes();
+            this->calculateInviscidFluxesX();
+            this->calculateInviscidFluxesY();
+            this->calculateInviscidFluxesZ();
 
             /// Stop timer: calculate_inviscid_fluxes
             timers->stop( "calculate_inviscid_fluxes" );
