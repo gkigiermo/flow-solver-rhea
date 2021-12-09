@@ -24,7 +24,7 @@ const double nu_b       = mu_b/rho_b; 	                        /// Kinematic vis
 const double kappa_vK   = 0.41;                                 /// von Kármán constant
 const double y_0        = nu_b/( 9.0*u_tau_b );                 /// Smooth-wall roughness
 const double u_0        = ( u_tau_b/kappa_vK )*( log( delta/y_0 ) + ( y_0/delta ) - 1.0 );        /// Volume average of a log-law velocity profile
-const double alpha      = 0.25;                                 /// Magnitude of perturbations
+const double alpha      = 0.05;                                 /// Magnitude of perturbations
 
 /// Estimated uniform body force to drive the flow
 double controller_output = tau_w_b/delta;		        /// Initialize controller output
