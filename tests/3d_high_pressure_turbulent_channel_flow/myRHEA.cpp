@@ -31,6 +31,9 @@ double controller_output = tau_w_b/delta;		        /// Initialize controller out
 double controller_error  = 0.0;			        	/// Initialize controller error
 double controller_K_p    = 1.0e-1;		        	/// Controller proportional gain
 
+/// Control bulk pressure to maintain the fixed target value P_0
+bool control_bulk_pressure = true;
+
 
 ////////// myRHEA CLASS //////////
 
@@ -135,6 +138,263 @@ void myRHEA::calculateSourceTerms() {
     //f_rhov_field.update();
     //f_rhow_field.update();
     //f_rhoE_field.update();
+
+};
+
+void myRHEA::execute() {
+    
+    /// Start timer: execute
+    timers->start( "execute" );
+
+    int my_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    /// Set output (cout) precision
+    cout.precision( cout_presicion );
+
+    /// Start RHEA simulation
+    if( my_rank == 0 ) cout << "RHEA (v" << version_number << "): START SIMULATION" << endl;
+
+    /// Initialize variables from restart file or by setting initial conditions
+    if( use_restart ) {
+
+        /// Initialize from restart file
+        this->initializeFromRestart();
+
+
+    } else {
+
+        /// Set initial conditions
+        this->setInitialConditions();
+    
+        /// Initialize thermodynamics
+        this->initializeThermodynamics();
+
+        /// Calculate transport coefficients
+        this->calculateTransportCoefficients();
+
+    }
+
+    /// Calculate conserved variables from primitive variables
+    this->primitiveToConservedVariables();
+
+    /// Update previous state of conserved variables
+    this->updatePreviousStateConservedVariables();    
+    
+    /// Start timer: time_iteration_loop
+    timers->start( "time_iteration_loop" );
+
+    /// Iterate flow solver RHEA in time
+    for(int time_iter = current_time_iter; time_iter < final_time_iter; time_iter++) {
+
+        /// Start timer: calculate_time_step
+        timers->start( "calculate_time_step" );
+
+        /// Calculate time step
+        this->calculateTimeStep();
+        if( ( current_time + delta_t ) > final_time ) delta_t = final_time - current_time;
+
+        /// Stop timer: calculate_time_step
+        timers->stop( "calculate_time_step" );
+
+        /// Stop timer: execute
+        timers->stop( "execute" );
+
+        /// Start timer: output_solver_state
+        timers->start( "output_solver_state" );
+
+        /// Print time iteration information (if criterion satisfied)
+        if( ( current_time_iter%print_frequency_iter == 0 ) and ( my_rank == 0 ) ) {
+            cout << "Time iteration " << current_time_iter << ": " 
+                 << "time = " << scientific << current_time << " [s], "
+                 << "time-step = " << scientific << delta_t << " [s], "
+                 << "wall-clock time = " << scientific << timers->getAccumulatedMaxTime( "execute" )/3600.0 << " [h]" << endl;
+        }
+
+        /// Output current state data to file (if criterion satisfied)
+        if( current_time_iter%output_frequency_iter == 0 ) this->outputCurrentStateData();
+
+        /// Stop timer: output_solver_state
+        timers->stop( "output_solver_state" );
+
+        /// Start timer: execute
+        timers->start( "execute" );
+
+        /// Start timer: rk_iteration_loop
+        timers->start( "rk_iteration_loop" );
+
+        /// Runge-Kutta time-integration steps
+        for(int rk_time_stage = 1; rk_time_stage <= rk_number_stages; rk_time_stage++) {
+
+            /// Start timer: calculate_thermophysical_properties
+            timers->start( "calculate_thermophysical_properties" );
+
+            /// Calculate transport coefficients
+            this->calculateTransportCoefficients();
+
+            /// Stop timer: calculate_thermophysical_properties
+            timers->stop( "calculate_thermophysical_properties" );
+
+            /// Start timer: calculate_inviscid_fluxes
+            timers->start( "calculate_inviscid_fluxes" );
+
+            /// Calculate inviscid fluxes ( x-direction is required to be first! )
+            this->calculateInviscidFluxesX();
+            this->calculateInviscidFluxesY();
+            this->calculateInviscidFluxesZ();
+
+            /// Stop timer: calculate_inviscid_fluxes
+            timers->stop( "calculate_inviscid_fluxes" );
+
+            /// Start timer: calculate_viscous_fluxes
+            timers->start( "calculate_viscous_fluxes" );
+
+            /// Calculate viscous fluxes
+            this->calculateViscousFluxes();
+
+            /// Stop timer: calculate_viscous_fluxes
+            timers->stop( "calculate_viscous_fluxes" );
+
+            /// Start timer: calculate_source_terms
+            timers->start( "calculate_source_terms" );
+
+            /// Calculate source terms
+            this->calculateSourceTerms();
+
+            /// Stop timer: calculate_source_terms
+            timers->stop( "calculate_source_terms" );
+
+            /// Start timer: time_advance_conserved_variables
+            timers->start( "time_advance_conserved_variables" );
+
+            /// Advance conserved variables in time
+            this->timeAdvanceConservedVariables(rk_time_stage);
+
+            /// Stop timer: time_advance_conserved_variables
+            timers->stop( "time_advance_conserved_variables" );
+
+            /// Start timer: conserved_to_primitive_variables
+            timers->start( "conserved_to_primitive_variables" );
+
+            /// Calculate primitive variables from conserved variables
+            this->conservedToPrimitiveVariables();
+
+            /// Stop timer: conserved_to_primitive_variables
+            timers->stop( "conserved_to_primitive_variables" );
+
+            /// Start timer: calculate_thermodynamics_from_primitive_variables
+            timers->start( "calculate_thermodynamics_from_primitive_variables" );
+
+            /// Calculate thermodynamics from primitive variables
+            this->calculateThermodynamicsFromPrimitiveVariables();
+
+            /// Stop timer: calculate_thermodynamics_from_primitive_variables
+            timers->stop( "calculate_thermodynamics_from_primitive_variables" );
+
+            if( control_bulk_pressure ) {
+                /// Start: bulk pressure explicitly modified to maintain the fixed target value P_0
+
+                /// Calculate local values
+                double local_sum_PV = 0.0;
+                double local_sum_V  = 0.0;
+                double volume       = 0.0;
+                for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+                    for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+                        for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                            /// Calculate volume
+                            volume = delta_x_field[I1D(i,j,k)]*delta_y_field[I1D(i,j,k)]*delta_z_field[I1D(i,j,k)]; 
+                            /// Sum P*V values
+                            local_sum_PV += P_field[I1D(i,j,k)]*volume;
+                            /// Sum V values
+                            local_sum_V += volume;
+                        }
+                    }
+                }
+
+                /// Communicate local values to obtain global & average values
+                double global_sum_PV;
+                MPI_Allreduce(&local_sum_PV, &global_sum_PV, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+                double global_sum_V;
+                MPI_Allreduce(&local_sum_V, &global_sum_V, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+                double global_avg_P = global_sum_PV/global_sum_V;
+
+                /// Modify P values
+                double ratio_P_0_P_b = P_0/( global_avg_P + epsilon );
+                for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+                    for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+                        for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                            /// Sum P*V values
+                            P_field[I1D(i,j,k)] *= ratio_P_0_P_b;
+                        }
+                    }
+                }
+
+                /// Stop: bulk pressure explicitly modified to maintain the fixed target value P_0
+            }
+
+            /// Start timer: update_boundaries
+            timers->start( "update_boundaries" );
+
+            /// Update boundary values
+            this->updateBoundaries();
+
+            /// Stop timer: update_boundaries
+            timers->stop( "update_boundaries" );
+
+        }
+
+        /// Stop timer: rk_iteration_loop
+        timers->stop( "rk_iteration_loop" );
+
+        /// Start timer: update_time_averaged_quantities
+        timers->start( "update_time_averaged_quantities" );
+
+        /// Update time-averaged quantities
+        if( time_averaging_active ) this->updateTimeAveragedQuantities();
+
+        /// Stop timer: update_time_averaged_quantities
+        timers->stop( "update_time_averaged_quantities" );
+
+        /// Start timer: update_previous_state_conserved_variables
+        timers->start( "update_previous_state_conserved_variables" );
+
+        /// Update previous state of conserved variables
+        this->updatePreviousStateConservedVariables();
+
+        /// Update time and time iteration
+        current_time += delta_t;
+        current_time_iter += 1;
+
+        /// Check if simulation is completed: current_time > final_time
+        if( current_time >= final_time ) break;
+
+        /// Stop timer: update_previous_state_conserved_variables
+        timers->stop( "update_previous_state_conserved_variables" );
+
+    }
+
+    /// Stop timer: time_iteration_loop
+    timers->stop( "time_iteration_loop" );
+
+    /// Print timers information
+    if( print_timers ) timers->printTimers( timers_information_file );
+
+    /// Print time advancement information
+    if( my_rank == 0 ) {
+        cout << "Time advancement completed -> " 
+             << "iteration = " << current_time_iter << ", "
+             << "time = " << scientific << current_time << " [s]" << endl;
+        }
+
+    /// Output current state data to file
+    this->outputCurrentStateData();
+
+    /// End RHEA simulation
+    if( my_rank == 0 ) cout << "RHEA (v" << version_number << "): END SIMULATION" << endl;
+    
+    /// Stop timer: execute
+    timers->stop( "execute" );
 
 };
 

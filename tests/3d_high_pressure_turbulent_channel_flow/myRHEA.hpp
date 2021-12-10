@@ -17,7 +17,10 @@ class myRHEA : public FlowSolverRHEA {
         virtual ~myRHEA() {};									/// Destructor
 
 	////////// SOLVER METHODS //////////
-        
+       
+	/// Execute (aggregated method) RHEA
+        void execute();
+ 
         /// Set initial conditions: u, v, w, P and T ... needs to be modified/overwritten according to the problem under consideration
         void setInitialConditions();
 
