@@ -125,7 +125,7 @@ void myRHEA::calculateSourceTerms() {
                 f_rhou_field[I1D(i,j,k)] = controller_output;
                 f_rhov_field[I1D(i,j,k)] = 0.0;
                 f_rhow_field[I1D(i,j,k)] = 0.0;
-                f_rhoE_field[I1D(i,j,k)] = ( -1.0 )*( f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)] );
+                f_rhoE_field[I1D(i,j,k)] = 0.0;
             }
         }
     }
