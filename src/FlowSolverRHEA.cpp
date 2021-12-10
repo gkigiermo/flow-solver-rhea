@@ -495,10 +495,10 @@ void FlowSolverRHEA::fillMeshCoordinatesSizesFields() {
         }
     }
 
-    /// Update halo values
-    x_field.update();
-    y_field.update();
-    z_field.update();
+    /// Update halo values (do not activate!)
+    //x_field.update();
+    //y_field.update();
+    //z_field.update();
 
     /// Inner points: delta_x, delta_y and delta_z
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
