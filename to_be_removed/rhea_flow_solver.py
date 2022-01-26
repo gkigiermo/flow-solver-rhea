@@ -65,33 +65,35 @@ import numpy as np
 
 
 ########## SET PARAMETERS ##########
-Re_tau  = 100.0				# Friction Reynolds number [-]
-delta   = 1.0				# Channel half-height [m]
-u_tau   = 1.0				# Friction velocity [m/s]
-rho_ref = 1.0				# Reference density [kg/m3]
-P_ref   = 101325.0			# Reference pressure [Pa]
 
 ### Fluid properties 
-R_specific = 287.058			# Specific gas constant of air [J/(kg K)]
-gamma      = 1.4			# Heat capacity ratio of air [-]
-mu         = rho_ref*u_tau*delta/Re_tau	# Dynamic viscosity of air [Pa s]
-kappa      = 0.0			# Thermal conductivity of air [W/(m k)]
+R_specific = 287.058			# Specific gas constant of the fluid [J/(kg K)]
+gamma      = 1.4			# Heat capacity ratio of the fluid [-]
+rho_L      = 1.0			# Initial density of left state [kg/m^3]
+u_L        = 0.0			# Initial velocity of left state [m/s]
+P_L        = 1.0			# Initial pressure of left state [Pa]
+rho_R      = 0.125			# Initial density of right state [kg/m^3]
+u_R        = 0.0			# Initial velocity of right state [m/s]
+P_R        = 0.1			# Initial pressure of right state [Pa]
+x_d        = 0.5			# Initial position of the discontinuity [m]
+mu         = 0.0                	# Dynamic viscosity of the fluid [Pa s]
+kappa      = 0.0			# Thermal conductivity of the fluid [W/(m k)]
 
 ### Problem parameters
 x_0           = 0.0                     # Domain origin in x-direction [m]
 y_0           = 0.0                     # Domain origin in y-direction [m]
 z_0           = 0.0                     # Domain origin in z-direction [m]
-L_x           = 4.0*np.pi*delta   	# Size of domain in x-direction
-L_y           = 2.0*delta      		# Size of domain in y-direction
-L_z           = 4.0*np.pi*delta/3.0	# Size of domain in z-direction
+L_x           = 1.0                  	# Size of domain in x-direction
+L_y           = 0.1*L_x      		# Size of domain in y-direction
+L_z           = 0.1*L_x         	# Size of domain in z-direction
 initial_time  = 0.0   			# Initial time [s]
-final_time    = 1.0e3      		# Final time [s]
+final_time    = 0.2      		# Final time [s]
 name_file_out = 'output_data.csv'	# Name of output data [-]
 
 ### Computational parameters
-num_grid_x        = 64			# Number of internal grid points in the x-direction
-num_grid_y        = 64			# Number of internal grid points in the y-direction
-num_grid_z        = 64			# Number of internal grid points in the z-direction
+num_grid_x        = 100 		# Number of internal grid points in the x-direction
+num_grid_y        = 1			# Number of internal grid points in the y-direction
+num_grid_z        = 1			# Number of internal grid points in the z-direction
 CFL               = 0.9			# CFL coefficient
 max_num_time_iter = 1e6			# Maximum number of time iterations
 output_iter       = 1e2			# Output data every given number of iterations
@@ -164,7 +166,7 @@ def spatial_discretization( grid ):
     # Stretching factors: x = L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
     # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
     A_x = 0.0                             # Stretching factor in x-direction
-    A_y = -1.915                          # Stretching factor in y-direction
+    A_y = 0.0                             # Stretching factor in y-direction
     A_z = 0.0                             # Stretching factor in z-direction
 
     # All points
@@ -208,11 +210,16 @@ def initialize_uvwPT( u, v, w, P, T, grid ):
     for i in range( 0, num_grid_x + 2 ):    
         for j in range( 0, num_grid_y + 2 ):    
             for k in range( 0, num_grid_z + 2 ):
-                u[i][j][k] = u_tau*np.sin( grid[i][j][k][0] )
+                if( grid[i][j][k][0] < x_d ):
+                    u[i][j][k] = u_L
+                    P[i][j][k] = P_L
+                    T[i][j][k] = ( 1.0/( rho_L*R_specific ) )*P[i][j][k]
+                else:
+                    u[i][j][k] = u_R
+                    P[i][j][k] = P_R
+                    T[i][j][k] = ( 1.0/( rho_R*R_specific ) )*P[i][j][k]
                 v[i][j][k] = 0.0
-                w[i][j][k] = u_tau*np.sin( grid[i][j][k][2] )
-                P[i][j][k] = P_ref
-                T[i][j][k] = ( 1.0/( rho_ref*R_specific ) )*P[i][j][k]
+                w[i][j][k] = 0.0
     #print( u )
     #print( v )
     #print( w )
@@ -324,12 +331,10 @@ def source_terms( f_rhou, f_rhov, f_rhow, f_rhoE, rho, u, v, w, mesh ):
     for i in range( 1, num_grid_x + 1 ):    
         for j in range( 1, num_grid_y + 1 ):    
             for k in range( 1, num_grid_z + 1 ):
-                #f_rhou[i][j][k] = 0.0
-                f_rhou[i][j][k] = -1.0
+                f_rhou[i][j][k] = 0.0
                 f_rhov[i][j][k] = 0.0
                 f_rhow[i][j][k] = 0.0
-                #f_rhoE[i][j][k] = 0.0
-                f_rhoE[i][j][k] = ( -1.0 )*( f_rhou[i][j][k]*u[i][j][k] + f_rhov[i][j][k]*v[i][j][k] + f_rhow[i][j][k]*w[i][j][k] )
+                f_rhoE[i][j][k] = 0.0
     #print( f_rhou )
     #print( f_rhov )
     #print( f_rhow )
@@ -915,72 +920,74 @@ def time_integration( y, y_0, h, k_s, rk_iter ):
 def update_boundaries( rho, rhou, rhov, rhow, rhoE ):
 
     # Boundary conditions:
-    # West:  periodic
-    # East:  periodic
-    # South: reflective
-    # North: reflective
-    # Back:  periodic
-    # Front: periodic
+    # West:  Neumann
+    # East:  Neumann
+    # South: Neumann
+    # North: Neumann
+    # Back:  Neumann
+    # Front: Neumann
 
     # West boundary points
     i = 0
     for j in range( 1, num_grid_y + 1 ):    
         for k in range( 1, num_grid_z + 1 ):    
-            rho[i][j][k]  = rho[num_grid_x][j][k]
-            rhou[i][j][k] = rhou[num_grid_x][j][k]
-            rhov[i][j][k] = rhov[num_grid_x][j][k]
-            rhow[i][j][k] = rhow[num_grid_x][j][k]
-            rhoE[i][j][k] = rhoE[num_grid_x][j][k]
+            rho[i][j][k]  = rho[i+1][j][k]
+            rhou[i][j][k] = rhou[i+1][j][k]
+            rhov[i][j][k] = rhov[i+1][j][k]
+            rhow[i][j][k] = rhow[i+1][j][k]
+            rhoE[i][j][k] = rhoE[i+1][j][k]
 
     # East boundary points
     i = num_grid_x + 1    
     for j in range( 1, num_grid_y + 1 ):    
         for k in range( 1, num_grid_z + 1 ):    
-            rho[i][j][k]  = rho[1][j][k]
-            rhou[i][j][k] = rhou[1][j][k]
-            rhov[i][j][k] = rhov[1][j][k]
-            rhow[i][j][k] = rhow[1][j][k]
-            rhoE[i][j][k] = rhoE[1][j][k]
+            rho[i][j][k]  = rho[i-1][j][k]
+            rhou[i][j][k] = rhou[i-1][j][k]
+            rhov[i][j][k] = rhov[i-1][j][k]
+            rhow[i][j][k] = rhow[i-1][j][k]
+            rhoE[i][j][k] = rhoE[i-1][j][k]
 
     # South boundary points
     j = 0    
     for i in range( 1, num_grid_x + 1 ):    
         for k in range( 1, num_grid_z + 1 ):    
-            rho[i][j][k]  = 2.0*rho_ref - rho[i][j+1][k]
-            rhou[i][j][k] = ( -1.0 )*rhou[i][j+1][k]
-            rhov[i][j][k] = ( -1.0 )*rhov[i][j+1][k]
-            rhow[i][j][k] = ( -1.0 )*rhow[i][j+1][k]
-            rhoE[i][j][k] = 2.0*( ( P_ref/( gamma - 1.0 ) ) + ( ( rhou[i][j][k]**2.0 + rhov[i][j][k]**2.0 + rhow[i][j][k]**2.0 )/( 2.0*rho[i][j][k] ) ) ) - rhoE[i][j+1][k]
+            rho[i][j][k]  = rho[i][j+1][k]
+            rhou[i][j][k] = rhou[i][j+1][k]
+            rhov[i][j][k] = rhov[i][j+1][k]
+            rhow[i][j][k] = rhow[i][j+1][k]
+            rhoE[i][j][k] = rhoE[i][j+1][k]
 
     # North boundary points
     j = num_grid_y + 1    
     for i in range( 1, num_grid_x + 1 ):    
         for k in range( 1, num_grid_z + 1 ):    
-            rho[i][j][k]  = 2.0*rho_ref - rho[i][j-1][k]            
-            rhou[i][j][k] = ( -1.0 )*rhou[i][j-1][k]            
-            rhov[i][j][k] = ( -1.0 )*rhov[i][j-1][k]            
-            rhow[i][j][k] = ( -1.0 )*rhow[i][j-1][k]            
-            rhoE[i][j][k] = 2.0*( ( P_ref/( gamma - 1.0 ) ) + ( ( rhou[i][j][k]**2.0 + rhov[i][j][k]**2.0 + rhow[i][j][k]**2.0 )/( 2.0*rho[i][j][k] ) ) ) - rhoE[i][j-1][k]            
+            rho[i][j][k]  = rho[i][j-1][k]
+            rhou[i][j][k] = rhou[i][j-1][k]
+            rhov[i][j][k] = rhov[i][j-1][k]
+            rhow[i][j][k] = rhow[i][j-1][k]
+            rhoE[i][j][k] = rhoE[i][j-1][k]            
 
     # Back boundary points
     k = 0    
     for i in range( 1, num_grid_x + 1 ):    
         for j in range( 1, num_grid_y + 1 ):    
-            rho[i][j][k]  = rho[i][j][num_grid_z]
-            rhou[i][j][k] = rhou[i][j][num_grid_z]
-            rhov[i][j][k] = rhov[i][j][num_grid_z]
-            rhow[i][j][k] = rhow[i][j][num_grid_z]
-            rhoE[i][j][k] = rhoE[i][j][num_grid_z]
+            rho[i][j][k]  = rho[i][j][k+1]
+            rhou[i][j][k] = rhou[i][j][k+1]
+            rhov[i][j][k] = rhov[i][j][k+1]
+            rhow[i][j][k] = rhow[i][j][k+1]
+            rhoE[i][j][k] = rhoE[i][j][k+1]
 
     # Front boundary points
     k = num_grid_z + 1    
     for i in range( 1, num_grid_x + 1 ):    
         for j in range( 1, num_grid_y + 1 ):    
-            rho[i][j][k]  = rho[i][j][1]
-            rhou[i][j][k] = rhou[i][j][1]
-            rhov[i][j][k] = rhov[i][j][1]
-            rhow[i][j][k] = rhow[i][j][1]
-            rhoE[i][j][k] = rhoE[i][j][1]
+            rho[i][j][k]  = rho[i][j][k-1]
+            rhou[i][j][k] = rhou[i][j][k-1]
+            rhov[i][j][k] = rhov[i][j][k-1]
+            rhow[i][j][k] = rhow[i][j][k-1]
+            rhoE[i][j][k] = rhoE[i][j][k-1]
+
+    # !! NO NEED TO MODIFY BELOW THIS POINT !!
 
     # Fill x-direction edge boundary points
     for i in range( 1, num_grid_x + 1 ):    
