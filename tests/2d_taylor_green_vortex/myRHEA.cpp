@@ -30,7 +30,7 @@ void myRHEA::setInitialConditions() {
                 u_field[I1D(i,j,k)] = U_0*sin( mesh->x[i] )*cos( mesh->y[j] );
                 v_field[I1D(i,j,k)] = ( -1.0 )*U_0*cos( mesh->x[i] )*sin( mesh->y[j] );
                 w_field[I1D(i,j,k)] = 0.0;
-                P_field[I1D(i,j,k)] = P_0 - ( rho_0*U_0*U_0/4.0 )*( cos( 2.0*mesh->x[i] ) + cos( 2.0*mesh->y[j] ) );
+                P_field[I1D(i,j,k)] = P_0 + ( rho_0*U_0*U_0/4.0 )*( cos( 2.0*mesh->x[i] ) + cos( 2.0*mesh->y[j] ) );
                 T_field[I1D(i,j,k)] = thermodynamics->calculateTemperatureFromPressureDensity( P_field[I1D(i,j,k)], rho_0 );
             }
         }
