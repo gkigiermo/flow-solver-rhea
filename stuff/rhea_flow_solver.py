@@ -987,8 +987,6 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE ):
             rhow[i][j][k] = rhow[i][j][k-1]
             rhoE[i][j][k] = rhoE[i][j][k-1]
 
-    # !! NO NEED TO MODIFY BELOW THIS POINT !!
-
     # Fill x-direction edge boundary points
     for i in range( 1, num_grid_x + 1 ):    
         j = 0; k = 0
