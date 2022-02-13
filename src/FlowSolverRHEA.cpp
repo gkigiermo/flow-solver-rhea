@@ -2509,6 +2509,8 @@ double KgpFluxApproximateRiemannSolver::calculateIntercellFlux(const double &F_L
         F *= w_L + w_R;
     } else if ( var_type == 4 ) {
         F *= E_L + P_L/rho_L + E_R + P_R/rho_R;
+        //F *= E_L + E_R;
+        //F += ( 1.0/4.0 )*( u_L + u_R )*( P_L + P_R );
     }
 
     return( F );
@@ -2541,6 +2543,8 @@ double KgpPlusFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
         F_kgp *= w_L + w_R;
     } else if ( var_type == 4 ) {
         F_kgp *= E_L + P_L/rho_L + E_R + P_R/rho_R;
+        //F_kgp *= E_L + E_R;
+        //F_kgp += ( 1.0/4.0 )*( u_L + u_R )*( P_L + P_R );
     }
 
     /// Murman-Roe Riemman solver:
