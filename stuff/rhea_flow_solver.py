@@ -368,12 +368,42 @@ def waves_speed( rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R ):
 
 
 ### Calculate HLLC flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE 
-def HLLC_flux( F_L, F_R, U_L, U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type ):
+def HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type ):
 
     # HLLC approximate Riemann solver:
     # E. F. Toro.
     # Riemann solvers and numerical methods for fluid dynamics.
     # Springer, 2009.    
+
+    F_L = rho_L*u_L
+    F_R = rho_R*u_R
+    U_L = rho_L
+    U_R = rho_R
+    if( var_type == 0 ):
+        F_L *= 1.0
+        F_R *= 1.0
+        U_L *= 1.0
+        U_R *= 1.0
+    elif( var_type == 1 ):
+        F_L *= u_L; F_L += P_L
+        F_R *= u_R; F_R += P_R
+        U_L *= u_L
+        U_R *= u_R
+    elif( var_type == 2 ):
+        F_L *= v_L
+        F_R *= v_R
+        U_L *= v_L
+        U_R *= v_R
+    elif( var_type == 3 ):
+        F_L *= w_L
+        F_R *= w_R
+        U_L *= w_L
+        U_R *= w_R
+    elif( var_type == 4 ):
+        F_L *= E_L; F_L += u_L*P_L
+        F_R *= E_R; F_R += u_R*P_R
+        U_L *= E_L
+        U_R *= E_R
 
     S_L, S_R = waves_speed( rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R )
     S_star   = ( P_R - P_L + rho_L*u_L*( S_L - u_L ) - rho_R*u_R*( S_R - u_R ) )/( rho_L*( S_L - u_L ) - rho_R*( S_R - u_R ) )
@@ -414,7 +444,7 @@ def HLLC_flux( F_L, F_R, U_L, U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E
 ### Calculate inviscid fluxes
 def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v, w, E, P, sos, grid ):
 
-    # First-order Godunov-type unsplit method for Euler equations:
+    # Unsplit method for Euler equations:
     # E. F. Toro.
     # Riemann solvers and numerical methods for fluid dynamics.
     # Springer, 2009.
@@ -438,39 +468,19 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 a_L     = sos[index_L][j][k]; a_R     = sos[index_R][j][k]
                 # rho
                 var_type = 0
-                rho_F_L  = rho[index_L][j][k]*u[index_L][j][k]
-                rho_F_R  = rho[index_R][j][k]*u[index_R][j][k]
-                rho_U_L  = rho[index_L][j][k]
-                rho_U_R  = rho[index_R][j][k]
-                rho_F_p  = HLLC_flux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
+                rho_F_p  = HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 # rhou
                 var_type = 1
-                rhou_F_L = rho[index_L][j][k]*u[index_L][j][k]*u[index_L][j][k] + P[index_L][j][k]
-                rhou_F_R = rho[index_R][j][k]*u[index_R][j][k]*u[index_R][j][k] + P[index_R][j][k]
-                rhou_U_L = rho[index_L][j][k]*u[index_L][j][k]
-                rhou_U_R = rho[index_R][j][k]*u[index_R][j][k]
-                rhou_F_p = HLLC_flux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
+                rhou_F_p = HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
                 # rhov
                 var_type = 2
-                rhov_F_L = rho[index_L][j][k]*u[index_L][j][k]*v[index_L][j][k]
-                rhov_F_R = rho[index_R][j][k]*u[index_R][j][k]*v[index_R][j][k]
-                rhov_U_L = rho[index_L][j][k]*v[index_L][j][k]
-                rhov_U_R = rho[index_R][j][k]*v[index_R][j][k]
-                rhov_F_p = HLLC_flux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
+                rhov_F_p = HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
                 # rhow
                 var_type = 3
-                rhow_F_L = rho[index_L][j][k]*u[index_L][j][k]*w[index_L][j][k]
-                rhow_F_R = rho[index_R][j][k]*u[index_R][j][k]*w[index_R][j][k]
-                rhow_U_L = rho[index_L][j][k]*w[index_L][j][k]
-                rhow_U_R = rho[index_R][j][k]*w[index_R][j][k]
-                rhow_F_p = HLLC_flux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
+                rhow_F_p = HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
                 # rhoE
                 var_type = 4
-                rhoE_F_L = rho[index_L][j][k]*u[index_L][j][k]*E[index_L][j][k] + u[index_L][j][k]*P[index_L][j][k] 
-                rhoE_F_R = rho[index_R][j][k]*u[index_R][j][k]*E[index_R][j][k] + u[index_R][j][k]*P[index_R][j][k] 
-                rhoE_U_L = rho[index_L][j][k]*E[index_L][j][k]
-                rhoE_U_R = rho[index_R][j][k]*E[index_R][j][k]
-                rhoE_F_p = HLLC_flux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )                
+                rhoE_F_p = HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )                
                 ## x-direction i-1/2
                 index_L = i - 1;              index_R = i
                 rho_L   = rho[index_L][j][k]; rho_R   = rho[index_R][j][k] 
@@ -482,39 +492,19 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 a_L     = sos[index_L][j][k]; a_R     = sos[index_R][j][k]
                 # rho
                 var_type = 0
-                rho_F_L  = rho[index_L][j][k]*u[index_L][j][k]
-                rho_F_R  = rho[index_R][j][k]*u[index_R][j][k]
-                rho_U_L  = rho[index_L][j][k]
-                rho_U_R  = rho[index_R][j][k]
-                rho_F_m  = HLLC_flux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
+                rho_F_m  = HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 # rhou
                 var_type = 1
-                rhou_F_L = rho[index_L][j][k]*u[index_L][j][k]*u[index_L][j][k] + P[index_L][j][k]
-                rhou_F_R = rho[index_R][j][k]*u[index_R][j][k]*u[index_R][j][k] + P[index_R][j][k]
-                rhou_U_L = rho[index_L][j][k]*u[index_L][j][k]
-                rhou_U_R = rho[index_R][j][k]*u[index_R][j][k]
-                rhou_F_m = HLLC_flux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
+                rhou_F_m = HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
                 # rhov
                 var_type = 2
-                rhov_F_L = rho[index_L][j][k]*u[index_L][j][k]*v[index_L][j][k]
-                rhov_F_R = rho[index_R][j][k]*u[index_R][j][k]*v[index_R][j][k]
-                rhov_U_L = rho[index_L][j][k]*v[index_L][j][k]
-                rhov_U_R = rho[index_R][j][k]*v[index_R][j][k]
-                rhov_F_m = HLLC_flux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
+                rhov_F_m = HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
                 # rhow
                 var_type = 3
-                rhow_F_L = rho[index_L][j][k]*u[index_L][j][k]*w[index_L][j][k]
-                rhow_F_R = rho[index_R][j][k]*u[index_R][j][k]*w[index_R][j][k]
-                rhow_U_L = rho[index_L][j][k]*w[index_L][j][k]
-                rhow_U_R = rho[index_R][j][k]*w[index_R][j][k]
-                rhow_F_m = HLLC_flux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
+                rhow_F_m = HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
                 # rhoE
                 var_type = 4
-                rhoE_F_L = rho[index_L][j][k]*u[index_L][j][k]*E[index_L][j][k] + u[index_L][j][k]*P[index_L][j][k] 
-                rhoE_F_R = rho[index_R][j][k]*u[index_R][j][k]*E[index_R][j][k] + u[index_R][j][k]*P[index_R][j][k]
-                rhoE_U_L = rho[index_L][j][k]*E[index_L][j][k]
-                rhoE_U_R = rho[index_R][j][k]*E[index_R][j][k]
-                rhoE_F_m = HLLC_flux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
+                rhoE_F_m = HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 ## Fluxes x-direction
                 rho_inv[i][j][k]  = ( 1.0/delta_x )*( rho_F_p - rho_F_m )
                 rhou_inv[i][j][k] = ( 1.0/delta_x )*( rhou_F_p - rhou_F_m )
@@ -532,39 +522,19 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 a_L     = sos[i][index_L][k]; a_R     = sos[i][index_R][k]
                 # rho
                 var_type = 0
-                rho_F_L  = rho[i][index_L][k]*v[i][index_L][k]
-                rho_F_R  = rho[i][index_R][k]*v[i][index_R][k]
-                rho_U_L  = rho[i][index_L][k]
-                rho_U_R  = rho[i][index_R][k]
-                rho_F_p  = HLLC_flux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
+                rho_F_p  = HLLC_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 # rhou
                 var_type = 2
-                rhou_F_L = rho[i][index_L][k]*v[i][index_L][k]*u[i][index_L][k]
-                rhou_F_R = rho[i][index_R][k]*v[i][index_R][k]*u[i][index_R][k] 
-                rhou_U_L = rho[i][index_L][k]*u[i][index_L][k]
-                rhou_U_R = rho[i][index_R][k]*u[i][index_R][k]
-                rhou_F_p = HLLC_flux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
+                rhou_F_p = HLLC_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
                 # rhov
                 var_type = 1
-                rhov_F_L = rho[i][index_L][k]*v[i][index_L][k]*v[i][index_L][k] + P[i][index_L][k]
-                rhov_F_R = rho[i][index_R][k]*v[i][index_R][k]*v[i][index_R][k] + P[i][index_R][k]
-                rhov_U_L = rho[i][index_L][k]*v[i][index_L][k]
-                rhov_U_R = rho[i][index_R][k]*v[i][index_R][k]
-                rhov_F_p = HLLC_flux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
+                rhov_F_p = HLLC_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
                 # rhow
                 var_type = 3
-                rhow_F_L = rho[i][index_L][k]*v[i][index_L][k]*w[i][index_L][k]
-                rhow_F_R = rho[i][index_R][k]*v[i][index_R][k]*w[i][index_R][k]
-                rhow_U_L = rho[i][index_L][k]*w[i][index_L][k]
-                rhow_U_R = rho[i][index_R][k]*w[i][index_R][k]
-                rhow_F_p = HLLC_flux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
+                rhow_F_p = HLLC_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
                 # rhoE
                 var_type = 4
-                rhoE_F_L = rho[i][index_L][k]*v[i][index_L][k]*E[i][index_L][k] + v[i][index_L][k]*P[i][index_L][k] 
-                rhoE_F_R = rho[i][index_R][k]*v[i][index_R][k]*E[i][index_R][k] + v[i][index_R][k]*P[i][index_R][k] 
-                rhoE_U_L = rho[i][index_L][k]*E[i][index_L][k]
-                rhoE_U_R = rho[i][index_R][k]*E[i][index_R][k]
-                rhoE_F_p = HLLC_flux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )                
+                rhoE_F_p = HLLC_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )                
                 ## y-direction j-1/2
                 index_L = j - 1;              index_R = j
                 rho_L   = rho[i][index_L][k]; rho_R   = rho[i][index_R][k] 
@@ -576,39 +546,19 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 a_L     = sos[i][index_L][k]; a_R     = sos[i][index_R][k]
                 # rho
                 var_type = 0
-                rho_F_L  = rho[i][index_L][k]*v[i][index_L][k]
-                rho_F_R  = rho[i][index_R][k]*v[i][index_R][k]
-                rho_U_L  = rho[i][index_L][k]
-                rho_U_R  = rho[i][index_R][k]
-                rho_F_m  = HLLC_flux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
+                rho_F_m  = HLLC_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 # rhou
                 var_type = 2
-                rhou_F_L = rho[i][index_L][k]*v[i][index_L][k]*u[i][index_L][k]
-                rhou_F_R = rho[i][index_R][k]*v[i][index_R][k]*u[i][index_R][k] 
-                rhou_U_L = rho[i][index_L][k]*u[i][index_L][k]
-                rhou_U_R = rho[i][index_R][k]*u[i][index_R][k]
-                rhou_F_m = HLLC_flux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
+                rhou_F_m = HLLC_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
                 # rhov
                 var_type = 1
-                rhov_F_L = rho[i][index_L][k]*v[i][index_L][k]*v[i][index_L][k] + P[i][index_L][k]
-                rhov_F_R = rho[i][index_R][k]*v[i][index_R][k]*v[i][index_R][k] + P[i][index_R][k]
-                rhov_U_L = rho[i][index_L][k]*v[i][index_L][k]
-                rhov_U_R = rho[i][index_R][k]*v[i][index_R][k]
-                rhov_F_m = HLLC_flux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
+                rhov_F_m = HLLC_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
                 # rhow
                 var_type = 3
-                rhow_F_L = rho[i][index_L][k]*v[i][index_L][k]*w[i][index_L][k]
-                rhow_F_R = rho[i][index_R][k]*v[i][index_R][k]*w[i][index_R][k]
-                rhow_U_L = rho[i][index_L][k]*w[i][index_L][k]
-                rhow_U_R = rho[i][index_R][k]*w[i][index_R][k]
-                rhow_F_m = HLLC_flux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
+                rhow_F_m = HLLC_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
                 # rhoE
                 var_type = 4
-                rhoE_F_L = rho[i][index_L][k]*v[i][index_L][k]*E[i][index_L][k] + v[i][index_L][k]*P[i][index_L][k] 
-                rhoE_F_R = rho[i][index_R][k]*v[i][index_R][k]*E[i][index_R][k] + v[i][index_R][k]*P[i][index_R][k]
-                rhoE_U_L = rho[i][index_L][k]*E[i][index_L][k]
-                rhoE_U_R = rho[i][index_R][k]*E[i][index_R][k]
-                rhoE_F_m = HLLC_flux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
+                rhoE_F_m = HLLC_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 ## Fluxes y-direction
                 rho_inv[i][j][k]  += ( 1.0/delta_y )*( rho_F_p - rho_F_m )
                 rhou_inv[i][j][k] += ( 1.0/delta_y )*( rhou_F_p - rhou_F_m )
@@ -626,39 +576,19 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 a_L     = sos[i][j][index_L]; a_R     = sos[i][j][index_R]
                 # rho
                 var_type = 0
-                rho_F_L  = rho[i][j][index_L]*w[i][j][index_L]
-                rho_F_R  = rho[i][j][index_R]*w[i][j][index_R]
-                rho_U_L  = rho[i][j][index_L]
-                rho_U_R  = rho[i][j][index_R]
-                rho_F_p  = HLLC_flux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
+                rho_F_p  = HLLC_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 # rhou
                 var_type = 3
-                rhou_F_L = rho[i][j][index_L]*w[i][j][index_L]*u[i][j][index_L]
-                rhou_F_R = rho[i][j][index_R]*w[i][j][index_R]*u[i][j][index_R]
-                rhou_U_L = rho[i][j][index_L]*u[i][j][index_L]
-                rhou_U_R = rho[i][j][index_R]*u[i][j][index_R]
-                rhou_F_p = HLLC_flux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
+                rhou_F_p = HLLC_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
                 # rhov
                 var_type = 2
-                rhov_F_L = rho[i][j][index_L]*w[i][j][index_L]*v[i][j][index_L]
-                rhov_F_R = rho[i][j][index_R]*w[i][j][index_R]*v[i][j][index_R]
-                rhov_U_L = rho[i][j][index_L]*v[i][j][index_L]
-                rhov_U_R = rho[i][j][index_R]*v[i][j][index_R]
-                rhov_F_p = HLLC_flux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
+                rhov_F_p = HLLC_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
                 # rhow
                 var_type = 1
-                rhow_F_L = rho[i][j][index_L]*w[i][j][index_L]*w[i][j][index_L] + P[i][j][index_L]
-                rhow_F_R = rho[i][j][index_R]*w[i][j][index_R]*w[i][j][index_R] + P[i][j][index_R]
-                rhow_U_L = rho[i][j][index_L]*w[i][j][index_L]
-                rhow_U_R = rho[i][j][index_R]*w[i][j][index_R]
-                rhow_F_p = HLLC_flux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
+                rhow_F_p = HLLC_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
                 # rhoE
                 var_type = 4
-                rhoE_F_L = rho[i][j][index_L]*w[i][j][index_L]*E[i][j][index_L] + w[i][j][index_L]*P[i][j][index_L] 
-                rhoE_F_R = rho[i][j][index_R]*w[i][j][index_R]*E[i][j][index_R] + w[i][j][index_R]*P[i][j][index_R] 
-                rhoE_U_L = rho[i][j][index_L]*E[i][j][index_L]
-                rhoE_U_R = rho[i][j][index_R]*E[i][j][index_R]
-                rhoE_F_p = HLLC_flux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )                
+                rhoE_F_p = HLLC_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )                
                 ## z-direction k-1/2
                 index_L = k - 1;              index_R = k
                 rho_L   = rho[i][j][index_L]; rho_R   = rho[i][j][index_R] 
@@ -670,39 +600,19 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 a_L     = sos[i][j][index_L]; a_R     = sos[i][j][index_R]
                 # rho
                 var_type = 0
-                rho_F_L  = rho[i][j][index_L]*w[i][j][index_L]
-                rho_F_R  = rho[i][j][index_R]*w[i][j][index_R]
-                rho_U_L  = rho[i][j][index_L]
-                rho_U_R  = rho[i][j][index_R]
-                rho_F_m  = HLLC_flux( rho_F_L, rho_F_R, rho_U_L, rho_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
+                rho_F_m  = HLLC_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 # rhou
                 var_type = 3
-                rhou_F_L = rho[i][j][index_L]*w[i][j][index_L]*u[i][j][index_L]
-                rhou_F_R = rho[i][j][index_R]*w[i][j][index_R]*u[i][j][index_R]
-                rhou_U_L = rho[i][j][index_L]*u[i][j][index_L]
-                rhou_U_R = rho[i][j][index_R]*u[i][j][index_R]
-                rhou_F_m = HLLC_flux( rhou_F_L, rhou_F_R, rhou_U_L, rhou_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
+                rhou_F_m = HLLC_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
                 # rhov
                 var_type = 2
-                rhov_F_L = rho[i][j][index_L]*w[i][j][index_L]*v[i][j][index_L]
-                rhov_F_R = rho[i][j][index_R]*w[i][j][index_R]*v[i][j][index_R]
-                rhov_U_L = rho[i][j][index_L]*v[i][j][index_L]
-                rhov_U_R = rho[i][j][index_R]*v[i][j][index_R]
-                rhov_F_m = HLLC_flux( rhov_F_L, rhov_F_R, rhov_U_L, rhov_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
+                rhov_F_m = HLLC_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
                 # rhow
                 var_type = 1
-                rhow_F_L = rho[i][j][index_L]*w[i][j][index_L]*w[i][j][index_L] + P[i][j][index_L]
-                rhow_F_R = rho[i][j][index_R]*w[i][j][index_R]*w[i][j][index_R] + P[i][j][index_R]
-                rhow_U_L = rho[i][j][index_L]*w[i][j][index_L]
-                rhow_U_R = rho[i][j][index_R]*w[i][j][index_R]
-                rhow_F_m = HLLC_flux( rhow_F_L, rhow_F_R, rhow_U_L, rhow_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
+                rhow_F_m = HLLC_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
                 # rhoE
                 var_type = 4
-                rhoE_F_L = rho[i][j][index_L]*w[i][j][index_L]*E[i][j][index_L] + w[i][j][index_L]*P[i][j][index_L] 
-                rhoE_F_R = rho[i][j][index_R]*w[i][j][index_R]*E[i][j][index_R] + w[i][j][index_R]*P[i][j][index_R]
-                rhoE_U_L = rho[i][j][index_L]*E[i][j][index_L]
-                rhoE_U_R = rho[i][j][index_R]*E[i][j][index_R]
-                rhoE_F_m = HLLC_flux( rhoE_F_L, rhoE_F_R, rhoE_U_L, rhoE_U_R, rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
+                rhoE_F_m = HLLC_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 ## Fluxes z-direction
                 rho_inv[i][j][k]  += ( 1.0/delta_z )*( rho_F_p - rho_F_m )
                 rhou_inv[i][j][k] += ( 1.0/delta_z )*( rhou_F_p - rhou_F_m )
