@@ -2459,7 +2459,7 @@ double KgpPlusFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
     } else if ( var_type == 1 ) {
         U_L *= u_L; U_R *= u_R;
         F *= u_L + u_R - diss_weight*abs( ( u_L - u_R )/( U_L - U_R + epsilon ) )*( U_R - U_L );
-        F += ( 1.0/2.0 )*( P_L + P_R );
+        F += ( 1.0/2.0 )*( P_L + P_R - diss_weight*abs( ( P_L - P_R )/( U_L - U_R + epsilon ) )*( U_R - U_L ) );
     } else if ( var_type == 2 ) {
         U_L *= v_L; U_R *= v_R;
         F *= v_L + v_R - diss_weight*abs( ( v_L - v_R )/( U_L - U_R + epsilon ) )*( U_R - U_L );
@@ -2468,8 +2468,7 @@ double KgpPlusFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
         F *= w_L + w_R - diss_weight*abs( ( w_L - w_R )/( U_L - U_R + epsilon ) )*( U_R - U_L );
     } else if ( var_type == 4 ) {
         U_L *= E_L; U_R *= E_R;
-        F *= E_L + E_R - diss_weight*abs( ( E_L - E_R )/( U_L - U_R + epsilon ) )*( U_R - U_L );
-        F += ( 1.0/2.0 )*( u_L*P_L + u_R*P_R );
+        F *= E_L + P_L/rho_L + E_R + P_R/rho_R - diss_weight*abs( ( E_L + P_L/rho_L - E_R - P_R/rho_R )/( U_L - U_R + epsilon ) )*( U_R - U_L );
     }
 
     return( F );
