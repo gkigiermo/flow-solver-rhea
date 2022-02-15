@@ -2469,7 +2469,7 @@ double KgpPlusFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
     } else if ( var_type == 4 ) {
         U_L *= E_L; U_R *= E_R;
         F *= E_L + E_R - diss_weight*abs( ( E_L - E_R )/( U_L - U_R + epsilon ) )*( U_R - U_L );
-        F += ( 1.0/4.0 )*( u_L + u_R )*( P_L + P_R );
+        F += ( 1.0/2.0 )*( u_L*P_L + u_R*P_R );
     }
 
     return( F );
