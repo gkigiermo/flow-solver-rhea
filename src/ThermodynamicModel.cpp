@@ -155,7 +155,6 @@ void StiffenedGasModel::readConfigurationFile() {
 
         #include "substances_selection.txt"
 
-        R_specific = substance["R_specific"].as<double>();
         gamma      = substance["gamma"].as<double>();
         P_inf      = substance["P_inf"].as<double>();
         e_0        = substance["e_0"].as<double>();
@@ -163,7 +162,6 @@ void StiffenedGasModel::readConfigurationFile() {
 
     } else {
 
-        R_specific = fluid_flow_properties["R_specific"].as<double>();
         gamma      = fluid_flow_properties["gamma"].as<double>();
         P_inf      = fluid_flow_properties["P_inf"].as<double>();
         e_0        = fluid_flow_properties["e_0"].as<double>();
@@ -287,7 +285,6 @@ void PengRobinsonModel::readConfigurationFile() {
 
         #include "substances_selection.txt"
 
-        R_specific            = substance["R_specific"].as<double>();
         molecular_weight      = substance["molecular_weight"].as<double>();
         acentric_factor       = substance["acentric_factor"].as<double>();
         critical_temperature  = substance["critical_temperature"].as<double>();
@@ -311,7 +308,6 @@ void PengRobinsonModel::readConfigurationFile() {
 
     } else {
 
-        R_specific            = fluid_flow_properties["R_specific"].as<double>();
         molecular_weight      = fluid_flow_properties["molecular_weight"].as<double>();
         acentric_factor       = fluid_flow_properties["acentric_factor"].as<double>();
         critical_temperature  = fluid_flow_properties["critical_temperature"].as<double>();
