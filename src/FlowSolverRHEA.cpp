@@ -2450,7 +2450,7 @@ double KgpPlusFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
     /// Calculate dissipative weight
     double relative_sos_difference = abs( ( a_R - a_L )/( 0.5*( a_R + a_L + epsilon ) ) );
     double dissipative_weight      = max( 0.0, sin( min( relative_sos_difference, 1.0 )*0.5*pi ) );
-	
+
     double F = ( 1.0/8.0 )*( rho_L + rho_R )*( u_L + u_R );
     double U_L = rho_L;
     double U_R = rho_R;
@@ -2458,10 +2458,12 @@ double KgpPlusFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
     if( var_type == 0 ) {
         F *= 1.0 + 1.0;
     } else if ( var_type == 1 ) {
-        U_L *= u_L;
-        U_R *= u_R;
+        U_L *= u_L; 
+        U_R *= u_R; 
         S = abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
-        F *= u_L + u_R - dissipative_weight*S*( U_R - U_L ); F += ( 1.0/2.0 )*( P_L + P_R );
+        F *= u_L + u_R - dissipative_weight*S*( U_R - U_L );
+        S = abs( ( P_L - P_R )/( U_L - U_R + epsilon ) );
+        F += ( 1.0/2.0 )*( P_L + P_R - dissipative_weight*S*( U_R - U_L ) );
     } else if ( var_type == 2 ) {
         U_L *= v_L;
         U_R *= v_R;
@@ -2476,9 +2478,11 @@ double KgpPlusFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
         U_L *= E_L;
         U_R *= E_R;
         S = abs( ( E_L - E_R )/( U_L - U_R + epsilon ) );
-        F *= E_L + E_R - dissipative_weight*S*( U_R - U_L ); F += ( 1.0/4.0 )*( u_L + u_R )*( P_L + P_R );
+        F *= E_L + E_R - dissipative_weight*S*( U_R - U_L );
+        S = abs( ( P_L - P_R )/( U_L - U_R + epsilon ) );
+        F += ( 1.0/4.0 )*( u_L + u_R )*( P_L + P_R - dissipative_weight*S*( U_R - U_L ) );
     }
-
+	
     return( F );
 
 };
