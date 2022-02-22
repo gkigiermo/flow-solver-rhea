@@ -2,6 +2,8 @@ if ( substance_name == "CARBON_DIOXIDE" ) {
     substance = substances_library["CARBON_DIOXIDE"];
 } else if ( substance_name == "DODECANE" ) {
     substance = substances_library["DODECANE"];
+} else if ( substance_name == "DUMMY" ) {
+    substance = substances_library["DUMMY"];
 } else if ( substance_name == "HFC-134a" ) {
     substance = substances_library["HFC-134a"];
 } else if ( substance_name == "HYDROGEN" ) {
