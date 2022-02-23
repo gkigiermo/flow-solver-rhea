@@ -2469,72 +2469,64 @@ KgpPlusFluxApproximateRiemannSolver::~KgpPlusFluxApproximateRiemannSolver() {};
 
 double KgpPlusFluxApproximateRiemannSolver::calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 
-    /// Modified Kennedy, Gruber & Pirozzoli (KGP+) scheme:
+    /// Modified Kennedy, Gruber & Pirozzoli (KGP+) scheme with Murman-Roe Riemman solver:
 
     /// Calculate dissipative weight
     double relative_sos_difference = abs( ( a_R - a_L )/( 0.5*( a_R + a_L + epsilon ) ) );
-    //double dissipative_weight      = max( 0.0, sin( min( relative_sos_difference, 1.0 )*0.5*pi ) );
-    double dissipative_weight      = max( 0.0, pow( sin( min( relative_sos_difference, 1.0 )*0.5*pi ), 3.0 ) );
+    double dissipative_weight      = max( 0.0, sin( min( relative_sos_difference, 1.0 )*0.5*pi ) );
 
-    /// Kennedy, Gruber & Pirozzoli (KGP) scheme:
-    /// G. Coppola , F. Capuano , S. Pirozzoli, L. de Luca.
-    /// Numerically stable formulations of convective terms for turbulent compressible flows.
-    /// Journal of Computational Physics, 382, 86-104, 2019.
-
-    double F_kgp = ( 1.0/8.0 )*( rho_L + rho_R )*( u_L + u_R );
-    if( var_type == 0 ) {
-        F_kgp *= 1.0 + 1.0; 
-    } else if ( var_type == 1 ) {
-        F_kgp *= u_L + u_R; F_kgp += ( 1.0/2.0 )*( P_L + P_R );
-    } else if ( var_type == 2 ) {
-        F_kgp *= v_L + v_R;
-    } else if ( var_type == 3 ) {
-        F_kgp *= w_L + w_R;
-    } else if ( var_type == 4 ) {
-        F_kgp *= E_L + P_L/rho_L + E_R + P_R/rho_R;
-        //F_kgp *= E_L + E_R; F_kgp += ( 1.0/4.0 )*( u_L + u_R )*( P_L + P_R );
-    }
-
-    /// Murman-Roe Riemman solver:
-    /// P. L. Roe.
-    /// Approximate Riemann solvers, parameter vectors and difference schemes.
-    /// Journal of Computational Physics, 43, 357-372, 1981.
-
-    double F_L = rho_L*u_L;
-    double F_R = rho_R*u_R;
     double U_L = rho_L;
     double U_R = rho_R;
+    double S = 0.0;
+    double F = 1.0/8.0;
     if( var_type == 0 ) {
-        F_L *= 1.0;
-        F_R *= 1.0;
         U_L *= 1.0;
         U_R *= 1.0;
+        S    = dissipative_weight*abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
+        F   *= ( rho_L + rho_R - S*( U_R - U_L ) );
+        S    = dissipative_weight*abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
+        F   *= ( u_L + u_R - S*( U_R - U_L ) );
+        S    = dissipative_weight*abs( ( 1.0 - 1.0 )/( U_L - U_R + epsilon ) );
+        F   *= ( 1.0 + 1.0 - S*( U_R - U_L ) );
     } else if ( var_type == 1 ) {
-        F_L *= u_L; F_L += P_L;
-        F_R *= u_R; F_R += P_R;
         U_L *= u_L;
         U_R *= u_R;
+        S    = dissipative_weight*abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
+        F   *= ( rho_L + rho_R - S*( U_R - U_L ) );
+        S    = dissipative_weight*abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
+        F   *= ( u_L + u_R - S*( U_R - U_L ) );
+        S    = dissipative_weight*abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
+        F   *= ( u_L + u_R - S*( U_R - U_L ) );
+        S    = dissipative_weight*abs( ( P_L - P_R )/( U_L - U_R + epsilon ) );
+        F += ( 1.0/2.0 )*( P_L + P_R - S*( U_R - U_L ) );
     } else if ( var_type == 2 ) {
-        F_L *= v_L;
-        F_R *= v_R;
         U_L *= v_L;
         U_R *= v_R;
+        S    = dissipative_weight*abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
+        F   *= ( rho_L + rho_R - S*( U_R - U_L ) );
+        S    = dissipative_weight*abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
+        F   *= ( u_L + u_R - S*( U_R - U_L ) );
+        S    = dissipative_weight*abs( ( v_L - v_R )/( U_L - U_R + epsilon ) );
+        F   *= ( v_L + v_R - S*( U_R - U_L ) );
     } else if ( var_type == 3 ) {
-        F_L *= w_L;
-        F_R *= w_R;
         U_L *= w_L;
         U_R *= w_R;
+        S    = dissipative_weight*abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
+        F   *= ( rho_L + rho_R - S*( U_R - U_L ) );
+        S    = dissipative_weight*abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
+        F   *= ( u_L + u_R - S*( U_R - U_L ) );
+        S    = dissipative_weight*abs( ( w_L - w_R )/( U_L - U_R + epsilon ) );
+        F   *= ( w_L + w_R - S*( U_R - U_L ) );
     } else if ( var_type == 4 ) {
-        F_L *= E_L; F_L += u_L*P_L;
-        F_R *= E_R; F_R += u_R*P_R;
         U_L *= E_L;
         U_R *= E_R;
+        S    = dissipative_weight*abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
+        F   *= ( rho_L + rho_R - S*( U_R - U_L ) );
+        S    = dissipative_weight*abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
+        F   *= ( u_L + u_R - S*( U_R - U_L ) );
+        S    = dissipative_weight*abs( ( E_L + P_L/rho_L - E_R - P_R/rho_R )/( U_L - U_R + epsilon ) );
+        F   *= ( E_L + P_L/rho_L + E_R + P_R/rho_R - S*( U_R - U_L ) );
     }
-    double S    = abs( ( F_L - F_R )/( U_L - U_R + epsilon ) );
-    double F_mr = 0.5*( F_L + F_R ) - 0.5*S*( U_R - U_L );
-
-    /// Hybrizidation: KGP + Murman-Roe schemes blended with a (dissipative) weight
-    double F = ( 1.0 - dissipative_weight )*F_kgp + dissipative_weight*F_mr;
 
     return( F );
 
