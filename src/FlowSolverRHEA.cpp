@@ -2482,50 +2482,50 @@ double KgpPlusFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
     if( var_type == 0 ) {
         U_L *= 1.0;
         U_R *= 1.0;
-        S    = dissipative_weight*abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
-        F   *= ( rho_L + rho_R - S*( U_R - U_L ) );
-        S    = dissipative_weight*abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
-        F   *= ( u_L + u_R - S*( U_R - U_L ) );
-        S    = dissipative_weight*abs( ( 1.0 - 1.0 )/( U_L - U_R + epsilon ) );
-        F   *= ( 1.0 + 1.0 - S*( U_R - U_L ) );
+        S    = abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( rho_L + rho_R ) - dissipative_weight*S*( U_R - U_L ) );
+        S    = abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( u_L + u_R ) - dissipative_weight*S*( U_R - U_L ) );
+        S    = abs( ( 1.0 - 1.0 )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( 1.0 + 1.0 ) - dissipative_weight*S*( U_R - U_L ) );
     } else if ( var_type == 1 ) {
         U_L *= u_L;
         U_R *= u_R;
-        S    = dissipative_weight*abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
-        F   *= ( rho_L + rho_R - S*( U_R - U_L ) );
-        S    = dissipative_weight*abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
-        F   *= ( u_L + u_R - S*( U_R - U_L ) );
-        S    = dissipative_weight*abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
-        F   *= ( u_L + u_R - S*( U_R - U_L ) );
-        S    = dissipative_weight*abs( ( P_L - P_R )/( U_L - U_R + epsilon ) );
-        F += ( 1.0/2.0 )*( P_L + P_R - S*( U_R - U_L ) );
+        S    = abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( rho_L + rho_R ) - dissipative_weight*S*( U_R - U_L ) );
+        S    = abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( u_L + u_R ) - dissipative_weight*S*( U_R - U_L ) );
+        S    = abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( u_L + u_R ) - dissipative_weight*S*( U_R - U_L ) );
+        S    = abs( ( P_L - P_R )/( U_L - U_R + epsilon ) );
+        F += ( 1.0/2.0 )*( ( 1.0 - dissipative_weight )*( P_L + P_R ) - dissipative_weight*S*( U_R - U_L ) );
     } else if ( var_type == 2 ) {
         U_L *= v_L;
         U_R *= v_R;
-        S    = dissipative_weight*abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
-        F   *= ( rho_L + rho_R - S*( U_R - U_L ) );
-        S    = dissipative_weight*abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
-        F   *= ( u_L + u_R - S*( U_R - U_L ) );
-        S    = dissipative_weight*abs( ( v_L - v_R )/( U_L - U_R + epsilon ) );
-        F   *= ( v_L + v_R - S*( U_R - U_L ) );
+        S    = abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( rho_L + rho_R ) - dissipative_weight*S*( U_R - U_L ) );
+        S    = abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( u_L + u_R ) - dissipative_weight*S*( U_R - U_L ) );
+        S    = abs( ( v_L - v_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( v_L + v_R ) - dissipative_weight*S*( U_R - U_L ) );
     } else if ( var_type == 3 ) {
         U_L *= w_L;
         U_R *= w_R;
-        S    = dissipative_weight*abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
-        F   *= ( rho_L + rho_R - S*( U_R - U_L ) );
-        S    = dissipative_weight*abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
-        F   *= ( u_L + u_R - S*( U_R - U_L ) );
-        S    = dissipative_weight*abs( ( w_L - w_R )/( U_L - U_R + epsilon ) );
-        F   *= ( w_L + w_R - S*( U_R - U_L ) );
+        S    = abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( rho_L + rho_R ) - dissipative_weight*S*( U_R - U_L ) );
+        S    = abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( u_L + u_R ) - dissipative_weight*S*( U_R - U_L ) );
+        S    = abs( ( w_L - w_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( w_L + w_R ) - dissipative_weight*S*( U_R - U_L ) );
     } else if ( var_type == 4 ) {
         U_L *= E_L;
         U_R *= E_R;
-        S    = dissipative_weight*abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
-        F   *= ( rho_L + rho_R - S*( U_R - U_L ) );
-        S    = dissipative_weight*abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
-        F   *= ( u_L + u_R - S*( U_R - U_L ) );
-        S    = dissipative_weight*abs( ( E_L + P_L/rho_L - E_R - P_R/rho_R )/( U_L - U_R + epsilon ) );
-        F   *= ( E_L + P_L/rho_L + E_R + P_R/rho_R - S*( U_R - U_L ) );
+        S    = abs( ( rho_L - rho_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( rho_L + rho_R ) - dissipative_weight*S*( U_R - U_L ) );
+        S    = abs( ( u_L - u_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( u_L + u_R ) - dissipative_weight*S*( U_R - U_L ) );
+        S    = abs( ( E_L + P_L/rho_L - E_R - P_R/rho_R )/( U_L - U_R + epsilon ) );
+        F   *= ( ( 1.0 - dissipative_weight )*( E_L + P_L/rho_L + E_R + P_R/rho_R ) - dissipative_weight*S*( U_R - U_L ) );
     }
 
     return( F );
