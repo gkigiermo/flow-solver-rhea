@@ -229,11 +229,6 @@ class FlowSolverRHEA {
         DistributedArray y_field;				/// 3-D field of y-coordinate
         DistributedArray z_field;				/// 3-D field of z-coordinate
 
-        /// Mesh sizes
-        DistributedArray delta_x_field;				/// 3-D field of x sizes
-        DistributedArray delta_y_field;				/// 3-D field of y sizes
-        DistributedArray delta_z_field;				/// 3-D field of z sizes
-
         /// Primitive, conserved, thermodynamic and thermophysical variables
         DistributedArray rho_field;				/// 3-D field of rho
         DistributedArray u_field;				/// 3-D field of u
