@@ -273,10 +273,10 @@ class FlowSolverRHEA {
         DistributedArray rhoE_vis_flux;				/// 3-D viscous fluxes of rhoE
 
         /// Source terms
-        DistributedArray f_rhou_field;				/// 3-D field of rhou
-        DistributedArray f_rhov_field;				/// 3-D field of rhov
-        DistributedArray f_rhow_field;				/// 3-D field of rhow
-        DistributedArray f_rhoE_field;				/// 3-D field of rhoE
+        DistributedArray f_rhou_field;				/// 3-D field of f_rhou
+        DistributedArray f_rhov_field;				/// 3-D field of f_rhov
+        DistributedArray f_rhow_field;				/// 3-D field of f_rhow
+        DistributedArray f_rhoE_field;				/// 3-D field of f_rhoE
 
         /// Time averaging
         DistributedArray avg_rho_field;				/// 3-D field of time-averaged rho
