@@ -662,39 +662,39 @@ def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, f_rhou, 
                 tau_yz = mu*( d_v_z + d_w_y )
                 tau_zz = 2.0*mu*( d_w_z - ( div_uvw/3.0 ) )
                 ## Divergence of viscous stresses
-                div_tau_x = mu*( ( 1.0/delta_x )*( ( u_field[i+1][j][k] - u_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
-                                                 - ( u_field[i][j][k] - u_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
-                               + ( 1.0/delta_y )*( ( u_field[i][j+1][k] - u_field[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
-                                                 - ( u_field[i][j][k] - u_field[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
-                               + ( 1.0/delta_z )*( ( u_field[i][j][k+1] - u_field[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                 - ( u_field[i][j][k] - u_field[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )			   + ( 1.0/3.0 )*mu*( ( 1.0/delta_x )*( ( u_field[i+1][j][k] - u_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
-                                                 - ( u_field[i][j][k] - u_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
-                               + ( 1.0/delta_x )*( ( v_field[i+1][j+1][k] - v_field[i+1][j-1][k] )/delta_y
-                                                 - ( v_field[i-1][j+1][k] - v_field[i-1][j-1][k] )/delta_y )
-                               + ( 1.0/delta_x )*( ( w_field[i+1][j][k+1] - w_field[i+1][j][k-1] )/delta_z
-                                                 - ( w_field[i-1][j][k+1] - w_field[i-1][j][k-1] )/delta_z ) )
-                div_tau_y = mu*( ( 1.0/delta_x )*( ( v_field[i+1][j][k] - v_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
-                                                 - ( v_field[i][j][k] - v_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
-                               + ( 1.0/delta_y )*( ( v_field[i][j+1][k] - v_field[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
-                                                 - ( v_field[i][j][k] - v_field[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
-                               + ( 1.0/delta_z )*( ( v_field[i][j][k+1] - v_field[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                 - ( v_field[i][j][k] - v_field[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) ) 		           + ( 1.0/3.0 )*mu*( ( 1.0/delta_y )*( ( u_field[i+1][j+1][k] - u_field[i-1][j+1][k] )/delta_x
-                                                 - ( u_field[i+1][j-1][k] - u_field[i-1][j-1][k] )/delta_x )
-                               + ( 1.0/delta_y )*( ( v_field[i][j+1][k] - v_field[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
-                                                 - ( v_field[i][j][k] - v_field[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
-                               + ( 1.0/delta_y )*( ( w_field[i][j+1][k+1] - w_field[i][j+1][k-1] )/delta_z
-                                                 - ( w_field[i][j-1][k+1] - w_field[i][j-1][k-1] )/delta_z ) ) 
-                div_tau_z = mu*( ( 1.0/delta_x )*( ( w_field[i+1][j][k] - w_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
-                                                 - ( w_field[i][j][k] - w_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
-                               + ( 1.0/delta_y )*( ( w_field[i][j+1][k] - w_field[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
-                                                 - ( w_field[i][j][k] - w_field[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
-                               + ( 1.0/delta_z )*( ( w_field[i][j][k+1] - w_field[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                 - ( w_field[i][j][k] - w_field[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )			   + ( 1.0/3.0 )*mu*( ( 1.0/delta_z )*( ( u_field[i+1][j][k+1] - u_field[i-1][j][k+1] )/delta_x
-                                                 - ( u_field[i+1][j][k-1] - u_field[i-1][j][k-1] )/delta_x )
-                               + ( 1.0/delta_z )*( ( v_field[i][j+1][k+1] - v_field[i][j-1][k+1] )/delta_y
-                                                 - ( v_field[i][j+1][k-1] - v_field[i][j-1][k-1] )/delta_y )
-                               + ( 1.0/delta_z )*( ( w_field[i][j][k+1] - w_field[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                 - ( w_field[i][j][k] - w_field[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )
+                div_tau_x = mu*( ( 1.00/delta_x )*( ( u_field[i+1][j][k] - u_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
+                                                  - ( u_field[i][j][k] - u_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
+                               + ( 1.00/delta_y )*( ( u_field[i][j+1][k] - u_field[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
+                                                  - ( u_field[i][j][k] - u_field[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
+                               + ( 1.00/delta_z )*( ( u_field[i][j][k+1] - u_field[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
+                                                  - ( u_field[i][j][k] - u_field[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )			   + ( 1.0/3.0 )*mu*( ( 1.00/delta_x )*( ( u_field[i+1][j][k] - u_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
+                                                  - ( u_field[i][j][k] - u_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
+                               + ( 0.25/delta_x )*( ( v_field[i+1][j+1][k] - v_field[i+1][j-1][k] )/delta_y
+                                                  - ( v_field[i-1][j+1][k] - v_field[i-1][j-1][k] )/delta_y )
+                               + ( 0.25/delta_x )*( ( w_field[i+1][j][k+1] - w_field[i+1][j][k-1] )/delta_z
+                                                  - ( w_field[i-1][j][k+1] - w_field[i-1][j][k-1] )/delta_z ) )
+                div_tau_y = mu*( ( 1.00/delta_x )*( ( v_field[i+1][j][k] - v_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
+                                                  - ( v_field[i][j][k] - v_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
+                               + ( 1.00/delta_y )*( ( v_field[i][j+1][k] - v_field[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
+                                                  - ( v_field[i][j][k] - v_field[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
+                               + ( 1.00/delta_z )*( ( v_field[i][j][k+1] - v_field[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
+                                                  - ( v_field[i][j][k] - v_field[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) ) 		           + ( 1.0/3.0 )*mu*( ( 0.25/delta_y )*( ( u_field[i+1][j+1][k] - u_field[i-1][j+1][k] )/delta_x
+                                                  - ( u_field[i+1][j-1][k] - u_field[i-1][j-1][k] )/delta_x )
+                               + ( 1.00/delta_y )*( ( v_field[i][j+1][k] - v_field[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
+                                                  - ( v_field[i][j][k] - v_field[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
+                               + ( 0.25/delta_y )*( ( w_field[i][j+1][k+1] - w_field[i][j+1][k-1] )/delta_z
+                                                  - ( w_field[i][j-1][k+1] - w_field[i][j-1][k-1] )/delta_z ) ) 
+                div_tau_z = mu*( ( 1.00/delta_x )*( ( w_field[i+1][j][k] - w_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
+                                                  - ( w_field[i][j][k] - w_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
+                               + ( 1.00/delta_y )*( ( w_field[i][j+1][k] - w_field[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
+                                                  - ( w_field[i][j][k] - w_field[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
+                               + ( 1.00/delta_z )*( ( w_field[i][j][k+1] - w_field[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
+                                                  - ( w_field[i][j][k] - w_field[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )			   + ( 1.0/3.0 )*mu*( ( 0.25/delta_z )*( ( u_field[i+1][j][k+1] - u_field[i-1][j][k+1] )/delta_x
+                                                  - ( u_field[i+1][j][k-1] - u_field[i-1][j][k-1] )/delta_x )
+                               + ( 0.25/delta_z )*( ( v_field[i][j+1][k+1] - v_field[i][j-1][k+1] )/delta_y
+                                                  - ( v_field[i][j+1][k-1] - v_field[i][j-1][k-1] )/delta_y )
+                               + ( 1.00/delta_z )*( ( w_field[i][j][k+1] - w_field[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
+                                                  - ( w_field[i][j][k] - w_field[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )
                 ## Fourier term
                 div_q = ( -1.0 )*kappa*( ( 1.0/delta_x )*( ( T_field[i+1][j][k] - T_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
                                                          - ( T_field[i][j][k] - T_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
