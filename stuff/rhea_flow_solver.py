@@ -441,6 +441,30 @@ def HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a
     return( F )
 
 
+### Calculate KGP flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE 
+def KGP_flux( F_L, F_R, U_L, U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type ):
+
+    # Kennedy, Gruber & Pirozzoli (KGP) scheme:
+    # G. Coppola , F. Capuano , S. Pirozzoli, L. de Luca.
+    # Numerically stable formulations of convective terms for turbulent compressible flows.
+    # Journal of Computational Physics, 382, 86-104, 2019.
+
+    F = ( 1.0/8.0 )*( rho_L + rho_R )*( u_L + u_R )
+    if( var_type == 0 ):
+        F *= 1.0 + 1.0;
+    elif ( var_type == 1 ):
+        F *= u_L + u_R
+        F += ( 1.0/2.0 )*( P_L + P_R )
+    elif ( var_type == 2 ):
+        F *= v_L + v_R
+    elif ( var_type == 3 ):
+        F *= w_L + w_R
+    elif ( var_type == 4 ):
+        F *= E_L + P_L/rho_L + E_R + P_R/rho_R
+
+    return( F )
+
+
 ### Calculate inviscid fluxes
 def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v, w, E, P, sos, grid ):
 
@@ -627,7 +651,7 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
 
 
 ### Calculate viscous fluxes
-def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, f_rhou, f_rhov, f_rhow, f_rhoE, grid ):
+def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, grid ):
 
     # Second-order central finite differences for derivatives:
     # P. Moin.
@@ -715,18 +739,18 @@ def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, f_rhou, 
     #print( rhoE_vis )
 
 
-### Sum inviscid and viscous fluxes
-def sum_fluxes( rho_tot, rhou_tot, rhov_tot, rhow_tot, rhoE_tot, rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rhou_vis, rhov_vis, rhow_vis, rhoE_vis, rk_iter ):
+### Sum inviscid & viscous fluxes and source terms
+def sum_fluxes_source_terms( rho_tot, rhou_tot, rhov_tot, rhow_tot, rhoE_tot, rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rhou_vis, rhov_vis, rhow_vis, rhoE_vis, f_rhou, f_rhov, f_rhow, f_rhoE, rk_iter ):
 
     # Internal points
     for i in range( 1, num_grid_x + 1 ):    
         for j in range( 1, num_grid_y + 1 ):    
             for k in range( 1, num_grid_z + 1 ):
                 rho_tot[i][j][k][rk_iter]  = ( -1.0 )*rho_inv[i][j][k]
-                rhou_tot[i][j][k][rk_iter] = ( -1.0 )*rhou_inv[i][j][k] + rhou_vis[i][j][k]
-                rhov_tot[i][j][k][rk_iter] = ( -1.0 )*rhov_inv[i][j][k] + rhov_vis[i][j][k]
-                rhow_tot[i][j][k][rk_iter] = ( -1.0 )*rhow_inv[i][j][k] + rhow_vis[i][j][k]
-                rhoE_tot[i][j][k][rk_iter] = ( -1.0 )*rhoE_inv[i][j][k] + rhoE_vis[i][j][k]
+                rhou_tot[i][j][k][rk_iter] = ( -1.0 )*rhou_inv[i][j][k] + rhou_vis[i][j][k] + f_rhou[i][j][k]
+                rhov_tot[i][j][k][rk_iter] = ( -1.0 )*rhov_inv[i][j][k] + rhov_vis[i][j][k] + f_rhov[i][j][k]
+                rhow_tot[i][j][k][rk_iter] = ( -1.0 )*rhow_inv[i][j][k] + rhow_vis[i][j][k] + f_rhow[i][j][k]
+                rhoE_tot[i][j][k][rk_iter] = ( -1.0 )*rhoE_inv[i][j][k] + rhoE_vis[i][j][k] + f_rhoE[i][j][k]
     #print( rho_tot )
     #print( rhou_tot )
     #print( rhov_tot )
@@ -1086,13 +1110,17 @@ for t in range( 0, int( max_num_time_iter ) ):
     ### Runge-Kutta sub-steps
     for rk in range( 0, rk_order ):
 
+        ### Calculate inviscid fluxes
+        inviscid_fluxes( rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux, rhoE_inv_flux, rho_field, u_field, v_field, w_field, E_field, P_field, sos_field, mesh )
+
+        ### Calculate viscous fluxes
+        viscous_fluxes( rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux, u_field, v_field, w_field, T_field, mesh )
+
         ### Calculate source terms
         source_terms( f_rhou_field, f_rhov_field, f_rhow_field, f_rhoE_field, rho_field, u_field, v_field, w_field, mesh )
 
-        ### Calculate inviscid and viscous fluxes
-        inviscid_fluxes( rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux, rhoE_inv_flux, rho_field, u_field, v_field, w_field, E_field, P_field, sos_field, mesh )
-        viscous_fluxes( rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux, u_field, v_field, w_field, T_field, f_rhou_field, f_rhov_field, f_rhow_field, f_rhoE_field, mesh )
-        sum_fluxes( rho_rk_fluxes, rhou_rk_fluxes, rhov_rk_fluxes, rhow_rk_fluxes, rhoE_rk_fluxes, rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux, rhoE_inv_flux, rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux, rk )
+        ### Sum fluxes & source terms
+        sum_fluxes_source_terms( rho_rk_fluxes, rhou_rk_fluxes, rhov_rk_fluxes, rhow_rk_fluxes, rhoE_rk_fluxes, rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux, rhoE_inv_flux, rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux, f_rhou_field, f_rhov_field, f_rhow_field, f_rhoE_field, rk )
 
         ### Advance conserved variables in time
         time_integration( rho_field,  rho_0_field,  delta_t, rho_rk_fluxes,  rk )
@@ -1100,7 +1128,6 @@ for t in range( 0, int( max_num_time_iter ) ):
         time_integration( rhov_field, rhov_0_field, delta_t, rhov_rk_fluxes, rk )
         time_integration( rhow_field, rhow_0_field, delta_t, rhow_rk_fluxes, rk )
         time_integration( rhoE_field, rhoE_0_field, delta_t, rhoE_rk_fluxes, rk )
-        update_boundaries( rho_field, rhou_field, rhov_field, rhow_field, rhoE_field )
 
         ### Update primitive variables from conserved variables
         update_primitive( u_field, rhou_field, rho_field )
@@ -1110,6 +1137,9 @@ for t in range( 0, int( max_num_time_iter ) ):
        
         ### Update thermodynamic variables from primitive variables
         thermodynamic_state( P_field, T_field, sos_field, rho_field, u_field, v_field, w_field, E_field )
+
+        ### Update boundaries
+        update_boundaries( rho_field, rhou_field, rhov_field, rhow_field, rhoE_field )
 
     ### Update old fields of conserved variables
     update_field( rho_0_field,  rho_field )  
