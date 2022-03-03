@@ -442,7 +442,7 @@ def HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a
 
 
 ### Calculate KGP flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE 
-def KGP_flux( F_L, F_R, U_L, U_R, rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type ):
+def KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type ):
 
     # Kennedy, Gruber & Pirozzoli (KGP) scheme:
     # G. Coppola , F. Capuano , S. Pirozzoli, L. de Luca.
