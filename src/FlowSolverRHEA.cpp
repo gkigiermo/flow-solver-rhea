@@ -2473,8 +2473,7 @@ double KgpPlusFluxApproximateRiemannSolver::calculateIntercellFlux(const double 
 
     /// Calculate dissipative weight
     double relative_sos_difference = abs( ( a_R - a_L )/( 0.5*( a_R + a_L + epsilon ) ) );
-    //double dissipative_weight      = max( 0.0, sin( min( relative_sos_difference, 1.0 )*0.5*pi ) );
-    double dissipative_weight      = max( 0.0, sin( min( relative_sos_difference, 1.0 )*pi ) );
+    double dissipative_weight      = max( 0.0, sin( min( relative_sos_difference, 1.0 )*0.5*pi ) );
 
     //double W = dissipative_weight*( abs( rho_L*u_L + rho_R*u_R )/( rho_L*u_L + rho_R*u_R + epsilon ) );
     double W = dissipative_weight; if( ( rho_L*u_L + rho_R*u_R ) < 0.0 ) W *= -1.0;
