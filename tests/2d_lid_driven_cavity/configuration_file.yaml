@@ -43,7 +43,7 @@ problem_parameters:
    L_x: 1.0                        					# Size of domain in x-direction [m]
    L_y: 1.0                          					# Size of domain in y-direction [m]
    L_z: 0.01                         					# Size of domain in z-direction [m]
-   final_time: 10.0                        				# Final time [s]
+   final_time: 50.0                        				# Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####
@@ -53,10 +53,10 @@ computational_parameters:
    num_grid_z: 2                     					# Number of internal grid points in the z-direction
    # Stretching factors: x = x_0 + L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
    # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
-   A_x: 0.0                 					        # Stretching factor in x-direction
-   A_y: 0.0             					        # Stretching factor in y-direction
+   A_x: -1.0                 					        # Stretching factor in x-direction
+   A_y: -1.0             					        # Stretching factor in y-direction
    A_z: 0.0                       					# Stretching factor in z-direction
-   CFL: 0.3                  					        # CFL coefficient
+   CFL: 0.9                  					        # CFL coefficient
    # Riemann solver scheme: CENTRAL, MURMAN-ROE, KGP, KGP+, HLL, HLLC, HLLC+
    riemann_solver_scheme: 'KGP'                  	  		# Riemann solver scheme
    # Runge-Kutta time scheme: RK1, SSP-RK2, SSP-RK3
@@ -86,7 +86,7 @@ boundary_conditions:
 print_write_read_parameters:
    print_frequency_iter: 1000 	             				# Print information iteration frequency
    output_data_file_name: '2d_lid_driven_cavity'  			# Name of output data file
-   output_frequency_iter: 10000000 	     				# Data output iteration frequency
+   output_frequency_iter: 10000   	     				# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
    restart_data_file: 'restart_data_file.h5' 				# Restart data file
