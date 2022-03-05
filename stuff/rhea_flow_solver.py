@@ -67,17 +67,17 @@ import numpy as np
 ########## SET PARAMETERS ##########
 
 ### Fluid properties 
-R_specific = 287.058			# Specific gas constant of the fluid [J/(kg K)]
-gamma      = 1.4			# Heat capacity ratio of the fluid [-]
-rho_L      = 1.0			# Initial density of left state [kg/m^3]
-u_L        = 0.0			# Initial velocity of left state [m/s]
-P_L        = 1.0			# Initial pressure of left state [Pa]
-rho_R      = 0.125			# Initial density of right state [kg/m^3]
-u_R        = 0.0			# Initial velocity of right state [m/s]
-P_R        = 0.1			# Initial pressure of right state [Pa]
-x_d        = 0.5			# Initial position of the discontinuity [m]
-mu         = 0.0                	# Dynamic viscosity of the fluid [Pa s]
-kappa      = 0.0			# Thermal conductivity of the fluid [W/(m k)]
+R_specific  = 287.058			# Specific gas constant of the fluid [J/(kg K)]
+gamma       = 1.4			# Heat capacity ratio of the fluid [-]
+rho_L       = 1.0			# Initial density of left state [kg/m^3]
+u_L         = 0.0			# Initial velocity of left state [m/s]
+P_L         = 1.0			# Initial pressure of left state [Pa]
+rho_R       = 0.125			# Initial density of right state [kg/m^3]
+u_R         = 0.0			# Initial velocity of right state [m/s]
+P_R         = 0.1			# Initial pressure of right state [Pa]
+x_d         = 0.5			# Initial position of the discontinuity [m]
+mu_value    = 0.0                	# Dynamic viscosity of the fluid [Pa s]
+kappa_value = 0.0			# Thermal conductivity of the fluid [W/(m k)]
 
 ### Problem parameters
 x_0           = 0.0                     # Domain origin in x-direction [m]
@@ -122,6 +122,10 @@ rhoE_field = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )     
 P_field    = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                     # 3-D field of P
 T_field    = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                     # 3-D field of T
 sos_field  = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                     # 3-D field of sos
+
+### Transport coefficients ... two positions added for boundary points
+mu_field    = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                    # 3-D field of mu
+kappa_field = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                    # 3-D field of kappa
 
 ### Time integration variables ... two positions added for boundary points
 rho_0_field  = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                   # 3-D old field of rho
@@ -251,6 +255,21 @@ def initialize_thermodynamics( rho, E, sos, u, v, w, P, T ):
     #print( sos )
 
 
+### Calculate transport coefficients
+def transport_coefficients( mu, kappa ):
+
+    # Constant-value model:
+
+    # All points
+    for i in range( 0, num_grid_x + 2 ):    
+        for j in range( 0, num_grid_y + 2 ):    
+            for k in range( 0, num_grid_z + 2 ):
+                mu[i][j][k]    = mu_value        
+                kappa[i][j][k] = kappa_value
+    #print( mu )
+    #print( kappa )
+
+
 ### Update conserved variables from primitive variables
 def update_conserved( conserved, primitive, rho ):
 
@@ -274,7 +293,7 @@ def update_field( field_a, field_b ):
 
 
 ### Calculate time step
-def time_step( rho, u, v, w, sos, grid ):
+def time_step( rho, u, v, w, sos, mu, kappa, grid ):
 
     # Inviscid time step size for explicit schemes:
     # E. F. Toro.
@@ -290,11 +309,6 @@ def time_step( rho, u, v, w, sos, grid ):
     c_v = R_specific/( gamma - 1.0 )
     c_p = c_v*gamma
 
-    # Calculate Prandtl (Pr) number
-    Pr = gamma
-    if( kappa > epsilon ):
-        Pr = ( 1.0/( kappa ) )*c_p*mu
-
     # Initialize to largest float value
     delta_t = float( 'inf' )
 
@@ -306,18 +320,22 @@ def time_step( rho, u, v, w, sos, grid ):
                 delta_x = 0.5*( grid[i+1][j][k][0] - grid[i-1][j][k][0] ) 
                 delta_y = 0.5*( grid[i][j+1][k][1] - grid[i][j-1][k][1] ) 
                 delta_z = 0.5*( grid[i][j][k+1][2] - grid[i][j][k-1][2] )                
+                ## Calculate Prandtl (Pr) number
+                Pr = gamma
+                if( kappa[i][j][k] > epsilon ):
+                    Pr = ( 1.0/( kappa[i][j][k] ) )*c_p*mu[i][j][k]
                 ## x-direction inviscid & viscous terms
                 S_x     = abs( u[i][j][k] ) + sos[i][j][k]
                 delta_t = min( delta_t, ( 1.0/S_x )*CFL*delta_x )
-                delta_t = min( delta_t, ( 1.0/( mu*gamma + epsilon ) )*CFL*Pr*rho[i][j][k]*( delta_x**2.0 ) )
+                delta_t = min( delta_t, ( 1.0/( mu[i][j][k]*gamma + epsilon ) )*CFL*Pr*rho[i][j][k]*( delta_x**2.0 ) )
                 ## y-direction inviscid & viscous terms
                 S_y     = abs( v[i][j][k] ) + sos[i][j][k]
                 delta_t = min( delta_t, ( 1.0/S_y )*CFL*delta_y )
-                delta_t = min( delta_t, ( 1.0/( mu*gamma + epsilon ) )*CFL*Pr*rho[i][j][k]*( delta_y**2.0 ) )
+                delta_t = min( delta_t, ( 1.0/( mu[i][j][k]*gamma + epsilon ) )*CFL*Pr*rho[i][j][k]*( delta_y**2.0 ) )
                 ## z-direction inviscid & viscous terms
                 S_z     = abs( w[i][j][k] ) + sos[i][j][k]
                 delta_t = min( delta_t, ( 1.0/S_z )*CFL*delta_z )
-                delta_t = min( delta_t, ( 1.0/( mu*gamma + epsilon ) )*CFL*Pr*rho[i][j][k]*( delta_z**2.0 ) )
+                delta_t = min( delta_t, ( 1.0/( mu[i][j][k]*gamma + epsilon ) )*CFL*Pr*rho[i][j][k]*( delta_z**2.0 ) )
     #print( delta_t )
 
     # Return minimum time step
@@ -651,7 +669,7 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
 
 
 ### Calculate viscous fluxes
-def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, grid ):
+def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, mu, kappa, grid ):
 
     # Second-order central finite differences for derivatives:
     # P. Moin.
@@ -667,67 +685,78 @@ def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, grid ):
                 delta_y = 0.5*( grid[i][j+1][k][1] - grid[i][j-1][k][1] ) 
                 delta_z = 0.5*( grid[i][j][k+1][2] - grid[i][j][k-1][2] )
                 ## Velocity derivatives
-                d_u_x = ( u_field[i+1][j][k] - u_field[i-1][j][k] )/delta_x
-                d_u_y = ( u_field[i][j+1][k] - u_field[i][j-1][k] )/delta_y
-                d_u_z = ( u_field[i][j][k+1] - u_field[i][j][k-1] )/delta_z
-                d_v_x = ( v_field[i+1][j][k] - v_field[i-1][j][k] )/delta_x
-                d_v_y = ( v_field[i][j+1][k] - v_field[i][j-1][k] )/delta_y
-                d_v_z = ( v_field[i][j][k+1] - v_field[i][j][k-1] )/delta_z
-                d_w_x = ( w_field[i+1][j][k] - w_field[i-1][j][k] )/delta_x
-                d_w_y = ( w_field[i][j+1][k] - w_field[i][j-1][k] )/delta_y
-                d_w_z = ( w_field[i][j][k+1] - w_field[i][j][k-1] )/delta_z
+                d_u_x = ( u[i+1][j][k] - u[i-1][j][k] )/delta_x
+                d_u_y = ( u[i][j+1][k] - u[i][j-1][k] )/delta_y
+                d_u_z = ( u[i][j][k+1] - u[i][j][k-1] )/delta_z
+                d_v_x = ( v[i+1][j][k] - v[i-1][j][k] )/delta_x
+                d_v_y = ( v[i][j+1][k] - v[i][j-1][k] )/delta_y
+                d_v_z = ( v[i][j][k+1] - v[i][j][k-1] )/delta_z
+                d_w_x = ( w[i+1][j][k] - w[i-1][j][k] )/delta_x
+                d_w_y = ( w[i][j+1][k] - w[i][j-1][k] )/delta_y
+                d_w_z = ( w[i][j][k+1] - w[i][j][k-1] )/delta_z
+                ## Temperature derivatives
+                d_T_x = ( T[i+1][j][k] - T[i-1][j][k] )/delta_x;
+                d_T_y = ( T[i][j+1][k] - T[i][j-1][k] )/delta_y;
+                d_T_z = ( T[i][j][k+1] - T[i][j][k-1] )/delta_z;
+                ## Transport coefficients derivatives
+                d_mu_x    = ( mu[i+1][j][k] - mu[i-1][j][k] )/delta_x;
+                d_mu_y    = ( mu[i][j+1][k] - mu[i][j-1][k] )/delta_y;
+                d_mu_z    = ( mu[i][j][k+1] - mu[i][j][k-1] )/delta_z;
+                d_kappa_x = ( kappa[i+1][j][k] - kappa[i-1][j][k] )/delta_x;
+                d_kappa_y = ( kappa[i][j+1][k] - kappa[i][j-1][k] )/delta_y;
+                d_kappa_z = ( kappa[i][j][k+1] - kappa[i][j][k-1] )/delta_z;
                 ## Divergence of velocity
                 div_uvw = d_u_x + d_v_y + d_w_z
                 ## Viscous stresses ( symmetric tensor )
-                tau_xx = 2.0*mu*( d_u_x - ( div_uvw/3.0 ) )
-                tau_xy = mu*( d_u_y + d_v_x )
-                tau_xz = mu*( d_u_z + d_w_x )
-                tau_yy = 2.0*mu*( d_v_y - ( div_uvw/3.0 ) )
-                tau_yz = mu*( d_v_z + d_w_y )
-                tau_zz = 2.0*mu*( d_w_z - ( div_uvw/3.0 ) )
+                tau_xx = 2.0*mu[i][j][k]*( d_u_x - ( div_uvw/3.0 ) )
+                tau_xy = mu[i][j][k]*( d_u_y + d_v_x )
+                tau_xz = mu[i][j][k]*( d_u_z + d_w_x )
+                tau_yy = 2.0*mu[i][j][k]*( d_v_y - ( div_uvw/3.0 ) )
+                tau_yz = mu[i][j][k]*( d_v_z + d_w_y )
+                tau_zz = 2.0*mu[i][j][k]*( d_w_z - ( div_uvw/3.0 ) )
                 ## Divergence of viscous stresses
-                div_tau_x = mu*( ( 1.00/delta_x )*( ( u_field[i+1][j][k] - u_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
-                                                  - ( u_field[i][j][k] - u_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
-                               + ( 1.00/delta_y )*( ( u_field[i][j+1][k] - u_field[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
-                                                  - ( u_field[i][j][k] - u_field[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
-                               + ( 1.00/delta_z )*( ( u_field[i][j][k+1] - u_field[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                  - ( u_field[i][j][k] - u_field[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )			   + ( 1.0/3.0 )*mu*( ( 1.00/delta_x )*( ( u_field[i+1][j][k] - u_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
-                                                  - ( u_field[i][j][k] - u_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
-                               + ( 0.25/delta_x )*( ( v_field[i+1][j+1][k] - v_field[i+1][j-1][k] )/delta_y
-                                                  - ( v_field[i-1][j+1][k] - v_field[i-1][j-1][k] )/delta_y )
-                               + ( 0.25/delta_x )*( ( w_field[i+1][j][k+1] - w_field[i+1][j][k-1] )/delta_z
-                                                  - ( w_field[i-1][j][k+1] - w_field[i-1][j][k-1] )/delta_z ) )
-                div_tau_y = mu*( ( 1.00/delta_x )*( ( v_field[i+1][j][k] - v_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
-                                                  - ( v_field[i][j][k] - v_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
-                               + ( 1.00/delta_y )*( ( v_field[i][j+1][k] - v_field[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
-                                                  - ( v_field[i][j][k] - v_field[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
-                               + ( 1.00/delta_z )*( ( v_field[i][j][k+1] - v_field[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                  - ( v_field[i][j][k] - v_field[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) ) 		           + ( 1.0/3.0 )*mu*( ( 0.25/delta_y )*( ( u_field[i+1][j+1][k] - u_field[i-1][j+1][k] )/delta_x
-                                                  - ( u_field[i+1][j-1][k] - u_field[i-1][j-1][k] )/delta_x )
-                               + ( 1.00/delta_y )*( ( v_field[i][j+1][k] - v_field[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
-                                                  - ( v_field[i][j][k] - v_field[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
-                               + ( 0.25/delta_y )*( ( w_field[i][j+1][k+1] - w_field[i][j+1][k-1] )/delta_z
-                                                  - ( w_field[i][j-1][k+1] - w_field[i][j-1][k-1] )/delta_z ) ) 
-                div_tau_z = mu*( ( 1.00/delta_x )*( ( w_field[i+1][j][k] - w_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
-                                                  - ( w_field[i][j][k] - w_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
-                               + ( 1.00/delta_y )*( ( w_field[i][j+1][k] - w_field[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
-                                                  - ( w_field[i][j][k] - w_field[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
-                               + ( 1.00/delta_z )*( ( w_field[i][j][k+1] - w_field[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                  - ( w_field[i][j][k] - w_field[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )			   + ( 1.0/3.0 )*mu*( ( 0.25/delta_z )*( ( u_field[i+1][j][k+1] - u_field[i-1][j][k+1] )/delta_x
-                                                  - ( u_field[i+1][j][k-1] - u_field[i-1][j][k-1] )/delta_x )
-                               + ( 0.25/delta_z )*( ( v_field[i][j+1][k+1] - v_field[i][j-1][k+1] )/delta_y
-                                                  - ( v_field[i][j+1][k-1] - v_field[i][j-1][k-1] )/delta_y )
-                               + ( 1.00/delta_z )*( ( w_field[i][j][k+1] - w_field[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                  - ( w_field[i][j][k] - w_field[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )
+                div_tau_x = mu[i][j][k]*( ( 1.00/delta_x )*( ( u[i+1][j][k] - u[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
+                                                           - ( u[i][j][k] - u[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
+                                        + ( 1.00/delta_y )*( ( u[i][j+1][k] - u[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
+                                                           - ( u[i][j][k] - u[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
+                                        + ( 1.00/delta_z )*( ( u[i][j][k+1] - u[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
+                                                           - ( u[i][j][k] - u[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )			   + ( 1.0/3.0 )*mu[i][j][k]*( ( 1.00/delta_x )*( ( u[i+1][j][k] - u[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
+                                                           - ( u[i][j][k] - u[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
+                                        + ( 0.25/delta_x )*( ( v[i+1][j+1][k] - v[i+1][j-1][k] )/delta_y
+                                                           - ( v[i-1][j+1][k] - v[i-1][j-1][k] )/delta_y )
+                                        + ( 0.25/delta_x )*( ( w[i+1][j][k+1] - w[i+1][j][k-1] )/delta_z
+                                                           - ( w[i-1][j][k+1] - w[i-1][j][k-1] )/delta_z ) )                                                                   + d_mu_x*tau_xx + d_mu_y*tau_xy + d_mu_z*tau_xz
+                div_tau_y = mu[i][j][k]*( ( 1.00/delta_x )*( ( v[i+1][j][k] - v[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
+                                                           - ( v[i][j][k] - v[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
+                                        + ( 1.00/delta_y )*( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
+                                                           - ( v[i][j][k] - v[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
+                                        + ( 1.00/delta_z )*( ( v[i][j][k+1] - v[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
+                                                           - ( v[i][j][k] - v[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) ) 		           + ( 1.0/3.0 )*mu[i][j][k]*( ( 0.25/delta_y )*( ( u[i+1][j+1][k] - u[i-1][j+1][k] )/delta_x
+                                                           - ( u[i+1][j-1][k] - u[i-1][j-1][k] )/delta_x )
+                                        + ( 1.00/delta_y )*( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
+                                                           - ( v[i][j][k] - v[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
+                                        + ( 0.25/delta_y )*( ( w[i][j+1][k+1] - w[i][j+1][k-1] )/delta_z
+                                                           - ( w[i][j-1][k+1] - w[i][j-1][k-1] )/delta_z ) )                                                                   + d_mu_x*tau_xy + d_mu_y*tau_yy + d_mu_z*tau_yz
+                div_tau_z = mu[i][j][k]*( ( 1.00/delta_x )*( ( w[i+1][j][k] - w[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
+                                                           - ( w[i][j][k] - w[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
+                                        + ( 1.00/delta_y )*( ( w[i][j+1][k] - w[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
+                                                           - ( w[i][j][k] - w[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
+                                        + ( 1.00/delta_z )*( ( w[i][j][k+1] - w[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
+                                                           - ( w[i][j][k] - w[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )			   + ( 1.0/3.0 )*mu[i][j][k]*( ( 0.25/delta_z )*( ( u[i+1][j][k+1] - u[i-1][j][k+1] )/delta_x
+                                                           - ( u[i+1][j][k-1] - u[i-1][j][k-1] )/delta_x )
+                                        + ( 0.25/delta_z )*( ( v[i][j+1][k+1] - v[i][j-1][k+1] )/delta_y
+                                                           - ( v[i][j+1][k-1] - v[i][j-1][k-1] )/delta_y )
+                                        + ( 1.00/delta_z )*( ( w[i][j][k+1] - w[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
+                                                           - ( w[i][j][k] - w[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )                                       + d_mu_x*tau_xz + d_mu_y*tau_yz + d_mu_z*tau_zz
                 ## Fourier term
-                div_q = ( -1.0 )*kappa*( ( 1.0/delta_x )*( ( T_field[i+1][j][k] - T_field[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
-                                                         - ( T_field[i][j][k] - T_field[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
-                                       + ( 1.0/delta_y )*( ( T_field[i][j+1][k] - T_field[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
-                                                         - ( T_field[i][j][k] - T_field[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
-                                       + ( 1.0/delta_z )*( ( T_field[i][j][k+1] - T_field[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                         - ( T_field[i][j][k] - T_field[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )
+                div_q = ( -1.0 )*kappa[i][j][k]*( ( 1.0/delta_x )*( ( T[i+1][j][k] - T[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
+                                                                  - ( T[i][j][k] - T[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
+                                                + ( 1.0/delta_y )*( ( T[i][j+1][k] - T[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
+                                                                  - ( T[i][j][k] - T[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
+                                                + ( 1.0/delta_z )*( ( T[i][j][k+1] - T[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
+                                                                  - ( T[i][j][k] - T[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )                            - d_kappa_x*d_T_x - d_kappa_y*d_T_y - d_kappa_z*d_T_z
                 ## Work of viscous stresses
-                div_uvw_tau = u_field[i][j][k]*div_tau_x + v_field[i][j][k]*div_tau_y + w_field[i][j][k]*div_tau_z								 + tau_xx*d_u_x + tau_xy*d_u_y + tau_xz*d_u_z													      + tau_xy*d_v_x + tau_yy*d_v_y + tau_yz*d_v_z													   + tau_xz*d_w_x + tau_yz*d_w_y + tau_zz*d_w_z
+                div_uvw_tau = u[i][j][k]*div_tau_x + v[i][j][k]*div_tau_y + w[i][j][k]*div_tau_z								                 + tau_xx*d_u_x + tau_xy*d_u_y + tau_xz*d_u_z													      + tau_xy*d_v_x + tau_yy*d_v_y + tau_yz*d_v_z													   + tau_xz*d_w_x + tau_yz*d_w_y + tau_zz*d_w_z
                 ## Viscous fluxes
                 rhou_vis[i][j][k] = div_tau_x
                 rhov_vis[i][j][k] = div_tau_y
@@ -1075,6 +1104,9 @@ initialize_uvwPT( u_field, v_field, w_field, P_field, T_field, mesh )
 ### Initialize thermodynamic variables
 initialize_thermodynamics( rho_field, E_field, sos_field, u_field, v_field, w_field, P_field, T_field )
 
+### Calculate transport coefficients
+transport_coefficients( mu_field, kappa_field )
+
 ### Update conserved variables from primitive variables
 update_conserved( rhou_field, u_field, rho_field )
 update_conserved( rhov_field, v_field, rho_field )
@@ -1095,7 +1127,7 @@ time = initial_time
 for t in range( 0, int( max_num_time_iter ) ):
 
     ### Calculate time step
-    delta_t = time_step( rho_field, u_field, v_field, w_field, sos_field, mesh )
+    delta_t = time_step( rho_field, u_field, v_field, w_field, sos_field, mu_field, kappa_field, mesh )
     if( ( time + delta_t ) > final_time ):
         delta_t = final_time - time
         #print( delta_t )
@@ -1110,11 +1142,14 @@ for t in range( 0, int( max_num_time_iter ) ):
     ### Runge-Kutta sub-steps
     for rk in range( 0, rk_order ):
 
+        ### Calculate transport coefficients
+        transport_coefficients( mu_field, kappa_field )
+
         ### Calculate inviscid fluxes
         inviscid_fluxes( rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux, rhoE_inv_flux, rho_field, u_field, v_field, w_field, E_field, P_field, sos_field, mesh )
 
         ### Calculate viscous fluxes
-        viscous_fluxes( rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux, u_field, v_field, w_field, T_field, mesh )
+        viscous_fluxes( rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux, u_field, v_field, w_field, T_field, mu_field, kappa_field, mesh )
 
         ### Calculate source terms
         source_terms( f_rhou_field, f_rhov_field, f_rhow_field, f_rhoE_field, rho_field, u_field, v_field, w_field, mesh )
