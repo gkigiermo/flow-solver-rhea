@@ -20,12 +20,18 @@ fluid_flow_properties:
    #critical_molar_volume: 0.000089412       				# Critical molar volume [m3/mol]
    #NASA_coefficients: [2.95257637, 0.0013969004, -0.000000492631603, 0.000000000078601019, -0.000000000000004607552, -923.948688, 5.87188762, 3.53100528, -0.00012366098, -0.000000502999433, 0.00000000243530612, -0.0000000000014088124, -1046.97628, 2.96747038, 0.0]	# NASA 7-coefficient polynomial (15 values)
    # Transport coefficients models: CONSTANT (provide mu, kappa),
+   # LOW_PRESSURE_GAS (provide reference dynamic viscosity, reference thermal conductivity, reference temperature, Sutherland's dynamic viscosity constant, Sutherland's thermal conductivity constant),
    # HIGH_PRESSURE (provide molecular weight, critical temperature, critical molar volume, acentric factor, dipole moment, association factor, NASA 7-coefficient polynomial)
    transport_coefficients_model: 'HIGH_PRESSURE'	  		# Transport coefficients model
    #mu: 0.0                          					# Dynamic viscosity [Pa·s]
-   #kappa: 0.0                          				# Thermal conductivity [W/(m·k)]
+   #kappa: 0.0                          				# Thermal conductivity [W/(m·K)]
+   #mu_0: 0.0								# Reference dynamic viscosity [Pa·s]	
+   #kappa_0: 0.0							# Reference thermal conductivity [W/(m·K)]	
+   #T_0: 0.0								# Reference temperature [K]	
+   #S_mu: 0.0								# Sutherland's dynamic viscosity constant [K]	
+   #S_kappa: 0.0							# Sutherland's thermal conductivity constant [K]	
    #dipole_moment: 0.0               					# Dipole moment [D]
-   #association_factor: 0.0             				# Association factor [-]
+   #association_factor: 0.0            					# Association factor [-]
    # Substances: NITROGEN
    # Optional. Define substance to read from library file: R_specific, gamma, P_inf, e_0, c_v, molecular_weight, acentric_factor, critical_temperature, critical_pressure, critical_molar_volume, NASA_coefficients, dipole_moment, association_factor
    substance_name: 'NITROGEN'          					# Substance [-]

@@ -12,9 +12,10 @@
 using namespace std;
 
 ////////// CLASS DECLARATION //////////
-class BaseTransportCoefficients;					/// Base transport coefficients
-class ConstantTransportCoefficients;					/// Constant transport coefficients
-class HighPressureTransportCoefficients;				/// High-pressure transport coefficients
+class BaseTransportCoefficients;				/// Base transport coefficients
+class ConstantTransportCoefficients;				/// Constant transport coefficients
+class LowPressureGasTransportCoefficients;			/// Low-pressure gas variable transport coefficients
+class HighPressureTransportCoefficients;			/// High-pressure transport coefficients
 
 ////////// FUNCTION DECLARATION //////////
 
@@ -53,14 +54,14 @@ class BaseTransportCoefficients {
         ////////// PARAMETERS //////////
 
         /// Transport coefficients
-        double mu;								/// Dynamic viscosity [Pa·s]
-        double kappa;								/// Thermal conductivity [W/(m·k)]
+        double mu;							/// Dynamic viscosity [Pa·s]
+        double kappa;							/// Thermal conductivity [W/(m·K)]
 
         /// Thermodynamic properties
-        double R_universal = 8.31446261815324;					/// Universal (ideal-gas) gas constant [J/(mol·K)]
+        double R_universal = 8.31446261815324;				/// Universal (ideal-gas) gas constant [J/(mol·K)]
 
         /// Model parameters
-        string configuration_file;						/// Configuration file name (YAML language)
+        string configuration_file;					/// Configuration file name (YAML language)
 
     private:
 
@@ -95,6 +96,49 @@ class ConstantTransportCoefficients : public BaseTransportCoefficients {
     protected:
 
         ////////// PARAMETERS //////////
+
+    private:
+
+};
+
+
+////////// LowPressureGasTransportCoefficients CLASS //////////
+class LowPressureGasTransportCoefficients : public BaseTransportCoefficients {
+   
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        LowPressureGasTransportCoefficients();					/// Default constructor
+        LowPressureGasTransportCoefficients(const string configuration_file);	/// Parametrized constructor
+        virtual ~LowPressureGasTransportCoefficients();				/// Destructor
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+        
+        /// Read configuration (input) file written in YAML language
+        void readConfigurationFile();
+
+        /// Calculate dynamic viscosity
+        double calculateDynamicViscosity(const double &P, const double &T, const double &rho);
+
+        /// Calculate thermal conductivity
+        double calculateThermalConductivity(const double &P, const double &T, const double &rho);
+
+    protected:
+
+        ////////// PARAMETERS //////////
+
+        /// Transport parameters
+        double mu_0;						/// Reference dynamic viscosity [Pa·s]
+        double kappa_0;						/// Reference thermal conductivity [W/(m·K)]
+
+        /// Auxiliar coefficients
+        double T_0;						/// Reference temperature [K]
+        double S_mu;						/// Sutherland constant for mu [K]
+        double S_kappa;						/// Sutherland constant for kappa [K]
 
     private:
 

@@ -69,6 +69,77 @@ double ConstantTransportCoefficients::calculateThermalConductivity(const double 
 };
 
 
+////////// LowPressureGasTransportCoefficients CLASS //////////
+
+LowPressureGasTransportCoefficients::LowPressureGasTransportCoefficients() : BaseTransportCoefficients() {};
+        
+LowPressureGasTransportCoefficients::LowPressureGasTransportCoefficients(const string configuration_file) : BaseTransportCoefficients(configuration_file) {
+
+    /// Read configuration (input) file
+    this->readConfigurationFile();
+
+};
+
+LowPressureGasTransportCoefficients::~LowPressureGasTransportCoefficients() {};
+
+void LowPressureGasTransportCoefficients::readConfigurationFile() {
+
+    /// Create YAML object
+    YAML::Node configuration = YAML::LoadFile(configuration_file);
+
+    /// Fluid & flow properties
+    const YAML::Node & fluid_flow_properties = configuration["fluid_flow_properties"];
+    if( fluid_flow_properties["substance_name"] ) {
+
+        /// Create YAML object
+	string substance_name          = fluid_flow_properties["substance_name"].as<string>();
+	string substances_library_file = fluid_flow_properties["substances_library_file"].as<string>();
+        YAML::Node substances_library  = YAML::LoadFile( substances_library_file );
+        YAML::Node substance;
+
+        #include "substances_selection.txt"
+
+        mu_0    = substance["mu_0"].as<double>();
+        kappa_0 = substance["kappa_0"].as<double>();
+        T_0     = substance["T_0"].as<double>();
+        S_mu    = substance["S_mu"].as<double>();
+        S_kappa = substance["S_kappa"].as<double>();
+
+    } else {
+
+        mu_0    = fluid_flow_properties["mu_0"].as<double>();
+        kappa_0 = fluid_flow_properties["kappa_0"].as<double>();
+        T_0     = fluid_flow_properties["T_0"].as<double>();
+        S_mu    = fluid_flow_properties["S_mu"].as<double>();
+        S_kappa = fluid_flow_properties["S_kappa"].as<double>();
+
+    }
+
+};
+        
+double LowPressureGasTransportCoefficients::calculateDynamicViscosity(const double &P, const double &T, const double &rho) {
+
+    /// Sutherland's law of viscosity:
+    /// W. Sutherland.
+    /// LII. The viscosity of gases and molecular force.
+    /// Philosophical Magazine Series 5, 36:223, 507-531, 1893.
+
+    return( mu_0*pow( T/T_0, 1.5 )*( ( T_0 + S_mu )/( T + S_mu ) ) );
+
+};
+        
+double LowPressureGasTransportCoefficients::calculateThermalConductivity(const double &P, const double &T, const double &rho) {
+
+    /// Sutherland's law of viscosity:
+    /// W. Sutherland.
+    /// LII. The viscosity of gases and molecular force.
+    /// Philosophical Magazine Series 5, 36:223, 507-531, 1893.
+
+    return( kappa_0*pow( T/T_0, 1.5 )*( ( T_0 + S_kappa )/( T + S_kappa ) ) );
+
+};
+
+
 ////////// HighPressureTransportCoefficients CLASS //////////
 
 HighPressureTransportCoefficients::HighPressureTransportCoefficients() : BaseTransportCoefficients() {};

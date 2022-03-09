@@ -41,6 +41,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     /// Construct (initialize) transport coefficients model
     if( transport_coefficients_model == "CONSTANT" ) {
         transport_coefficients = new ConstantTransportCoefficients( configuration_file );
+    } else if( transport_coefficients_model == "LOW_PRESSURE_GAS" ) {
+        transport_coefficients = new LowPressureGasTransportCoefficients( configuration_file );
     } else if( transport_coefficients_model == "HIGH_PRESSURE" ) {
         transport_coefficients = new HighPressureTransportCoefficients( configuration_file );
     } else {
