@@ -5,34 +5,36 @@ using namespace std;
 ////////// FIXED PARAMETERS //////////
 const double epsilon = 1.0e-15;					/// Small epsilon number (fixed)
 const double pi      = 2.0*asin(1.0);				/// pi number (fixed)
-const int cout_presicion = 5;		                	/// Output precision (fixed)
+const int cout_precision = 5;		                	/// Output precision (fixed)
 
 /// PROBLEM PARAMETERS ///
-const double rho_b      = 785.49;                               /// Density bottom wall [kg/m3]
-const double mu_b       = 0.00011004;				/// Dynamic viscosity bottom wall [Pa s]
-const double T_w_b      = 100.0;				/// Temperature bottom wall [K]
-const double T_w_t      = 300.0;				/// Temperature top wall [K]
-const double P_0        = 4.0e6;                                /// Reference pressure
-const double u_tau_b    = 1.0;					/// Friction velocity
-const double Re_tau_b   = 100.0;                                /// Friction Reynolds number
-const double Ma         = 3.0e-1;                               /// Mach number
-const double delta      = ( mu_b*Re_tau_b )/( rho_b*u_tau_b );  /// Channel half-height [m]
-const double Re_b       = pow( Re_tau_b/0.09, 1.0/0.88 );	/// Bulk (approximated) Reynolds number
-const double u_b        = ( mu_b/rho_b )*Re_b/( 2.0*delta );	/// Bulk (approximated) velocity
-const double tau_w_b    = rho_b*u_tau_b*u_tau_b;                /// Wall shear stress
-const double nu_b       = mu_b/rho_b; 	                        /// Kinematic viscosity 
+const double T_c        = 126.192;				/// Nitrogen critical temperature [K]
+const double P_c        = 3395800.0;				/// Nitrogen critical pressure [Pa]
+const double T_bw       = 0.75*T_c;                             /// Temperature bottom wall [K]
+const double T_tw       = 1.5*T_c;                              /// Temperature top wall [K]
+const double P_b        = 2.0*P_c;                              /// Bulk pressure [Pa]
+const double delta      = 100.0e-6;				/// Channel half-height [m]
+const double Re_tau_bw  = 100.0;                                /// Friction Reynolds number bottom wall
+const double rho_bw     = 839.39;                               /// Density bottom wall [kg/m3]
+const double mu_bw      = 0.00016;				/// Dynamic viscosity bottom wall [Pa s]
+const double nu_bw      = mu_bw/rho_bw; 	                /// Kinematic viscosity bottom wall [m2/s]
+const double u_tau_bw   = ( mu_bw*Re_tau_bw )/( rho_bw*delta );	/// Friction velocity bottom wall [m/s]
+const double tau_bw     = rho_bw*u_tau_bw*u_tau_bw;             /// Wall shear stress bottom wall [kg/(m s2)]
 const double kappa_vK   = 0.41;                                 /// von Kármán constant
-const double y_0        = nu_b/( 9.0*u_tau_b );                 /// Smooth-wall roughness
-const double u_0        = ( u_tau_b/kappa_vK )*( log( delta/y_0 ) + ( y_0/delta ) - 1.0 );        /// Volume average of a log-law velocity profile
-const double alpha      = 0.15;                                 /// Magnitude of perturbations
+const double y_0        = nu_bw/( 9.0*u_tau_bw );               /// Smooth-wall roughness bottom wall [m]
+const double u_0        = ( u_tau_bw/kappa_vK )*( log( delta/y_0 ) + ( y_0/delta ) - 1.0 );   /// Volume-average of a log-law velocity profile [m/s]
+const double alpha      = 0.25;                                 /// Magnitude of perturbations
 
 /// Estimated uniform body force to drive the flow
-double controller_output = tau_w_b/delta;		        /// Initialize controller output
+double controller_output = tau_bw/delta;		        /// Initialize controller output
 double controller_error  = 0.0;			        	/// Initialize controller error
 double controller_K_p    = 1.0e-1;		        	/// Controller proportional gain
 
-/// Control bulk pressure to maintain the fixed target value P_0
+/// Control bulk pressure to maintain the fixed target value P_b
 bool control_bulk_pressure = true;
+
+/// Control temperature to T_b_w <= T <= T_t_w
+bool control_temperature = true;
 
 
 ////////// myRHEA CLASS //////////
@@ -57,8 +59,8 @@ void myRHEA::setInitialConditions() {
 		u_field[I1D(i,j,k)] = ( 2.0*u_0*y_dist/delta ) + alpha*u_0*random_number;
                 v_field[I1D(i,j,k)] = 0.0;
                 w_field[I1D(i,j,k)] = 0.0;
-                P_field[I1D(i,j,k)] = P_0;
-                T_field[I1D(i,j,k)] = T_w_b + ( mesh->y[j]/( 2.0*delta ) )*( T_w_t - T_w_b );
+                P_field[I1D(i,j,k)] = P_b;
+                T_field[I1D(i,j,k)] = T_bw + ( mesh->y[j]/( 2.0*delta ) )*( T_tw - T_bw );
 	    }
         }
     }
@@ -79,52 +81,59 @@ void myRHEA::calculateSourceTerms() {
     /// Evaluate numerical shear stress at bottom wall
 
     /// Calculate local values
-    double local_sum_u_inner_b    = 0.0;
-    double local_sum_u_boundary_b = 0.0;
-    double local_number_grid_points_b  = 0.0;
+    double local_sum_u_boundary_bw = 0.0;
+    double local_sum_u_inner_bw    = 0.0;
+    double local_number_grid_points_bw  = 0.0;
     for(int i = topo->iter_bound[_SOUTH_][_INIX_]; i <= topo->iter_bound[_SOUTH_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_SOUTH_][_INIY_]; j <= topo->iter_bound[_SOUTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_SOUTH_][_INIZ_]; k <= topo->iter_bound[_SOUTH_][_ENDZ_]; k++) {
-                /// Sum inner values
-                local_sum_u_inner_b += u_field[I1D(i,j+1,k)];
-                /// Sum boundary values
-                local_sum_u_boundary_b += u_field[I1D(i,j,k)];
+		if( abs( avg_u_field[I1D(i,j,k)] ) > 0.0 ) {
+                    /// Sum boundary values
+                    local_sum_u_boundary_bw += avg_u_field[I1D(i,j,k)];
+                    /// Sum inner values
+                    local_sum_u_inner_bw    += avg_u_field[I1D(i,j+1,k)];
+		} else {
+                    /// Sum boundary values
+                    local_sum_u_boundary_bw += u_field[I1D(i,j,k)];
+                    /// Sum inner values
+                    local_sum_u_inner_bw    += u_field[I1D(i,j+1,k)];
+		}
                 /// Sum number grid points
-                local_number_grid_points_b += 1.0;
+                local_number_grid_points_bw += 1.0;
             }
         }
     }
 
     /// Communicate local values to obtain global & average values
-    double global_sum_u_inner_b;
-    MPI_Allreduce(&local_sum_u_inner_b, &global_sum_u_inner_b, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    double global_sum_u_boundary_b;
-    MPI_Allreduce(&local_sum_u_boundary_b, &global_sum_u_boundary_b, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    double global_number_grid_points_b;
-    MPI_Allreduce(&local_number_grid_points_b, &global_number_grid_points_b, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    double global_avg_u_inner_b    = global_sum_u_inner_b/global_number_grid_points_b;
-    double global_avg_u_boundary_b = global_sum_u_boundary_b/global_number_grid_points_b;
+    double global_sum_u_boundary_bw;
+    MPI_Allreduce(&local_sum_u_boundary_bw, &global_sum_u_boundary_bw, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    double global_sum_u_inner_bw;
+    MPI_Allreduce(&local_sum_u_inner_bw, &global_sum_u_inner_bw, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    double global_number_grid_points_bw;
+    MPI_Allreduce(&local_number_grid_points_bw, &global_number_grid_points_bw, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    double global_avg_u_boundary_bw = global_sum_u_boundary_bw/global_number_grid_points_bw;
+    double global_avg_u_inner_bw    = global_sum_u_inner_bw/global_number_grid_points_bw;
 
     /// Calculate delta_y
     double delta_y = mesh->getGloby(1) - mesh->getGloby(0);
 
-    /// Calculate tau_w_b_numerical
-    double tau_w_b_numerical = mu_b*( global_avg_u_inner_b - global_avg_u_boundary_b )/delta_y;
+    /// Calculate tau_bw_numerical
+    double tau_bw_numerical = mu_bw*( global_avg_u_inner_bw - global_avg_u_boundary_bw )/delta_y;
     
     /// Update controller variables
-    controller_error   = ( tau_w_b - tau_w_b_numerical )/delta;
+    controller_error   = ( tau_bw - tau_bw_numerical )/delta;
     controller_output += controller_K_p*controller_error;
 
     //int my_rank, world_size;
     //MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     //MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-    //if( my_rank == 0 ) cout << tau_w_b << "  " << tau_w_b_numerical << "  " << controller_output << "  " << controller_error << endl;
+    //if( my_rank == 0 ) cout << tau_bw << "  " << tau_w_b_numerical << "  " << controller_output << "  " << controller_error << endl;
 
     /// Inner points: f_rhou, f_rhov, f_rhow and f_rhoE
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                //f_rhou_field[I1D(i,j,k)] = tau_w_b/delta;
+                //f_rhou_field[I1D(i,j,k)] = tau_bw/delta;
                 f_rhou_field[I1D(i,j,k)] = controller_output;
                 f_rhov_field[I1D(i,j,k)] = 0.0;
                 f_rhow_field[I1D(i,j,k)] = 0.0;
@@ -151,7 +160,7 @@ void myRHEA::execute() {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
     /// Set output (cout) precision
-    cout.precision( cout_presicion );
+    cout.precision( cout_precision );
 
     /// Start RHEA simulation
     if( my_rank == 0 ) cout << "RHEA (v" << version_number << "): START SIMULATION" << endl;
@@ -292,8 +301,8 @@ void myRHEA::execute() {
             /// Stop timer: calculate_thermodynamics_from_primitive_variables
             timers->stop( "calculate_thermodynamics_from_primitive_variables" );
 
+            /// Start: bulk pressure explicitly modified to maintain the fixed target value P_b
             if( control_bulk_pressure ) {
-                /// Start: bulk pressure explicitly modified to maintain the fixed target value P_0
 
                 /// Calculate local values
                 double local_sum_PV = 0.0;
@@ -320,18 +329,70 @@ void myRHEA::execute() {
                 double global_avg_P = global_sum_PV/global_sum_V;
 
                 /// Modify P values
-                double ratio_P_0_P_b = P_0/( global_avg_P + epsilon );
+                double ratio_P_b_target_P_b_numerical = P_b/( global_avg_P + epsilon );
                 for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
                     for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
                         for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                             /// Sum P*V values
-                            P_field[I1D(i,j,k)] *= ratio_P_0_P_b;
+                            P_field[I1D(i,j,k)] *= ratio_P_b_target_P_b_numerical;
                         }
                     }
                 }
 
-                /// Stop: bulk pressure explicitly modified to maintain the fixed target value P_0
             }
+            /// Stop: bulk pressure explicitly modified to maintain the fixed target value P_b
+            
+	    /// Start: temperature explicitly modified to T_b_w <= T <= T_t_w
+            if( control_temperature ) {
+	  
+	        /// Mantain T to T_b_w <= T <= T_t_w
+                for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+                    for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+                        for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+			    T_field[I1D(i,j,k)] = max( T_bw, min( T_tw, T_field[I1D(i,j,k)] ) );
+			}
+		    }
+		}
+
+            } 
+	    /// Stop: temperature explicitly modified to T_b_w <= T <= T_t_w
+
+	    /// Start: recalculate rho, E, sos, c_v and c_p from P and T
+            if( control_bulk_pressure || control_temperature ) {
+
+                double u, v, w, P, T;
+                double rho, e, ke, E;
+                double c_v, c_p;
+                for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+                    for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+                        for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+		            /// Obtain primitive variables
+                            u = u_field[I1D(i,j,k)];
+                            v = v_field[I1D(i,j,k)];
+                            w = w_field[I1D(i,j,k)];
+                            P = P_field[I1D(i,j,k)];
+                            T = T_field[I1D(i,j,k)];
+		            /// Update rho, e, ke and E
+                            thermodynamics->calculateDensityInternalEnergyFromPressureTemperature( rho, e, P, T );
+                            ke = 0.5*( u*u + v*v + w*w );
+                            E  = e + ke;
+		            /// Update conserved variables
+			    rho_field[I1D(i,j,k)]  = rho;
+                            rhou_field[I1D(i,j,k)] = rho*u;
+                            rhov_field[I1D(i,j,k)] = rho*v;
+                            rhow_field[I1D(i,j,k)] = rho*w;
+                            rhoE_field[I1D(i,j,k)] = rho*E;
+		            /// Update thermodynamics
+                            sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P, T, rho );
+                            thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P, T, rho );
+                            c_v_field[I1D(i,j,k)] = c_v;
+                            c_p_field[I1D(i,j,k)] = c_p;
+			}
+		    }
+		}
+
+	    }
+	    /// Stop: recalculate rho, E, sos, c_v and c_p from P and T
 
             /// Start timer: update_boundaries
             timers->start( "update_boundaries" );

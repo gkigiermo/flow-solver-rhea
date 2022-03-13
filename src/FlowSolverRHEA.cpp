@@ -9,7 +9,7 @@ using namespace std;
 ////////// FIXED PARAMETERS //////////
 const double epsilon     = 1.0e-15;			/// Small epsilon number (fixed)
 const double pi          = 2.0*asin(1.0);		/// pi number (fixed)
-const int cout_presicion = 5;		                /// Output precision (fixed)
+const int cout_precision = 5;		                /// Output precision (fixed)
 
 
 ////////// FlowSolverRHEA CLASS //////////
@@ -2108,7 +2108,7 @@ void FlowSolverRHEA::execute() {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
     /// Set output (cout) precision
-    cout.precision( cout_presicion );
+    cout.precision( cout_precision );
 
     /// Start RHEA simulation
     if( my_rank == 0 ) cout << "RHEA (v" << version_number << "): START SIMULATION" << endl;
