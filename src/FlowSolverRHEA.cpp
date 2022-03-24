@@ -1850,26 +1850,26 @@ void FlowSolverRHEA::calculateViscousFluxes() {
                 delta_y = delta_y_field[I1D(i,j,k)]; 
                 delta_z = delta_z_field[I1D(i,j,k)];
                 /// Velocity derivatives
-                d_u_x = ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/delta_x;
-                d_u_y = ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j-1,k)] )/delta_y;
-                d_u_z = ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k-1)] )/delta_z;
-                d_v_x = ( v_field[I1D(i+1,j,k)] - v_field[I1D(i-1,j,k)] )/delta_x;
-                d_v_y = ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j-1,k)] )/delta_y;
-                d_v_z = ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k-1)] )/delta_z;
-                d_w_x = ( w_field[I1D(i+1,j,k)] - w_field[I1D(i-1,j,k)] )/delta_x;
-                d_w_y = ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j-1,k)] )/delta_y;
-                d_w_z = ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k-1)] )/delta_z;
+                d_u_x = ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/( 2.0*delta_x );
+                d_u_y = ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j-1,k)] )/( 2.0*delta_y );
+                d_u_z = ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k-1)] )/( 2.0*delta_z );
+                d_v_x = ( v_field[I1D(i+1,j,k)] - v_field[I1D(i-1,j,k)] )/( 2.0*delta_x );
+                d_v_y = ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j-1,k)] )/( 2.0*delta_y );
+                d_v_z = ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k-1)] )/( 2.0*delta_z );
+                d_w_x = ( w_field[I1D(i+1,j,k)] - w_field[I1D(i-1,j,k)] )/( 2.0*delta_x );
+                d_w_y = ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j-1,k)] )/( 2.0*delta_y );
+                d_w_z = ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k-1)] )/( 2.0*delta_z );
                 /// Temperature derivatives
-                d_T_x = ( T_field[I1D(i+1,j,k)] - T_field[I1D(i-1,j,k)] )/delta_x;
-                d_T_y = ( T_field[I1D(i,j+1,k)] - T_field[I1D(i,j-1,k)] )/delta_y;
-                d_T_z = ( T_field[I1D(i,j,k+1)] - T_field[I1D(i,j,k-1)] )/delta_z;
+                d_T_x = ( T_field[I1D(i+1,j,k)] - T_field[I1D(i-1,j,k)] )/( 2.0*delta_x );
+                d_T_y = ( T_field[I1D(i,j+1,k)] - T_field[I1D(i,j-1,k)] )/( 2.0*delta_y );
+                d_T_z = ( T_field[I1D(i,j,k+1)] - T_field[I1D(i,j,k-1)] )/( 2.0*delta_z );
                 /// Transport coefficients derivatives
-                d_mu_x    = ( mu_field[I1D(i+1,j,k)] - mu_field[I1D(i-1,j,k)] )/delta_x;
-                d_mu_y    = ( mu_field[I1D(i,j+1,k)] - mu_field[I1D(i,j-1,k)] )/delta_y;
-                d_mu_z    = ( mu_field[I1D(i,j,k+1)] - mu_field[I1D(i,j,k-1)] )/delta_z;
-                d_kappa_x = ( kappa_field[I1D(i+1,j,k)] - kappa_field[I1D(i-1,j,k)] )/delta_x;
-                d_kappa_y = ( kappa_field[I1D(i,j+1,k)] - kappa_field[I1D(i,j-1,k)] )/delta_y;
-                d_kappa_z = ( kappa_field[I1D(i,j,k+1)] - kappa_field[I1D(i,j,k-1)] )/delta_z;
+                d_mu_x    = ( mu_field[I1D(i+1,j,k)] - mu_field[I1D(i-1,j,k)] )/( 2.0*delta_x );
+                d_mu_y    = ( mu_field[I1D(i,j+1,k)] - mu_field[I1D(i,j-1,k)] )/( 2.0*delta_y );
+                d_mu_z    = ( mu_field[I1D(i,j,k+1)] - mu_field[I1D(i,j,k-1)] )/( 2.0*delta_z );
+                d_kappa_x = ( kappa_field[I1D(i+1,j,k)] - kappa_field[I1D(i-1,j,k)] )/( 2.0*delta_x );
+                d_kappa_y = ( kappa_field[I1D(i,j+1,k)] - kappa_field[I1D(i,j-1,k)] )/( 2.0*delta_y );
+                d_kappa_z = ( kappa_field[I1D(i,j,k+1)] - kappa_field[I1D(i,j,k-1)] )/( 2.0*delta_z );
                 /// Divergence of velocity
                 div_uvw = d_u_x + d_v_y + d_w_z;
                 /// Viscous stresses ( symmetric tensor )

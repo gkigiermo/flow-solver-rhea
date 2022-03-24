@@ -994,26 +994,26 @@ def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, mu, kapp
                 delta_y = 0.5*( grid[i][j+1][k][1] - grid[i][j-1][k][1] ) 
                 delta_z = 0.5*( grid[i][j][k+1][2] - grid[i][j][k-1][2] )
                 ## Velocity derivatives
-                d_u_x = ( u[i+1][j][k] - u[i-1][j][k] )/delta_x
-                d_u_y = ( u[i][j+1][k] - u[i][j-1][k] )/delta_y
-                d_u_z = ( u[i][j][k+1] - u[i][j][k-1] )/delta_z
-                d_v_x = ( v[i+1][j][k] - v[i-1][j][k] )/delta_x
-                d_v_y = ( v[i][j+1][k] - v[i][j-1][k] )/delta_y
-                d_v_z = ( v[i][j][k+1] - v[i][j][k-1] )/delta_z
-                d_w_x = ( w[i+1][j][k] - w[i-1][j][k] )/delta_x
-                d_w_y = ( w[i][j+1][k] - w[i][j-1][k] )/delta_y
-                d_w_z = ( w[i][j][k+1] - w[i][j][k-1] )/delta_z
+                d_u_x = ( u[i+1][j][k] - u[i-1][j][k] )/( 2.0*delta_x )
+                d_u_y = ( u[i][j+1][k] - u[i][j-1][k] )/( 2.0*delta_y )
+                d_u_z = ( u[i][j][k+1] - u[i][j][k-1] )/( 2.0*delta_z )
+                d_v_x = ( v[i+1][j][k] - v[i-1][j][k] )/( 2.0*delta_x )
+                d_v_y = ( v[i][j+1][k] - v[i][j-1][k] )/( 2.0*delta_y )
+                d_v_z = ( v[i][j][k+1] - v[i][j][k-1] )/( 2.0*delta_z )
+                d_w_x = ( w[i+1][j][k] - w[i-1][j][k] )/( 2.0*delta_x )
+                d_w_y = ( w[i][j+1][k] - w[i][j-1][k] )/( 2.0*delta_y )
+                d_w_z = ( w[i][j][k+1] - w[i][j][k-1] )/( 2.0*delta_z )
                 ## Temperature derivatives
-                d_T_x = ( T[i+1][j][k] - T[i-1][j][k] )/delta_x;
-                d_T_y = ( T[i][j+1][k] - T[i][j-1][k] )/delta_y;
-                d_T_z = ( T[i][j][k+1] - T[i][j][k-1] )/delta_z;
+                d_T_x = ( T[i+1][j][k] - T[i-1][j][k] )/( 2.0*delta_x )
+                d_T_y = ( T[i][j+1][k] - T[i][j-1][k] )/( 2.0*delta_y )
+                d_T_z = ( T[i][j][k+1] - T[i][j][k-1] )/( 2.0*delta_z )
                 ## Transport coefficients derivatives
-                d_mu_x    = ( mu[i+1][j][k] - mu[i-1][j][k] )/delta_x;
-                d_mu_y    = ( mu[i][j+1][k] - mu[i][j-1][k] )/delta_y;
-                d_mu_z    = ( mu[i][j][k+1] - mu[i][j][k-1] )/delta_z;
-                d_kappa_x = ( kappa[i+1][j][k] - kappa[i-1][j][k] )/delta_x;
-                d_kappa_y = ( kappa[i][j+1][k] - kappa[i][j-1][k] )/delta_y;
-                d_kappa_z = ( kappa[i][j][k+1] - kappa[i][j][k-1] )/delta_z;
+                d_mu_x    = ( mu[i+1][j][k] - mu[i-1][j][k] )/( 2.0*delta_x )
+                d_mu_y    = ( mu[i][j+1][k] - mu[i][j-1][k] )/( 2.0*delta_y )
+                d_mu_z    = ( mu[i][j][k+1] - mu[i][j][k-1] )/( 2.0*delta_z )
+                d_kappa_x = ( kappa[i+1][j][k] - kappa[i-1][j][k] )/( 2.0*delta_x )
+                d_kappa_y = ( kappa[i][j+1][k] - kappa[i][j-1][k] )/( 2.0*delta_y )
+                d_kappa_z = ( kappa[i][j][k+1] - kappa[i][j][k-1] )/( 2.0*delta_z )
                 ## Divergence of velocity
                 div_uvw = d_u_x + d_v_y + d_w_z
                 ## Viscous stresses ( symmetric tensor )
