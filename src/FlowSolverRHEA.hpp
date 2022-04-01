@@ -155,6 +155,12 @@ class FlowSolverRHEA {
         /// Update time rmsf quantity
         virtual double updateTimeRmsfQuantity(const double &quantity, const double &mean_quantity, const double &rmsf_quantity, const double &delta_t, const double &averaging_time);
 
+        /// Update time Reynolds-averaged quantity
+        virtual double updateTimeReynoldsAveragedQuantity(const double &quantity_1, const double &mean_quantity_1, const double &quantity_2, const double &mean_quantity_2, const double &reynolds_averaged_quantity, const double &delta_t, const double &averaging_time);
+
+        /// Update time Favre-averaged quantity
+        virtual double updateTimeFavreAveragedQuantity(const double &quantity_1, const double &mean_rho_quantity_1, const double &quantity_2, const double &mean_rho_quantity_2, const double &rho, const double &mean_rho, const double &favre_averaged_quantity, const double &delta_t, const double &averaging_time);
+
     protected:
 
         ////////// SOLVER PARAMETERS //////////
@@ -311,6 +317,18 @@ class FlowSolverRHEA {
         DistributedArray rmsf_kappa_field;			/// 3-D field of root-mean-square-fluctuation kappa
         DistributedArray rmsf_c_v_field;			/// 3-D field of root-mean-square-fluctuation c_v
         DistributedArray rmsf_c_p_field;			/// 3-D field of root-mean-square-fluctuation c_p
+        DistributedArray R_reynolds_uu_field;			/// 3-D field of Reynolds-averaged turbulent stress tensor overline{u'u'}
+        DistributedArray R_reynolds_uv_field;			/// 3-D field of Reynolds-averaged turbulent stress tensor overline{u'v'}
+        DistributedArray R_reynolds_uw_field;			/// 3-D field of Reynolds-averaged turbulent stress tensor overline{u'w'}
+        DistributedArray R_reynolds_vv_field;			/// 3-D field of Reynolds-averaged turbulent stress tensor overline{v'v'}
+        DistributedArray R_reynolds_vw_field;			/// 3-D field of Reynolds-averaged turbulent stress tensor overline{v'w'}
+        DistributedArray R_reynolds_ww_field;			/// 3-D field of Reynolds-averaged turbulent stress tensor overline{w'w'}
+        DistributedArray R_favre_uu_field;			/// 3-D field of Favre-averaged turbulent stress tensor overline{rhou''u''}/bar{rho}
+        DistributedArray R_favre_uv_field;			/// 3-D field of Favre-averaged turbulent stress tensor overline{rhou''v''}/bar{rho}
+        DistributedArray R_favre_uw_field;			/// 3-D field of Favre-averaged turbulent stress tensor overline{rhou''w''}/bar{rho}
+        DistributedArray R_favre_vv_field;			/// 3-D field of Favre-averaged turbulent stress tensor overline{rhov''v''}/bar{rho}
+        DistributedArray R_favre_vw_field;			/// 3-D field of Favre-averaged turbulent stress tensor overline{rhov''w''}/bar{rho}
+        DistributedArray R_favre_ww_field;			/// 3-D field of Favre-averaged turbulent stress tensor overline{rhow''w''}/bar{rho}
 
 	////////// THERMODYNAMIC MODEL, TRANSPORT COEFFICIENTS, RIEMANN SOLVER, EXPLICIT RUNGE-KUTTA METHOD //////////
 	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER, PARALLEL TIMER //////////
@@ -329,8 +347,8 @@ class FlowSolverRHEA {
         /// The middle number (2) is the minor version.
         /// The rightmost number (3) is the revision, but it may also refer to a "point release" or "subminor version".
 	
-        /// Version number (updated 04/12/2021)
-        string version_number = "1.1.0";			/// Version number	
+        /// Version number (updated 01/04/2022)
+        string version_number = "1.0.1";			/// Version number	
 
     private:
 
