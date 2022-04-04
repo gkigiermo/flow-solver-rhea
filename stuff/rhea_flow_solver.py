@@ -62,6 +62,7 @@
 ########## PHYTON MODULES ##########
 import os, sys
 import numpy as np
+from numba import njit
 
 
 ########## SET PARAMETERS ##########
@@ -191,6 +192,7 @@ def initialize_uvwPT( u, v, w, P, T, grid ):
 
 
 ### Update boundaries
+@njit
 def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
 
     # General form: w_g*phi_g + w_in*phi_in = phi_b
@@ -471,6 +473,7 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
 
 
 ### Calculate transport coefficients
+@njit
 def transport_coefficients( mu, kappa ):
 
     # Constant-value model:
@@ -486,6 +489,7 @@ def transport_coefficients( mu, kappa ):
 
 
 ### Calculate source terms
+@njit
 def source_terms( f_rhou, f_rhov, f_rhow, f_rhoE, rho, u, v, w, mesh ):
 
     # Internal points
@@ -536,6 +540,7 @@ def data_output( rho, u, v, w, E, P, T, sos, grid ):
 
 
 ### Calculate time step
+@njit
 def time_step( rho, u, v, w, sos, mu, kappa, grid ):
 
     # Inviscid time step size for explicit schemes:
@@ -553,7 +558,8 @@ def time_step( rho, u, v, w, sos, mu, kappa, grid ):
     c_p = c_v*gamma
 
     # Initialize to largest float value
-    delta_t = float( 'inf' )
+#     delta_t = float( 'inf' )
+    delta_t = 1.0e6
 
     # Internal points
     for i in range( 1, num_grid_x + 1 ):    
@@ -647,6 +653,7 @@ def initialize_thermodynamics( rho, E, sos, u, v, w, P, T ):
 
 
 ### Update conserved variables from primitive variables
+@njit
 def update_conserved( conserved, primitive, rho ):
 
     # All points
@@ -658,6 +665,7 @@ def update_conserved( conserved, primitive, rho ):
 
 
 ### Update field
+@njit
 def update_field( field_a, field_b ):
 
     # All points
@@ -669,6 +677,7 @@ def update_field( field_a, field_b ):
 
 
 ### calculate wave speeds
+@njit
 def waves_speed( rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R ):
 
     # HLLC approximate Riemann solver:
@@ -694,7 +703,8 @@ def waves_speed( rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R ):
     return( S_L, S_R )
 
 
-### Calculate HLLC flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE 
+### Calculate HLLC flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+@njit
 def HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type ):
 
     # HLLC approximate Riemann solver:
@@ -769,6 +779,7 @@ def HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a
 
 
 ### Calculate KGP flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE 
+@njit
 def KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type ):
 
     # Kennedy, Gruber & Pirozzoli (KGP) scheme:
@@ -793,6 +804,7 @@ def KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_
 
 
 ### Calculate inviscid fluxes
+@njit
 def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v, w, E, P, sos, grid ):
 
     # Unsplit method for Euler equations:
@@ -978,6 +990,7 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
 
 
 ### Calculate viscous fluxes
+@njit
 def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, mu, kappa, grid ):
 
     # Second-order central finite differences for derivatives:
@@ -1078,6 +1091,7 @@ def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, mu, kapp
 
 
 ### Sum inviscid & viscous fluxes and source terms
+@njit
 def sum_fluxes_source_terms( rho_tot, rhou_tot, rhov_tot, rhow_tot, rhoE_tot, rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rhou_vis, rhov_vis, rhow_vis, rhoE_vis, f_rhou, f_rhov, f_rhow, f_rhoE, rk_iter ):
 
     # Internal points
@@ -1097,6 +1111,7 @@ def sum_fluxes_source_terms( rho_tot, rhou_tot, rhov_tot, rhow_tot, rhoE_tot, rh
 
 
 ### Time integration of conserved variables
+@njit
 def time_integration( y, y_0, h, k_s, rk_iter ):
 
     # Explicit third-order strong-stability-preserving Runge-Kutta (SSP-RK3) method:
@@ -1118,6 +1133,7 @@ def time_integration( y, y_0, h, k_s, rk_iter ):
 
 
 ### Update primitive variables from conserved variables
+@njit
 def update_primitive( primitive, conserved, rho ):
 
     # All points
@@ -1129,6 +1145,7 @@ def update_primitive( primitive, conserved, rho ):
 
 
 ### Update thermodynamic variables from primitive variables
+@njit
 def thermodynamic_state( P, T, sos, rho, u, v, w, E ):
 
     # Ideal-gas model:
