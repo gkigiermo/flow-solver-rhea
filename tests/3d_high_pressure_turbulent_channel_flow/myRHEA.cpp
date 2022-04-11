@@ -87,17 +87,17 @@ void myRHEA::calculateSourceTerms() {
     for(int i = topo->iter_bound[_SOUTH_][_INIX_]; i <= topo->iter_bound[_SOUTH_][_ENDX_]; i++) {
         for(int j = topo->iter_bound[_SOUTH_][_INIY_]; j <= topo->iter_bound[_SOUTH_][_ENDY_]; j++) {
             for(int k = topo->iter_bound[_SOUTH_][_INIZ_]; k <= topo->iter_bound[_SOUTH_][_ENDZ_]; k++) {
-		if( abs( avg_u_field[I1D(i,j,k)] ) > 0.0 ) {
-                    /// Sum boundary values
-                    local_sum_u_boundary_bw += avg_u_field[I1D(i,j,k)];
-                    /// Sum inner values
-                    local_sum_u_inner_bw    += avg_u_field[I1D(i,j+1,k)];
-		} else {
+//		if( abs( avg_u_field[I1D(i,j,k)] ) > 0.0 ) {
+//                    /// Sum boundary values
+//                    local_sum_u_boundary_bw += avg_u_field[I1D(i,j,k)];
+//                    /// Sum inner values
+//                    local_sum_u_inner_bw    += avg_u_field[I1D(i,j+1,k)];
+//		} else {
                     /// Sum boundary values
                     local_sum_u_boundary_bw += u_field[I1D(i,j,k)];
                     /// Sum inner values
                     local_sum_u_inner_bw    += u_field[I1D(i,j+1,k)];
-		}
+//		}
                 /// Sum number grid points
                 local_number_grid_points_bw += 1.0;
             }
