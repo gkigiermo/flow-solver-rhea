@@ -1,6 +1,6 @@
 - COMMIT CHNAGES:
-git commit -m "message"
 git add file
+git status
 git commit -m "message"
 git fetch
 git merge origin master

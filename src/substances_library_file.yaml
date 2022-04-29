@@ -177,11 +177,11 @@ HYDROGEN:
 		       -917.924130000000000000000,
 			0.68300218000000000000000,
 			0.00000000000000000000000]                      # NASA 7-coefficient polynomial (15 values)
-   mu_0: 0.00008411							# Reference dynamic viscosity [Pa·s]	
-   kappa_0: 0.168							# Reference thermal conductivity [W/(m·K)]	
-   T_0: 273.0								# Reference temperature [K]	
-   S_mu: 97.0								# Sutherland's dynamic viscosity constant [K]	
-   S_kappa: 120.0							# Sutherland's thermal conductivity constant [K]
+   mu_0: 0.00000675							# Reference dynamic viscosity [Pa·s]	
+   kappa_0: 0.133							# Reference thermal conductivity [W/(m·K)]	
+   T_0: 200.0								# Reference temperature [K]	
+   S_mu: 60.4								# Sutherland's dynamic viscosity constant [K]	
+   S_kappa: 125.2							# Sutherland's thermal conductivity constant [K]
    dipole_moment: 0.0               					# Dipole moment [D]
    association_factor: 0.0             					# Association factor [-]
 
