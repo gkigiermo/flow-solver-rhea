@@ -25,14 +25,14 @@ using namespace std;
 ////////// CLASS DECLARATION //////////
 class FlowSolverRHEA;					/// Flow solver RHEA
 
-class BaseRiemannSolver;				/// Base Riemann solver
-class CentralFluxApproximateRiemannSolver;		/// Central scheme approximate Riemann solver
-class MurmanRoeFluxApproximateRiemannSolver;		/// Murman-Roe scheme approximate Riemann solver
-class KgpFluxApproximateRiemannSolver;			/// KGP scheme approximate Riemann solver
-class KgpPlusFluxApproximateRiemannSolver;		/// KGP+ scheme approximate Riemann solver
-class HllApproximateRiemannSolver;			/// HLL approximate Riemann solver
-class HllcApproximateRiemannSolver;			/// HLLC approximate Riemann solver
-class HllcPlusApproximateRiemannSolver;			/// HLLC+ approximate Riemann solver
+//class BaseRiemannSolver;				/// Base Riemann solver
+//class CentralFluxApproximateRiemannSolver;		/// Central scheme approximate Riemann solver
+//class MurmanRoeFluxApproximateRiemannSolver;		/// Murman-Roe scheme approximate Riemann solver
+//class KgpFluxApproximateRiemannSolver;		/// KGP scheme approximate Riemann solver
+//class KgpPlusFluxApproximateRiemannSolver;		/// KGP+ scheme approximate Riemann solver
+//class HllApproximateRiemannSolver;			/// HLL approximate Riemann solver
+//class HllcApproximateRiemannSolver;			/// HLLC approximate Riemann solver
+//class HllcPlusApproximateRiemannSolver;			/// HLLC+ approximate Riemann solver
 
 class BaseExplicitRungeKuttaMethod;			/// Base explicit Runge-Kutta method
 class RungeKutta1Method;				/// Runge-Kutta 1 (RK1) method
@@ -136,6 +136,12 @@ class FlowSolverRHEA {
 
         /// Calculate inviscid fluxes in z-direction
         virtual void calculateInviscidFluxesZ();
+
+        /// Calculate waves speed
+        virtual void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
+
+	/// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+        virtual double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
 
         /// Calculate viscous fluxes
         virtual void calculateViscousFluxes();
@@ -334,7 +340,7 @@ class FlowSolverRHEA {
 	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER, PARALLEL TIMER //////////
         BaseThermodynamicModel *thermodynamics;			/// Thermodynamic model
         BaseTransportCoefficients *transport_coefficients;	/// Transport coefficients
-        BaseRiemannSolver *riemann_solver;			/// Riemann solver
+        //BaseRiemannSolver *riemann_solver;			/// Riemann solver
         BaseExplicitRungeKuttaMethod *runge_kutta_method;	/// Runge-Kutta method
         ComputationalDomain *mesh;				/// Computational domain
         ParallelTopology *topo;					/// Parallel topology
@@ -347,223 +353,223 @@ class FlowSolverRHEA {
         /// The middle number (2) is the minor version.
         /// The rightmost number (3) is the revision, but it may also refer to a "point release" or "subminor version".
 	
-        /// Version number (updated 01/04/2022)
-        string version_number = "1.0.1";			/// Version number	
+        /// Version number (updated 18/05/2022)
+        string version_number = "1.1.0";			/// Version number	
 
     private:
 
 };
 
-////////// BaseRiemannSolver CLASS //////////
-class BaseRiemannSolver {
-   
-    public:
-
-        ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        BaseRiemannSolver();					/// Default constructor
-        virtual ~BaseRiemannSolver();				/// Destructor
-
-	////////// GET FUNCTIONS //////////
-
-	////////// SET FUNCTIONS //////////
-
-	////////// METHODS //////////
-       
-        /// Calculate waves speed
-        virtual void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
-
-        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
-        virtual double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) = 0;
-
-    protected:
-
-        ////////// PARAMETERS //////////
-
-    private:
-
-};
-
-////////// CentralFluxApproximateRiemannSolver CLASS //////////
-class CentralFluxApproximateRiemannSolver : public BaseRiemannSolver {
-   
-    public:
-
-        ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        CentralFluxApproximateRiemannSolver();						/// Default constructor
-        virtual ~CentralFluxApproximateRiemannSolver();					/// Destructor
-
-	////////// GET FUNCTIONS //////////
-
-	////////// SET FUNCTIONS //////////
-
-	////////// METHODS //////////
-       
-        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
-        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
-
-    protected:
-
-        ////////// PARAMETERS //////////
-
-    private:
-
-};
-
-////////// MurmanRoeFluxApproximateRiemannSolver CLASS //////////
-class MurmanRoeFluxApproximateRiemannSolver : public BaseRiemannSolver {
-   
-    public:
-
-        ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        MurmanRoeFluxApproximateRiemannSolver();					/// Default constructor
-        virtual ~MurmanRoeFluxApproximateRiemannSolver();				/// Destructor
-
-	////////// GET FUNCTIONS //////////
-
-	////////// SET FUNCTIONS //////////
-
-	////////// METHODS //////////
-       
-        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
-        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
-
-    protected:
-
-        ////////// PARAMETERS //////////
-
-    private:
-
-};
-
-////////// KgpFluxApproximateRiemannSolver CLASS //////////
-class KgpFluxApproximateRiemannSolver : public BaseRiemannSolver {
-   
-    public:
-
-        ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        KgpFluxApproximateRiemannSolver();						/// Default constructor
-        virtual ~KgpFluxApproximateRiemannSolver();					/// Destructor
-
-	////////// GET FUNCTIONS //////////
-
-	////////// SET FUNCTIONS //////////
-
-	////////// METHODS //////////
-       
-        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
-        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
-
-    protected:
-
-        ////////// PARAMETERS //////////
-
-    private:
-
-};
-
-////////// KgpPlusFluxApproximateRiemannSolver CLASS //////////
-class KgpPlusFluxApproximateRiemannSolver : public BaseRiemannSolver {
-   
-    public:
-
-        ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        KgpPlusFluxApproximateRiemannSolver();						/// Default constructor
-        virtual ~KgpPlusFluxApproximateRiemannSolver();					/// Destructor
-
-	////////// GET FUNCTIONS //////////
-
-	////////// SET FUNCTIONS //////////
-
-	////////// METHODS //////////
-       
-        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
-        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
-
-    protected:
-
-        ////////// PARAMETERS //////////
-
-    private:
-
-};
-
-////////// HllApproximateRiemannSolver CLASS //////////
-class HllApproximateRiemannSolver : public BaseRiemannSolver {
-   
-    public:
-
-        ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        HllApproximateRiemannSolver();							/// Default constructor
-        virtual ~HllApproximateRiemannSolver();						/// Destructor
-
-	////////// GET FUNCTIONS //////////
-
-	////////// SET FUNCTIONS //////////
-
-	////////// METHODS //////////
-        
-        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
-        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
-
-    protected:
-
-        ////////// PARAMETERS //////////
-
-    private:
-
-};
-
-////////// HllcApproximateRiemannSolver CLASS //////////
-class HllcApproximateRiemannSolver : public BaseRiemannSolver {
-   
-    public:
-
-        ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        HllcApproximateRiemannSolver();							/// Default constructor
-        virtual ~HllcApproximateRiemannSolver();					/// Destructor
-
-	////////// GET FUNCTIONS //////////
-
-	////////// SET FUNCTIONS //////////
-
-	////////// METHODS //////////
-        
-        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
-        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
-
-    protected:
-
-        ////////// PARAMETERS //////////
-
-    private:
-
-};
-
-////////// HllcPlusApproximateRiemannSolver CLASS //////////
-class HllcPlusApproximateRiemannSolver : public BaseRiemannSolver {
-   
-    public:
-
-        ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        HllcPlusApproximateRiemannSolver();					/// Default constructor
-        virtual ~HllcPlusApproximateRiemannSolver();				/// Destructor
-
-	////////// GET FUNCTIONS //////////
-
-	////////// SET FUNCTIONS //////////
-
-	////////// METHODS //////////
-        
-        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
-        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
-
-    protected:
-
-        ////////// PARAMETERS //////////
-
-    private:
-
-};
+//////////// BaseRiemannSolver CLASS //////////
+//class BaseRiemannSolver {
+//   
+//    public:
+//
+//        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+//        BaseRiemannSolver();					/// Default constructor
+//        virtual ~BaseRiemannSolver();				/// Destructor
+//
+//	////////// GET FUNCTIONS //////////
+//
+//	////////// SET FUNCTIONS //////////
+//
+//	////////// METHODS //////////
+//       
+//        /// Calculate waves speed
+//        virtual void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
+//
+//        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+//        virtual double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) = 0;
+//
+//    protected:
+//
+//        ////////// PARAMETERS //////////
+//
+//    private:
+//
+//};
+//
+//////////// CentralFluxApproximateRiemannSolver CLASS //////////
+//class CentralFluxApproximateRiemannSolver : public BaseRiemannSolver {
+//   
+//    public:
+//
+//        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+//        CentralFluxApproximateRiemannSolver();						/// Default constructor
+//        virtual ~CentralFluxApproximateRiemannSolver();					/// Destructor
+//
+//	////////// GET FUNCTIONS //////////
+//
+//	////////// SET FUNCTIONS //////////
+//
+//	////////// METHODS //////////
+//       
+//        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+//        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+//
+//    protected:
+//
+//        ////////// PARAMETERS //////////
+//
+//    private:
+//
+//};
+//
+//////////// MurmanRoeFluxApproximateRiemannSolver CLASS //////////
+//class MurmanRoeFluxApproximateRiemannSolver : public BaseRiemannSolver {
+//   
+//    public:
+//
+//        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+//        MurmanRoeFluxApproximateRiemannSolver();					/// Default constructor
+//        virtual ~MurmanRoeFluxApproximateRiemannSolver();				/// Destructor
+//
+//	////////// GET FUNCTIONS //////////
+//
+//	////////// SET FUNCTIONS //////////
+//
+//	////////// METHODS //////////
+//       
+//        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+//        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+//
+//    protected:
+//
+//        ////////// PARAMETERS //////////
+//
+//    private:
+//
+//};
+//
+//////////// KgpFluxApproximateRiemannSolver CLASS //////////
+//class KgpFluxApproximateRiemannSolver : public BaseRiemannSolver {
+//   
+//    public:
+//
+//        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+//        KgpFluxApproximateRiemannSolver();						/// Default constructor
+//        virtual ~KgpFluxApproximateRiemannSolver();					/// Destructor
+//
+//	////////// GET FUNCTIONS //////////
+//
+//	////////// SET FUNCTIONS //////////
+//
+//	////////// METHODS //////////
+//       
+//        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+//        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+//
+//    protected:
+//
+//        ////////// PARAMETERS //////////
+//
+//    private:
+//
+//};
+//
+//////////// KgpPlusFluxApproximateRiemannSolver CLASS //////////
+//class KgpPlusFluxApproximateRiemannSolver : public BaseRiemannSolver {
+//   
+//    public:
+//
+//        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+//        KgpPlusFluxApproximateRiemannSolver();						/// Default constructor
+//        virtual ~KgpPlusFluxApproximateRiemannSolver();					/// Destructor
+//
+//	////////// GET FUNCTIONS //////////
+//
+//	////////// SET FUNCTIONS //////////
+//
+//	////////// METHODS //////////
+//       
+//        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+//        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+//
+//    protected:
+//
+//        ////////// PARAMETERS //////////
+//
+//    private:
+//
+//};
+//
+//////////// HllApproximateRiemannSolver CLASS //////////
+//class HllApproximateRiemannSolver : public BaseRiemannSolver {
+//   
+//    public:
+//
+//        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+//        HllApproximateRiemannSolver();							/// Default constructor
+//        virtual ~HllApproximateRiemannSolver();						/// Destructor
+//
+//	////////// GET FUNCTIONS //////////
+//
+//	////////// SET FUNCTIONS //////////
+//
+//	////////// METHODS //////////
+//        
+//        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+//        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+//
+//    protected:
+//
+//        ////////// PARAMETERS //////////
+//
+//    private:
+//
+//};
+//
+//////////// HllcApproximateRiemannSolver CLASS //////////
+//class HllcApproximateRiemannSolver : public BaseRiemannSolver {
+//   
+//    public:
+//
+//        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+//        HllcApproximateRiemannSolver();							/// Default constructor
+//        virtual ~HllcApproximateRiemannSolver();					/// Destructor
+//
+//	////////// GET FUNCTIONS //////////
+//
+//	////////// SET FUNCTIONS //////////
+//
+//	////////// METHODS //////////
+//        
+//        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+//        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+//
+//    protected:
+//
+//        ////////// PARAMETERS //////////
+//
+//    private:
+//
+//};
+//
+//////////// HllcPlusApproximateRiemannSolver CLASS //////////
+//class HllcPlusApproximateRiemannSolver : public BaseRiemannSolver {
+//   
+//    public:
+//
+//        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+//        HllcPlusApproximateRiemannSolver();					/// Default constructor
+//        virtual ~HllcPlusApproximateRiemannSolver();				/// Destructor
+//
+//	////////// GET FUNCTIONS //////////
+//
+//	////////// SET FUNCTIONS //////////
+//
+//	////////// METHODS //////////
+//        
+//        /// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
+//        double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+//
+//    protected:
+//
+//        ////////// PARAMETERS //////////
+//
+//    private:
+//
+//};
 
 ////////// BaseExplicitRungeKuttaMethod CLASS //////////
 class BaseExplicitRungeKuttaMethod {
