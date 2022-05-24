@@ -2594,7 +2594,7 @@ double FlowSolverRHEA::calculateIntercellFlux(const double &rho_L, const double 
         double e_R  = E_R - ke_R;
         F *= ke_L + ke_R;
         F += ( 1.0/4.0 )*( rho_L*e_L + rho_R*e_R )*( u_L + u_R );
-        F += ( 1.0/2.0 )*( u_L*P_L + u_R*P_R );
+        F += ( 1.0/2.0 )*( u_L*P_R + u_R*P_L );
     }    
 
     } else if( riemann_solver_scheme_index == 3 ) {	/// MURMAN-ROE
@@ -3056,7 +3056,7 @@ double FlowSolverRHEA::calculateIntercellFlux(const double &rho_L, const double 
 //        double e_R  = E_R - ke_R;
 //        F *= ke_L + ke_R;
 //        F += ( 1.0/4.0 )*( rho_L*e_L + rho_R*e_R )*( u_L + u_R );
-//        F += ( 1.0/2.0 )*( u_L*P_L + u_R*P_R );
+//        F += ( 1.0/2.0 )*( u_L*P_R + u_R*P_L );
 //    }
 //
 //    return( F );
