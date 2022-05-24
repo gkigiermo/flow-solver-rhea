@@ -1,4 +1,6 @@
-- COMMIT CHNAGES:
+- CLONE REPOSITORY:
+git clone https://gitlab.com/ProjectRHEA/flowsolverrhea.git
+- COMMIT CHANGES:
 git add file
 git status
 git commit -m "message"
