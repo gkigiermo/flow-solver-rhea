@@ -29,10 +29,10 @@ class FlowSolverRHEA;					/// Flow solver RHEA
 //class CentralFluxApproximateRiemannSolver;		/// Central scheme approximate Riemann solver
 //class MurmanRoeFluxApproximateRiemannSolver;		/// Murman-Roe scheme approximate Riemann solver
 //class KgpFluxApproximateRiemannSolver;		/// KGP scheme approximate Riemann solver
-//class KgpPlusFluxApproximateRiemannSolver;		/// KGP+ scheme approximate Riemann solver
+//class ShimaFluxApproximateRiemannSolver;		/// SHIMA scheme approximate Riemann solver
 //class HllApproximateRiemannSolver;			/// HLL approximate Riemann solver
 //class HllcApproximateRiemannSolver;			/// HLLC approximate Riemann solver
-//class HllcPlusApproximateRiemannSolver;			/// HLLC+ approximate Riemann solver
+//class HllcPlusApproximateRiemannSolver;		/// HLLC+ approximate Riemann solver
 
 class BaseExplicitRungeKuttaMethod;			/// Base explicit Runge-Kutta method
 class RungeKutta1Method;				/// Runge-Kutta 1 (RK1) method
@@ -138,10 +138,12 @@ class FlowSolverRHEA {
         virtual void calculateInviscidFluxesZ();
 
         /// Calculate waves speed
-        virtual void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
+        //virtual void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
+        static void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
 
 	/// Calculate intercell flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
-        virtual double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+        //virtual double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
+        static double calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type);
 
         /// Calculate viscous fluxes
         virtual void calculateViscousFluxes();
@@ -467,14 +469,14 @@ class FlowSolverRHEA {
 //
 //};
 //
-//////////// KgpPlusFluxApproximateRiemannSolver CLASS //////////
-//class KgpPlusFluxApproximateRiemannSolver : public BaseRiemannSolver {
+//////////// ShimaFluxApproximateRiemannSolver CLASS //////////
+//class ShimaFluxApproximateRiemannSolver : public BaseRiemannSolver {
 //   
 //    public:
 //
 //        ////////// CONSTRUCTORS & DESTRUCTOR //////////
-//        KgpPlusFluxApproximateRiemannSolver();						/// Default constructor
-//        virtual ~KgpPlusFluxApproximateRiemannSolver();					/// Destructor
+//        ShimaFluxApproximateRiemannSolver();						/// Default constructor
+//        virtual ~ShimaFluxApproximateRiemannSolver();					/// Destructor
 //
 //	////////// GET FUNCTIONS //////////
 //
