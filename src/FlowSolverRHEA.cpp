@@ -2588,13 +2588,13 @@ double FlowSolverRHEA::calculateIntercellFlux(const double &rho_L, const double 
     } else if ( var_type == 3 ) {
         F *= w_L + w_R;
     } else if ( var_type == 4 ) {
-        double ke_L = 0.5*( u_L*u_L + v_L*v_L + w_L*w_L );
+        double ke_L = ( 1.0/2.0 )*( u_L*u_L + v_L*v_L + w_L*w_L );
         double e_L  = E_L - ke_L;
-        double ke_R = 0.5*( u_R*u_R + v_R*v_R + w_R*w_R );
+        double ke_R = ( 1.0/2.0 )*( u_R*u_R + v_R*v_R + w_R*w_R );
         double e_R  = E_R - ke_R;
         F *= ke_L + ke_R;
         F += ( 1.0/4.0 )*( rho_L*e_L + rho_R*e_R )*( u_L + u_R );
-        F += ( 1.0/2.0 )*( u_L + u_R )*( P_L + P_R );
+        F += ( 1.0/2.0 )*( u_L*P_L + u_R*P_R );
     }    
 
     } else if( riemann_solver_scheme_index == 3 ) {	/// MURMAN-ROE
@@ -3050,13 +3050,13 @@ double FlowSolverRHEA::calculateIntercellFlux(const double &rho_L, const double 
 //    } else if ( var_type == 3 ) {
 //        F *= w_L + w_R;
 //    } else if ( var_type == 4 ) {
-//        double ke_L = 0.5*( u_L*u_L + v_L*v_L + w_L*w_L );
+//        double ke_L = ( 1.0/2.0 )*( u_L*u_L + v_L*v_L + w_L*w_L );
 //        double e_L  = E_L - ke_L;
-//        double ke_R = 0.5*( u_R*u_R + v_R*v_R + w_R*w_R );
+//        double ke_R = ( 1.0/2.0 )*( u_R*u_R + v_R*v_R + w_R*w_R );
 //        double e_R  = E_R - ke_R;
 //        F *= ke_L + ke_R;
 //        F += ( 1.0/4.0 )*( rho_L*e_L + rho_R*e_R )*( u_L + u_R );
-//        F += ( 1.0/2.0 )*( u_L + u_R )*( P_L + P_R );
+//        F += ( 1.0/2.0 )*( u_L*P_L + u_R*P_R );
 //    }
 //
 //    return( F );
