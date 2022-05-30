@@ -771,19 +771,19 @@ void FlowSolverRHEA::primitiveToConservedVariables() {
     }
 
     /// Update halo values
-    rhou_field.update();
-    rhov_field.update();
-    rhow_field.update();
-    rhoE_field.update();
+    //rhou_field.update();
+    //rhov_field.update();
+    //rhow_field.update();
+    //rhoE_field.update();
 
 };
 
 void FlowSolverRHEA::conservedToPrimitiveVariables() {
 
-    /// Inner points: u, v, w and E
-    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
-        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
-            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+    /// All (inner, halo, boundary) points: u, v, w and E
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 u_field[I1D(i,j,k)] = rhou_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
                 v_field[I1D(i,j,k)] = rhov_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
                 w_field[I1D(i,j,k)] = rhow_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
@@ -802,11 +802,11 @@ void FlowSolverRHEA::conservedToPrimitiveVariables() {
 
 void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
 
-    /// Inner points: P, T, sos, c_v and c_p
+    /// All (inner, halo, boundary) points: P, T, sos, c_v and c_p
     double ke, e, P, T, c_v, c_p;
-    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
-        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
-            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 ke = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
                 e  = E_field[I1D(i,j,k)] - ke;
                 P = P_field[I1D(i,j,k)];	/// Initial pressure guess
@@ -1500,20 +1500,20 @@ void FlowSolverRHEA::updateBoundaries() {
     }
 
     /// Update halo values
-    rho_field.update();
-    rhou_field.update();
-    rhov_field.update();
-    rhow_field.update();
-    rhoE_field.update();
-    u_field.update();
-    v_field.update();
-    w_field.update();
-    E_field.update();
-    P_field.update();
-    T_field.update();
-    sos_field.update();
-    c_v_field.update();
-    c_p_field.update();
+    //rho_field.update();
+    //rhou_field.update();
+    //rhov_field.update();
+    //rhow_field.update();
+    //rhoE_field.update();
+    //u_field.update();
+    //v_field.update();
+    //w_field.update();
+    //E_field.update();
+    //P_field.update();
+    //T_field.update();
+    //sos_field.update();
+    //c_v_field.update();
+    //c_p_field.update();
 
 };
 
@@ -1533,11 +1533,11 @@ void FlowSolverRHEA::updatePreviousStateConservedVariables() {
     }
 
     /// Update halo values
-    rho_0_field.update();
-    rhou_0_field.update();
-    rhov_0_field.update();
-    rhow_0_field.update();
-    rhoE_0_field.update();
+    //rho_0_field.update();
+    //rhou_0_field.update();
+    //rhov_0_field.update();
+    //rhow_0_field.update();
+    //rhoE_0_field.update();
 
 };
 
@@ -1612,8 +1612,8 @@ void FlowSolverRHEA::calculateTransportCoefficients() {
     }
 
     /// Update halo values
-    mu_field.update();
-    kappa_field.update();
+    //mu_field.update();
+    //kappa_field.update();
 
 };
 
@@ -2055,11 +2055,11 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
     }
 
     /// Update halo values
-    //rho_field.update();
-    //rhou_field.update();
-    //rhov_field.update();
-    //rhow_field.update();
-    //rhoE_field.update();
+    rho_field.update();
+    rhou_field.update();
+    rhov_field.update();
+    rhow_field.update();
+    rhoE_field.update();
 
 };
 
@@ -2138,50 +2138,50 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
     averaging_time += delta_t;
 
     /// Update halo values
-    avg_rho_field.update();
-    avg_rhou_field.update();
-    avg_rhov_field.update();
-    avg_rhow_field.update();
-    avg_rhoE_field.update();
-    avg_u_field.update();
-    avg_v_field.update();
-    avg_w_field.update();
-    avg_E_field.update();
-    avg_P_field.update();
-    avg_T_field.update();
-    avg_sos_field.update();
-    avg_mu_field.update();
-    avg_kappa_field.update();
-    avg_c_v_field.update();
-    avg_c_p_field.update();
-    rmsf_rho_field.update();
-    rmsf_rhou_field.update();
-    rmsf_rhov_field.update();
-    rmsf_rhow_field.update();
-    rmsf_rhoE_field.update();
-    rmsf_u_field.update();
-    rmsf_v_field.update();
-    rmsf_w_field.update();
-    rmsf_E_field.update();
-    rmsf_P_field.update();
-    rmsf_T_field.update();
-    rmsf_sos_field.update();
-    rmsf_mu_field.update();
-    rmsf_kappa_field.update();
-    rmsf_c_v_field.update();
-    rmsf_c_p_field.update();
-    R_reynolds_uu_field.update();
-    R_reynolds_uv_field.update();
-    R_reynolds_uw_field.update();
-    R_reynolds_vv_field.update();
-    R_reynolds_vw_field.update();
-    R_reynolds_ww_field.update();
-    R_favre_uu_field.update();
-    R_favre_uv_field.update();
-    R_favre_uw_field.update();
-    R_favre_vv_field.update();
-    R_favre_vw_field.update();
-    R_favre_ww_field.update();
+    //avg_rho_field.update();
+    //avg_rhou_field.update();
+    //avg_rhov_field.update();
+    //avg_rhow_field.update();
+    //avg_rhoE_field.update();
+    //avg_u_field.update();
+    //avg_v_field.update();
+    //avg_w_field.update();
+    //avg_E_field.update();
+    //avg_P_field.update();
+    //avg_T_field.update();
+    //avg_sos_field.update();
+    //avg_mu_field.update();
+    //avg_kappa_field.update();
+    //avg_c_v_field.update();
+    //avg_c_p_field.update();
+    //rmsf_rho_field.update();
+    //rmsf_rhou_field.update();
+    //rmsf_rhov_field.update();
+    //rmsf_rhow_field.update();
+    //rmsf_rhoE_field.update();
+    //rmsf_u_field.update();
+    //rmsf_v_field.update();
+    //rmsf_w_field.update();
+    //rmsf_E_field.update();
+    //rmsf_P_field.update();
+    //rmsf_T_field.update();
+    //rmsf_sos_field.update();
+    //rmsf_mu_field.update();
+    //rmsf_kappa_field.update();
+    //rmsf_c_v_field.update();
+    //rmsf_c_p_field.update();
+    //R_reynolds_uu_field.update();
+    //R_reynolds_uv_field.update();
+    //R_reynolds_uw_field.update();
+    //R_reynolds_vv_field.update();
+    //R_reynolds_vw_field.update();
+    //R_reynolds_ww_field.update();
+    //R_favre_uu_field.update();
+    //R_favre_uv_field.update();
+    //R_favre_uw_field.update();
+    //R_favre_vv_field.update();
+    //R_favre_vw_field.update();
+    //R_favre_ww_field.update();
 
 };
 
