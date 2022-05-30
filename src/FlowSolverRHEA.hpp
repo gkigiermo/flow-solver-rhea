@@ -128,14 +128,8 @@ class FlowSolverRHEA {
         /// Calculate rhou, rhov, rhow and rhoE source terms ... needs to be modified/overwritten according to the problem under consideration
         virtual void calculateSourceTerms();
 
-        /// Calculate inviscid fluxes in x-direction ( required to be first! )
-        virtual void calculateInviscidFluxesX();
-
-        /// Calculate inviscid fluxes in y-direction
-        virtual void calculateInviscidFluxesY();
-
-        /// Calculate inviscid fluxes in z-direction
-        virtual void calculateInviscidFluxesZ();
+        /// Calculate inviscid fluxes in x-, y- and z-direction
+        virtual void calculateInviscidFluxes();
 
         /// Calculate waves speed
         //virtual void calculateWavesSpeed(double &S_L, double &S_R, const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R);
