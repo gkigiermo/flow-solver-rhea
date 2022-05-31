@@ -1506,8 +1506,11 @@ void FlowSolverRHEA::updateBoundaries() {
     //rhow_field.update();
     //rhoE_field.update();
     //u_field.update();
+    u_field.fillEdgeCornerBoundaries();
     //v_field.update();
+    v_field.fillEdgeCornerBoundaries();
     //w_field.update();
+    w_field.fillEdgeCornerBoundaries();
     //E_field.update();
     //P_field.update();
     //T_field.update();
@@ -2055,11 +2058,11 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
     }
 
     /// Update halo values
-    rho_field.update();
-    rhou_field.update();
-    rhov_field.update();
-    rhow_field.update();
-    rhoE_field.update();
+    //rho_field.update();
+    //rhou_field.update();
+    //rhov_field.update();
+    //rhow_field.update();
+    //rhoE_field.update();
 
 };
 
@@ -2356,6 +2359,12 @@ void FlowSolverRHEA::execute() {
 
             /// Advance conserved variables in time
             this->timeAdvanceConservedVariables(rk_time_stage);
+            /// Update halo values ... placed outside the method to isolate pragma from update
+            rho_field.update();
+            rhou_field.update();
+            rhov_field.update();
+            rhow_field.update();
+            rhoE_field.update();
 
             /// Stop timer: time_advance_conserved_variables
             timers->stop( "time_advance_conserved_variables" );
