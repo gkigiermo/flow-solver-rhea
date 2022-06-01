@@ -1548,7 +1548,7 @@ void FlowSolverRHEA::updatePreviousStateConservedVariables() {
             }
         }
     }
-    #pragma acc wait
+    //#pragma acc wait
 
     /// Update halo values
     //rho_0_field.update();
@@ -1640,6 +1640,7 @@ void FlowSolverRHEA::calculateSourceTerms() {
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
     /// Inner points: f_rhou, f_rhov, f_rhow and f_rhoE
+    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -2049,7 +2050,7 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
     /// Inner points: rho, rhou, rhov, rhow and rhoE
     double f_rhouvw = 0.0;
     double rho_rhs_flux = 0.0, rhou_rhs_flux = 0.0, rhov_rhs_flux = 0.0, rhow_rhs_flux = 0.0, rhoE_rhs_flux = 0.0;
-    #pragma acc parallel loop collapse (3) async
+    //#pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -2071,12 +2072,17 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
         }
     }
 
-    /// Update halo values
-    //rho_field.update();
-    //rhou_field.update();
-    //rhov_field.update();
-    //rhow_field.update();
-    //rhoE_field.update();
+    /// Attention! Communications performed only at the last stage of the Runge-Kutta to improve computational performance
+    if( rk_time_stage == rk_number_stages ) {
+
+        /// Update halo values
+        rho_field.update();
+        rhou_field.update();
+        rhov_field.update();
+        rhow_field.update();
+        rhoE_field.update();
+
+    }
 
 };
 
@@ -2373,12 +2379,6 @@ void FlowSolverRHEA::execute() {
 
             /// Advance conserved variables in time
             this->timeAdvanceConservedVariables(rk_time_stage);
-            /// Update halo values ... placed outside the method to isolate pragma from update
-            rho_field.update();
-            rhou_field.update();
-            rhov_field.update();
-            rhow_field.update();
-            rhoE_field.update();
 
             /// Stop timer: time_advance_conserved_variables
             timers->stop( "time_advance_conserved_variables" );
