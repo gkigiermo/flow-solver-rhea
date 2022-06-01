@@ -1503,10 +1503,15 @@ void FlowSolverRHEA::updateBoundaries() {
 
     /// Update halo values
     //rho_field.update();
+    rho_field.fillEdgeCornerBoundaries();
     //rhou_field.update();
+    rhou_field.fillEdgeCornerBoundaries();
     //rhov_field.update();
+    rhov_field.fillEdgeCornerBoundaries();
     //rhow_field.update();
+    rhow_field.fillEdgeCornerBoundaries();
     //rhoE_field.update();
+    rhoE_field.fillEdgeCornerBoundaries();
     //u_field.update();
     u_field.fillEdgeCornerBoundaries();
     //v_field.update();
@@ -1514,11 +1519,17 @@ void FlowSolverRHEA::updateBoundaries() {
     //w_field.update();
     w_field.fillEdgeCornerBoundaries();
     //E_field.update();
+    E_field.fillEdgeCornerBoundaries();
     //P_field.update();
+    P_field.fillEdgeCornerBoundaries();
     //T_field.update();
+    T_field.fillEdgeCornerBoundaries();
     //sos_field.update();
+    sos_field.fillEdgeCornerBoundaries();
     //c_v_field.update();
+    c_v_field.fillEdgeCornerBoundaries();
     //c_p_field.update();
+    c_p_field.fillEdgeCornerBoundaries();
 
 };
 
