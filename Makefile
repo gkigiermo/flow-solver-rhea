@@ -2,8 +2,11 @@ EXECUTABLE   = RHEA.exe
 MAIN         = myRHEA.cpp
 PROJECT_PATH = $(RHEA_PATH)
 SRC_DIR      = $(PROJECT_PATH)/src
-CXX          = mpic++
+CXX          = mpicxx
+# CPU FLAGS
 CXXFLAGS     = -O3 -Wall -std=c++0x -I$(PROJECT_PATH)
+# CPU-GPU FLAGS
+#CXXFLAGS     = -fast -acc -ta=tesla:managed -Minfo=accel -O3 -Wall -std=c++0x -I$(PROJECT_PATH)
 # UBUNTU - LINUX
 INC_LIB_YAML =
 INC_DIR_YAML =
@@ -29,5 +32,5 @@ $(EXECUTABLE): $(OBJS)
 
 .PHONY: clean
 clean:
-	$(RM) $(EXECUTABLE)
+	$(RM) $(EXECUTABLE) *.o
 

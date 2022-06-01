@@ -1,5 +1,9 @@
 #include "myRHEA.hpp"
 
+#ifdef _OPENACC
+#include <openacc.h>
+#endif
+
 using namespace std;
 
 /// Pi number
@@ -15,8 +19,8 @@ const double Ma         = 3.0e-1;				/// Mach number
 //const double Pr         = 0.71;					/// Prandtl number
 const double rho_0      = 1.0;					/// Reference density	
 const double u_tau      = 1.0;					/// Friction velocity
-const double tau_w      = rho_0*u_tau*u_tau;			/// Wall shear stress
-const double mu         = rho_0*u_tau*delta/Re_tau;		/// Dynamic viscosity	
+//const double tau_w      = rho_0*u_tau*u_tau;			/// Wall shear stress
+//const double mu         = rho_0*u_tau*delta/Re_tau;		/// Dynamic viscosity	
 const double nu         = u_tau*delta/Re_tau;			/// Kinematic viscosity	
 //const double kappa      = c_p*mu/Pr;				/// Thermal conductivity	
 const double Re_b       = pow( Re_tau/0.09, 1.0/0.88 );         /// Bulk (approximated) Reynolds number
@@ -83,6 +87,20 @@ int main(int argc, char** argv) {
 
     /// Initialize MPI
     MPI_Init(&argc, &argv);
+
+#ifdef _OPENACC
+    /// OpenACC distribution on multiple accelerators (GPU)
+    acc_device_t my_device_type;
+    int num_devices, gpuId, local_rank;
+    MPI_Comm shmcomm;    
+
+    MPI_Comm_split_type( MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &shmcomm );
+    MPI_Comm_rank( shmcomm, &local_rank );            
+    my_device_type = acc_get_device_type();
+    num_devices = acc_get_num_devices( my_device_type );
+    gpuId = local_rank % num_devices;
+    acc_set_device_num( gpuId, my_device_type );
+#endif
 
     /// Process command line arguments
     string configuration_file;

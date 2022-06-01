@@ -14,8 +14,12 @@ class DistributedArray{
         void update();
         void update_simple();
         void fillEdgeCornerBoundaries();
+
+	#pragma acc routine
         double& operator[](int);
-        void operator= (double);
+
+	#pragma acc routine
+        void operator = (double);
 
         void setTopology(ParallelTopology* topo, char const* );
         char* printName(){return fieldName;};

@@ -11,10 +11,10 @@ const double epsilon     = 1.0e-15;			/// Small epsilon number (fixed)
 const double pi          = 2.0*asin(1.0);		/// pi number (fixed)
 const int cout_precision = 5;		                /// Output precision (fixed)
 int riemann_solver_scheme_index;			/// Index of Riemann solver scheme
-//#pragma acc declare create( epsilon )
-//#pragma acc declare create( pi )
-//#pragma acc declare create( cout_precision )
-//#pragma acc declare create( riemann_solver_scheme_index )
+
+
+////////// PRAGMA DIRECTIVES //////////
+#pragma acc declare create( epsilon, pi, cout_precision, riemann_solver_scheme_index )
 
 
 ////////// FlowSolverRHEA CLASS //////////
@@ -759,6 +759,7 @@ void FlowSolverRHEA::initializeThermodynamics() {
 void FlowSolverRHEA::primitiveToConservedVariables() {
 
     /// All (inner, halo, boundary): rhou, rhov, rhow and rhoE
+    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -781,6 +782,7 @@ void FlowSolverRHEA::primitiveToConservedVariables() {
 void FlowSolverRHEA::conservedToPrimitiveVariables() {
 
     /// All (inner, halo, boundary) points: u, v, w and E
+    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -1523,6 +1525,7 @@ void FlowSolverRHEA::updateBoundaries() {
 void FlowSolverRHEA::updatePreviousStateConservedVariables() {
 
     /// All (inner, halo, boundary) points: rho_0, rhou_0 rhov_0, rhow_0 and rhoE_0
+    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -1534,6 +1537,7 @@ void FlowSolverRHEA::updatePreviousStateConservedVariables() {
             }
         }
     }
+    #pragma acc wait
 
     /// Update halo values
     //rho_0_field.update();
@@ -1659,8 +1663,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
     double rho_R, u_R, v_R, w_R, E_R, P_R, a_R;
     double rho_F_p, rho_F_m, rhou_F_p, rhou_F_m, rhov_F_p;
     double rhov_F_m, rhow_F_p, rhow_F_m, rhoE_F_p, rhoE_F_m;
-
-    //#pragma acc parallel loop collapse (3)
+    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -1918,8 +1921,7 @@ void FlowSolverRHEA::calculateViscousFluxes() {
     double div_uvw, tau_xx, tau_xy, tau_xz, tau_yy, tau_yz, tau_zz;
     double div_tau_x, div_tau_y, div_tau_z;
     double div_q, div_uvw_tau;
-
-    //#pragma acc parallel loop collapse (3) async 
+    #pragma acc parallel loop collapse (3) async 
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -2036,6 +2038,7 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
     /// Inner points: rho, rhou, rhov, rhow and rhoE
     double f_rhouvw = 0.0;
     double rho_rhs_flux = 0.0, rhou_rhs_flux = 0.0, rhov_rhs_flux = 0.0, rhow_rhs_flux = 0.0, rhoE_rhs_flux = 0.0;
+    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
