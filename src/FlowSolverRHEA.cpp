@@ -14,7 +14,7 @@ int riemann_solver_scheme_index;			/// Index of Riemann solver scheme
 
 
 ////////// PRAGMA DIRECTIVES //////////
-#pragma acc declare create( epsilon, pi, cout_precision, riemann_solver_scheme_index )
+#pragma acc declare create( riemann_solver_scheme_index )
 
 
 ////////// FlowSolverRHEA CLASS //////////
@@ -781,7 +781,6 @@ void FlowSolverRHEA::primitiveToConservedVariables() {
 void FlowSolverRHEA::conservedToPrimitiveVariables() {
 
     /// All (inner, halo, boundary) points: u, v, w and E
-    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -1524,7 +1523,6 @@ void FlowSolverRHEA::updateBoundaries() {
 void FlowSolverRHEA::updatePreviousStateConservedVariables() {
 
     /// All (inner, halo, boundary) points: rho_0, rhou_0 rhov_0, rhow_0 and rhoE_0
-    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -1627,7 +1625,6 @@ void FlowSolverRHEA::calculateSourceTerms() {
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
     /// Inner points: f_rhou, f_rhov, f_rhow and f_rhoE
-    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -1895,7 +1892,6 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
             }
         }
     }
-
     /// Update halo values
     //rho_inv_flux.update();
     //rhou_inv_flux.update();
@@ -2037,7 +2033,6 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
     /// Inner points: rho, rhou, rhov, rhow and rhoE
     double f_rhouvw = 0.0;
     double rho_rhs_flux = 0.0, rhou_rhs_flux = 0.0, rhov_rhs_flux = 0.0, rhow_rhs_flux = 0.0, rhoE_rhs_flux = 0.0;
-    #pragma acc parallel loop collapse (3) async(1)
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -2058,12 +2053,10 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
 	    }
         }
     }
-
+    
     /// Attention! Communications performed only at the last stage of the Runge-Kutta to improve computational performance
     /// ... temporal integration is first-order at points connecting partitions
-    if( rk_time_stage == rk_number_stages ) {
-
-        //#pragma acc wait(1)
+    //if( rk_time_stage == rk_number_stages ) {
 
         /// Update halo values
         rho_field.update();
@@ -2072,7 +2065,7 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
         rhow_field.update();
         rhoE_field.update();
 
-    }
+    //}
 
 };
 
