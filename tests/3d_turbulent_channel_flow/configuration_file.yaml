@@ -96,7 +96,8 @@ print_write_read_parameters:
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
    restart_data_file: 'restart_data_file.h5' 				# Restart data file
-   time_averaging_active: 'TRUE'          				# Activate time averaging
+   time_averaging_active: 'FALSE'          				# Activate time averaging
+   #time_averaging_active: 'TRUE'          				# Activate time averaging
    reset_time_averaging: 'FALSE'          				# Reset time averaging
 
 
