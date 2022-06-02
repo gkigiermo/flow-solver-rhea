@@ -332,8 +332,8 @@ void myRHEA::execute() {
                 double global_avg_P = global_sum_PV/global_sum_V;
 
                 /// Modify P values
-                #pragma acc parallel loop collapse (3) async
                 double ratio_P_b_target_P_b_numerical = P_b/( global_avg_P + epsilon );
+                #pragma acc parallel loop collapse (3)
                 for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
                     for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
                         for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -350,7 +350,7 @@ void myRHEA::execute() {
             if( control_temperature ) {
 	  
 	        /// Mantain T to T_b_w <= T <= T_t_w
-                #pragma acc parallel loop collapse (3) async
+                #pragma acc parallel loop collapse (3)
                 for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
                     for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
                         for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {

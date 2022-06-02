@@ -759,7 +759,6 @@ void FlowSolverRHEA::initializeThermodynamics() {
 void FlowSolverRHEA::primitiveToConservedVariables() {
 
     /// All (inner, halo, boundary): rhou, rhov, rhow and rhoE
-    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -1503,15 +1502,10 @@ void FlowSolverRHEA::updateBoundaries() {
 
     /// Update halo values
     //rho_field.update();
-    rho_field.fillEdgeCornerBoundaries();
     //rhou_field.update();
-    rhou_field.fillEdgeCornerBoundaries();
     //rhov_field.update();
-    rhov_field.fillEdgeCornerBoundaries();
     //rhow_field.update();
-    rhow_field.fillEdgeCornerBoundaries();
     //rhoE_field.update();
-    rhoE_field.fillEdgeCornerBoundaries();
     //u_field.update();
     u_field.fillEdgeCornerBoundaries();
     //v_field.update();
@@ -1519,17 +1513,11 @@ void FlowSolverRHEA::updateBoundaries() {
     //w_field.update();
     w_field.fillEdgeCornerBoundaries();
     //E_field.update();
-    E_field.fillEdgeCornerBoundaries();
     //P_field.update();
-    P_field.fillEdgeCornerBoundaries();
     //T_field.update();
-    T_field.fillEdgeCornerBoundaries();
     //sos_field.update();
-    sos_field.fillEdgeCornerBoundaries();
     //c_v_field.update();
-    c_v_field.fillEdgeCornerBoundaries();
     //c_p_field.update();
-    c_p_field.fillEdgeCornerBoundaries();
 
 };
 
@@ -1548,7 +1536,6 @@ void FlowSolverRHEA::updatePreviousStateConservedVariables() {
             }
         }
     }
-    //#pragma acc wait
 
     /// Update halo values
     //rho_0_field.update();
@@ -2050,7 +2037,7 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
     /// Inner points: rho, rhou, rhov, rhow and rhoE
     double f_rhouvw = 0.0;
     double rho_rhs_flux = 0.0, rhou_rhs_flux = 0.0, rhov_rhs_flux = 0.0, rhow_rhs_flux = 0.0, rhoE_rhs_flux = 0.0;
-    //#pragma acc parallel loop collapse (3) async
+    #pragma acc parallel loop collapse (3) async(1)
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -2061,7 +2048,7 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
                 rhou_rhs_flux = ( -1.0 )*rhou_inv_flux[I1D(i,j,k)] + rhou_vis_flux[I1D(i,j,k)] + f_rhou_field[I1D(i,j,k)]; 
                 rhov_rhs_flux = ( -1.0 )*rhov_inv_flux[I1D(i,j,k)] + rhov_vis_flux[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]; 
                 rhow_rhs_flux = ( -1.0 )*rhow_inv_flux[I1D(i,j,k)] + rhow_vis_flux[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]; 
-                rhoE_rhs_flux = ( -1.0 )*rhoE_inv_flux[I1D(i,j,k)] + rhoE_vis_flux[I1D(i,j,k)] + f_rhoE_field[I1D(i,j,k)] + f_rhouvw; 
+                rhoE_rhs_flux = ( -1.0 )*rhoE_inv_flux[I1D(i,j,k)] + rhoE_vis_flux[I1D(i,j,k)] + f_rhoE_field[I1D(i,j,k)] + f_rhouvw;
                 /// Runge-Kutta step
                 rho_field[I1D(i,j,k)]  = rk_a*rho_0_field[I1D(i,j,k)]  + rk_b*rho_field[I1D(i,j,k)]  + rk_c*delta_t*rho_rhs_flux;
                 rhou_field[I1D(i,j,k)] = rk_a*rhou_0_field[I1D(i,j,k)] + rk_b*rhou_field[I1D(i,j,k)] + rk_c*delta_t*rhou_rhs_flux;
@@ -2073,7 +2060,10 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
     }
 
     /// Attention! Communications performed only at the last stage of the Runge-Kutta to improve computational performance
+    /// ... temporal integration is first-order at points connecting partitions
     if( rk_time_stage == rk_number_stages ) {
+
+        //#pragma acc wait(1)
 
         /// Update halo values
         rho_field.update();
