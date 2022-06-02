@@ -75,6 +75,7 @@ void myRHEA::calculateSourceTerms() {
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
     /// Inner points: f_rhou, f_rhov, f_rhow and f_rhoE
+    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {

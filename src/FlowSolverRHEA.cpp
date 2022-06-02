@@ -781,6 +781,7 @@ void FlowSolverRHEA::primitiveToConservedVariables() {
 void FlowSolverRHEA::conservedToPrimitiveVariables() {
 
     /// All (inner, halo, boundary) points: u, v, w and E
+    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -1523,6 +1524,7 @@ void FlowSolverRHEA::updateBoundaries() {
 void FlowSolverRHEA::updatePreviousStateConservedVariables() {
 
     /// All (inner, halo, boundary) points: rho_0, rhou_0 rhov_0, rhow_0 and rhoE_0
+    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
@@ -1625,6 +1627,7 @@ void FlowSolverRHEA::calculateSourceTerms() {
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
     /// Inner points: f_rhou, f_rhov, f_rhow and f_rhoE
+    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -1679,27 +1682,22 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 /// rho
                 var_type = 0;
                 //rho_F_p  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rho_F_p  = this->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rho_F_p  = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 1;
                 //rhou_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhou_F_p = this->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhou_F_p = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 //rhov_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhov_F_p = this->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhov_F_p = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 //rhow_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhow_F_p = this->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhow_F_p = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 //rhoE_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhoE_F_p = this->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhoE_F_p = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// x-direction i-1/2
                 index_L = i - 1;                       index_R = i;
@@ -1713,27 +1711,22 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 /// rho
                 var_type = 0;
                 //rho_F_m  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rho_F_m  = this->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rho_F_m  = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 1;
                 //rhou_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhou_F_m = this->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhou_F_m = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 //rhov_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhov_F_m = this->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhov_F_m = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 //rhow_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhow_F_m = this->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhow_F_m = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 //rhoE_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhoE_F_m = this->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhoE_F_m = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes x-direction
                 rho_inv_flux[I1D(i,j,k)]  = ( rho_F_p - rho_F_m )/delta_x;
@@ -1753,27 +1746,22 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 /// rho
                 var_type = 0;
                 //rho_F_p  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rho_F_p  = this->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rho_F_p  = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 2;
                 //rhou_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhou_F_p = this->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhou_F_p = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 1;
                 //rhov_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhov_F_p = this->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhov_F_p = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 //rhow_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhow_F_p = this->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhow_F_p = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 //rhoE_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhoE_F_p = this->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhoE_F_p = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// y-direction j-1/2
                 index_L = j - 1;                       index_R = j;
@@ -1787,27 +1775,22 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 /// rho
                 var_type = 0;
                 //rho_F_m  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rho_F_m  = this->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rho_F_m  = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 2;
                 //rhou_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhou_F_m = this->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhou_F_m = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 1;
                 //rhov_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhov_F_m = this->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhov_F_m = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
                 //rhow_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhow_F_m = this->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhow_F_m = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 //rhoE_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhoE_F_m = this->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhoE_F_m = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes y-direction
                 rho_inv_flux[I1D(i,j,k)]  += ( rho_F_p - rho_F_m )/delta_y;
@@ -1827,27 +1810,22 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 /// rho
                 var_type = 0;
                 //rho_F_p  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rho_F_p  = this->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rho_F_p  = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 3;
                 //rhou_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhou_F_p = this->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhou_F_p = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 //rhov_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhov_F_p = this->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhov_F_p = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 1;
                 //rhow_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhow_F_p = this->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhow_F_p = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 //rhoE_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhoE_F_p = this->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhoE_F_p = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// z-direction k-1/2
                 index_L = k - 1;                       index_R = k;
@@ -1861,27 +1839,22 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 /// rho
                 var_type = 0;
                 //rho_F_m  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rho_F_m  = this->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rho_F_m  = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 3;
                 //rhou_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhou_F_m = this->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhou_F_m = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
                 //rhov_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhov_F_m = this->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhov_F_m = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 1;
                 //rhow_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhow_F_m = this->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhow_F_m = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 //rhoE_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                //rhoE_F_m = this->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rhoE_F_m = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// Fluxes z-direction
                 rho_inv_flux[I1D(i,j,k)]  += ( rho_F_p - rho_F_m )/delta_z;
@@ -2033,6 +2006,7 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
     /// Inner points: rho, rhou, rhov, rhow and rhoE
     double f_rhouvw = 0.0;
     double rho_rhs_flux = 0.0, rhou_rhs_flux = 0.0, rhov_rhs_flux = 0.0, rhow_rhs_flux = 0.0, rhoE_rhs_flux = 0.0;
+    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -2087,56 +2061,56 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 /// Time-averaged quantities
-                avg_rho_field[I1D(i,j,k)]   = this->updateTimeMeanQuantity(rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_rhou_field[I1D(i,j,k)]  = this->updateTimeMeanQuantity(rhou_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_rhov_field[I1D(i,j,k)]  = this->updateTimeMeanQuantity(rhov_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_rhow_field[I1D(i,j,k)]  = this->updateTimeMeanQuantity(rhow_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_rhoE_field[I1D(i,j,k)]  = this->updateTimeMeanQuantity(rhoE_field[I1D(i,j,k)],avg_rhoE_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_u_field[I1D(i,j,k)]     = this->updateTimeMeanQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_v_field[I1D(i,j,k)]     = this->updateTimeMeanQuantity(v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_w_field[I1D(i,j,k)]     = this->updateTimeMeanQuantity(w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_E_field[I1D(i,j,k)]     = this->updateTimeMeanQuantity(E_field[I1D(i,j,k)],avg_E_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_P_field[I1D(i,j,k)]     = this->updateTimeMeanQuantity(P_field[I1D(i,j,k)],avg_P_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_T_field[I1D(i,j,k)]     = this->updateTimeMeanQuantity(T_field[I1D(i,j,k)],avg_T_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_sos_field[I1D(i,j,k)]   = this->updateTimeMeanQuantity(sos_field[I1D(i,j,k)],avg_sos_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_mu_field[I1D(i,j,k)]    = this->updateTimeMeanQuantity(mu_field[I1D(i,j,k)],avg_mu_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_kappa_field[I1D(i,j,k)] = this->updateTimeMeanQuantity(kappa_field[I1D(i,j,k)],avg_kappa_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_c_v_field[I1D(i,j,k)]   = this->updateTimeMeanQuantity(c_v_field[I1D(i,j,k)],avg_c_v_field[I1D(i,j,k)],delta_t,averaging_time);
-                avg_c_p_field[I1D(i,j,k)]   = this->updateTimeMeanQuantity(c_p_field[I1D(i,j,k)],avg_c_p_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_rho_field[I1D(i,j,k)]   = updateTimeMeanQuantity(rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_rhou_field[I1D(i,j,k)]  = updateTimeMeanQuantity(rhou_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_rhov_field[I1D(i,j,k)]  = updateTimeMeanQuantity(rhov_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_rhow_field[I1D(i,j,k)]  = updateTimeMeanQuantity(rhow_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_rhoE_field[I1D(i,j,k)]  = updateTimeMeanQuantity(rhoE_field[I1D(i,j,k)],avg_rhoE_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_u_field[I1D(i,j,k)]     = updateTimeMeanQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_v_field[I1D(i,j,k)]     = updateTimeMeanQuantity(v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_w_field[I1D(i,j,k)]     = updateTimeMeanQuantity(w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_E_field[I1D(i,j,k)]     = updateTimeMeanQuantity(E_field[I1D(i,j,k)],avg_E_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_P_field[I1D(i,j,k)]     = updateTimeMeanQuantity(P_field[I1D(i,j,k)],avg_P_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_T_field[I1D(i,j,k)]     = updateTimeMeanQuantity(T_field[I1D(i,j,k)],avg_T_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_sos_field[I1D(i,j,k)]   = updateTimeMeanQuantity(sos_field[I1D(i,j,k)],avg_sos_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_mu_field[I1D(i,j,k)]    = updateTimeMeanQuantity(mu_field[I1D(i,j,k)],avg_mu_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_kappa_field[I1D(i,j,k)] = updateTimeMeanQuantity(kappa_field[I1D(i,j,k)],avg_kappa_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_c_v_field[I1D(i,j,k)]   = updateTimeMeanQuantity(c_v_field[I1D(i,j,k)],avg_c_v_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_c_p_field[I1D(i,j,k)]   = updateTimeMeanQuantity(c_p_field[I1D(i,j,k)],avg_c_p_field[I1D(i,j,k)],delta_t,averaging_time);
 
                 /// Root-mean-square-fluctuation quantities
-                rmsf_rho_field[I1D(i,j,k)]   = this->updateTimeRmsfQuantity(rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],rmsf_rho_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_rhou_field[I1D(i,j,k)]  = this->updateTimeRmsfQuantity(rhou_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],rmsf_rhou_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_rhov_field[I1D(i,j,k)]  = this->updateTimeRmsfQuantity(rhov_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],rmsf_rhov_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_rhow_field[I1D(i,j,k)]  = this->updateTimeRmsfQuantity(rhow_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rmsf_rhow_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_rhoE_field[I1D(i,j,k)]  = this->updateTimeRmsfQuantity(rhoE_field[I1D(i,j,k)],avg_rhoE_field[I1D(i,j,k)],rmsf_rhoE_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_u_field[I1D(i,j,k)]     = this->updateTimeRmsfQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],rmsf_u_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_v_field[I1D(i,j,k)]     = this->updateTimeRmsfQuantity(v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],rmsf_v_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_w_field[I1D(i,j,k)]     = this->updateTimeRmsfQuantity(w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],rmsf_w_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_E_field[I1D(i,j,k)]     = this->updateTimeRmsfQuantity(E_field[I1D(i,j,k)],avg_E_field[I1D(i,j,k)],rmsf_E_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_P_field[I1D(i,j,k)]     = this->updateTimeRmsfQuantity(P_field[I1D(i,j,k)],avg_P_field[I1D(i,j,k)],rmsf_P_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_T_field[I1D(i,j,k)]     = this->updateTimeRmsfQuantity(T_field[I1D(i,j,k)],avg_T_field[I1D(i,j,k)],rmsf_T_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_sos_field[I1D(i,j,k)]   = this->updateTimeRmsfQuantity(sos_field[I1D(i,j,k)],avg_sos_field[I1D(i,j,k)],rmsf_sos_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_mu_field[I1D(i,j,k)]    = this->updateTimeRmsfQuantity(mu_field[I1D(i,j,k)],avg_mu_field[I1D(i,j,k)],rmsf_mu_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_kappa_field[I1D(i,j,k)] = this->updateTimeRmsfQuantity(kappa_field[I1D(i,j,k)],avg_kappa_field[I1D(i,j,k)],rmsf_kappa_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_c_v_field[I1D(i,j,k)]   = this->updateTimeRmsfQuantity(c_v_field[I1D(i,j,k)],avg_c_v_field[I1D(i,j,k)],rmsf_c_v_field[I1D(i,j,k)],delta_t,averaging_time);
-                rmsf_c_p_field[I1D(i,j,k)]   = this->updateTimeRmsfQuantity(c_p_field[I1D(i,j,k)],avg_c_p_field[I1D(i,j,k)],rmsf_c_p_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_rho_field[I1D(i,j,k)]   = updateTimeRmsfQuantity(rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],rmsf_rho_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_rhou_field[I1D(i,j,k)]  = updateTimeRmsfQuantity(rhou_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],rmsf_rhou_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_rhov_field[I1D(i,j,k)]  = updateTimeRmsfQuantity(rhov_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],rmsf_rhov_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_rhow_field[I1D(i,j,k)]  = updateTimeRmsfQuantity(rhow_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rmsf_rhow_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_rhoE_field[I1D(i,j,k)]  = updateTimeRmsfQuantity(rhoE_field[I1D(i,j,k)],avg_rhoE_field[I1D(i,j,k)],rmsf_rhoE_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_u_field[I1D(i,j,k)]     = updateTimeRmsfQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],rmsf_u_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_v_field[I1D(i,j,k)]     = updateTimeRmsfQuantity(v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],rmsf_v_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_w_field[I1D(i,j,k)]     = updateTimeRmsfQuantity(w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],rmsf_w_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_E_field[I1D(i,j,k)]     = updateTimeRmsfQuantity(E_field[I1D(i,j,k)],avg_E_field[I1D(i,j,k)],rmsf_E_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_P_field[I1D(i,j,k)]     = updateTimeRmsfQuantity(P_field[I1D(i,j,k)],avg_P_field[I1D(i,j,k)],rmsf_P_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_T_field[I1D(i,j,k)]     = updateTimeRmsfQuantity(T_field[I1D(i,j,k)],avg_T_field[I1D(i,j,k)],rmsf_T_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_sos_field[I1D(i,j,k)]   = updateTimeRmsfQuantity(sos_field[I1D(i,j,k)],avg_sos_field[I1D(i,j,k)],rmsf_sos_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_mu_field[I1D(i,j,k)]    = updateTimeRmsfQuantity(mu_field[I1D(i,j,k)],avg_mu_field[I1D(i,j,k)],rmsf_mu_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_kappa_field[I1D(i,j,k)] = updateTimeRmsfQuantity(kappa_field[I1D(i,j,k)],avg_kappa_field[I1D(i,j,k)],rmsf_kappa_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_c_v_field[I1D(i,j,k)]   = updateTimeRmsfQuantity(c_v_field[I1D(i,j,k)],avg_c_v_field[I1D(i,j,k)],rmsf_c_v_field[I1D(i,j,k)],delta_t,averaging_time);
+                rmsf_c_p_field[I1D(i,j,k)]   = updateTimeRmsfQuantity(c_p_field[I1D(i,j,k)],avg_c_p_field[I1D(i,j,k)],rmsf_c_p_field[I1D(i,j,k)],delta_t,averaging_time);
 
                 /// Reynolds-averaged turbulent stress tensor quantities
-                R_reynolds_uu_field[I1D(i,j,k)] = this->updateTimeReynoldsAveragedQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],R_reynolds_uu_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_reynolds_uv_field[I1D(i,j,k)] = this->updateTimeReynoldsAveragedQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],R_reynolds_uv_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_reynolds_uw_field[I1D(i,j,k)] = this->updateTimeReynoldsAveragedQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],R_reynolds_uw_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_reynolds_vv_field[I1D(i,j,k)] = this->updateTimeReynoldsAveragedQuantity(v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],R_reynolds_vv_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_reynolds_vw_field[I1D(i,j,k)] = this->updateTimeReynoldsAveragedQuantity(v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],R_reynolds_vw_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_reynolds_ww_field[I1D(i,j,k)] = this->updateTimeReynoldsAveragedQuantity(w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],R_reynolds_ww_field[I1D(i,j,k)],delta_t,averaging_time);
+                R_reynolds_uu_field[I1D(i,j,k)] = updateTimeReynoldsAveragedQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],R_reynolds_uu_field[I1D(i,j,k)],delta_t,averaging_time);
+                R_reynolds_uv_field[I1D(i,j,k)] = updateTimeReynoldsAveragedQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],R_reynolds_uv_field[I1D(i,j,k)],delta_t,averaging_time);
+                R_reynolds_uw_field[I1D(i,j,k)] = updateTimeReynoldsAveragedQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],R_reynolds_uw_field[I1D(i,j,k)],delta_t,averaging_time);
+                R_reynolds_vv_field[I1D(i,j,k)] = updateTimeReynoldsAveragedQuantity(v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],R_reynolds_vv_field[I1D(i,j,k)],delta_t,averaging_time);
+                R_reynolds_vw_field[I1D(i,j,k)] = updateTimeReynoldsAveragedQuantity(v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],R_reynolds_vw_field[I1D(i,j,k)],delta_t,averaging_time);
+                R_reynolds_ww_field[I1D(i,j,k)] = updateTimeReynoldsAveragedQuantity(w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],R_reynolds_ww_field[I1D(i,j,k)],delta_t,averaging_time);
 
                 /// Favre-averaged turbulent stress tensor quantities
-                R_favre_uu_field[I1D(i,j,k)] = this->updateTimeFavreAveragedQuantity(u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_uu_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_favre_uv_field[I1D(i,j,k)] = this->updateTimeFavreAveragedQuantity(u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_uv_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_favre_uw_field[I1D(i,j,k)] = this->updateTimeFavreAveragedQuantity(u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_uw_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_favre_vv_field[I1D(i,j,k)] = this->updateTimeFavreAveragedQuantity(v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_vv_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_favre_vw_field[I1D(i,j,k)] = this->updateTimeFavreAveragedQuantity(v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_vw_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_favre_ww_field[I1D(i,j,k)] = this->updateTimeFavreAveragedQuantity(w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_ww_field[I1D(i,j,k)],delta_t,averaging_time);
+                R_favre_uu_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_uu_field[I1D(i,j,k)],delta_t,averaging_time);
+                R_favre_uv_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_uv_field[I1D(i,j,k)],delta_t,averaging_time);
+                R_favre_uw_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_uw_field[I1D(i,j,k)],delta_t,averaging_time);
+                R_favre_vv_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_vv_field[I1D(i,j,k)],delta_t,averaging_time);
+                R_favre_vw_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_vw_field[I1D(i,j,k)],delta_t,averaging_time);
+                R_favre_ww_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_ww_field[I1D(i,j,k)],delta_t,averaging_time);
             }
         }
     }
