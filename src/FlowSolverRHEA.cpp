@@ -2082,6 +2082,7 @@ void FlowSolverRHEA::outputCurrentStateData() {
 void FlowSolverRHEA::updateTimeAveragedQuantities() {
 
     /// All (inner, boundary & halo) points: time-averaged and root-mean-square-fluctuation quantities 
+    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
