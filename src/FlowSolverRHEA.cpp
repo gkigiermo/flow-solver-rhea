@@ -2028,8 +2028,8 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
         }
     }
     
-    /// Attention! Communications performed only at the last stage of the Runge-Kutta to improve computational performance
-    /// ... temporal integration is first-order at points connecting partitions
+    ///// Attention! Communications performed only at the last stage of the Runge-Kutta to improve computational performance
+    ///// ... temporal integration is first-order at points connecting partitions
     //if( rk_time_stage == rk_number_stages ) {
 
         /// Update halo values
