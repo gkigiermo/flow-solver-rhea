@@ -3560,9 +3560,11 @@ void ParallelTopology::create_complex_comm_arrays()
 }
 void ParallelTopology::update(double *vec)
 {
+
     pack(vec);
     halo_exchange();
     unpack(vec);
+
 }
 
 void ParallelTopology::update_simple(double *vec)
