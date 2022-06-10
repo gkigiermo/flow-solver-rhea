@@ -68,17 +68,25 @@ int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);
 
 #ifdef _OPENACC
+//    /// OpenACC distribution on multiple accelerators (GPU)
+//    acc_device_t my_device_type;
+//    int num_devices, gpuId, local_rank;
+//    MPI_Comm shmcomm;    
+//
+//    MPI_Comm_split_type( MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &shmcomm );
+//    MPI_Comm_rank( shmcomm, &local_rank );           
+//    my_device_type = acc_get_device_type();                      
+//    num_devices = acc_get_num_devices( my_device_type );
+//    gpuId = local_rank % num_devices;
+//    acc_set_device_num( gpuId, my_device_type );
     /// OpenACC distribution on multiple accelerators (GPU)
-    acc_device_t my_device_type;
-    int num_devices, gpuId, local_rank;
-    MPI_Comm shmcomm;
-
-    MPI_Comm_split_type( MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &shmcomm );
-    MPI_Comm_rank( shmcomm, &local_rank );
-    my_device_type = acc_get_device_type();
-    num_devices = acc_get_num_devices( my_device_type );
-    gpuId = local_rank % num_devices;
-    acc_set_device_num( gpuId, my_device_type );
+    acc_device_t device_type = acc_get_device_type();
+    if ( acc_device_nvidia == device_type ) {
+       int ngpus = acc_get_num_devices( acc_device_nvidia );
+       int devicenum = atoi( getenv( "OMPI_COMM_WORLD_LOCAL_RANK" ) );
+       acc_set_device_num( devicenum, acc_device_nvidia );
+    }
+    acc_init(device_type);
 #endif
 
     /// Process command line arguments
