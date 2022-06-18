@@ -2,7 +2,7 @@
 
 RHEA: an open-source Reproducible Hybrid-architecture flow solver Engineered for Academia
 
-Rhea was the Titaness great Mother of the Gods, and goddess of female fertility, motherhood, and generation. Her name means "flow" and "ease", representing the eternal flow of time and generations with ease.
+Rhea was the Titaness great Mother of the ancient Greek Gods, and goddess of female fertility, motherhood, and generation. Her name means "flow" and "ease", representing the eternal flow of time and generations with ease.
 
 The flow solver RHEA solves the conservation equations of fluid motion for compressible flows by means of second-order central finite differences in combination with kinetic energy preserving or different all-speed Harten-Lax-van-Leer-type (HLL) Riemann solvers, and utilizes explicit Runge-Kutta methods for time integration. RHEA is written in C++, using object-oriented programming, utilizes YAML and HDF5 for input/output operations, and targets hybrid supercomputing architectures.
 
