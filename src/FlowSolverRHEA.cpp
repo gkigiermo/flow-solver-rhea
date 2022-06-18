@@ -56,8 +56,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     }
 
     /// Construct (initialize) Riemann solver
-//    if( riemann_solver_scheme == "CENTRAL" ) {
-//        riemann_solver = new CentralFluxApproximateRiemannSolver();
+//    if( riemann_solver_scheme == "DIVERGENCE" ) {
+//        riemann_solver = new DivergenceFluxApproximateRiemannSolver();
 //    } else if( riemann_solver_scheme == "MURMAN-ROE" ) {
 //        riemann_solver = new MurmanRoeFluxApproximateRiemannSolver();
 //    } else if( riemann_solver_scheme == "KGP" ) {
@@ -80,7 +80,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
         riemann_solver_scheme_index = 0;
     } else if( riemann_solver_scheme == "SHIMA" ) {
         riemann_solver_scheme_index = 1;
-    } else if( riemann_solver_scheme == "CENTRAL" ) {
+    } else if( riemann_solver_scheme == "DIVERGENCE" ) {
         riemann_solver_scheme_index = 2;
     } else if( riemann_solver_scheme == "MURMAN-ROE" ) {
         riemann_solver_scheme_index = 3;
@@ -2508,7 +2508,31 @@ double FlowSolverRHEA::calculateIntercellFlux(const double &rho_L, const double 
         F *= ke_L + ke_R;
         F += ( 1.0/4.0 )*( rho_L*e_L + rho_R*e_R )*( u_L + u_R );
         F += ( 1.0/2.0 )*( u_L*P_R + u_R*P_L );
-    }    
+    }
+
+    } else if( riemann_solver_scheme_index == 2 ) {	/// DIVERGENCE
+
+    /// Divergence scheme obtained from a central differencing of the first derivative of the flux term:
+
+    double F_L = rho_L*u_L;
+    double F_R = rho_R*u_R;
+    if( var_type == 0 ) {
+        F_L *= 1.0;
+        F_R *= 1.0;
+    } else if ( var_type == 1 ) {
+        F_L *= u_L; F_L += P_L;
+        F_R *= u_R; F_R += P_R;
+    } else if ( var_type == 2 ) {
+        F_L *= v_L;
+        F_R *= v_R;
+    } else if ( var_type == 3 ) {
+        F_L *= w_L;
+        F_R *= w_R;
+    } else if ( var_type == 4 ) {
+        F_L *= E_L; F_L += u_L*P_L;
+        F_R *= E_R; F_R += u_R*P_R;
+    }
+    F = 0.5*( F_L + F_R );
 
     } else if( riemann_solver_scheme_index == 3 ) {	/// MURMAN-ROE
 
@@ -2817,15 +2841,15 @@ double FlowSolverRHEA::calculateIntercellFlux(const double &rho_L, const double 
 //};
 
 
-//////////// CentralFluxApproximateRiemannSolver CLASS //////////
+//////////// DivergenceFluxApproximateRiemannSolver CLASS //////////
 //
-//CentralFluxApproximateRiemannSolver::CentralFluxApproximateRiemannSolver() : BaseRiemannSolver() {};
+//DivergenceFluxApproximateRiemannSolver::DivergenceFluxApproximateRiemannSolver() : BaseRiemannSolver() {};
 //
-//CentralFluxApproximateRiemannSolver::~CentralFluxApproximateRiemannSolver() {};
+//DivergenceFluxApproximateRiemannSolver::~DivergenceFluxApproximateRiemannSolver() {};
 //
-//double CentralFluxApproximateRiemannSolver::calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
+//double DivergenceFluxApproximateRiemannSolver::calculateIntercellFlux(const double &rho_L, const double &rho_R, const double &u_L, const double &u_R, const double &v_L, const double &v_R, const double &w_L, const double &w_R, const double &E_L, const double &E_R, const double &P_L, const double &P_R, const double &a_L, const double &a_R, const int &var_type) {
 //
-//    /// Central scheme obtained from a central differencing of the first derivative of the flux term:
+//    /// Divergence scheme obtained from a central differencing of the first derivative of the flux term:
 //
 //    double F_L = rho_L*u_L;
 //    double F_R = rho_R*u_R;

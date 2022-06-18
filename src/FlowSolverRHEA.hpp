@@ -26,7 +26,7 @@ using namespace std;
 class FlowSolverRHEA;					/// Flow solver RHEA
 
 //class BaseRiemannSolver;				/// Base Riemann solver
-//class CentralFluxApproximateRiemannSolver;		/// Central scheme approximate Riemann solver
+//class DivergenceFluxApproximateRiemannSolver;		/// Divergence scheme approximate Riemann solver
 //class MurmanRoeFluxApproximateRiemannSolver;		/// Murman-Roe scheme approximate Riemann solver
 //class KgpFluxApproximateRiemannSolver;		/// KGP scheme approximate Riemann solver
 //class ShimaFluxApproximateRiemannSolver;		/// SHIMA scheme approximate Riemann solver
@@ -389,14 +389,14 @@ class FlowSolverRHEA {
 //
 //};
 //
-//////////// CentralFluxApproximateRiemannSolver CLASS //////////
-//class CentralFluxApproximateRiemannSolver : public BaseRiemannSolver {
+//////////// DivergenceFluxApproximateRiemannSolver CLASS //////////
+//class DivergenceFluxApproximateRiemannSolver : public BaseRiemannSolver {
 //   
 //    public:
 //
 //        ////////// CONSTRUCTORS & DESTRUCTOR //////////
-//        CentralFluxApproximateRiemannSolver();						/// Default constructor
-//        virtual ~CentralFluxApproximateRiemannSolver();					/// Destructor
+//        DivergenceFluxApproximateRiemannSolver();						/// Default constructor
+//        virtual ~DivergenceFluxApproximateRiemannSolver();					/// Destructor
 //
 //	////////// GET FUNCTIONS //////////
 //
