@@ -1662,7 +1662,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
     double rho_R, u_R, v_R, w_R, E_R, P_R, a_R;
     double rho_F_p, rho_F_m, rhou_F_p, rhou_F_m, rhov_F_p;
     double rhov_F_m, rhow_F_p, rhow_F_m, rhoE_F_p, rhoE_F_m;
-    #pragma acc parallel loop collapse (3) async
+    #pragma acc parallel loop collapse (3)
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -1889,7 +1889,7 @@ void FlowSolverRHEA::calculateViscousFluxes() {
     double div_uvw, tau_xx, tau_xy, tau_xz, tau_yy, tau_yz, tau_zz;
     double div_tau_x, div_tau_y, div_tau_z;
     double div_q, div_uvw_tau;
-    #pragma acc parallel loop collapse (3) async 
+    #pragma acc parallel loop collapse (3) 
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -2006,7 +2006,7 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
     /// Inner points: rho, rhou, rhov, rhow and rhoE
     double f_rhouvw = 0.0;
     double rho_rhs_flux = 0.0, rhou_rhs_flux = 0.0, rhov_rhs_flux = 0.0, rhow_rhs_flux = 0.0, rhoE_rhs_flux = 0.0;
-    #pragma acc parallel loop collapse (3) async
+    #pragma acc parallel loop collapse (3)
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
