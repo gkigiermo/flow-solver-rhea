@@ -4,7 +4,7 @@ PROJECT_PATH = $(RHEA_PATH)
 SRC_DIR      = $(PROJECT_PATH)/src
 CXX          = mpicxx
 # CPU FLAGS
-CXXFLAGS     = -O3 -Wall -std=c++0x -I$(PROJECT_PATH)
+CXXFLAGS     = -O3 -Wall -std=c++0x -Wno-unknown-pragmas -I$(PROJECT_PATH)
 # CPU-GPU FLAGS
 #CXXFLAGS     = -fast -acc -ta=tesla:managed -Minfo=accel -O3 -Wall -std=c++0x -I$(PROJECT_PATH)
 # UBUNTU - LINUX
