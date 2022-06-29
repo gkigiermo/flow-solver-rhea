@@ -131,11 +131,6 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     y_field.setTopology(topo,"y");
     z_field.setTopology(topo,"z");
 
-    /// Set parallel topology of mesh sizes
-    delta_x_field.setTopology(topo,"delta_x");
-    delta_y_field.setTopology(topo,"delta_y");
-    delta_z_field.setTopology(topo,"delta_z");
-
     /// Set parallel topology of primitive, conserved, thermodynamic and thermophysical variables	
     rho_field.setTopology(topo,"rho");
     u_field.setTopology(topo,"u");
@@ -558,22 +553,6 @@ void FlowSolverRHEA::fillMeshCoordinatesSizesFields() {
     //x_field.update();
     //y_field.update();
     //z_field.update();
-
-    /// Inner points: delta_x, delta_y and delta_z
-    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
-        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
-            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                delta_x_field[I1D(i,j,k)] = 0.5*( mesh->x[i+1] - mesh->x[i-1] );
-                delta_y_field[I1D(i,j,k)] = 0.5*( mesh->y[j+1] - mesh->y[j-1] );
-                delta_z_field[I1D(i,j,k)] = 0.5*( mesh->z[k+1] - mesh->z[k-1] );
-            }
-        }
-    }
-
-    /// Update halo values
-    delta_x_field.update();
-    delta_y_field.update();
-    delta_z_field.update();
 
 };
 
@@ -1576,9 +1555,9 @@ void FlowSolverRHEA::calculateTimeStep() {
                 Pr = c_p/c_v;
                 if(kappa_field[I1D(i,j,k)] > epsilon) Pr = c_p*mu_field[I1D(i,j,k)]/kappa_field[I1D(i,j,k)];
                 /// Geometric stuff
-                delta_x = delta_x_field[I1D(i,j,k)]; 
-                delta_y = delta_y_field[I1D(i,j,k)]; 
-                delta_z = delta_z_field[I1D(i,j,k)];
+                delta_x = 0.5*( x_field[I1D(i+1,j,k)] - x_field[I1D(i-1,j,k)] ); 
+                delta_y = 0.5*( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j-1,k)] ); 
+                delta_z = 0.5*( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k-1)] );
                 /// x-direction inviscid & viscous terms
                 S_x           = abs( u_field[I1D(i,j,k)] ) + sos;
                 local_delta_t = min( local_delta_t, CFL*delta_x/S_x );
@@ -1667,9 +1646,9 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 /// Geometric stuff
-                delta_x = delta_x_field[I1D(i,j,k)]; 
-                delta_y = delta_y_field[I1D(i,j,k)]; 
-                delta_z = delta_z_field[I1D(i,j,k)];
+                delta_x = 0.5*( x_field[I1D(i+1,j,k)] - x_field[I1D(i-1,j,k)] ); 
+                delta_y = 0.5*( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j-1,k)] ); 
+                delta_z = 0.5*( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k-1)] );
                 /// x-direction i+1/2
                 index_L = i;                           index_R = i + 1;
                 rho_L   = rho_field[I1D(index_L,j,k)]; rho_R   = rho_field[I1D(index_R,j,k)]; 
@@ -1894,9 +1873,9 @@ void FlowSolverRHEA::calculateViscousFluxes() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 /// Geometric stuff
-                delta_x = delta_x_field[I1D(i,j,k)]; 
-                delta_y = delta_y_field[I1D(i,j,k)]; 
-                delta_z = delta_z_field[I1D(i,j,k)];
+                delta_x = 0.5*( x_field[I1D(i+1,j,k)] - x_field[I1D(i-1,j,k)] ); 
+                delta_y = 0.5*( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j-1,k)] ); 
+                delta_z = 0.5*( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k-1)] );
                 /// Velocity derivatives
                 d_u_x = ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/( 2.0*delta_x );
                 d_u_y = ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j-1,k)] )/( 2.0*delta_y );
