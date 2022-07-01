@@ -773,8 +773,8 @@ void FlowSolverRHEA::conservedToPrimitiveVariables() {
     const int endy = topo->iter_common[_ALL_][_ENDY_];
     const int endz = topo->iter_common[_ALL_][_ENDZ_];
     #pragma acc enter data copyin(this)
-    #pragma acc enter data copyin (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
-    #pragma acc enter data create (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size])
+    #pragma acc data copy (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
+    #pragma acc data copy (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size])
     #pragma acc parallel loop collapse (3)
     for(int i = inix; i <= endx; i++) {
         for(int j = iniy; j <= endy; j++) {
@@ -792,9 +792,6 @@ void FlowSolverRHEA::conservedToPrimitiveVariables() {
             }
         }
     }
-#if _OPENACC_MANUAL_DATA_MOVEMENT_
-    #pragma acc data copyout (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size])
-#endif
 
     /// Update halo values
     //u_field.update();
@@ -1527,30 +1524,9 @@ void FlowSolverRHEA::updateBoundaries() {
 void FlowSolverRHEA::updatePreviousStateConservedVariables() {
 
     /// All (inner, halo, boundary) points: rho_0, rhou_0 rhov_0, rhow_0 and rhoE_0
-#if _OPENACC_MANUAL_DATA_MOVEMENT_
-    const int local_size_x = _lNx_;
-    const int local_size_y = _lNy_;
-    const int local_size_z = _lNz_;
-    const int local_size   = local_size_x*local_size_y*local_size_z;
-    const int inix = topo->iter_common[_ALL_][_INIX_];
-    const int iniy = topo->iter_common[_ALL_][_INIY_];
-    const int iniz = topo->iter_common[_ALL_][_INIZ_];
-    const int endx = topo->iter_common[_ALL_][_ENDX_];
-    const int endy = topo->iter_common[_ALL_][_ENDY_];
-    const int endz = topo->iter_common[_ALL_][_ENDZ_];
-    #pragma acc enter data copyin(this)
-    #pragma acc enter data create (rho_0_field.vector[0:local_size],rhou_0_field.vector[0:local_size],rhov_0_field.vector[0:local_size],rhow_0_field.vector[0:local_size],rhoE_0_field.vector[0:local_size])
-    #pragma acc enter data copyin (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
-    #pragma acc parallel loop collapse (3)
-    for(int i = inix; i <= endx; i++) {
-        for(int j = iniy; j <= endy; j++) {
-            for(int k = iniz; k <= endz; k++) {
-#else
-    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-#endif
                 rho_0_field[I1D(i,j,k)]  = rho_field[I1D(i,j,k)]; 
                 rhou_0_field[I1D(i,j,k)] = rhou_field[I1D(i,j,k)]; 
                 rhov_0_field[I1D(i,j,k)] = rhov_field[I1D(i,j,k)]; 
@@ -1559,9 +1535,6 @@ void FlowSolverRHEA::updatePreviousStateConservedVariables() {
             }
         }
     }
-#if _OPENACC_MANUAL_DATA_MOVEMENT_
-    #pragma acc data copyout (rho_0_field.vector[0:local_size],rhou_0_field.vector[0:local_size],rhov_0_field.vector[0:local_size],rhow_0_field.vector[0:local_size],rhoE_0_field.vector[0:local_size])
-#endif
 
     /// Update halo values
     //rho_0_field.update();
@@ -1699,8 +1672,8 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
     const int endy = topo->iter_common[_INNER_][_ENDY_];
     const int endz = topo->iter_common[_INNER_][_ENDZ_];
     #pragma acc enter data copyin(this) 
-    #pragma acc enter data copyin (rho_field.vector[0:local_size],u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],sos_field.vector[0:local_size],x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size])
-    #pragma acc enter data create (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size])
+    #pragma acc data copy (rho_field.vector[0:local_size],u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],sos_field.vector[0:local_size],x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size])
+    #pragma acc data copy (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size])
     #pragma acc parallel loop collapse (3) 
     for(int i = inix; i <= endx; i++) {
         for(int j = iniy; j <= endy; j++) {
@@ -1910,9 +1883,6 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
             }
         }
     }
-#if _OPENACC_MANUAL_DATA_MOVEMENT_
-    #pragma acc data copyout (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size])
-#endif
 
     /// Update halo values
     //rho_inv_flux.update();
@@ -1950,9 +1920,9 @@ void FlowSolverRHEA::calculateViscousFluxes() {
     const int endy = topo->iter_common[_INNER_][_ENDY_];
     const int endz = topo->iter_common[_INNER_][_ENDZ_];
     #pragma acc enter data copyin(this)
-    #pragma acc enter data copyin (x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size])
-    #pragma acc enter data copyin (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],T_field.vector[0:local_size],mu_field.vector[0:local_size],kappa_field.vector[0:local_size])
-    #pragma acc enter data create (rhou_vis_flux.vector[0:local_size],rhov_vis_flux.vector[0:local_size],rhow_vis_flux.vector[0:local_size],rhoE_vis_flux.vector[0:local_size])
+    #pragma acc data copy (x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size])
+    #pragma acc data copy (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],T_field.vector[0:local_size],mu_field.vector[0:local_size],kappa_field.vector[0:local_size])
+    #pragma acc data copy (rhou_vis_flux.vector[0:local_size],rhov_vis_flux.vector[0:local_size],rhow_vis_flux.vector[0:local_size],rhoE_vis_flux.vector[0:local_size])
     #pragma acc parallel loop collapse (3) 
     for(int i = inix; i <= endx; i++) {
         for(int j = iniy; j <= endy; j++) {
@@ -2058,9 +2028,6 @@ void FlowSolverRHEA::calculateViscousFluxes() {
             }
         }
     }
-#if _OPENACC_MANUAL_DATA_MOVEMENT_
-    #pragma acc data copyout (rhou_vis_flux.vector[0:local_size],rhov_vis_flux.vector[0:local_size],rhow_vis_flux.vector[0:local_size],rhoE_vis_flux.vector[0:local_size])
-#endif
 
     /// Update halo values
     //rhou_vis_flux.update();
@@ -2091,11 +2058,11 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
     const int endy = topo->iter_common[_INNER_][_ENDY_];
     const int endz = topo->iter_common[_INNER_][_ENDZ_];
     #pragma acc enter data copyin (this)
-    #pragma acc enter data copyin (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size])
-    #pragma acc enter data copyin (rho_0_field.vector[0:local_size],rhou_0_field.vector[0:local_size],rhov_0_field.vector[0:local_size],rhow_0_field.vector[0:local_size],rhoE_0_field.vector[0:local_size])
-    #pragma acc enter data copyin (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size])
-    #pragma acc enter data copyin (rhou_vis_flux.vector[0:local_size],rhov_vis_flux.vector[0:local_size],rhow_vis_flux.vector[0:local_size],rhoE_vis_flux.vector[0:local_size])
-    #pragma acc enter data copyin (f_rhou_field.vector[0:local_size],f_rhov_field.vector[0:local_size],f_rhow_field.vector[0:local_size],f_rhoE_field.vector[0:local_size])
+    #pragma acc data copy (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size])
+    #pragma acc data copy (rho_0_field.vector[0:local_size],rhou_0_field.vector[0:local_size],rhov_0_field.vector[0:local_size],rhow_0_field.vector[0:local_size],rhoE_0_field.vector[0:local_size])
+    #pragma acc data copy (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size])
+    #pragma acc data copy (rhou_vis_flux.vector[0:local_size],rhov_vis_flux.vector[0:local_size],rhow_vis_flux.vector[0:local_size],rhoE_vis_flux.vector[0:local_size])
+    #pragma acc data copy (f_rhou_field.vector[0:local_size],f_rhov_field.vector[0:local_size],f_rhow_field.vector[0:local_size],f_rhoE_field.vector[0:local_size])
     #pragma acc data copy (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
     #pragma acc parallel loop collapse (3)
     for(int i = inix; i <= endx; i++) {
@@ -2174,8 +2141,8 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
     #pragma acc data copy (rmsf_rho_field.vector[0:local_size],rmsf_rhou_field.vector[0:local_size],rmsf_rhov_field.vector[0:local_size],rmsf_rhow_field.vector[0:local_size],rmsf_rhoE_field.vector[0:local_size])
     #pragma acc data copy (rmsf_u_field.vector[0:local_size],rmsf_v_field.vector[0:local_size],rmsf_w_field.vector[0:local_size],rmsf_E_field.vector[0:local_size],rmsf_P_field.vector[0:local_size],rmsf_T_field.vector[0:local_size])
     #pragma acc data copy (rmsf_sos_field.vector[0:local_size],rmsf_mu_field.vector[0:local_size],rmsf_kappa_field.vector[0:local_size],rmsf_c_v_field.vector[0:local_size],rmsf_c_p_field.vector[0:local_size])
-     #pragma acc data copy (R_reynolds_uu_field.vector[0:local_size],R_reynolds_uv_field.vector[0:local_size],R_reynolds_uw_field.vector[0:local_size],R_reynolds_vv_field.vector[0:local_size],R_reynolds_vw_field.vector[0:local_size],R_reynolds_ww_field.vector[0:local_size])
-     #pragma acc data copy (R_favre_uu_field.vector[0:local_size],R_favre_uv_field.vector[0:local_size],R_favre_uw_field.vector[0:local_size],R_favre_vv_field.vector[0:local_size],R_favre_vw_field.vector[0:local_size],R_favre_ww_field.vector[0:local_size])
+    #pragma acc data copy (R_reynolds_uu_field.vector[0:local_size],R_reynolds_uv_field.vector[0:local_size],R_reynolds_uw_field.vector[0:local_size],R_reynolds_vv_field.vector[0:local_size],R_reynolds_vw_field.vector[0:local_size],R_reynolds_ww_field.vector[0:local_size])
+    #pragma acc data copy (R_favre_uu_field.vector[0:local_size],R_favre_uv_field.vector[0:local_size],R_favre_uw_field.vector[0:local_size],R_favre_vv_field.vector[0:local_size],R_favre_vw_field.vector[0:local_size],R_favre_ww_field.vector[0:local_size])
     #pragma acc parallel loop collapse (3)
     for(int i = inix; i <= endx; i++) {
         for(int j = iniy; j <= endy; j++) {
