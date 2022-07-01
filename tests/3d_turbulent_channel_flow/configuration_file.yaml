@@ -67,7 +67,7 @@ computational_parameters:
    riemann_solver_scheme: 'KGP'		              	  		# Riemann solver scheme
    # Runge-Kutta time scheme: RK1, SSP-RK2, SSP-RK3
    runge_kutta_time_scheme: 'SSP-RK3'		          		# Runge-Kutta time scheme
-   final_time_iter: 10000000           					# Final time iteration
+   final_time_iter: 10000000          					# Final time iteration
 
 
 ##### BOUNDARY CONDITIONS #####

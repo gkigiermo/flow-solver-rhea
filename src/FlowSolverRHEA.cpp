@@ -773,7 +773,7 @@ void FlowSolverRHEA::conservedToPrimitiveVariables() {
     const int endy = topo->iter_common[_ALL_][_ENDY_];
     const int endz = topo->iter_common[_ALL_][_ENDZ_];
     #pragma acc enter data copyin(this)
-    #pragma acc data copy (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
+    #pragma acc data copyin (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
     #pragma acc data copy (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size])
     #pragma acc parallel loop collapse (3)
     for(int i = inix; i <= endx; i++) {
@@ -1672,7 +1672,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
     const int endy = topo->iter_common[_INNER_][_ENDY_];
     const int endz = topo->iter_common[_INNER_][_ENDZ_];
     #pragma acc enter data copyin(this) 
-    #pragma acc data copy (rho_field.vector[0:local_size],u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],sos_field.vector[0:local_size],x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size])
+    #pragma acc data copyin (rho_field.vector[0:local_size],u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],sos_field.vector[0:local_size],x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size])
     #pragma acc data copy (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size])
     #pragma acc parallel loop collapse (3) 
     for(int i = inix; i <= endx; i++) {
@@ -1920,8 +1920,8 @@ void FlowSolverRHEA::calculateViscousFluxes() {
     const int endy = topo->iter_common[_INNER_][_ENDY_];
     const int endz = topo->iter_common[_INNER_][_ENDZ_];
     #pragma acc enter data copyin(this)
-    #pragma acc data copy (x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size])
-    #pragma acc data copy (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],T_field.vector[0:local_size],mu_field.vector[0:local_size],kappa_field.vector[0:local_size])
+    #pragma acc data copyin (x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size])
+    #pragma acc data copyin (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],T_field.vector[0:local_size],mu_field.vector[0:local_size],kappa_field.vector[0:local_size])
     #pragma acc data copy (rhou_vis_flux.vector[0:local_size],rhov_vis_flux.vector[0:local_size],rhow_vis_flux.vector[0:local_size],rhoE_vis_flux.vector[0:local_size])
     #pragma acc parallel loop collapse (3) 
     for(int i = inix; i <= endx; i++) {
@@ -2058,11 +2058,11 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
     const int endy = topo->iter_common[_INNER_][_ENDY_];
     const int endz = topo->iter_common[_INNER_][_ENDZ_];
     #pragma acc enter data copyin (this)
-    #pragma acc data copy (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size])
-    #pragma acc data copy (rho_0_field.vector[0:local_size],rhou_0_field.vector[0:local_size],rhov_0_field.vector[0:local_size],rhow_0_field.vector[0:local_size],rhoE_0_field.vector[0:local_size])
-    #pragma acc data copy (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size])
-    #pragma acc data copy (rhou_vis_flux.vector[0:local_size],rhov_vis_flux.vector[0:local_size],rhow_vis_flux.vector[0:local_size],rhoE_vis_flux.vector[0:local_size])
-    #pragma acc data copy (f_rhou_field.vector[0:local_size],f_rhov_field.vector[0:local_size],f_rhow_field.vector[0:local_size],f_rhoE_field.vector[0:local_size])
+    #pragma acc data copyin (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size])
+    #pragma acc data copyin (rho_0_field.vector[0:local_size],rhou_0_field.vector[0:local_size],rhov_0_field.vector[0:local_size],rhow_0_field.vector[0:local_size],rhoE_0_field.vector[0:local_size])
+    #pragma acc data copyin (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size])
+    #pragma acc data copyin (rhou_vis_flux.vector[0:local_size],rhov_vis_flux.vector[0:local_size],rhow_vis_flux.vector[0:local_size],rhoE_vis_flux.vector[0:local_size])
+    #pragma acc data copyin (f_rhou_field.vector[0:local_size],f_rhov_field.vector[0:local_size],f_rhow_field.vector[0:local_size],f_rhoE_field.vector[0:local_size])
     #pragma acc data copy (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
     #pragma acc parallel loop collapse (3)
     for(int i = inix; i <= endx; i++) {
@@ -2132,9 +2132,9 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
     const int endy = topo->iter_common[_ALL_][_ENDY_];
     const int endz = topo->iter_common[_ALL_][_ENDZ_];
     #pragma acc enter data copyin (this)
-    #pragma acc data copy (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
-    #pragma acc data copy (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],T_field.vector[0:local_size])
-    #pragma acc data copy (sos_field.vector[0:local_size],mu_field.vector[0:local_size],kappa_field.vector[0:local_size],c_v_field.vector[0:local_size],c_p_field.vector[0:local_size])
+    #pragma acc data copyin (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
+    #pragma acc data copyin (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],T_field.vector[0:local_size])
+    #pragma acc data copyin (sos_field.vector[0:local_size],mu_field.vector[0:local_size],kappa_field.vector[0:local_size],c_v_field.vector[0:local_size],c_p_field.vector[0:local_size])
     #pragma acc data copy (avg_rho_field.vector[0:local_size],avg_rhou_field.vector[0:local_size],avg_rhov_field.vector[0:local_size],avg_rhow_field.vector[0:local_size],avg_rhoE_field.vector[0:local_size])
     #pragma acc data copy (avg_u_field.vector[0:local_size],avg_v_field.vector[0:local_size],avg_w_field.vector[0:local_size],avg_E_field.vector[0:local_size],avg_P_field.vector[0:local_size],avg_T_field.vector[0:local_size])
     #pragma acc data copy (avg_sos_field.vector[0:local_size],avg_mu_field.vector[0:local_size],avg_kappa_field.vector[0:local_size],avg_c_v_field.vector[0:local_size],avg_c_p_field.vector[0:local_size])
