@@ -349,7 +349,7 @@ class FlowSolverRHEA {
         /// The rightmost number (3) is the revision, but it may also refer to a "point release" or "subminor version".
 	
         /// Version number (updated 18/05/2022)
-        string version_number = "1.1.0";			/// Version number	
+        string version_number = "2.0.0";			/// Version number	
 
     private:
 

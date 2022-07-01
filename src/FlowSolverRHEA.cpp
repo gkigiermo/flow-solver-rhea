@@ -5,6 +5,7 @@ using namespace std;
 
 ////////// COMPILATION DIRECTIVES //////////
 #define _PRESSURE_BASED_WAVE_SPEED_ESTIMATES_ 0		/// Select approach for estimating wave speeds
+#define _OPENACC_MANUAL_DATA_MOVEMENT_ 1		/// Select manual/managed data movement for OpenACC
 
 ////////// FIXED PARAMETERS //////////
 const double epsilon     = 1.0e-15;			/// Small epsilon number (fixed)
@@ -760,10 +761,30 @@ void FlowSolverRHEA::primitiveToConservedVariables() {
 void FlowSolverRHEA::conservedToPrimitiveVariables() {
 
     /// All (inner, halo, boundary) points: u, v, w and E
+#if _OPENACC_MANUAL_DATA_MOVEMENT_
+    const int local_size_x = _lNx_;
+    const int local_size_y = _lNy_;
+    const int local_size_z = _lNz_;
+    const int local_size   = local_size_x*local_size_y*local_size_z;
+    const int inix = topo->iter_common[_ALL_][_INIX_];
+    const int iniy = topo->iter_common[_ALL_][_INIY_];
+    const int iniz = topo->iter_common[_ALL_][_INIZ_];
+    const int endx = topo->iter_common[_ALL_][_ENDX_];      
+    const int endy = topo->iter_common[_ALL_][_ENDY_];
+    const int endz = topo->iter_common[_ALL_][_ENDZ_];
+    #pragma acc enter data copyin(this)
+    #pragma acc enter data copyin (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
+    #pragma acc enter data create (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size])
+    #pragma acc parallel loop collapse (3)
+    for(int i = inix; i <= endx; i++) {
+        for(int j = iniy; j <= endy; j++) {
+            for(int k = iniz; k <= endz; k++) {
+#else
     #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+#endif
                 u_field[I1D(i,j,k)] = rhou_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
                 v_field[I1D(i,j,k)] = rhov_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
                 w_field[I1D(i,j,k)] = rhow_field[I1D(i,j,k)]/rho_field[I1D(i,j,k)]; 
@@ -771,6 +792,9 @@ void FlowSolverRHEA::conservedToPrimitiveVariables() {
             }
         }
     }
+#if _OPENACC_MANUAL_DATA_MOVEMENT_
+    #pragma acc data copyout (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size])
+#endif
 
     /// Update halo values
     //u_field.update();
@@ -1503,10 +1527,30 @@ void FlowSolverRHEA::updateBoundaries() {
 void FlowSolverRHEA::updatePreviousStateConservedVariables() {
 
     /// All (inner, halo, boundary) points: rho_0, rhou_0 rhov_0, rhow_0 and rhoE_0
+#if _OPENACC_MANUAL_DATA_MOVEMENT_
+    const int local_size_x = _lNx_;
+    const int local_size_y = _lNy_;
+    const int local_size_z = _lNz_;
+    const int local_size   = local_size_x*local_size_y*local_size_z;
+    const int inix = topo->iter_common[_ALL_][_INIX_];
+    const int iniy = topo->iter_common[_ALL_][_INIY_];
+    const int iniz = topo->iter_common[_ALL_][_INIZ_];
+    const int endx = topo->iter_common[_ALL_][_ENDX_];
+    const int endy = topo->iter_common[_ALL_][_ENDY_];
+    const int endz = topo->iter_common[_ALL_][_ENDZ_];
+    #pragma acc enter data copyin(this)
+    #pragma acc enter data create (rho_0_field.vector[0:local_size],rhou_0_field.vector[0:local_size],rhov_0_field.vector[0:local_size],rhow_0_field.vector[0:local_size],rhoE_0_field.vector[0:local_size])
+    #pragma acc enter data copyin (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
+    #pragma acc parallel loop collapse (3)
+    for(int i = inix; i <= endx; i++) {
+        for(int j = iniy; j <= endy; j++) {
+            for(int k = iniz; k <= endz; k++) {
+#else
     #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+#endif
                 rho_0_field[I1D(i,j,k)]  = rho_field[I1D(i,j,k)]; 
                 rhou_0_field[I1D(i,j,k)] = rhou_field[I1D(i,j,k)]; 
                 rhov_0_field[I1D(i,j,k)] = rhov_field[I1D(i,j,k)]; 
@@ -1515,6 +1559,9 @@ void FlowSolverRHEA::updatePreviousStateConservedVariables() {
             }
         }
     }
+#if _OPENACC_MANUAL_DATA_MOVEMENT_
+    #pragma acc data copyout (rho_0_field.vector[0:local_size],rhou_0_field.vector[0:local_size],rhov_0_field.vector[0:local_size],rhow_0_field.vector[0:local_size],rhoE_0_field.vector[0:local_size])
+#endif
 
     /// Update halo values
     //rho_0_field.update();
@@ -1606,7 +1653,6 @@ void FlowSolverRHEA::calculateSourceTerms() {
     /// IMPORTANT: This method needs to be modified/overwritten according to the problem under consideration
 
     /// Inner points: f_rhou, f_rhov, f_rhow and f_rhoE
-    #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -1641,10 +1687,30 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
     double rho_R, u_R, v_R, w_R, E_R, P_R, a_R;
     double rho_F_p, rho_F_m, rhou_F_p, rhou_F_m, rhov_F_p;
     double rhov_F_m, rhow_F_p, rhow_F_m, rhoE_F_p, rhoE_F_m;
+#if _OPENACC_MANUAL_DATA_MOVEMENT_
+    const int local_size_x = _lNx_;
+    const int local_size_y = _lNy_;
+    const int local_size_z = _lNz_;
+    const int local_size   = local_size_x*local_size_y*local_size_z;
+    const int inix = topo->iter_common[_INNER_][_INIX_];
+    const int iniy = topo->iter_common[_INNER_][_INIY_];
+    const int iniz = topo->iter_common[_INNER_][_INIZ_];
+    const int endx = topo->iter_common[_INNER_][_ENDX_];
+    const int endy = topo->iter_common[_INNER_][_ENDY_];
+    const int endz = topo->iter_common[_INNER_][_ENDZ_];
+    #pragma acc enter data copyin(this) 
+    #pragma acc enter data copyin (rho_field.vector[0:local_size],u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],sos_field.vector[0:local_size],x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size])
+    #pragma acc enter data create (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size])
+    #pragma acc parallel loop collapse (3) 
+    for(int i = inix; i <= endx; i++) {
+        for(int j = iniy; j <= endy; j++) {
+            for(int k = iniz; k <= endz; k++) {
+#else
     #pragma acc parallel loop collapse (3)
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+#endif
                 /// Geometric stuff
                 delta_x = 0.5*( x_field[I1D(i+1,j,k)] - x_field[I1D(i-1,j,k)] ); 
                 delta_y = 0.5*( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j-1,k)] ); 
@@ -1844,6 +1910,10 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
             }
         }
     }
+#if _OPENACC_MANUAL_DATA_MOVEMENT_
+    #pragma acc data copyout (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size])
+#endif
+
     /// Update halo values
     //rho_inv_flux.update();
     //rhou_inv_flux.update();
@@ -1868,10 +1938,31 @@ void FlowSolverRHEA::calculateViscousFluxes() {
     double div_uvw, tau_xx, tau_xy, tau_xz, tau_yy, tau_yz, tau_zz;
     double div_tau_x, div_tau_y, div_tau_z;
     double div_q, div_uvw_tau;
+#if _OPENACC_MANUAL_DATA_MOVEMENT_
+    const int local_size_x = _lNx_;
+    const int local_size_y = _lNy_;
+    const int local_size_z = _lNz_;
+    const int local_size   = local_size_x*local_size_y*local_size_z;
+    const int inix = topo->iter_common[_INNER_][_INIX_];
+    const int iniy = topo->iter_common[_INNER_][_INIY_];
+    const int iniz = topo->iter_common[_INNER_][_INIZ_];
+    const int endx = topo->iter_common[_INNER_][_ENDX_];
+    const int endy = topo->iter_common[_INNER_][_ENDY_];
+    const int endz = topo->iter_common[_INNER_][_ENDZ_];
+    #pragma acc enter data copyin(this)
+    #pragma acc enter data copyin (x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size])
+    #pragma acc enter data copyin (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],T_field.vector[0:local_size],mu_field.vector[0:local_size],kappa_field.vector[0:local_size])
+    #pragma acc enter data create (rhou_vis_flux.vector[0:local_size],rhov_vis_flux.vector[0:local_size],rhow_vis_flux.vector[0:local_size],rhoE_vis_flux.vector[0:local_size])
+    #pragma acc parallel loop collapse (3) 
+    for(int i = inix; i <= endx; i++) {
+        for(int j = iniy; j <= endy; j++) {
+            for(int k = iniz; k <= endz; k++) {  
+#else
     #pragma acc parallel loop collapse (3) 
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+#endif
                 /// Geometric stuff
                 delta_x = 0.5*( x_field[I1D(i+1,j,k)] - x_field[I1D(i-1,j,k)] ); 
                 delta_y = 0.5*( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j-1,k)] ); 
@@ -1907,52 +1998,52 @@ void FlowSolverRHEA::calculateViscousFluxes() {
                 tau_yz = mu_field[I1D(i,j,k)]*( d_v_z + d_w_y );
                 tau_zz = 2.0*mu_field[I1D(i,j,k)]*( d_w_z - ( div_uvw/3.0 ) );
                 /// Divergence of viscous stresses
-                div_tau_x = mu_field[I1D(i,j,k)]*( ( 1.00/delta_x )*( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] )
-                                                                    - ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) )
-                                                 + ( 1.00/delta_y )*( ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] )
-                                                                    - ( u_field[I1D(i,j,k)] - u_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) )
-                                                 + ( 1.00/delta_z )*( ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] )
-                                                                    - ( u_field[I1D(i,j,k)] - u_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) )
-              + ( 1.0/3.0 )*mu_field[I1D(i,j,k)]*( ( 1.00/delta_x )*( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] )
-                                                                    - ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) )
+                div_tau_x = mu_field[I1D(i,j,k)]*( ( 1.00/delta_x )*( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( x_field[I1D(i+1,j,k)] - x_field[I1D(i,j,k)] )
+                                                                    - ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( x_field[I1D(i,j,k)] - x_field[I1D(i-1,j,k)] ) )
+                                                 + ( 1.00/delta_y )*( ( u_field[I1D(i,j+1,k)] - u_field[I1D(i,j,k)] )/( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j,k)] )
+                                                                    - ( u_field[I1D(i,j,k)] - u_field[I1D(i,j-1,k)] )/( y_field[I1D(i,j,k)] - y_field[I1D(i,j-1,k)] ) )
+                                                 + ( 1.00/delta_z )*( ( u_field[I1D(i,j,k+1)] - u_field[I1D(i,j,k)] )/( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k)] )
+                                                                    - ( u_field[I1D(i,j,k)] - u_field[I1D(i,j,k-1)] )/( z_field[I1D(i,j,k)] - z_field[I1D(i,j,k-1)] ) ) )
+              + ( 1.0/3.0 )*mu_field[I1D(i,j,k)]*( ( 1.00/delta_x )*( ( u_field[I1D(i+1,j,k)] - u_field[I1D(i,j,k)] )/( x_field[I1D(i+1,j,k)] - x_field[I1D(i,j,k)] )
+                                                                    - ( u_field[I1D(i,j,k)] - u_field[I1D(i-1,j,k)] )/( x_field[I1D(i,j,k)] - x_field[I1D(i-1,j,k)] ) )
                                                  + ( 0.25/delta_x )*( ( v_field[I1D(i+1,j+1,k)] - v_field[I1D(i+1,j-1,k)] )/delta_y
                                                                     - ( v_field[I1D(i-1,j+1,k)] - v_field[I1D(i-1,j-1,k)] )/delta_y )
                                                  + ( 0.25/delta_x )*( ( w_field[I1D(i+1,j,k+1)] - w_field[I1D(i+1,j,k-1)] )/delta_z
                                                                     - ( w_field[I1D(i-1,j,k+1)] - w_field[I1D(i-1,j,k-1)] )/delta_z ) )
 	                  + d_mu_x*tau_xx + d_mu_y*tau_xy + d_mu_z*tau_xz;
-                div_tau_y = mu_field[I1D(i,j,k)]*( ( 1.00/delta_x )*( ( v_field[I1D(i+1,j,k)] - v_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] )
-                                                                    - ( v_field[I1D(i,j,k)] - v_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) )
-                                                 + ( 1.00/delta_y )*( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] )
-                                                                    - ( v_field[I1D(i,j,k)] - v_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) )
-                                                 + ( 1.00/delta_z )*( ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] )
-                                                                    - ( v_field[I1D(i,j,k)] - v_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) )
+                div_tau_y = mu_field[I1D(i,j,k)]*( ( 1.00/delta_x )*( ( v_field[I1D(i+1,j,k)] - v_field[I1D(i,j,k)] )/( x_field[I1D(i+1,j,k)] - x_field[I1D(i,j,k)] )
+                                                                    - ( v_field[I1D(i,j,k)] - v_field[I1D(i-1,j,k)] )/( x_field[I1D(i,j,k)] - x_field[I1D(i-1,j,k)] ) )
+                                                 + ( 1.00/delta_y )*( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j,k)] )/( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j,k)] )
+                                                                    - ( v_field[I1D(i,j,k)] - v_field[I1D(i,j-1,k)] )/( y_field[I1D(i,j,k)] - y_field[I1D(i,j-1,k)] ) )
+                                                 + ( 1.00/delta_z )*( ( v_field[I1D(i,j,k+1)] - v_field[I1D(i,j,k)] )/( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k)] )
+                                                                    - ( v_field[I1D(i,j,k)] - v_field[I1D(i,j,k-1)] )/( z_field[I1D(i,j,k)] - z_field[I1D(i,j,k-1)] ) ) )
               + ( 1.0/3.0 )*mu_field[I1D(i,j,k)]*( ( 0.25/delta_y )*( ( u_field[I1D(i+1,j+1,k)] - u_field[I1D(i-1,j+1,k)] )/delta_x
                                                                     - ( u_field[I1D(i+1,j-1,k)] - u_field[I1D(i-1,j-1,k)] )/delta_x )
-                                                 + ( 1.00/delta_y )*( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] )
-                                                                    - ( v_field[I1D(i,j,k)] - v_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) )
+                                                 + ( 1.00/delta_y )*( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j,k)] )/( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j,k)] )
+                                                                    - ( v_field[I1D(i,j,k)] - v_field[I1D(i,j-1,k)] )/( y_field[I1D(i,j,k)] - y_field[I1D(i,j-1,k)] ) )
                                                  + ( 0.25/delta_y )*( ( w_field[I1D(i,j+1,k+1)] - w_field[I1D(i,j+1,k-1)] )/delta_z
                                                                     - ( w_field[I1D(i,j-1,k+1)] - w_field[I1D(i,j-1,k-1)] )/delta_z ) )
 	                  + d_mu_x*tau_xy + d_mu_y*tau_yy + d_mu_z*tau_yz;
-                div_tau_z = mu_field[I1D(i,j,k)]*( ( 1.00/delta_x )*( ( w_field[I1D(i+1,j,k)] - w_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] )
-                                                                    - ( w_field[I1D(i,j,k)] - w_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) )
-                                                 + ( 1.00/delta_y )*( ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] )
-                                                                    - ( w_field[I1D(i,j,k)] - w_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) )
-                                                 + ( 1.00/delta_z )*( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] )
-                                                                    - ( w_field[I1D(i,j,k)] - w_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) )
+                div_tau_z = mu_field[I1D(i,j,k)]*( ( 1.00/delta_x )*( ( w_field[I1D(i+1,j,k)] - w_field[I1D(i,j,k)] )/( x_field[I1D(i+1,j,k)] - x_field[I1D(i,j,k)] )
+                                                                    - ( w_field[I1D(i,j,k)] - w_field[I1D(i-1,j,k)] )/( x_field[I1D(i,j,k)] - x_field[I1D(i-1,j,k)] ) )
+                                                 + ( 1.00/delta_y )*( ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j,k)] )/( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j,k)] )
+                                                                    - ( w_field[I1D(i,j,k)] - w_field[I1D(i,j-1,k)] )/( y_field[I1D(i,j,k)] - y_field[I1D(i,j-1,k)] ) )
+                                                 + ( 1.00/delta_z )*( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k)] )/( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k)] )
+                                                                    - ( w_field[I1D(i,j,k)] - w_field[I1D(i,j,k-1)] )/( z_field[I1D(i,j,k)] - z_field[I1D(i,j,k-1)] ) ) )
               + ( 1.0/3.0 )*mu_field[I1D(i,j,k)]*( ( 0.25/delta_z )*( ( u_field[I1D(i+1,j,k+1)] - u_field[I1D(i-1,j,k+1)] )/delta_x
                                                                     - ( u_field[I1D(i+1,j,k-1)] - u_field[I1D(i-1,j,k-1)] )/delta_x )
                                                  + ( 0.25/delta_z )*( ( v_field[I1D(i,j+1,k+1)] - v_field[I1D(i,j-1,k+1)] )/delta_y
                                                                     - ( v_field[I1D(i,j+1,k-1)] - v_field[I1D(i,j-1,k-1)] )/delta_y )
-                                                 + ( 1.00/delta_z )*( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] )
-                                                                    - ( w_field[I1D(i,j,k)] - w_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) )
+                                                 + ( 1.00/delta_z )*( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k)] )/( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k)] )
+                                                                    - ( w_field[I1D(i,j,k)] - w_field[I1D(i,j,k-1)] )/( z_field[I1D(i,j,k)] - z_field[I1D(i,j,k-1)] ) ) )
 	                  + d_mu_x*tau_xz + d_mu_y*tau_yz + d_mu_z*tau_zz;
                 /// Fourier term
-                div_q = ( -1.0 )*kappa_field[I1D(i,j,k)]*( ( 1.0/delta_x )*( ( T_field[I1D(i+1,j,k)] - T_field[I1D(i,j,k)] )/( mesh->x[i+1] - mesh->x[i] )
-                                                                           - ( T_field[I1D(i,j,k)] - T_field[I1D(i-1,j,k)] )/( mesh->x[i] - mesh->x[i-1] ) )
-                                                         + ( 1.0/delta_y )*( ( T_field[I1D(i,j+1,k)] - T_field[I1D(i,j,k)] )/( mesh->y[j+1] - mesh->y[j] )
-                                                                           - ( T_field[I1D(i,j,k)] - T_field[I1D(i,j-1,k)] )/( mesh->y[j] - mesh->y[j-1] ) )
-                                                         + ( 1.0/delta_z )*( ( T_field[I1D(i,j,k+1)] - T_field[I1D(i,j,k)] )/( mesh->z[k+1] - mesh->z[k] )
-                                                                           - ( T_field[I1D(i,j,k)] - T_field[I1D(i,j,k-1)] )/( mesh->z[k] - mesh->z[k-1] ) ) )
+                div_q = ( -1.0 )*kappa_field[I1D(i,j,k)]*( ( 1.0/delta_x )*( ( T_field[I1D(i+1,j,k)] - T_field[I1D(i,j,k)] )/( x_field[I1D(i+1,j,k)] - x_field[I1D(i,j,k)] )
+                                                                           - ( T_field[I1D(i,j,k)] - T_field[I1D(i-1,j,k)] )/( x_field[I1D(i,j,k)] - x_field[I1D(i-1,j,k)] ) )
+                                                         + ( 1.0/delta_y )*( ( T_field[I1D(i,j+1,k)] - T_field[I1D(i,j,k)] )/( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j,k)] )
+                                                                           - ( T_field[I1D(i,j,k)] - T_field[I1D(i,j-1,k)] )/( y_field[I1D(i,j,k)] - y_field[I1D(i,j-1,k)] ) )
+                                                         + ( 1.0/delta_z )*( ( T_field[I1D(i,j,k+1)] - T_field[I1D(i,j,k)] )/( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k)] )
+                                                                           - ( T_field[I1D(i,j,k)] - T_field[I1D(i,j,k-1)] )/( z_field[I1D(i,j,k)] - z_field[I1D(i,j,k-1)] ) ) )
 		      - d_kappa_x*d_T_x - d_kappa_y*d_T_y - d_kappa_z*d_T_z;
                 /// Work of viscous stresses
                 div_uvw_tau = u_field[I1D(i,j,k)]*div_tau_x + v_field[I1D(i,j,k)]*div_tau_y + w_field[I1D(i,j,k)]*div_tau_z
@@ -1967,6 +2058,9 @@ void FlowSolverRHEA::calculateViscousFluxes() {
             }
         }
     }
+#if _OPENACC_MANUAL_DATA_MOVEMENT_
+    #pragma acc data copyout (rhou_vis_flux.vector[0:local_size],rhov_vis_flux.vector[0:local_size],rhow_vis_flux.vector[0:local_size],rhoE_vis_flux.vector[0:local_size])
+#endif
 
     /// Update halo values
     //rhou_vis_flux.update();
@@ -1985,10 +2079,34 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
     /// Inner points: rho, rhou, rhov, rhow and rhoE
     double f_rhouvw = 0.0;
     double rho_rhs_flux = 0.0, rhou_rhs_flux = 0.0, rhov_rhs_flux = 0.0, rhow_rhs_flux = 0.0, rhoE_rhs_flux = 0.0;
+#if _OPENACC_MANUAL_DATA_MOVEMENT_
+    const int local_size_x = _lNx_;
+    const int local_size_y = _lNy_;
+    const int local_size_z = _lNz_;
+    const int local_size   = local_size_x*local_size_y*local_size_z;
+    const int inix = topo->iter_common[_INNER_][_INIX_];
+    const int iniy = topo->iter_common[_INNER_][_INIY_];
+    const int iniz = topo->iter_common[_INNER_][_INIZ_];
+    const int endx = topo->iter_common[_INNER_][_ENDX_];
+    const int endy = topo->iter_common[_INNER_][_ENDY_];
+    const int endz = topo->iter_common[_INNER_][_ENDZ_];
+    #pragma acc enter data copyin (this)
+    #pragma acc enter data copyin (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size])
+    #pragma acc enter data copyin (rho_0_field.vector[0:local_size],rhou_0_field.vector[0:local_size],rhov_0_field.vector[0:local_size],rhow_0_field.vector[0:local_size],rhoE_0_field.vector[0:local_size])
+    #pragma acc enter data copyin (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size])
+    #pragma acc enter data copyin (rhou_vis_flux.vector[0:local_size],rhov_vis_flux.vector[0:local_size],rhow_vis_flux.vector[0:local_size],rhoE_vis_flux.vector[0:local_size])
+    #pragma acc enter data copyin (f_rhou_field.vector[0:local_size],f_rhov_field.vector[0:local_size],f_rhow_field.vector[0:local_size],f_rhoE_field.vector[0:local_size])
+    #pragma acc data copy (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
+    #pragma acc parallel loop collapse (3)
+    for(int i = inix; i <= endx; i++) {
+        for(int j = iniy; j <= endy; j++) {
+            for(int k = iniz; k <= endz; k++) {
+#else
     #pragma acc parallel loop collapse (3)
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+#endif
                 /// Work of momentum sources
                 f_rhouvw = f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)];
                 /// Sum right-hand-side (RHS) fluxes
@@ -2035,10 +2153,39 @@ void FlowSolverRHEA::outputCurrentStateData() {
 void FlowSolverRHEA::updateTimeAveragedQuantities() {
 
     /// All (inner, boundary & halo) points: time-averaged and root-mean-square-fluctuation quantities 
+#if _OPENACC_MANUAL_DATA_MOVEMENT_
+    const int local_size_x = _lNx_;
+    const int local_size_y = _lNy_;
+    const int local_size_z = _lNz_;
+    const int local_size   = local_size_x*local_size_y*local_size_z;
+    const int inix = topo->iter_common[_ALL_][_INIX_];
+    const int iniy = topo->iter_common[_ALL_][_INIY_];
+    const int iniz = topo->iter_common[_ALL_][_INIZ_];
+    const int endx = topo->iter_common[_ALL_][_ENDX_];
+    const int endy = topo->iter_common[_ALL_][_ENDY_];
+    const int endz = topo->iter_common[_ALL_][_ENDZ_];
+    #pragma acc enter data copyin (this)
+    #pragma acc data copy (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
+    #pragma acc data copy (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],T_field.vector[0:local_size])
+    #pragma acc data copy (sos_field.vector[0:local_size],mu_field.vector[0:local_size],kappa_field.vector[0:local_size],c_v_field.vector[0:local_size],c_p_field.vector[0:local_size])
+    #pragma acc data copy (avg_rho_field.vector[0:local_size],avg_rhou_field.vector[0:local_size],avg_rhov_field.vector[0:local_size],avg_rhow_field.vector[0:local_size],avg_rhoE_field.vector[0:local_size])
+    #pragma acc data copy (avg_u_field.vector[0:local_size],avg_v_field.vector[0:local_size],avg_w_field.vector[0:local_size],avg_E_field.vector[0:local_size],avg_P_field.vector[0:local_size],avg_T_field.vector[0:local_size])
+    #pragma acc data copy (avg_sos_field.vector[0:local_size],avg_mu_field.vector[0:local_size],avg_kappa_field.vector[0:local_size],avg_c_v_field.vector[0:local_size],avg_c_p_field.vector[0:local_size])
+    #pragma acc data copy (rmsf_rho_field.vector[0:local_size],rmsf_rhou_field.vector[0:local_size],rmsf_rhov_field.vector[0:local_size],rmsf_rhow_field.vector[0:local_size],rmsf_rhoE_field.vector[0:local_size])
+    #pragma acc data copy (rmsf_u_field.vector[0:local_size],rmsf_v_field.vector[0:local_size],rmsf_w_field.vector[0:local_size],rmsf_E_field.vector[0:local_size],rmsf_P_field.vector[0:local_size],rmsf_T_field.vector[0:local_size])
+    #pragma acc data copy (rmsf_sos_field.vector[0:local_size],rmsf_mu_field.vector[0:local_size],rmsf_kappa_field.vector[0:local_size],rmsf_c_v_field.vector[0:local_size],rmsf_c_p_field.vector[0:local_size])
+     #pragma acc data copy (R_reynolds_uu_field.vector[0:local_size],R_reynolds_uv_field.vector[0:local_size],R_reynolds_uw_field.vector[0:local_size],R_reynolds_vv_field.vector[0:local_size],R_reynolds_vw_field.vector[0:local_size],R_reynolds_ww_field.vector[0:local_size])
+     #pragma acc data copy (R_favre_uu_field.vector[0:local_size],R_favre_uv_field.vector[0:local_size],R_favre_uw_field.vector[0:local_size],R_favre_vv_field.vector[0:local_size],R_favre_vw_field.vector[0:local_size],R_favre_ww_field.vector[0:local_size])
+    #pragma acc parallel loop collapse (3)
+    for(int i = inix; i <= endx; i++) {
+        for(int j = iniy; j <= endy; j++) {
+            for(int k = iniz; k <= endz; k++) {
+#else
     #pragma acc parallel loop collapse (3) async
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+#endif
                 /// Time-averaged quantities
                 avg_rho_field[I1D(i,j,k)]   = updateTimeMeanQuantity(rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],delta_t,averaging_time);
                 avg_rhou_field[I1D(i,j,k)]  = updateTimeMeanQuantity(rhou_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],delta_t,averaging_time);
