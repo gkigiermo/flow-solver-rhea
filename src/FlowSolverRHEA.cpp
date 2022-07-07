@@ -1556,7 +1556,7 @@ void FlowSolverRHEA::updateBoundaries() {
 
 void FlowSolverRHEA::updatePreviousStateConservedVariables() {
 
-    /// All (inner, halo, boundary) points: rho_0, rhou_0 rhov_0, rhow_0 and rhoE_0
+    /// All (inner, halo, boundary) points: rho_0, rhou_0 rhov_0, rhow_0, rhoE_0 and P_0
 #if _OPENACC_MANUAL_DATA_MOVEMENT_
     #pragma acc kernels loop collapse(3) independent
 #endif
