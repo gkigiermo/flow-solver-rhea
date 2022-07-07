@@ -66,7 +66,9 @@ computational_parameters:
    # Riemann solver scheme: DIVERGENCE, MURMAN-ROE, KGP, SHIMA, HLL, HLLC, HLLC+
    riemann_solver_scheme: 'KGP'                  	  		# Riemann solver scheme
    # Runge-Kutta time scheme: RK1, SSP-RK2, SSP-RK3
-   runge_kutta_time_scheme: 'SSP-RK3'		          		# Runge-Kutta time scheme   
+   runge_kutta_time_scheme: 'SSP-RK3'		          		# Runge-Kutta time scheme  
+   # Transport pressure instead of rhoE scheme: FALSE, TRUE
+   transport_pressure_scheme: 'FALSE'  		          		# Transport pressure instead of rhoE scheme 
    final_time_iter: 10000000       					# Final time iteration
 
 

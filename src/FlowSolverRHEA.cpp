@@ -156,6 +156,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     rhov_0_field.setTopology(topo,"rhov_0");
     rhow_0_field.setTopology(topo,"rhow_0");
     rhoE_0_field.setTopology(topo,"rhoE_0");    
+    P_0_field.setTopology(topo,"P_0");    
 
     /// Set parallel topology of inviscid fluxes	
     rho_inv_flux.setTopology(topo,"rho_inv");
@@ -169,6 +170,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     rhov_vis_flux.setTopology(topo,"rhov_vis");
     rhow_vis_flux.setTopology(topo,"rhow_vis");
     rhoE_vis_flux.setTopology(topo,"rhoE_vis");
+    work_vis_rhoe_flux.setTopology(topo,"work_vis_rhoe");
 
     /// Set parallel topology of source terms
     f_rhou_field.setTopology(topo,"f_rhou");
@@ -357,6 +359,7 @@ void FlowSolverRHEA::readConfigurationFile() {
     CFL                                = computational_parameters["CFL"].as<double>();
     riemann_solver_scheme              = computational_parameters["riemann_solver_scheme"].as<string>();
     runge_kutta_time_scheme            = computational_parameters["runge_kutta_time_scheme"].as<string>();
+    transport_pressure_scheme          = computational_parameters["transport_pressure_scheme"].as<bool>();
     final_time_iter                    = computational_parameters["final_time_iter"].as<int>();
 
     /// Boundary conditions
@@ -800,33 +803,65 @@ void FlowSolverRHEA::conservedToPrimitiveVariables() {
 };
 
 void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
+            
+    if( transport_pressure_scheme ) {
 
-    /// All (inner, halo, boundary) points: P, T, sos, c_v and c_p
-    double ke, e, P, T, c_v, c_p;
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                ke = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
-                e  = E_field[I1D(i,j,k)] - ke;
-                P = P_field[I1D(i,j,k)];	/// Initial pressure guess
-                T = T_field[I1D(i,j,k)]; 	/// Initial temperature guess
-                thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P, T, rho_field[I1D(i,j,k)], e );
-                P_field[I1D(i,j,k)]   = P; 
-                T_field[I1D(i,j,k)]   = T; 
-                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
-                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
-                c_v_field[I1D(i,j,k)] = c_v;
-                c_p_field[I1D(i,j,k)] = c_p;
+        /// All (inner, halo, boundary) points: T, E, rhoE, sos, c_v and c_p
+        double e, ke, c_v, c_p;
+        for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+            for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+                for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+                    T_field[I1D(i,j,k)]    = thermodynamics->calculateTemperatureFromPressureDensity( P_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                    e  = thermodynamics->calculateInternalEnergyFromPressureTemperatureDensity( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] ); 
+                    ke = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
+                    E_field[I1D(i,j,k)]    = e + ke;
+                    rhoE_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*E_field[I1D(i,j,k)];
+                    sos_field[I1D(i,j,k)]  = thermodynamics->calculateSoundSpeed( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                    c_v_field[I1D(i,j,k)]  = c_v;
+                    c_p_field[I1D(i,j,k)]  = c_p;
+                }
             }
         }
-    }
 
-    /// Update halo values
-    //P_field.update();
-    //T_field.update();
-    //sos_field.update();
-    //c_v_field.update();
-    //c_p_field.update();
+        /// Update halo values
+        //T_field.update();
+        //E_field.update();
+        //rhoE_field.update();
+        //sos_field.update();
+        //c_v_field.update();
+        //c_p_field.update();
+
+    } else {
+
+        /// All (inner, halo, boundary) points: P, T, sos, c_v and c_p
+        double ke, e, P, T, c_v, c_p;
+        for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+            for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+                for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+                    ke = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
+                    e  = E_field[I1D(i,j,k)] - ke;
+                    P = P_field[I1D(i,j,k)];	/// Initial pressure guess
+                    T = T_field[I1D(i,j,k)]; 	/// Initial temperature guess
+                    thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P, T, rho_field[I1D(i,j,k)], e );
+                    P_field[I1D(i,j,k)]   = P; 
+                    T_field[I1D(i,j,k)]   = T; 
+                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                    c_v_field[I1D(i,j,k)] = c_v;
+                    c_p_field[I1D(i,j,k)] = c_p;
+                }
+            }
+        }
+
+        /// Update halo values
+        //P_field.update();
+        //T_field.update();
+        //sos_field.update();
+        //c_v_field.update();
+        //c_p_field.update();
+
+    }
 
 };
 
@@ -1533,6 +1568,7 @@ void FlowSolverRHEA::updatePreviousStateConservedVariables() {
                 rhov_0_field[I1D(i,j,k)] = rhov_field[I1D(i,j,k)]; 
                 rhow_0_field[I1D(i,j,k)] = rhow_field[I1D(i,j,k)]; 
                 rhoE_0_field[I1D(i,j,k)] = rhoE_field[I1D(i,j,k)]; 
+                P_0_field[I1D(i,j,k)]    = P_field[I1D(i,j,k)]; 
             }
         }
     }
@@ -1543,6 +1579,7 @@ void FlowSolverRHEA::updatePreviousStateConservedVariables() {
     //rhov_0_field.update();
     //rhow_0_field.update();
     //rhoE_0_field.update();
+    //P_0_field.update();
 
 };
 
@@ -1902,14 +1939,14 @@ void FlowSolverRHEA::calculateViscousFluxes() {
     /// Fundamentals of engineering numerical analysis.
     /// Cambridge University Press, 2010.
 
-    /// Inner points: rho_vis_flux, rhou_vis_flux, rhov_vis_flux, rhow_vis_flux and rhoE_vis_flux
+    /// Inner points: rho_vis_flux, rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux and work_vis_rhoe_flux 
     double delta_x, delta_y, delta_z;
     double d_u_x, d_u_y, d_u_z, d_v_x, d_v_y, d_v_z, d_w_x, d_w_y, d_w_z;
     double d_T_x, d_T_y, d_T_z;
     double d_mu_x, d_mu_y, d_mu_z, d_kappa_x, d_kappa_y, d_kappa_z;
     double div_uvw, tau_xx, tau_xy, tau_xz, tau_yy, tau_yz, tau_zz;
     double div_tau_x, div_tau_y, div_tau_z;
-    double div_q, div_uvw_tau;
+    double div_q, div_uvw_tau_rhoe, div_uvw_tau_rhoke, div_uvw_tau_rhoE;
 #if _OPENACC_MANUAL_DATA_MOVEMENT_
     const int local_size_x = _lNx_;
     const int local_size_y = _lNy_;
@@ -1922,7 +1959,7 @@ void FlowSolverRHEA::calculateViscousFluxes() {
     const int endy = topo->iter_common[_INNER_][_ENDY_];
     const int endz = topo->iter_common[_INNER_][_ENDZ_];
     #pragma acc enter data copyin(this)
-    #pragma acc parallel loop collapse (3) copyin (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],T_field.vector[0:local_size],mu_field.vector[0:local_size],kappa_field.vector[0:local_size],x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size]) copyout (rhou_vis_flux.vector[0:local_size],rhov_vis_flux.vector[0:local_size],rhow_vis_flux.vector[0:local_size],rhoE_vis_flux.vector[0:local_size])
+    #pragma acc parallel loop collapse (3) copyin (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],T_field.vector[0:local_size],mu_field.vector[0:local_size],kappa_field.vector[0:local_size],x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size]) copyout (rhou_vis_flux.vector[0:local_size],rhov_vis_flux.vector[0:local_size],rhow_vis_flux.vector[0:local_size],rhoE_vis_flux.vector[0:local_size],work_vis_rhoe_flux.vector[0:local_size])
     for(int i = inix; i <= endx; i++) {
         for(int j = iniy; j <= endy; j++) {
             for(int k = iniz; k <= endz; k++) {  
@@ -2014,16 +2051,20 @@ void FlowSolverRHEA::calculateViscousFluxes() {
                                                          + ( 1.0/delta_z )*( ( T_field[I1D(i,j,k+1)] - T_field[I1D(i,j,k)] )/( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k)] )
                                                                            - ( T_field[I1D(i,j,k)] - T_field[I1D(i,j,k-1)] )/( z_field[I1D(i,j,k)] - z_field[I1D(i,j,k-1)] ) ) )
 		      - d_kappa_x*d_T_x - d_kappa_y*d_T_y - d_kappa_z*d_T_z;
-                /// Work of viscous stresses
-                div_uvw_tau = u_field[I1D(i,j,k)]*div_tau_x + v_field[I1D(i,j,k)]*div_tau_y + w_field[I1D(i,j,k)]*div_tau_z
-                            + tau_xx*d_u_x + tau_xy*d_u_y + tau_xz*d_u_z
-                            + tau_xy*d_v_x + tau_yy*d_v_y + tau_yz*d_v_z
-                            + tau_xz*d_w_x + tau_yz*d_w_y + tau_zz*d_w_z;
+                /// Work of viscous stresses for internal energy
+                div_uvw_tau_rhoe = tau_xx*d_u_x + tau_xy*d_u_y + tau_xz*d_u_z
+                                 + tau_xy*d_v_x + tau_yy*d_v_y + tau_yz*d_v_z
+                                 + tau_xz*d_w_x + tau_yz*d_w_y + tau_zz*d_w_z;
+                /// Work of viscous stresses for kinetic energy
+                div_uvw_tau_rhoke = u_field[I1D(i,j,k)]*div_tau_x + v_field[I1D(i,j,k)]*div_tau_y + w_field[I1D(i,j,k)]*div_tau_z;
+                /// Work of viscous stresses for total energy
+                div_uvw_tau_rhoE = div_uvw_tau_rhoe + div_uvw_tau_rhoke; 
                 /// Viscous fluxes
-                rhou_vis_flux[I1D(i,j,k)] = div_tau_x;
-                rhov_vis_flux[I1D(i,j,k)] = div_tau_y;
-                rhow_vis_flux[I1D(i,j,k)] = div_tau_z;
-                rhoE_vis_flux[I1D(i,j,k)] = ( -1.0 )*div_q + div_uvw_tau;
+                rhou_vis_flux[I1D(i,j,k)]      = div_tau_x;
+                rhov_vis_flux[I1D(i,j,k)]      = div_tau_y;
+                rhow_vis_flux[I1D(i,j,k)]      = div_tau_z;
+                rhoE_vis_flux[I1D(i,j,k)]      = ( -1.0 )*div_q + div_uvw_tau_rhoE;
+                work_vis_rhoe_flux[I1D(i,j,k)] = ( -1.0 )*div_q + div_uvw_tau_rhoe;
             }
         }
     }
@@ -2033,6 +2074,7 @@ void FlowSolverRHEA::calculateViscousFluxes() {
     //rhov_vis_flux.update();
     //rhow_vis_flux.update();
     //rhoE_vis_flux.update();
+    //work_vis_rhoe_flux.update();
 
 };
 
@@ -2104,6 +2146,59 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
         rhov_field.update();
         rhow_field.update();
         rhoE_field.update();
+
+    //}
+
+};
+
+void FlowSolverRHEA::timeAdvancePressure(const int &rk_time_stage) {
+
+    /// Coefficients of explicit Runge-Kutta stages
+    double rk_a = 0.0, rk_b = 0.0, rk_c = 0.0;
+    runge_kutta_method->setStageCoefficients(rk_a,rk_b,rk_c,rk_time_stage);    
+
+    /// Inner points: P
+    double P_inv_flux = 0.0, P_vis_flux = 0.0, P_rhs_flux = 0.0;
+    double delta_x, delta_y, delta_z;
+    double d_P_x, d_P_y, d_P_z, d_u_x, d_v_y, d_w_z;
+    double div_uvw, bar_v, f_rhouvw;
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                /// Geometric stuff
+                delta_x = 0.5*( x_field[I1D(i+1,j,k)] - x_field[I1D(i-1,j,k)] ); 
+                delta_y = 0.5*( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j-1,k)] ); 
+                delta_z = 0.5*( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k-1)] );
+                /// Pressure and velocity derivatives
+                d_P_x = ( P_field[I1D(i+1,j,k)] - P_field[I1D(i-1,j,k)] )/( 2.0*delta_x );
+                d_P_y = ( P_field[I1D(i,j+1,k)] - P_field[I1D(i,j-1,k)] )/( 2.0*delta_y );
+                d_P_z = ( P_field[I1D(i,j,k+1)] - P_field[I1D(i,j,k-1)] )/( 2.0*delta_z );
+                d_u_x = ( u_field[I1D(i+1,j,k)] - u_field[I1D(i-1,j,k)] )/( 2.0*delta_x );
+                d_v_y = ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j-1,k)] )/( 2.0*delta_y );
+                d_w_z = ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k-1)] )/( 2.0*delta_z );
+                /// Divergence of velocity
+                div_uvw = d_u_x + d_v_y + d_w_z;
+                /// Inviscid flux
+		P_inv_flux = u_field[I1D(i,j,k)]*d_P_x + v_field[I1D(i,j,k)]*d_P_y + w_field[I1D(i,j,k)]*d_P_z + rho_field[I1D(i,j,k)]*pow( sos_field[I1D(i,j,k)], 2.0 )*div_uvw;
+                /// Viscous flux
+		bar_v = thermodynamics->getMolecularWeight()/rho_field[I1D(i,j,k)];
+		P_vis_flux = ( thermodynamics->calculateVolumeExpansivity( T_field[I1D(i,j,k)], bar_v )/( rho_field[I1D(i,j,k)]*c_v_field[I1D(i,j,k)]*thermodynamics->calculateIsothermalCompressibility( T_field[I1D(i,j,k)], bar_v ) ) )*work_vis_rhoe_flux[I1D(i,j,k)];
+                /// Work of momentum sources
+                f_rhouvw = f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)];
+                /// Sum right-hand-side (RHS) fluxes
+                P_rhs_flux = ( -1.0 )*P_inv_flux + P_vis_flux + ( f_rhoE_field[I1D(i,j,k)] - f_rhouvw ); 
+                /// Runge-Kutta step
+                P_field[I1D(i,j,k)] = rk_a*P_0_field[I1D(i,j,k)] + rk_b*P_field[I1D(i,j,k)] + rk_c*delta_t*P_rhs_flux;
+	    }
+        }
+    }
+    
+    ///// Attention! Communications performed only at the last stage of the Runge-Kutta to improve computational performance
+    ///// ... temporal integration is first-order at points connecting partitions
+    //if( rk_time_stage == rk_number_stages ) {
+
+        /// Update halo values
+        P_field.update();
 
     //}
 
@@ -2432,6 +2527,9 @@ void FlowSolverRHEA::execute() {
 
             /// Advance conserved variables in time
             this->timeAdvanceConservedVariables(rk_time_stage);
+            if( transport_pressure_scheme ) {
+                this->timeAdvancePressure(rk_time_stage);
+	    }
 
             /// Stop timer: time_advance_conserved_variables
             timers->stop( "time_advance_conserved_variables" );

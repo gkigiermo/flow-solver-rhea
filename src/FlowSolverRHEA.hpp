@@ -145,6 +145,9 @@ class FlowSolverRHEA {
         /// Advance conserved variables in time
         virtual void timeAdvanceConservedVariables(const int &rk_step);
 
+        /// Advance pressure in time
+        virtual void timeAdvancePressure(const int &rk_step);
+
         /// Output current solver state data
         virtual void outputCurrentStateData();
 
@@ -201,6 +204,7 @@ class FlowSolverRHEA {
         int rk_number_stages;					/// Number of stages of Runge-Kutta time discretization method
         string riemann_solver_scheme;				/// Riemann solver scheme
         string runge_kutta_time_scheme;				/// Runge-Kutta time scheme
+        bool transport_pressure_scheme;				/// Activate transport pressure instead of rhoE
 
         /// Local mesh values for I1D macro
         int _lNx_;
@@ -265,6 +269,7 @@ class FlowSolverRHEA {
         DistributedArray rhov_0_field;				/// 3-D previous field of rhov
         DistributedArray rhow_0_field;				/// 3-D previous field of rhow
         DistributedArray rhoE_0_field;				/// 3-D previous field of rhoE
+        DistributedArray P_0_field;				/// 3-D previous field of P
 
         /// Inviscid fluxes
         DistributedArray rho_inv_flux;				/// 3-D inviscid fluxes of rho
@@ -278,6 +283,7 @@ class FlowSolverRHEA {
         DistributedArray rhov_vis_flux;				/// 3-D viscous fluxes of rhov
         DistributedArray rhow_vis_flux;				/// 3-D viscous fluxes of rhow
         DistributedArray rhoE_vis_flux;				/// 3-D viscous fluxes of rhoE
+        DistributedArray work_vis_rhoe_flux;			/// 3-D viscous fluxes of work rhoe
 
         /// Source terms
         DistributedArray f_rhou_field;				/// 3-D field of f_rhou

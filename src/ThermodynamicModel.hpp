@@ -34,9 +34,11 @@ class BaseThermodynamicModel {
 
 	////////// GET FUNCTIONS //////////
         inline double getSpecificGasConstant() { return( R_specific ); };
+        inline double getMolecularWeight() { return( molecular_weight ); };
 
 	////////// SET FUNCTIONS //////////
         inline void setSpecificGasConstant(double R_specific_) { R_specific = R_specific_; };
+        inline void setMolecularWeight(double molecular_weight_) { molecular_weight = molecular_weight_; };
 
 	////////// METHODS //////////
        
@@ -45,7 +47,10 @@ class BaseThermodynamicModel {
 
         /// Calculate temperature from pressure and density
         virtual double calculateTemperatureFromPressureDensity(const double &P, const double &rho) = 0;
- 
+
+        /// Calculate internal energy from pressure, temperature and density
+        virtual double calculateInternalEnergyFromPressureTemperatureDensity(const double &P, const double &T, const double &rho) = 0;
+
         /// Calculate pressure and temperature from density and internal energy
         virtual void calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {};
 
@@ -61,6 +66,11 @@ class BaseThermodynamicModel {
         /// Calculate speed of sound
         virtual double calculateSoundSpeed(const double &P, const double &T, const double &rho) = 0;
 
+        /// Calculate expansivity & compressibility
+        virtual double calculateVolumeExpansivity(const double &T, const double &bar_v) = 0;
+        virtual double calculateIsothermalCompressibility(const double &T, const double &bar_v) = 0;
+        virtual double calculateIsentropicCompressibility(const double &P, const double &T, const double &bar_v) = 0;
+
     protected:
 
         ////////// PARAMETERS //////////
@@ -68,6 +78,7 @@ class BaseThermodynamicModel {
         /// Thermodynamic properties
         double R_universal = 8.31446261815324;					/// Universal (ideal-gas) gas constant [J/(mol·K)]
         double R_specific;							/// Specific gas constant [J/(kg·K)]
+        double molecular_weight;						/// Molecular weight [kg/mol]
 
         /// Model parameters
         string configuration_file;						/// Configuration file name (YAML language)
@@ -99,6 +110,9 @@ class IdealGasModel : public BaseThermodynamicModel {
         /// Calculate temperature from pressure and density
         double calculateTemperatureFromPressureDensity(const double &P, const double &rho);
 
+        /// Calculate internal energy from pressure, temperature and density
+        double calculateInternalEnergyFromPressureTemperatureDensity(const double &P, const double &T, const double &rho);
+
         /// Calculate pressure and temperature from density and internal energy
         void calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e);
 
@@ -113,6 +127,11 @@ class IdealGasModel : public BaseThermodynamicModel {
 
         /// Calculate speed of sound
         double calculateSoundSpeed(const double &P, const double &T, const double &rho);
+
+        /// Calculate expansivity & compressibility
+        double calculateVolumeExpansivity(const double &T, const double &bar_v);
+        double calculateIsothermalCompressibility(const double &T, const double &bar_v);
+        double calculateIsentropicCompressibility(const double &P, const double &T, const double &bar_v);
 
     protected:
 
@@ -148,6 +167,9 @@ class StiffenedGasModel : public BaseThermodynamicModel {
         /// Calculate temperature from pressure and density
         double calculateTemperatureFromPressureDensity(const double &P, const double &rho);
 
+        /// Calculate internal energy from pressure, temperature and density
+        double calculateInternalEnergyFromPressureTemperatureDensity(const double &P, const double &T, const double &rho);
+
         /// Calculate pressure and temperature from density and internal energy
         void calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e);
 
@@ -162,6 +184,11 @@ class StiffenedGasModel : public BaseThermodynamicModel {
 
         /// Calculate speed of sound
         double calculateSoundSpeed(const double &P, const double &T, const double &rho);
+
+        /// Calculate expansivity & compressibility
+        double calculateVolumeExpansivity(const double &T, const double &bar_v);
+        double calculateIsothermalCompressibility(const double &T, const double &bar_v);
+        double calculateIsentropicCompressibility(const double &P, const double &T, const double &bar_v);
 
     protected:
 
@@ -189,12 +216,10 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         virtual ~PengRobinsonModel();						/// Destructor
 
 	////////// GET FUNCTIONS //////////
-        inline double getMolecularWeight() { return( molecular_weight ); };
         inline double getCriticalPressure() { return( critical_pressure ); };
         inline double getCriticalTemperature() { return( critical_temperature ); };
 
 	////////// SET FUNCTIONS //////////
-        inline void setMolecularWeight(double molecular_weight_) { molecular_weight = molecular_weight_; };
         inline void setCriticalPressure(double critical_pressure_) { critical_pressure = critical_pressure_; };
         inline void setCriticalTemperature(double critical_temperature_) { critical_temperature = critical_temperature_; };
 
@@ -205,6 +230,9 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 
         /// Calculate temperature from pressure and density
         double calculateTemperatureFromPressureDensity(const double &P, const double &rho);
+
+        /// Calculate internal energy from pressure, temperature and density
+        double calculateInternalEnergyFromPressureTemperatureDensity(const double &P, const double &T, const double &rho);
 
         /// Calculate pressure and temperature from density and internal energy
         void calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e);
@@ -220,6 +248,11 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 
         /// Calculate speed of sound
         double calculateSoundSpeed(const double &P, const double &T, const double &rho);
+
+        /// Calculate expansivity & compressibility
+        double calculateVolumeExpansivity(const double &T, const double &bar_v);
+        double calculateIsothermalCompressibility(const double &T, const double &bar_v);
+        double calculateIsentropicCompressibility(const double &P, const double &T, const double &bar_v);
 
         /// Calculate pressure from temperature and density
         double calculatePressureFromTemperatureDensity(const double &T, const double &rho);
@@ -260,11 +293,6 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         /// Calculate thermodynamic derivatives
         double calculateDPDTConstantMolarVolume(const double &T, const double &bar_v);
         double calculateDPDvConstantTemperature(const double &T, const double &bar_v);
-
-        /// Calculate expansivity & compressibility
-        double calculateVolumeExpansivity(const double &T, const double &bar_v);
-        double calculateIsothermalCompressibility(const double &T, const double &bar_v);
-        double calculateIsentropicCompressibility(const double &P, const double &T, const double &bar_v);
 
         /// Calculate roots of cubic polynomial
         void calculateRootsCubicPolynomial(complex<double> &root_1, complex<double> &root_2, complex<double> &root_3, double &a, double &b, double &c, double &d);
@@ -334,7 +362,6 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 
         /// Thermodynamic properties
         double atmospheric_pressure = 101325.0;			/// Atmospheric pressure [Pa]
-        double molecular_weight;				/// Molecular weight [kg/mol]
         double acentric_factor;					/// Acentric factor [-]
         double critical_temperature;				/// Critical temperature [K]
         double critical_pressure;				/// Critical pressure [Pa]

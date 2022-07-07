@@ -53,6 +53,9 @@ void IdealGasModel::readConfigurationFile() {
         gamma      = fluid_flow_properties["gamma"].as<double>();
 
     }
+    
+    /// Calculate molecular weight
+    molecular_weight = R_universal/R_specific;
 
 };
 
@@ -64,6 +67,19 @@ double IdealGasModel::calculateTemperatureFromPressureDensity(const double &P, c
     double T = P/( rho*R_specific );
 
     return( T );
+
+};
+
+double IdealGasModel::calculateInternalEnergyFromPressureTemperatureDensity(const double &P, const double &T, const double &rho) {
+
+    /// Ideal-gas model:
+    /// e = c_v*T is specific internal energy
+
+    double c_v = R_specific/( gamma - 1.0 );
+
+    double e = c_v*T;
+
+    return( e );
 
 };
 
@@ -124,6 +140,46 @@ double IdealGasModel::calculateSoundSpeed(const double &P, const double &T, cons
 
 };
 
+double IdealGasModel::calculateVolumeExpansivity(const double &T, const double &bar_v) {
+
+    double dP_dT_const_v = molecular_weight*R_specific/bar_v;
+    double dP_dv_const_T = ( -1.0 )*molecular_weight*R_specific*T/( bar_v*bar_v );
+
+    double expansivity = ( -1.0 )*( dP_dT_const_v/( bar_v*dP_dv_const_T ) );
+
+    return( expansivity );
+  
+};
+
+double IdealGasModel::calculateIsothermalCompressibility(const double &T, const double &bar_v) {
+
+    double dP_dv_const_T = ( -1.0 )*molecular_weight*R_specific*T/( bar_v*bar_v );
+
+    double isothermal_compressibility = ( -1.0 )/( bar_v*dP_dv_const_T );
+
+    return( isothermal_compressibility );
+  
+};  
+
+double IdealGasModel::calculateIsentropicCompressibility(const double &P, const double &T, const double &bar_v) {
+    
+    double dP_dT_const_v = molecular_weight*R_specific/bar_v;
+    double dP_dv_const_T = ( -1.0 )*molecular_weight*R_specific*T/( bar_v*bar_v );
+
+    double isothermal_compressibility = ( -1.0 )/( bar_v*dP_dv_const_T );
+    double expansivity                = ( -1.0 )*( dP_dT_const_v/( bar_v*dP_dv_const_T ) );
+
+    double c_v = R_specific/( gamma - 1.0 );
+    double c_p = c_v*gamma;
+
+    double bar_c_p = molecular_weight*c_p;
+      
+    double isentropic_compressibility = ( isothermal_compressibility - ( ( bar_v*T*pow( expansivity, 2.0 ) )/bar_c_p ) );
+    
+    return( isentropic_compressibility );
+  
+};
+
 
 ////////// StiffenedGasModel CLASS //////////
 
@@ -155,6 +211,7 @@ void StiffenedGasModel::readConfigurationFile() {
 
         #include "substances_selection.txt"
 
+        R_specific = substance["R_specific"].as<double>();
         gamma      = substance["gamma"].as<double>();
         P_inf      = substance["P_inf"].as<double>();
         e_0        = substance["e_0"].as<double>();
@@ -162,12 +219,16 @@ void StiffenedGasModel::readConfigurationFile() {
 
     } else {
 
+        R_specific = fluid_flow_properties["R_specific"].as<double>();
         gamma      = fluid_flow_properties["gamma"].as<double>();
         P_inf      = fluid_flow_properties["P_inf"].as<double>();
         e_0        = fluid_flow_properties["e_0"].as<double>();
         c_v        = fluid_flow_properties["c_v"].as<double>();
 
     }
+
+    /// Calculate molecular weight
+    molecular_weight = R_universal/R_specific;
 
 };
 
@@ -180,6 +241,17 @@ double StiffenedGasModel::calculateTemperatureFromPressureDensity(const double &
     double T = ( ( ( P + gamma*P_inf )/( rho*( gamma - 1.0 ) ) ) - ( P_inf/rho ) )/c_v;
 
     return( T );
+
+};
+
+double StiffenedGasModel::calculateInternalEnergyFromPressureTemperatureDensity(const double &P, const double &T, const double &rho) {
+
+    /// Stiffened-gas model:
+    /// e = c_v*T*((P + gamma*P_inf)/(P + P_inf)) + e_0 is specific internal energy
+
+    double e = c_v*T*( ( P + gamma*P_inf )/( P + P_inf ) ) + e_0;
+
+    return( e );
 
 };
 
@@ -233,6 +305,45 @@ double StiffenedGasModel::calculateSoundSpeed(const double &P, const double &T, 
 
     return( sos );
 
+};
+
+double StiffenedGasModel::calculateVolumeExpansivity(const double &T, const double &bar_v) {
+
+    double dP_dT_const_v = molecular_weight*c_v*( gamma - 1.0 )/bar_v;
+    double dP_dv_const_T = ( -1.0 )*molecular_weight*c_v*( gamma - 1.0 )*T/( bar_v*bar_v );
+
+    double expansivity = ( -1.0 )*( dP_dT_const_v/( bar_v*dP_dv_const_T ) );
+
+    return( expansivity );
+  
+};
+
+double StiffenedGasModel::calculateIsothermalCompressibility(const double &T, const double &bar_v) {
+
+    double dP_dv_const_T = ( -1.0 )*molecular_weight*c_v*( gamma - 1.0 )*T/( bar_v*bar_v );
+
+    double isothermal_compressibility = ( -1.0 )/( bar_v*dP_dv_const_T );
+
+    return( isothermal_compressibility );
+  
+};  
+
+double StiffenedGasModel::calculateIsentropicCompressibility(const double &P, const double &T, const double &bar_v) {
+    
+    double dP_dT_const_v = molecular_weight*c_v*( gamma - 1.0 )/bar_v;
+    double dP_dv_const_T = ( -1.0 )*molecular_weight*c_v*( gamma - 1.0 )*T/( bar_v*bar_v );
+
+    double isothermal_compressibility = ( -1.0 )/( bar_v*dP_dv_const_T );
+    double expansivity                = ( -1.0 )*( dP_dT_const_v/( bar_v*dP_dv_const_T ) );
+
+    double c_p = c_v*gamma;
+
+    double bar_c_p = molecular_weight*c_p;
+      
+    double isentropic_compressibility = ( isothermal_compressibility - ( ( bar_v*T*pow( expansivity, 2.0 ) )/bar_c_p ) );
+    
+    return( isentropic_compressibility );
+  
 };
 
 
@@ -362,6 +473,20 @@ double PengRobinsonModel::calculateTemperatureFromPressureDensity(const double &
 
 };
 
+double PengRobinsonModel::calculateInternalEnergyFromPressureTemperatureDensity(const double &P, const double &T, const double &rho) {
+
+    /// Peng-Robinson model:
+    /// D. Y. Peng, D. B. Robinson.
+    /// A new two-constant equation of state.
+    /// Industrial and Engineering Chemistry: Fundamentals, 15, 59-64, 1976.
+
+    double bar_v = molecular_weight/rho;
+    double e     = ( 1.0/molecular_weight )*this->calculateMolarInternalEnergyFromPressureTemperatureMolarVolume( P, T, bar_v );
+
+    return( e );
+
+};
+
 void PengRobinsonModel::calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {
 
     //double P_norm   = this->critical_pressure;	/// Set pressure normalization factor
@@ -437,6 +562,39 @@ double PengRobinsonModel::calculateSoundSpeed(const double &P, const double &T, 
 
     return( sos );
 
+};
+
+double PengRobinsonModel::calculateVolumeExpansivity(const double &T, const double &bar_v) {
+
+    double dP_dT_const_v = this->calculateDPDTConstantMolarVolume( T, bar_v );
+    double dP_dv_const_T = this->calculateDPDvConstantTemperature( T, bar_v );
+
+    double expansivity = ( -1.0 )*( dP_dT_const_v/( bar_v*dP_dv_const_T ) );
+
+    return( expansivity );
+  
+};
+
+double PengRobinsonModel::calculateIsothermalCompressibility(const double &T, const double &bar_v) {
+
+    double dP_dv_const_T = this->calculateDPDvConstantTemperature( T, bar_v );
+
+    double isothermal_compressibility = ( -1.0 )/( bar_v*dP_dv_const_T );
+
+    return( isothermal_compressibility );
+  
+};  
+
+double PengRobinsonModel::calculateIsentropicCompressibility(const double &P, const double &T, const double &bar_v) {
+
+    double isothermal_compressibility = this->calculateIsothermalCompressibility( T, bar_v );
+    double expansivity                = this->calculateVolumeExpansivity( T, bar_v );
+    double bar_c_p                    = this->calculateMolarStdCpFromNASApolynomials( T ) + this->calculateDepartureFunctionMolarCp( P, T, bar_v );
+      
+    double isentropic_compressibility = ( isothermal_compressibility - ( ( bar_v*T*pow( expansivity, 2.0 ) )/bar_c_p ) );
+    
+    return( isentropic_compressibility );
+  
 };
 
 double PengRobinsonModel::calculatePressureFromTemperatureDensity(const double &T, const double &rho) {
@@ -700,39 +858,6 @@ double PengRobinsonModel::calculateDPDvConstantTemperature(const double &T, cons
   
 };  
 
-double PengRobinsonModel::calculateVolumeExpansivity(const double &T, const double &bar_v) {
-
-    double dP_dT_const_v = this->calculateDPDTConstantMolarVolume( T, bar_v );
-    double dP_dv_const_T = this->calculateDPDvConstantTemperature( T, bar_v );
-
-    double expansivity = ( -1.0 )*( dP_dT_const_v/( bar_v*dP_dv_const_T ) );
-
-    return( expansivity );
-  
-};
-
-double PengRobinsonModel::calculateIsothermalCompressibility(const double &T, const double &bar_v) {
-
-    double dP_dv_const_T = this->calculateDPDvConstantTemperature( T, bar_v );
-
-    double isothermal_compressibility = ( -1.0 )/( bar_v*dP_dv_const_T );
-
-    return( isothermal_compressibility );
-  
-};  
-
-double PengRobinsonModel::calculateIsentropicCompressibility(const double &P, const double &T, const double &bar_v) {
-
-    double isothermal_compressibility = this->calculateIsothermalCompressibility( T, bar_v );
-    double expansivity                = this->calculateVolumeExpansivity( T, bar_v );
-    double bar_c_p                    = this->calculateMolarStdCpFromNASApolynomials( T ) + this->calculateDepartureFunctionMolarCp( P, T, bar_v );
-      
-    double isentropic_compressibility = ( isothermal_compressibility - ( ( bar_v*T*pow( expansivity, 2.0 ) )/bar_c_p ) );
-    
-    return( isentropic_compressibility );
-  
-};
-        
 void PengRobinsonModel::calculateRootsCubicPolynomial(complex<double> &root_1, complex<double> &root_2, complex<double> &root_3, double &a, double &b, double &c, double &d) {
 
     if( a == 0 ) {	/// End if a == 0
