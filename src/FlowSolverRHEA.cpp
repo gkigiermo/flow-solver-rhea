@@ -2149,6 +2149,10 @@ void FlowSolverRHEA::timeAdvanceConservedVariables(const int &rk_time_stage) {
 
     //}
 
+    if( transport_pressure_scheme ) {
+        this->timeAdvancePressure(rk_time_stage);
+    }
+
 };
 
 void FlowSolverRHEA::timeAdvancePressure(const int &rk_time_stage) {
@@ -2527,9 +2531,6 @@ void FlowSolverRHEA::execute() {
 
             /// Advance conserved variables in time
             this->timeAdvanceConservedVariables(rk_time_stage);
-            if( transport_pressure_scheme ) {
-                this->timeAdvancePressure(rk_time_stage);
-	    }
 
             /// Stop timer: time_advance_conserved_variables
             timers->stop( "time_advance_conserved_variables" );
