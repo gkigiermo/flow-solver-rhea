@@ -67,8 +67,8 @@ computational_parameters:
    riemann_solver_scheme: 'KGP'		              	  		# Riemann solver scheme
    # Runge-Kutta time scheme: RK1, SSP-RK2, SSP-RK3
    runge_kutta_time_scheme: 'SSP-RK3'		          		# Runge-Kutta time scheme
-   # Transport pressure instead of rhoE scheme: FALSE, TRUE
-   transport_pressure_scheme: 'FALSE'  		          		# Transport pressure instead of rhoE scheme
+   # Transport P instead of rhoE scheme: FALSE, TRUE
+   transport_pressure_scheme: 'FALSE'  		          		# Transport P instead of rhoE scheme
    final_time_iter: 10000000          					# Final time iteration
 
 

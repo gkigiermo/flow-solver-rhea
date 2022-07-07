@@ -204,7 +204,7 @@ class FlowSolverRHEA {
         int rk_number_stages;					/// Number of stages of Runge-Kutta time discretization method
         string riemann_solver_scheme;				/// Riemann solver scheme
         string runge_kutta_time_scheme;				/// Runge-Kutta time scheme
-        bool transport_pressure_scheme;				/// Activate transport pressure instead of rhoE
+        bool transport_pressure_scheme;				/// Activate transport P instead of rhoE
 
         /// Local mesh values for I1D macro
         int _lNx_;
