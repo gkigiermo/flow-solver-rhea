@@ -310,11 +310,16 @@ void myRHEA::execute() {
                 double local_sum_PV = 0.0;
                 double local_sum_V  = 0.0;
                 double volume       = 0.0;
+                double delta_x, delta_y, delta_z;
                 for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
                     for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
                         for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                            /// Geometric stuff
+                            delta_x = 0.5*( x_field[I1D(i+1,j,k)] - x_field[I1D(i-1,j,k)] ); 
+                            delta_y = 0.5*( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j-1,k)] ); 
+                            delta_z = 0.5*( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k-1)] );
                             /// Calculate volume
-                            volume = delta_x_field[I1D(i,j,k)]*delta_y_field[I1D(i,j,k)]*delta_z_field[I1D(i,j,k)]; 
+                            volume = delta_x*delta_y*delta_z; 
                             /// Sum P*V values
                             local_sum_PV += P_field[I1D(i,j,k)]*volume;
                             /// Sum V values
