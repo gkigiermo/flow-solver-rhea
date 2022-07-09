@@ -807,11 +807,13 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
     if( transport_pressure_scheme ) {
 
         /// All (inner, halo, boundary) points: T, E, rhoE, sos, c_v and c_p
-        double e, ke, c_v, c_p;
+        double T, e, ke, c_v, c_p;
         for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
             for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
                 for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                    T_field[I1D(i,j,k)]    = thermodynamics->calculateTemperatureFromPressureDensity( P_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+	            T = T_field[I1D(i,j,k)]; 
+                    thermodynamics->calculateTemperatureFromPressureDensityWithInitialGuess( T, P_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                    T_field[I1D(i,j,k)]    = T;
                     e  = thermodynamics->calculateInternalEnergyFromPressureTemperatureDensity( P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] ); 
                     ke = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
                     E_field[I1D(i,j,k)]    = e + ke;
@@ -948,7 +950,8 @@ void FlowSolverRHEA::updateBoundaries() {
                     u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
                     v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_3;
                     w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_4;
-                    T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+                    T_g   = T_field[I1D(i,j,k)];
+                    thermodynamics->calculateTemperatureFromPressureDensityWithInitialGuess( T_g, P_g, rho_g );
 		} else if( bocos_type[_WEST_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_WEST_];
                     v_g = bocos_v[_WEST_];
@@ -1057,7 +1060,8 @@ void FlowSolverRHEA::updateBoundaries() {
                     u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
                     v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_3;
                     w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_4;
-                    T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+                    T_g   = T_field[I1D(i,j,k)];
+                    thermodynamics->calculateTemperatureFromPressureDensityWithInitialGuess( T_g, P_g, rho_g );
 		} else if( bocos_type[_EAST_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_EAST_];
                     v_g = bocos_v[_EAST_];
@@ -1166,7 +1170,8 @@ void FlowSolverRHEA::updateBoundaries() {
                     u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
                     v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_3;
                     w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_4;
-                    T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+                    T_g   = T_field[I1D(i,j,k)];
+                    thermodynamics->calculateTemperatureFromPressureDensityWithInitialGuess( T_g, P_g, rho_g );
 		} else if( bocos_type[_SOUTH_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_SOUTH_];
                     v_g = bocos_v[_SOUTH_];
@@ -1275,7 +1280,8 @@ void FlowSolverRHEA::updateBoundaries() {
                     u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
                     v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_3;
                     w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_4;
-                    T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+                    T_g   = T_field[I1D(i,j,k)];
+                    thermodynamics->calculateTemperatureFromPressureDensityWithInitialGuess( T_g, P_g, rho_g );
 		} else if( bocos_type[_NORTH_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_NORTH_];
                     v_g = bocos_v[_NORTH_];
@@ -1384,7 +1390,8 @@ void FlowSolverRHEA::updateBoundaries() {
                     u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
                     v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_3;
                     w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_4;
-                    T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+                    T_g   = T_field[I1D(i,j,k)];
+                    thermodynamics->calculateTemperatureFromPressureDensityWithInitialGuess( T_g, P_g, rho_g );
 		} else if( bocos_type[_BACK_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_BACK_];
                     v_g = bocos_v[_BACK_];
@@ -1493,7 +1500,8 @@ void FlowSolverRHEA::updateBoundaries() {
                     u_g   = u_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*( 1.0/( 2.0*rho_in*sos_in ) )*( L_5 - L_1 );
                     v_g   = v_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_3;
                     w_g   = w_field[I1D(i,j,k)] - ( delta_t/rk_number_stages )*L_4;
-                    T_g   = thermodynamics->calculateTemperatureFromPressureDensity( P_g, rho_g );
+                    T_g   = T_field[I1D(i,j,k)];
+                    thermodynamics->calculateTemperatureFromPressureDensityWithInitialGuess( T_g, P_g, rho_g );
 		} else if( bocos_type[_FRONT_] == _SUPERSONIC_INFLOW_ ) {
                     u_g = bocos_u[_FRONT_];
                     v_g = bocos_v[_FRONT_];

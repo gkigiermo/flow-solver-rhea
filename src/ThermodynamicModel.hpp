@@ -48,6 +48,9 @@ class BaseThermodynamicModel {
         /// Calculate temperature from pressure and density
         virtual double calculateTemperatureFromPressureDensity(const double &P, const double &rho) = 0;
 
+        /// Calculate temperature from pressure and density with initial guess
+        virtual void calculateTemperatureFromPressureDensityWithInitialGuess(double &T, const double &P, const double &rho) {};
+
         /// Calculate internal energy from pressure, temperature and density
         virtual double calculateInternalEnergyFromPressureTemperatureDensity(const double &P, const double &T, const double &rho) = 0;
 
@@ -110,6 +113,9 @@ class IdealGasModel : public BaseThermodynamicModel {
         /// Calculate temperature from pressure and density
         double calculateTemperatureFromPressureDensity(const double &P, const double &rho);
 
+        /// Calculate temperature from pressure and density with initial guess
+        void calculateTemperatureFromPressureDensityWithInitialGuess(double &T, const double &P, const double &rho);
+
         /// Calculate internal energy from pressure, temperature and density
         double calculateInternalEnergyFromPressureTemperatureDensity(const double &P, const double &T, const double &rho);
 
@@ -166,6 +172,9 @@ class StiffenedGasModel : public BaseThermodynamicModel {
 
         /// Calculate temperature from pressure and density
         double calculateTemperatureFromPressureDensity(const double &P, const double &rho);
+
+        /// Calculate temperature from pressure and density with initial guess
+        void calculateTemperatureFromPressureDensityWithInitialGuess(double &T, const double &P, const double &rho);
 
         /// Calculate internal energy from pressure, temperature and density
         double calculateInternalEnergyFromPressureTemperatureDensity(const double &P, const double &T, const double &rho);
@@ -230,6 +239,9 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 
         /// Calculate temperature from pressure and density
         double calculateTemperatureFromPressureDensity(const double &P, const double &rho);
+
+        /// Calculate temperature from pressure and density with initial guess
+        void calculateTemperatureFromPressureDensityWithInitialGuess(double &T, const double &P, const double &rho);
 
         /// Calculate internal energy from pressure, temperature and density
         double calculateInternalEnergyFromPressureTemperatureDensity(const double &P, const double &T, const double &rho);

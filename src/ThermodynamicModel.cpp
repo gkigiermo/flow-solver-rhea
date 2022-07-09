@@ -70,6 +70,16 @@ double IdealGasModel::calculateTemperatureFromPressureDensity(const double &P, c
 
 };
 
+void IdealGasModel::calculateTemperatureFromPressureDensityWithInitialGuess(double &T, const double &P, const double &rho) {
+
+    /// Ideal-gas model:
+    /// P = rho*R_specific*T is pressure
+
+    /// Initial temperature guess is not needed
+    T = P/( rho*R_specific );
+
+};
+
 double IdealGasModel::calculateInternalEnergyFromPressureTemperatureDensity(const double &P, const double &T, const double &rho) {
 
     /// Ideal-gas model:
@@ -241,6 +251,16 @@ double StiffenedGasModel::calculateTemperatureFromPressureDensity(const double &
     double T = ( ( ( P + gamma*P_inf )/( rho*( gamma - 1.0 ) ) ) - ( P_inf/rho ) )/c_v;
 
     return( T );
+
+};
+
+void StiffenedGasModel::calculateTemperatureFromPressureDensityWithInitialGuess(double &T, const double &P, const double &rho) {
+
+    /// Stiffened-gas model:
+    /// P = (e - e_0)*rho*(gamma - 1) - gamma*P_inf is pressure
+    /// T = ((e - e_0) - (P_inf/rho))/c_v is temperature
+
+    T = ( ( ( P + gamma*P_inf )/( rho*( gamma - 1.0 ) ) ) - ( P_inf/rho ) )/c_v;
 
 };
 
@@ -470,6 +490,30 @@ double PengRobinsonModel::calculateTemperatureFromPressureDensity(const double &
     }
 
     return( T );
+
+};
+
+void PengRobinsonModel::calculateTemperatureFromPressureDensityWithInitialGuess(double &T, const double &P, const double &rho) {
+
+    /// Numerical Recipes in C++, Second Edition.
+    /// W.H. Press, S.A. Teulosky, W.T. Vetterling, B.P. Flannery.
+    /// 5.1 Series and Their Convergence: Aitken’s delta-squared process.
+
+    // Calculate molar volume
+    double bar_v = molecular_weight/rho;
+
+    /// Aitken’s delta-squared process:
+    double x_0 = T, x_1, x_2, denominator;
+    for(int iter = 0; iter < max_aitken_iter; iter++) { 
+        x_1 = ( (bar_v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_0 )/( pow( bar_v, 2.0 ) + 2.0*eos_b*bar_v - pow( eos_b, 2.0 ) ) ) );
+        x_2 = ( (bar_v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_1 )/( pow( bar_v, 2.0 ) + 2.0*eos_b*bar_v - pow( eos_b, 2.0 ) ) ) );
+
+        denominator = x_2 - 2.0*x_1 + x_0;
+        T = x_2 - ( pow( x_2 - x_1, 2.0 ) )/denominator;
+    
+        if( abs( ( T - x_2 )/ T ) < aitken_relative_tolerance ) break;	/// If the result is within tolerance, leave the loop!
+        x_0 = T;							/// Otherwise, update x_0 to iterate again ...                 
+    }
 
 };
 
