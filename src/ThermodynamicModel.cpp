@@ -484,7 +484,7 @@ double PengRobinsonModel::calculateTemperatureFromPressureDensity(const double &
 
         denominator = x_2 - 2.0*x_1 + x_0;
         //T = x_2 - ( pow( x_2 - x_1, 2.0 ) )/denominator;
-        T = x_2 - ( pow( x_2 - x_1, 2.0 ) )/( denominator + 1.0e-15 );
+        T = x_2 - ( pow( x_2 - x_1, 2.0 ) )/( denominator + 1.0e-10 );
     
         if( abs( ( T - x_2 )/ T ) < aitken_relative_tolerance ) break;	/// If the result is within tolerance, leave the loop!
         x_0 = T;							/// Otherwise, update x_0 to iterate again ...                 
@@ -511,7 +511,7 @@ void PengRobinsonModel::calculateTemperatureFromPressureDensityWithInitialGuess(
 
         denominator = x_2 - 2.0*x_1 + x_0;
         //T = x_2 - ( pow( x_2 - x_1, 2.0 ) )/denominator;
-        T = x_2 - ( pow( x_2 - x_1, 2.0 ) )/( denominator + 1.0e-15 );
+        T = x_2 - ( pow( x_2 - x_1, 2.0 ) )/( denominator + 1.0e-10 );
 
         if( abs( ( T - x_2 )/ T ) < aitken_relative_tolerance ) break;	/// If the result is within tolerance, leave the loop!
         x_0 = T;							/// Otherwise, update x_0 to iterate again ...                 
