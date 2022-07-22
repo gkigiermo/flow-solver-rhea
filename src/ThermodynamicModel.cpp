@@ -503,6 +503,10 @@ void PengRobinsonModel::calculateTemperatureFromPressureDensityWithInitialGuess(
     // Calculate molar volume
     double bar_v = molecular_weight/rho;
 
+    // Perturb slightly T to avoid division error
+    double random_number = 2.0*( (double) rand()/( RAND_MAX ) ) - 1.0;
+    T += 1.0e-8*rand()*T;
+
     /// Aitken’s delta-squared process:
     double x_0 = T, x_1, x_2, denominator;
     for(int iter = 0; iter < max_aitken_iter; iter++) { 
