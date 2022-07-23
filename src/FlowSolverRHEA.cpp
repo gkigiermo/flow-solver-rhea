@@ -2173,7 +2173,7 @@ void FlowSolverRHEA::timeAdvancePressure(const int &rk_time_stage) {
     double P_inv_flux = 0.0, P_vis_flux = 0.0, P_rhs_flux = 0.0;
     double delta_x, delta_y, delta_z;
     double d_P_x, d_P_y, d_P_z, d_u_x, d_v_y, d_w_z;
-    double div_uvw, bar_v, f_rhouvw;
+    double div_uvw, bar_v;
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
@@ -2195,10 +2195,8 @@ void FlowSolverRHEA::timeAdvancePressure(const int &rk_time_stage) {
                 /// Viscous flux
 		bar_v = thermodynamics->getMolecularWeight()/rho_field[I1D(i,j,k)];
 		P_vis_flux = ( thermodynamics->calculateVolumeExpansivity( T_field[I1D(i,j,k)], bar_v )/( rho_field[I1D(i,j,k)]*c_v_field[I1D(i,j,k)]*thermodynamics->calculateIsothermalCompressibility( T_field[I1D(i,j,k)], bar_v ) ) )*work_vis_rhoe_flux[I1D(i,j,k)];
-                /// Work of momentum sources
-                f_rhouvw = f_rhou_field[I1D(i,j,k)]*u_field[I1D(i,j,k)] + f_rhov_field[I1D(i,j,k)]*v_field[I1D(i,j,k)] + f_rhow_field[I1D(i,j,k)]*w_field[I1D(i,j,k)];
                 /// Sum right-hand-side (RHS) fluxes
-                P_rhs_flux = ( -1.0 )*P_inv_flux + P_vis_flux + ( f_rhoE_field[I1D(i,j,k)] - f_rhouvw ); 
+                P_rhs_flux = ( -1.0 )*P_inv_flux + P_vis_flux + f_rhoE_field[I1D(i,j,k)]; 
                 /// Runge-Kutta step
                 P_field[I1D(i,j,k)] = rk_a*P_0_field[I1D(i,j,k)] + rk_b*P_field[I1D(i,j,k)] + rk_c*delta_t*P_rhs_flux;
 	    }
