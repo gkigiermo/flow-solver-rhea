@@ -515,7 +515,7 @@ void PengRobinsonModel::calculateTemperatureFromPressureDensityWithInitialGuess(
 
         denominator = x_2 - 2.0*x_1 + x_0;
         //T = x_2 - ( pow( x_2 - x_1, 2.0 ) )/( denominator + 1.0e-15 );
-        if( abs( denominator/( T + 1.0e-15 ) ) < aitken_relative_tolerance ) break;
+        if( ( abs( denominator )/( T + 1.0e-15 ) ) < aitken_relative_tolerance ) break;
         T = x_2 - ( pow( x_2 - x_1, 2.0 ) )/denominator;
 
         if( abs( ( T - x_2 )/ T ) < aitken_relative_tolerance ) break;	/// If the result is within tolerance, leave the loop!
