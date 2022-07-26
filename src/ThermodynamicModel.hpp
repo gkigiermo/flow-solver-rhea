@@ -387,7 +387,7 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 
         /// Aitken's delta-squared process parameters
         int max_aitken_iter              = 1000;		/// Maximum number of iterations
-        double aitken_relative_tolerance = 1.0e-8;		/// Relative tolerance
+        double aitken_relative_tolerance = 1.0e-5;		/// Relative tolerance
 
         /// Newton-Raphson solver parameters
         int max_nr_iter              = 1000;			/// Maximum number of iterations
