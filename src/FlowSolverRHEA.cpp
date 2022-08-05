@@ -2226,7 +2226,7 @@ void FlowSolverRHEA::outputCurrentStateData() {
 
 void FlowSolverRHEA::updateTimeAveragedQuantities() {
 
-    /// All (inner, boundary & halo) points: time-averaged and root-mean-square-fluctuation quantities 
+    /// All (inner, boundary & halo) points: first- and second-order time statistics of flow quantities 
 #if _OPENACC_MANUAL_DATA_MOVEMENT_
     const int local_size_x = _lNx_;
     const int local_size_y = _lNy_;
@@ -2239,9 +2239,9 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
     const int endy = topo->iter_common[_ALL_][_ENDY_];
     const int endz = topo->iter_common[_ALL_][_ENDZ_];
     #pragma acc enter data copyin (this)
-    #pragma acc data copyin (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
-    #pragma acc data copyin (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],T_field.vector[0:local_size])
-    #pragma acc data copyin (sos_field.vector[0:local_size],mu_field.vector[0:local_size],kappa_field.vector[0:local_size],c_v_field.vector[0:local_size],c_p_field.vector[0:local_size])
+    #pragma acc data copy (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
+    #pragma acc data copy (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],T_field.vector[0:local_size])
+    #pragma acc data copy (sos_field.vector[0:local_size],mu_field.vector[0:local_size],kappa_field.vector[0:local_size],c_v_field.vector[0:local_size],c_p_field.vector[0:local_size])
     #pragma acc data copy (avg_rho_field.vector[0:local_size],avg_rhou_field.vector[0:local_size],avg_rhov_field.vector[0:local_size],avg_rhow_field.vector[0:local_size],avg_rhoE_field.vector[0:local_size])
     #pragma acc data copy (avg_u_field.vector[0:local_size],avg_v_field.vector[0:local_size],avg_w_field.vector[0:local_size],avg_E_field.vector[0:local_size],avg_P_field.vector[0:local_size],avg_T_field.vector[0:local_size])
     #pragma acc data copy (avg_sos_field.vector[0:local_size],avg_mu_field.vector[0:local_size],avg_kappa_field.vector[0:local_size],avg_c_v_field.vector[0:local_size],avg_c_p_field.vector[0:local_size])
