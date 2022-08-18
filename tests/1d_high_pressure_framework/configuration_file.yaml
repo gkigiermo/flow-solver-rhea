@@ -104,7 +104,7 @@ print_write_read_parameters:
 
 ##### TIMERS INFORMATION #####
 timers_information:
-   print_timers: 'FALSE'               					# Print timers information
+   print_timers: 'TRUE'               					# Print timers information
    timers_information_file: 'timers_information_file.txt'		# Timers information file
 
 

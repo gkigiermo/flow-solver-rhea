@@ -16,7 +16,7 @@ test_1d_high_pressure_framework:
     - export RHEA_PATH='../..'
     - make
     - ./execute.sh
-    - rm *.h5 *.xdmf
+    - rm *.h5 *.xdmf timers_information_file.txt
     - make clean
     - cd ../..
     - echo "Stop testing 1d_high_pressure_framework"
