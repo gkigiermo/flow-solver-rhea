@@ -13,6 +13,7 @@ test_1d_high_pressure_framework:
   script:
     - echo "Start testing 1d_high_pressure_framework"
     - cd tests/1d_high_pressure_framework
+    - export RHEA_PATH='../..'
     - make
     - ./execute.sh
     - rm *.h5 *.xdmf
