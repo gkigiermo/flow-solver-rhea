@@ -9,13 +9,13 @@ build:
     - apt install make -qy
     - apt install libyaml-cpp-dev -qy
     - apt install libhdf5-openmpi-dev -qy
-    - export PATH=/usr/bin:$PATH
 
 test_1d_high_pressure_framework:
   stage: test
   script:
     - echo "Start testing 1d_high_pressure_framework"
     - cd tests/1d_high_pressure_framework
+    - export PATH=/usr/bin:$PATH
     - export RHEA_PATH='../..'
     - make
     - ./execute.sh
