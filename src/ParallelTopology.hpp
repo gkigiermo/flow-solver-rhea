@@ -9,8 +9,6 @@
 #include "ComputationalDomain.hpp"
 #include "MacroParameters.hpp"
 
-using namespace std;
-
 class ParallelTopology{
     
     public:

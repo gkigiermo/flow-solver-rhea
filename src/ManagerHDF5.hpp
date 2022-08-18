@@ -9,8 +9,6 @@
 #include "MacroParameters.hpp"
 #include "ParallelTopology.hpp"
 #include "DistributedArray.hpp"
-using namespace std;
-
 
 class ManagerHDF5{
 
@@ -22,14 +20,14 @@ class ManagerHDF5{
         void write(int);
         void read(char const*);
 
-        void addAttributeDouble(string str){ double dval=0.0; dattrib[str]=dval;};
-        void addAttributeInt(string str){ int ival =0; iattrib[str] = ival; };
+        void addAttributeDouble(std::string str){ double dval=0.0; dattrib[str]=dval;};
+        void addAttributeInt(std::string str){ int ival =0; iattrib[str] = ival; };
 
-        void setAttribute(string str,double dval){ dattrib[str]=dval;};
-        void setAttribute(string str,int ival){ iattrib[str] = ival; };
+        void setAttribute(std::string str,double dval){ dattrib[str]=dval;};
+        void setAttribute(std::string str,int ival){ iattrib[str] = ival; };
 
-        double getAttributeDouble(string str){ return dattrib[str];};
-        int    getAttributeInt(string str){ return iattrib[str];};
+        double getAttributeDouble(std::string str){ return dattrib[str];};
+        int    getAttributeInt(std::string str){ return iattrib[str];};
 
 
     private:
@@ -62,8 +60,8 @@ class ManagerHDF5{
 
         //Attribute list
 
-        map<string,double> dattrib;
-        map<string,int> iattrib;
+	std::map<std::string,double> dattrib;
+	std::map<std::string,int> iattrib;
 
 
 };

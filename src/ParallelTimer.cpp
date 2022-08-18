@@ -1,5 +1,7 @@
 #include "ParallelTimer.hpp"
 
+using namespace std;
+
 double ParallelTimer::getTime_cpu()
 {
      struct timeval now;

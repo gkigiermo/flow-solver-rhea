@@ -6,8 +6,6 @@
 #include "src/comm_scheme.h"
 #include "src/parvec.h"
 
-using namespace std;
-
 int main(int argc, char** argv)
 {
 

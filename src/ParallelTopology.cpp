@@ -1,5 +1,7 @@
 #include "ParallelTopology.hpp"
 
+using namespace std;
+
 ParallelTopology::ParallelTopology(ComputationalDomain* dom, int nprocsx, int nprocsy, int nprocsz)
 {
     mymesh = dom;

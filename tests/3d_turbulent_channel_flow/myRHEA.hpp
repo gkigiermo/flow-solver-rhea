@@ -4,16 +4,13 @@
 ////////// INCLUDES //////////
 #include "src/FlowSolverRHEA.hpp"
 
-////////// NAMESPACES //////////
-using namespace std;
-
 ////////// myRHEA CLASS //////////
 class myRHEA : public FlowSolverRHEA {
    
     public:
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        myRHEA(const string configuration_file) : FlowSolverRHEA(configuration_file) {};	/// Parametrized constructor
+        myRHEA(const std::string configuration_file) : FlowSolverRHEA(configuration_file) {};	/// Parametrized constructor
         virtual ~myRHEA() {};									/// Destructor
 
 	////////// SOLVER METHODS //////////

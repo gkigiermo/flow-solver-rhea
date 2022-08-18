@@ -8,9 +8,6 @@
 #include <mpi.h>
 #include "yaml-cpp/yaml.h"
 
-////////// NAMESPACES //////////
-using namespace std;
-
 ////////// CLASS DECLARATION //////////
 class BaseTransportCoefficients;				/// Base transport coefficients
 class ConstantTransportCoefficients;				/// Constant transport coefficients
@@ -26,9 +23,9 @@ class BaseTransportCoefficients {
     public:
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        BaseTransportCoefficients();					/// Default constructor
-        BaseTransportCoefficients(const string configuration_file);	/// Parametrized constructor
-        virtual ~BaseTransportCoefficients();				/// Destructor
+        BaseTransportCoefficients();						/// Default constructor
+        BaseTransportCoefficients(const std::string configuration_file);	/// Parametrized constructor
+        virtual ~BaseTransportCoefficients();					/// Destructor
 
 	////////// GET FUNCTIONS //////////
         inline double getDynamicViscosity() { return( mu ); };
@@ -61,7 +58,7 @@ class BaseTransportCoefficients {
         double R_universal = 8.31446261815324;				/// Universal (ideal-gas) gas constant [J/(mol·K)]
 
         /// Model parameters
-        string configuration_file;					/// Configuration file name (YAML language)
+	std::string configuration_file;					/// Configuration file name (YAML language)
 
     private:
 
@@ -75,7 +72,7 @@ class ConstantTransportCoefficients : public BaseTransportCoefficients {
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
         ConstantTransportCoefficients();					/// Default constructor
-        ConstantTransportCoefficients(const string configuration_file);		/// Parametrized constructor
+        ConstantTransportCoefficients(const std::string configuration_file);	/// Parametrized constructor
         virtual ~ConstantTransportCoefficients();				/// Destructor
 
 	////////// GET FUNCTIONS //////////
@@ -108,9 +105,9 @@ class LowPressureGasTransportCoefficients : public BaseTransportCoefficients {
     public:
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        LowPressureGasTransportCoefficients();					/// Default constructor
-        LowPressureGasTransportCoefficients(const string configuration_file);	/// Parametrized constructor
-        virtual ~LowPressureGasTransportCoefficients();				/// Destructor
+        LowPressureGasTransportCoefficients();						/// Default constructor
+        LowPressureGasTransportCoefficients(const std::string configuration_file);	/// Parametrized constructor
+        virtual ~LowPressureGasTransportCoefficients();					/// Destructor
 
 	////////// GET FUNCTIONS //////////
 
@@ -151,9 +148,9 @@ class HighPressureTransportCoefficients : public BaseTransportCoefficients {
     public:
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        HighPressureTransportCoefficients();					/// Default constructor
-        HighPressureTransportCoefficients(const string configuration_file);	/// Parametrized constructor
-        virtual ~HighPressureTransportCoefficients();				/// Destructor
+        HighPressureTransportCoefficients();						/// Default constructor
+        HighPressureTransportCoefficients(const std::string configuration_file);	/// Parametrized constructor
+        virtual ~HighPressureTransportCoefficients();					/// Destructor
 
 	////////// GET FUNCTIONS //////////
 

@@ -19,9 +19,6 @@
 #include "ManagerHDF5.hpp"
 #include "ParallelTimer.hpp"
 
-////////// NAMESPACES //////////
-using namespace std;
-
 ////////// CLASS DECLARATION //////////
 class FlowSolverRHEA;					/// Flow solver RHEA
 
@@ -73,7 +70,7 @@ class FlowSolverRHEA {
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
         FlowSolverRHEA();					/// Default constructor
-        FlowSolverRHEA(const string configuration_file);	/// Parametrized constructor
+        FlowSolverRHEA(const std::string configuration_file);	/// Parametrized constructor
         virtual ~FlowSolverRHEA();				/// Destructor
 
 	////////// GET FUNCTIONS //////////
@@ -175,8 +172,8 @@ class FlowSolverRHEA {
         ////////// SOLVER PARAMETERS //////////
 	
         /// Fluid & flow properties 
-        string thermodynamic_model;				/// Thermodynamic model
-        string transport_coefficients_model;			/// Transport coefficients model
+	std::string thermodynamic_model;			/// Thermodynamic model
+	std::string transport_coefficients_model;		/// Transport coefficients model
 
         /// Problem parameters
         double x_0;           	        	 	 	/// Domain origin in x-direction [m]
@@ -188,7 +185,7 @@ class FlowSolverRHEA {
         double current_time;   					/// Current time [s]
         double final_time;		      			/// Final time [s]
         double averaging_time;		      			/// Averaging time [s]
-        string configuration_file;				/// Configuration file name (YAML language)	
+	std::string configuration_file;				/// Configuration file name (YAML language)	
 
         /// Computational parameters
         int num_grid_x;						/// Number of inner grid points in x-direction
@@ -202,8 +199,8 @@ class FlowSolverRHEA {
         int current_time_iter;					/// Current time iteration
         int final_time_iter;					/// Final time iteration
         int rk_number_stages;					/// Number of stages of Runge-Kutta time discretization method
-        string riemann_solver_scheme;				/// Riemann solver scheme
-        string runge_kutta_time_scheme;				/// Runge-Kutta time scheme
+	std::string riemann_solver_scheme;			/// Riemann solver scheme
+	std::string runge_kutta_time_scheme;			/// Runge-Kutta time scheme
         bool transport_pressure_scheme;				/// Activate transport P instead of rhoE
 
         /// Local mesh values for I1D macro
@@ -221,17 +218,17 @@ class FlowSolverRHEA {
 
         /// Print/Write/Read file parameters
         int print_frequency_iter;				/// Print information iteration frequency
-        string output_data_file_name;				/// Output data file name (HDF5 format)	
+	std::string output_data_file_name;			/// Output data file name (HDF5 format)	
         int output_frequency_iter;				/// Data output iteration frequency
         bool generate_xdmf;					/// Generate xdmf file reader
         bool use_restart;					/// Use restart file for initialization
-        string restart_data_file;				/// Restart data file
+	std::string restart_data_file;				/// Restart data file
         bool time_averaging_active;				/// Activate time averaging
         bool reset_time_averaging;				/// Reset time averaging
 
         /// Timers information
         bool print_timers;					/// Print timers information
-        string timers_information_file;				/// Timers information file
+	std::string timers_information_file;			/// Timers information file
 
         /// Parallelization scheme
         int np_x;						/// Number of processes in x-direction
@@ -355,7 +352,7 @@ class FlowSolverRHEA {
         /// The rightmost number (3) is the revision, but it may also refer to a "point release" or "subminor version".
 	
         /// Version number (updated 18/05/2022)
-        string version_number = "2.0.0";			/// Version number	
+	std::string version_number = "2.0.0";			/// Version number	
 
     private:
 

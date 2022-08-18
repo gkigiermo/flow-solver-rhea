@@ -8,9 +8,6 @@
 #include <vector>
 #include <limits>
 
-////////// NAMESPACES //////////
-using namespace std;
-
 ////////// CLASS DECLARATION //////////
 class BaseRootFindingMinimization;			/// BaseRootFindingMinimization
 class NewtonRaphson;					/// NewtonRaphson
@@ -36,10 +33,10 @@ class BaseRootFindingMinimization {
         inline double SQR(const double &a) { return a*a; };	
 
         /// Runs the minimization algorithm, calculating the minimum (fxmin) and its independent variables (xmin)
-        virtual void solve(double &fxmin, vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance) = 0; 
+        virtual void solve(double &fxmin, std::vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance) = 0; 
         
         /// Evaluates the functions (residuals) in position x
-        virtual void function_vector(vector<double> &x, vector<double> &fx) {}; 
+        virtual void function_vector(std::vector<double> &x, std::vector<double> &fx) {}; 
 
     protected:
 
@@ -59,7 +56,7 @@ class NewtonRaphson : public BaseRootFindingMinimization {
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
         //NewtonRaphson();						/// Default constructor 
-        NewtonRaphson(vector<double> &fvec_);				/// Parametrized constructor
+        NewtonRaphson(std::vector<double> &fvec_);				/// Parametrized constructor
         virtual ~NewtonRaphson();               			/// Destructor    
  
 	////////// GET FUNCTIONS //////////
@@ -69,29 +66,29 @@ class NewtonRaphson : public BaseRootFindingMinimization {
 	////////// METHODS //////////
 
         /// Runs the minimization algorithm, calculating the minimum (fxmin) and its independent variables (xmin)
-        void solve(double &fxmin, vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance);
+        void solve(double &fxmin, std::vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance);
 
         /// Performs minimization linear search
-        void lnsrch(vector<double> &xold, double &fold, vector<double> &g, vector<double> &p, vector<double> &x,double &f, double &stpmax, bool &check,vector< vector<double> > &fjac, vector<int> &indx);
+        void lnsrch(std::vector<double> &xold, double &fold, std::vector<double> &g, std::vector<double> &p, std::vector<double> &x,double &f, double &stpmax, bool &check,std::vector< std::vector<double> > &fjac, std::vector<int> &indx);
 
         /// Numerical recipes in C++ LU decomposition method
-	void lubksb(vector< vector<double> > &a, vector<int> &indx, vector<double> &b);
+	void lubksb(std::vector< std::vector<double> > &a, std::vector<int> &indx, std::vector<double> &b);
 
         /// Numerical recipes in C++ LU decomposition method
-        void ludcmp(vector< vector<double> > &a, vector<int> &indx, double &d);
+        void ludcmp(std::vector< std::vector<double> > &a, std::vector<int> &indx, double &d);
 
         /// Numerical recipes in C++ Jacobian method
-        void fdjac(vector<double> &x, vector< vector<double> > &df);
+        void fdjac(std::vector<double> &x, std::vector< std::vector<double> > &df);
 
         /// Numerical recipes in C++ fmin method
-        double fmin(vector<double> &x);
+        double fmin(std::vector<double> &x);
 
     protected:
 
         ////////// PARAMETERS //////////
 
 	/// Vector of functions to be zeroed
-	vector<double> &fvec;
+	std::vector<double> &fvec;
 
 };
 

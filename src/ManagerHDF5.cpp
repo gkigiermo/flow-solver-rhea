@@ -1,5 +1,7 @@
 #include "ManagerHDF5.hpp"
 
+using namespace std;
+
 ManagerHDF5::ManagerHDF5(ParallelTopology* topo,  char const* outputName,bool _gen_xdmf)
 {
     myTopo = topo;

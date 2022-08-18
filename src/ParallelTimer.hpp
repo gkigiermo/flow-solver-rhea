@@ -10,38 +10,36 @@
 #include<sys/time.h>
 #include<vector>
 
-using namespace std;
-
 class ParallelTimer{
 
     public:
         ParallelTimer(){};
-        void   createTimer(string);
-        void   start(string);
-        void   stop(string);
-        double getStart(string str){ return time_array[str][0];};
-        double getStop(string str){ return time_array[str][1];};
-        double getTime(string str){ return time_array[str][2];};
-        double getMaxTime(string str){ return time_array[str][3]; };
-        double getMinTime(string str){ return time_array[str][4]; };
-        double getAvgTime(string str){ return time_array[str][5]; };
-        double getAccumulatedTime(string str){ return time_array[str][6];};
-        double getAccumulatedMaxTime(string str){ return time_array[str][7];};
-        double getAccumulatedMinTime(string str){ return time_array[str][8];};
-        double getAccumulatedAvgTime(string str){ return time_array[str][9];};
+        void   createTimer(std::string);
+        void   start(std::string);
+        void   stop(std::string);
+        double getStart(std::string str){ return time_array[str][0];};
+        double getStop(std::string str){ return time_array[str][1];};
+        double getTime(std::string str){ return time_array[str][2];};
+        double getMaxTime(std::string str){ return time_array[str][3]; };
+        double getMinTime(std::string str){ return time_array[str][4]; };
+        double getAvgTime(std::string str){ return time_array[str][5]; };
+        double getAccumulatedTime(std::string str){ return time_array[str][6];};
+        double getAccumulatedMaxTime(std::string str){ return time_array[str][7];};
+        double getAccumulatedMinTime(std::string str){ return time_array[str][8];};
+        double getAccumulatedAvgTime(std::string str){ return time_array[str][9];};
 
         void   printTimers(); 
-        void   printTimers(string); 
-        void   printTimer(string str); 
-        void   printTimerFull(string str); 
+        void   printTimers(std::string); 
+        void   printTimer(std::string str); 
+        void   printTimerFull(std::string str); 
 
 
 
     private:
         //             0      1      2      3    4    5       6         7         8         9
         //double [10] start, stop, ltime,  max, min, avg, accum_time, acc_max, acc_min, accum_avg
-        map<string, vector<double>> time_array;
-        map<string, bool> checker;
+	std::map<std::string, std::vector<double>> time_array;
+	std::map<std::string, bool> checker;
         double getTime_cpu();
         int rank;        
 };

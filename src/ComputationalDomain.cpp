@@ -1,5 +1,7 @@
 #include "ComputationalDomain.hpp"
 
+using namespace std;
+
 ComputationalDomain::ComputationalDomain(double sizex, double sizey, double sizez, double orig_x, double orig_y, double orig_z, double stretch_x, double stretch_y, double stretch_z, int ncellsx, int ncellsy, int ncellsz)
 {
     gNx=ncellsx;

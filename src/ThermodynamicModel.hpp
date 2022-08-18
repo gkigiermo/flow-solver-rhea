@@ -10,9 +10,6 @@
 #include "yaml-cpp/yaml.h"
 #include "RootFindingMinimization.hpp"
 
-////////// NAMESPACES //////////
-using namespace std;
-
 ////////// CLASS DECLARATION //////////
 class BaseThermodynamicModel;				/// Base thermodynamic model
 class IdealGasModel;					/// Ideal-gas thermodynamic model
@@ -29,7 +26,7 @@ class BaseThermodynamicModel {
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
         BaseThermodynamicModel();					/// Default constructor
-        BaseThermodynamicModel(const string configuration_file);	/// Parametrized constructor
+        BaseThermodynamicModel(const std::string configuration_file);	/// Parametrized constructor
         virtual ~BaseThermodynamicModel();				/// Destructor
 
 	////////// GET FUNCTIONS //////////
@@ -84,7 +81,7 @@ class BaseThermodynamicModel {
         double molecular_weight;						/// Molecular weight [kg/mol]
 
         /// Model parameters
-        string configuration_file;						/// Configuration file name (YAML language)
+	std::string configuration_file;						/// Configuration file name (YAML language)
         
     private:
 
@@ -98,7 +95,7 @@ class IdealGasModel : public BaseThermodynamicModel {
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
         IdealGasModel();							/// Default constructor
-        IdealGasModel(const string configuration_file);				/// Parametrized constructor
+        IdealGasModel(const std::string configuration_file);			/// Parametrized constructor
         virtual ~IdealGasModel();						/// Destructor
 
 	////////// GET FUNCTIONS //////////
@@ -158,7 +155,7 @@ class StiffenedGasModel : public BaseThermodynamicModel {
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
         StiffenedGasModel();							/// Default constructor
-        StiffenedGasModel(const string configuration_file);			/// Parametrized constructor
+        StiffenedGasModel(const std::string configuration_file);		/// Parametrized constructor
         virtual ~StiffenedGasModel();						/// Destructor
 
 	////////// GET FUNCTIONS //////////
@@ -221,7 +218,7 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
         PengRobinsonModel();							/// Default constructor
-        PengRobinsonModel(const string configuration_file);			/// Parametrized constructor
+        PengRobinsonModel(const std::string configuration_file);		/// Parametrized constructor
         virtual ~PengRobinsonModel();						/// Destructor
 
 	////////// GET FUNCTIONS //////////
@@ -307,7 +304,7 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         double calculateDPDvConstantTemperature(const double &T, const double &bar_v);
 
         /// Calculate roots of cubic polynomial
-        void calculateRootsCubicPolynomial(complex<double> &root_1, complex<double> &root_2, complex<double> &root_3, double &a, double &b, double &c, double &d);
+        void calculateRootsCubicPolynomial(std::complex<double> &root_1, std::complex<double> &root_2, std::complex<double> &root_3, double &a, double &b, double &c, double &d);
 
     private:
 
@@ -317,7 +314,7 @@ class PengRobinsonModel : public BaseThermodynamicModel {
             public:
 
             ////////// CONSTRUCTORS & DESTRUCTOR //////////
-            NR_P_T_from_rho_e(vector<double> &fvec_, PengRobinsonModel &pr_model_) : NewtonRaphson(fvec_), pr_model(pr_model_) {};	/// Parametrized constructor
+            NR_P_T_from_rho_e(std::vector<double> &fvec_, PengRobinsonModel &pr_model_) : NewtonRaphson(fvec_), pr_model(pr_model_) {};	/// Parametrized constructor
             virtual ~NR_P_T_from_rho_e() {};												/// Destructor
 
 	    ////////// METHODS //////////
@@ -333,7 +330,7 @@ class PengRobinsonModel : public BaseThermodynamicModel {
             };
 
             /// Evaluates the functions (residuals) in position x
-            void function_vector(vector<double> &x, vector<double> &fx) {
+            void function_vector(std::vector<double> &x, std::vector<double> &fx) {
 
                 /// Set state to x
                 double P = x[0]*P_norm;		// Unnormalize pressure
@@ -393,8 +390,8 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         int max_nr_iter              = 1000;			/// Maximum number of iterations
         double nr_relative_tolerance = 1.0e-5;			/// Relative tolerance
         NR_P_T_from_rho_e *nr_PT_solver;			/// Pointer to NR_P_T_from_rho_e
-        vector<double> nr_PT_unknowns;				/// NR_P_T_from_rho_e unknowns: P & T
-        vector<double> nr_PT_r_vec;				/// NR_P_T_from_rho_e vector of functions residuals
+	std::vector<double> nr_PT_unknowns;			/// NR_P_T_from_rho_e unknowns: P & T
+	std::vector<double> nr_PT_r_vec;			/// NR_P_T_from_rho_e vector of functions residuals
 
     private:
 

@@ -5,8 +5,6 @@
 #include "MacroParameters.hpp"
 #include "ParallelTopology.hpp"
 
-using namespace std;
-
 class DistributedArray{
     public:
         DistributedArray(){};

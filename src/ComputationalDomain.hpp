@@ -2,7 +2,6 @@
 #define _ComputationalDomain_
 #include <iostream>
 #include "MacroParameters.hpp"
-using namespace std;
 
 class ComputationalDomain{
     public:
