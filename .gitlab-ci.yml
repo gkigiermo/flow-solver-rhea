@@ -1,10 +1,12 @@
-image: mpicxx
-
 build:
   stage: build
   script:
     - echo "Performing CI/CD for the changes commited by $GITLAB_USER_LOGIN"
     - echo "Tests will be build and executed individually ..."
+    - apt update
+    - apt upgrade
+    - apt install libyaml-cpp-dev
+    - apt install libhdf5-openmpi-dev
 
 test_1d_high_pressure_framework:
   stage: test
