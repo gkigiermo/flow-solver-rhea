@@ -3,13 +3,13 @@ build:
   script:
     - echo "Performing CI/CD for the changes commited by $GITLAB_USER_LOGIN"
     - echo "Tests will be build and executed individually ..."
-    - export RHEA_PATH='.'
 
 test_1d_high_pressure_framework:
   stage: test
   script:
     - echo "Start testing 1d_high_pressure_framework"
     - cd tests/1d_high_pressure_framework
+    - export RHEA_PATH='../..'
     - make
     - ./execute.sh
     - rm *.h5 *.xdmf
