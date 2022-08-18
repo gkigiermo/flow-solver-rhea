@@ -3,20 +3,12 @@ build:
   script:
     - echo "Performing CI/CD for the changes commited by $GITLAB_USER_LOGIN"
     - echo "Tests will be build and executed individually ..."
-    - apt update -qy
-    - apt install build-essential -qy
-    - apt install libopenmpi-dev -qy
-    - apt install make -qy
-    - apt install libyaml-cpp-dev -qy
-    - apt install libhdf5-openmpi-dev -qy
 
 test_1d_high_pressure_framework:
   stage: test
   script:
     - echo "Start testing 1d_high_pressure_framework"
     - cd tests/1d_high_pressure_framework
-    - export PATH=/usr/bin:$PATH
-    - export RHEA_PATH='../..'
     - make
     - ./execute.sh
     - rm *.h5 *.xdmf
