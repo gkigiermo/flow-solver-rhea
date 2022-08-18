@@ -1,5 +1,3 @@
-image: mpicxx
-
 build:
   stage: build
   script:
