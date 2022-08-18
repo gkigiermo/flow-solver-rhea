@@ -16,7 +16,6 @@ test_1d_high_pressure_framework:
     - echo "Start testing 1d_high_pressure_framework"
     - cd tests/1d_high_pressure_framework
     - export RHEA_PATH='../..'
-    - which mpicxx
     - make
     - ./execute.sh
     - rm *.h5 *.xdmf
