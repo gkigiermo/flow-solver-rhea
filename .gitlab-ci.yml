@@ -1,11 +1,15 @@
 build:
   stage: build
+  tags:
+    - flowsolverrhea  
   script:
     - echo "Performing CI/CD for the changes commited by $GITLAB_USER_LOGIN"
     - echo "Tests will be build and executed individually ..."
 
 test_1d_high_pressure_framework:
   stage: test
+  tags:
+    - flowsolverrhea  
   script:
     - echo "Start testing 1d_high_pressure_framework"
     - cd tests/1d_high_pressure_framework
