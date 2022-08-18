@@ -6,7 +6,6 @@ build:
     - apt update -qy
     - apt install build-essential -qy
     - apt install libopenmpi-dev -qy
-    - export PATH=$PATH:/usr/lib/openmpi/bin
     - apt install make -qy
     - apt install libyaml-cpp-dev -qy
     - apt install libhdf5-openmpi-dev -qy
@@ -17,6 +16,7 @@ test_1d_high_pressure_framework:
     - echo "Start testing 1d_high_pressure_framework"
     - cd tests/1d_high_pressure_framework
     - export RHEA_PATH='../..'
+    - which mpicxx
     - make
     - ./execute.sh
     - rm *.h5 *.xdmf
