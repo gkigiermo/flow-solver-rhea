@@ -9,6 +9,7 @@ build:
     - apt install make -qy
     - apt install libyaml-cpp-dev -qy
     - apt install libhdf5-openmpi-dev -qy
+    - export PATH=/usr/bin:$PATH
 
 test_1d_high_pressure_framework:
   stage: test
