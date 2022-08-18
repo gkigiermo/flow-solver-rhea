@@ -2,7 +2,7 @@ EXECUTABLE   = RHEA.exe
 MAIN         = myRHEA.cpp
 PROJECT_PATH = $(RHEA_PATH)
 SRC_DIR      = $(PROJECT_PATH)/src
-CXX          = mpic++
+CXX          = g++
 # CPU FLAGS
 CXXFLAGS     = -O3 -Wall -std=c++0x -Wno-unknown-pragmas -Wno-unused-variable -I$(PROJECT_PATH)
 # CPU-GPU FLAGS
