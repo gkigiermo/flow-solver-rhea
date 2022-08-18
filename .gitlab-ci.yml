@@ -3,9 +3,9 @@ build:
   script:
     - echo "Performing CI/CD for the changes commited by $GITLAB_USER_LOGIN"
     - echo "Tests will be build and executed individually ..."
-    - apt update -qy
+    - apt update -y
     - apt install build-essential -qy
-    - apt install libopenmpi-dev -qy
+    - apt install -y libopenmpi-dev
     - apt install make -qy
     - apt install libyaml-cpp-dev -qy
     - apt install libhdf5-openmpi-dev -qy
