@@ -7,7 +7,7 @@ build:
     - echo "Tests will be build and executed individually ..."
 
 test_1d_high_pressure_framework:
-  stage: test_1d_high_pressure_framework
+  stage: test
   script:
     - echo "Start testing 1d_high_pressure_framework"
     - cd tests/1d_high_pressure_framework
