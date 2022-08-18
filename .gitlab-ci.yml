@@ -3,9 +3,9 @@ build:
   script:
     - echo "Performing CI/CD for the changes commited by $GITLAB_USER_LOGIN"
     - echo "Tests will be build and executed individually ..."
-    - apt update
-    - apt install libyaml-cpp-dev
-    - apt install libhdf5-openmpi-dev
+    - apt update -qy
+    - apt install libyaml-cpp-dev -qy
+    - apt install libhdf5-openmpi-dev -qy
 
 test_1d_high_pressure_framework:
   stage: test
