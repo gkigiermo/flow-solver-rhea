@@ -27,3 +27,9 @@ EXAMPLE TESTS:
 - Adapt Makefile to the computing system (or copy the Makefile previously modified)
 - Compile main file (myRHEA.cpp) by executing: $ make
 - Start test by running (4 CPUs by default): $ ./execute.sh
+
+SUPPORT, ISSUES & CONTRIBUTION
+- Documentation of the classes, functions and variables is available in doxygen/html
+- Additional support is provided via the "Service Desk" of the project
+- Issues can be reported utilizing the "Issues" functionality menu
+- Contributions can be proposed, discussed and incorporated through "Merge requests" 
