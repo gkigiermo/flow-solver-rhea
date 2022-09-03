@@ -1,0 +1,25 @@
+digraph "FlowSolverRHEA"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="FlowSolverRHEA",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" topo" ,fontname="Helvetica"];
+  Node2 [label="ParallelTopology",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classParallelTopology.html"];
+  Node3 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" mymesh" ,fontname="Helvetica"];
+  Node3 [label="ComputationalDomain",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classComputationalDomain.html"];
+  Node4 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" timers" ,fontname="Helvetica"];
+  Node4 [label="ParallelTimer",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classParallelTimer.html"];
+  Node5 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" writer_reader" ,fontname="Helvetica"];
+  Node5 [label="ManagerHDF5",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classManagerHDF5.html"];
+  Node6 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" transport_coefficients" ,fontname="Helvetica"];
+  Node6 [label="BaseTransportCoefficients",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classBaseTransportCoefficients.html",tooltip="High-pressure transport coefficients. "];
+  Node3 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" mesh" ,fontname="Helvetica"];
+  Node7 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" R_reynolds_uv_field\navg_v_field\navg_rhoE_field\nrhow_field\nx_field\nrmsf_c_p_field\navg_c_p_field\navg_w_field\nrhow_inv_flux\nrhoE_field\n..." ,fontname="Helvetica"];
+  Node7 [label="DistributedArray",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classDistributedArray.html"];
+  Node2 -> Node7 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" mydomain" ,fontname="Helvetica"];
+  Node8 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" runge_kutta_method" ,fontname="Helvetica"];
+  Node8 [label="BaseExplicitRungeKuttaMethod",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classBaseExplicitRungeKuttaMethod.html"];
+  Node9 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" thermodynamics" ,fontname="Helvetica"];
+  Node9 [label="BaseThermodynamicModel",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classBaseThermodynamicModel.html",tooltip="Peng-Robinson (real-gas) thermodynamic model. "];
+}

@@ -1,0 +1,15 @@
+digraph "PengRobinsonModel"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node2 [label="PengRobinsonModel",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node3 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="BaseThermodynamicModel",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classBaseThermodynamicModel.html",tooltip="Peng-Robinson (real-gas) thermodynamic model. "];
+  Node4 -> Node2 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" nr_PT_solver" ,fontname="Helvetica"];
+  Node4 [label="PengRobinsonModel::\lNR_P_T_from_rho_e",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled",tooltip="Newton-Raphson solver nested class used to obtain P & T from rho & e. "];
+  Node5 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="NewtonRaphson",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classNewtonRaphson.html"];
+  Node6 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="BaseRootFindingMinimization",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classBaseRootFindingMinimization.html",tooltip="NewtonRaphson. "];
+  Node2 -> Node4 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" pr_model" ,fontname="Helvetica"];
+}
