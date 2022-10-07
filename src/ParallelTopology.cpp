@@ -461,10 +461,10 @@ void ParallelTopology::calculate_tags()
     }
  
     // SOUTH FRONT
-    if((lbounds[_SOUTH_] == _PERIODIC_  || lbounds[_SOUTH_] == _NO_BOCO_)  && (lbounds[_BACK_] != _PERIODIC_  && lbounds[_BACK_] != _NO_BOCO_)  ){
+    if((lbounds[_SOUTH_] == _PERIODIC_  || lbounds[_SOUTH_] == _NO_BOCO_)  && (lbounds[_FRONT_] != _PERIODIC_  && lbounds[_FRONT_] != _NO_BOCO_)  ){
        tagid_r[_SOUTH_F_] = _NORTH_F_;
     }
-    else  if((lbounds[_BACK_] == _PERIODIC_  || lbounds[_BACK_] == _NO_BOCO_) && (lbounds[_SOUTH_] != _PERIODIC_  && lbounds[_SOUTH_] != _NO_BOCO_) ){
+    else  if((lbounds[_FRONT_] == _PERIODIC_  || lbounds[_FRONT_] == _NO_BOCO_) && (lbounds[_SOUTH_] != _PERIODIC_  && lbounds[_SOUTH_] != _NO_BOCO_) ){
        tagid_r[_SOUTH_F_] = _SOUTH_B_;
     }
     else{ //In case double periodic or internals no periodic
@@ -472,10 +472,10 @@ void ParallelTopology::calculate_tags()
     }
  
     // NORTH FRONT
-    if((lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_) && (lbounds[_BACK_] != _PERIODIC_  && lbounds[_BACK_] != _NO_BOCO_)){
+    if((lbounds[_NORTH_] == _PERIODIC_ || lbounds[_NORTH_] == _NO_BOCO_) && (lbounds[_FRONT_] != _PERIODIC_  && lbounds[_FRONT_] != _NO_BOCO_)){
        tagid_r[_NORTH_F_] = _SOUTH_F_;
     }
-    else  if((lbounds[_BACK_] == _PERIODIC_ || lbounds[_BACK_] == _NO_BOCO_) && (lbounds[_NORTH_] != _PERIODIC_ && lbounds[_NORTH_] != _NO_BOCO_)){
+    else  if((lbounds[_FRONT_] == _PERIODIC_ || lbounds[_FRONT_] == _NO_BOCO_) && (lbounds[_NORTH_] != _PERIODIC_ && lbounds[_NORTH_] != _NO_BOCO_)){
        tagid_r[_NORTH_F_] = _NORTH_B_;
     }
     else{ //In case double periodic or internals no periodic
