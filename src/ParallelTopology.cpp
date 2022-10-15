@@ -2393,8 +2393,8 @@ void ParallelTopology::create_complex_toSend_iters()
          {
                  iter_toSend[_WEST_S_][_INIX_] =   0;// <= this
                  iter_toSend[_WEST_S_][_ENDX_] =   0;
-                 iter_toSend[_WEST_S_][_INIY_] = lNy-2;
-                 iter_toSend[_WEST_S_][_ENDY_] = lNy-2;
+                 iter_toSend[_WEST_S_][_INIY_] =   1;
+                 iter_toSend[_WEST_S_][_ENDY_] =   1;
                  iter_toSend[_WEST_S_][_INIZ_] =   1;
                  iter_toSend[_WEST_S_][_ENDZ_] = lNz-2;
          }
@@ -2566,8 +2566,8 @@ void ParallelTopology::create_complex_toSend_iters()
             iter_toSend[_EAST_B_][_ENDX_] = lNx-2;
             iter_toSend[_EAST_B_][_INIY_] =   1;
             iter_toSend[_EAST_B_][_ENDY_] = lNy-2;
-            iter_toSend[_EAST_B_][_INIZ_] = lNz-1;
-            iter_toSend[_EAST_B_][_ENDZ_] = lNz-1;
+            iter_toSend[_EAST_B_][_INIZ_] =   0;
+            iter_toSend[_EAST_B_][_ENDZ_] =   0;
 
 
         }
