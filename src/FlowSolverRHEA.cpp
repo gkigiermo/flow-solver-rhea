@@ -184,6 +184,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     avg_rhov_field.setTopology(topo,"avg_rhov");
     avg_rhow_field.setTopology(topo,"avg_rhow");
     avg_rhoE_field.setTopology(topo,"avg_rhoE");
+    avg_rhoP_field.setTopology(topo,"avg_rhoP");
+    avg_rhoT_field.setTopology(topo,"avg_rhoT");
     avg_u_field.setTopology(topo,"avg_u");
     avg_v_field.setTopology(topo,"avg_v");
     avg_w_field.setTopology(topo,"avg_w");
@@ -211,18 +213,15 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     rmsf_kappa_field.setTopology(topo,"rmsf_kappa");
     rmsf_c_v_field.setTopology(topo,"rmsf_c_v");
     rmsf_c_p_field.setTopology(topo,"rmsf_c_p");
-    R_reynolds_uu_field.setTopology(topo,"R_reynolds_uu");
-    R_reynolds_uv_field.setTopology(topo,"R_reynolds_uv");
-    R_reynolds_uw_field.setTopology(topo,"R_reynolds_uw");
-    R_reynolds_vv_field.setTopology(topo,"R_reynolds_vv");
-    R_reynolds_vw_field.setTopology(topo,"R_reynolds_vw");
-    R_reynolds_ww_field.setTopology(topo,"R_reynolds_ww");
-    R_favre_uu_field.setTopology(topo,"R_favre_uu");
-    R_favre_uv_field.setTopology(topo,"R_favre_uv");
-    R_favre_uw_field.setTopology(topo,"R_favre_uw");
-    R_favre_vv_field.setTopology(topo,"R_favre_vv");
-    R_favre_vw_field.setTopology(topo,"R_favre_vw");
-    R_favre_ww_field.setTopology(topo,"R_favre_ww");    
+    favre_uffuff_field.setTopology(topo,"favre_uffuff");
+    favre_uffvff_field.setTopology(topo,"favre_uffvff");
+    favre_uffwff_field.setTopology(topo,"favre_uffwff");
+    favre_vffvff_field.setTopology(topo,"favre_vffvff");
+    favre_vffwff_field.setTopology(topo,"favre_vffwff");
+    favre_wffwff_field.setTopology(topo,"favre_wffwff");
+    favre_uffEff_field.setTopology(topo,"favre_uffEff");
+    favre_vffEff_field.setTopology(topo,"favre_vffEff");
+    favre_wffEff_field.setTopology(topo,"favre_wffEff");
 
     /// Fill mesh x, y, z, delta_x, delta_y, delta_z fields
     this->fillMeshCoordinatesSizesFields();
@@ -254,6 +253,8 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     writer_reader->addField(&avg_rhov_field);
     writer_reader->addField(&avg_rhow_field);
     writer_reader->addField(&avg_rhoE_field);
+    writer_reader->addField(&avg_rhoP_field);
+    writer_reader->addField(&avg_rhoT_field);
     writer_reader->addField(&avg_u_field);
     writer_reader->addField(&avg_v_field);
     writer_reader->addField(&avg_w_field);
@@ -281,18 +282,15 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     writer_reader->addField(&rmsf_kappa_field);
     writer_reader->addField(&rmsf_c_v_field);
     writer_reader->addField(&rmsf_c_p_field);
-    writer_reader->addField(&R_reynolds_uu_field);
-    writer_reader->addField(&R_reynolds_uv_field);
-    writer_reader->addField(&R_reynolds_uw_field);
-    writer_reader->addField(&R_reynolds_vv_field);
-    writer_reader->addField(&R_reynolds_vw_field);
-    writer_reader->addField(&R_reynolds_ww_field);
-    writer_reader->addField(&R_favre_uu_field);
-    writer_reader->addField(&R_favre_uv_field);
-    writer_reader->addField(&R_favre_uw_field);
-    writer_reader->addField(&R_favre_vv_field);
-    writer_reader->addField(&R_favre_vw_field);
-    writer_reader->addField(&R_favre_ww_field);
+    writer_reader->addField(&favre_uffuff_field);
+    writer_reader->addField(&favre_uffvff_field);
+    writer_reader->addField(&favre_uffwff_field);
+    writer_reader->addField(&favre_vffvff_field);
+    writer_reader->addField(&favre_vffwff_field);
+    writer_reader->addField(&favre_wffwff_field);
+    writer_reader->addField(&favre_uffEff_field);
+    writer_reader->addField(&favre_vffEff_field);
+    writer_reader->addField(&favre_wffEff_field);
 
     /// Construct (initialize) timers
     timers = new ParallelTimer();
@@ -606,6 +604,8 @@ void FlowSolverRHEA::initializeFromRestart() {
         avg_rhov_field      = 0.0;
         avg_rhow_field      = 0.0;
         avg_rhoE_field      = 0.0;
+        avg_rhoP_field      = 0.0;
+        avg_rhoT_field      = 0.0;
         avg_u_field         = 0.0;
         avg_v_field         = 0.0;
         avg_w_field         = 0.0;
@@ -633,18 +633,15 @@ void FlowSolverRHEA::initializeFromRestart() {
         rmsf_kappa_field    = 0.0;
         rmsf_c_v_field      = 0.0;
         rmsf_c_p_field      = 0.0;
-        R_reynolds_uu_field = 0.0;
-        R_reynolds_uv_field = 0.0;
-        R_reynolds_uw_field = 0.0;
-        R_reynolds_vv_field = 0.0;
-        R_reynolds_vw_field = 0.0;
-        R_reynolds_ww_field = 0.0;
-        R_favre_uu_field = 0.0;
-        R_favre_uv_field = 0.0;
-        R_favre_uw_field = 0.0;
-        R_favre_vv_field = 0.0;
-        R_favre_vw_field = 0.0;
-        R_favre_ww_field = 0.0;
+        favre_uffuff_field = 0.0;
+        favre_uffvff_field = 0.0;
+        favre_uffwff_field = 0.0;
+        favre_vffvff_field = 0.0;
+        favre_vffwff_field = 0.0;
+        favre_wffwff_field = 0.0;
+        favre_uffEff_field = 0.0;
+        favre_vffEff_field = 0.0;
+        favre_wffEff_field = 0.0;
 
     }
 
@@ -666,6 +663,8 @@ void FlowSolverRHEA::initializeFromRestart() {
     avg_rhov_field.update();
     avg_rhow_field.update();
     avg_rhoE_field.update();
+    avg_rhoP_field.update();
+    avg_rhoT_field.update();
     avg_u_field.update();
     avg_v_field.update();
     avg_w_field.update();
@@ -693,18 +692,15 @@ void FlowSolverRHEA::initializeFromRestart() {
     rmsf_kappa_field.update();
     rmsf_c_v_field.update();
     rmsf_c_p_field.update();
-    R_reynolds_uu_field.update();
-    R_reynolds_uv_field.update();
-    R_reynolds_uw_field.update();
-    R_reynolds_vv_field.update();
-    R_reynolds_vw_field.update();
-    R_reynolds_ww_field.update();
-    R_favre_uu_field.update();
-    R_favre_uv_field.update();
-    R_favre_uw_field.update();
-    R_favre_vv_field.update();
-    R_favre_vw_field.update();
-    R_favre_ww_field.update();
+    favre_uffuff_field.update();
+    favre_uffvff_field.update();
+    favre_uffwff_field.update();
+    favre_vffvff_field.update();
+    favre_vffwff_field.update();
+    favre_wffwff_field.update();
+    favre_uffEff_field.update();
+    favre_vffEff_field.update();
+    favre_wffEff_field.update();
 
     /// Fill mesh x, y, z, delta_x, delta_y, delta_z fields
     this->fillMeshCoordinatesSizesFields();
@@ -2242,14 +2238,14 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
     #pragma acc data copy (rho_field.vector[0:local_size],rhou_field.vector[0:local_size],rhov_field.vector[0:local_size],rhow_field.vector[0:local_size],rhoE_field.vector[0:local_size])
     #pragma acc data copy (u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],T_field.vector[0:local_size])
     #pragma acc data copy (sos_field.vector[0:local_size],mu_field.vector[0:local_size],kappa_field.vector[0:local_size],c_v_field.vector[0:local_size],c_p_field.vector[0:local_size])
-    #pragma acc data copy (avg_rho_field.vector[0:local_size],avg_rhou_field.vector[0:local_size],avg_rhov_field.vector[0:local_size],avg_rhow_field.vector[0:local_size],avg_rhoE_field.vector[0:local_size])
+    #pragma acc data copy (avg_rho_field.vector[0:local_size],avg_rhou_field.vector[0:local_size],avg_rhov_field.vector[0:local_size],avg_rhow_field.vector[0:local_size],avg_rhoE_field.vector[0:local_size],avg_rhoP_field.vector[0:local_size],avg_rhoT_field.vector[0:local_size])
     #pragma acc data copy (avg_u_field.vector[0:local_size],avg_v_field.vector[0:local_size],avg_w_field.vector[0:local_size],avg_E_field.vector[0:local_size],avg_P_field.vector[0:local_size],avg_T_field.vector[0:local_size])
     #pragma acc data copy (avg_sos_field.vector[0:local_size],avg_mu_field.vector[0:local_size],avg_kappa_field.vector[0:local_size],avg_c_v_field.vector[0:local_size],avg_c_p_field.vector[0:local_size])
     #pragma acc data copy (rmsf_rho_field.vector[0:local_size],rmsf_rhou_field.vector[0:local_size],rmsf_rhov_field.vector[0:local_size],rmsf_rhow_field.vector[0:local_size],rmsf_rhoE_field.vector[0:local_size])
     #pragma acc data copy (rmsf_u_field.vector[0:local_size],rmsf_v_field.vector[0:local_size],rmsf_w_field.vector[0:local_size],rmsf_E_field.vector[0:local_size],rmsf_P_field.vector[0:local_size],rmsf_T_field.vector[0:local_size])
     #pragma acc data copy (rmsf_sos_field.vector[0:local_size],rmsf_mu_field.vector[0:local_size],rmsf_kappa_field.vector[0:local_size],rmsf_c_v_field.vector[0:local_size],rmsf_c_p_field.vector[0:local_size])
-    #pragma acc data copy (R_reynolds_uu_field.vector[0:local_size],R_reynolds_uv_field.vector[0:local_size],R_reynolds_uw_field.vector[0:local_size],R_reynolds_vv_field.vector[0:local_size],R_reynolds_vw_field.vector[0:local_size],R_reynolds_ww_field.vector[0:local_size])
-    #pragma acc data copy (R_favre_uu_field.vector[0:local_size],R_favre_uv_field.vector[0:local_size],R_favre_uw_field.vector[0:local_size],R_favre_vv_field.vector[0:local_size],R_favre_vw_field.vector[0:local_size],R_favre_ww_field.vector[0:local_size])
+    #pragma acc data copy (favre_uffuff_field.vector[0:local_size],favre_uffvff_field.vector[0:local_size],favre_uffwff_field.vector[0:local_size],favre_vffvff_field.vector[0:local_size],favre_vffwff_field.vector[0:local_size],favre_wffwff_field.vector[0:local_size])
+    #pragma acc data copy (favre_uffEff_field.vector[0:local_size],favre_vffEff_field.vector[0:local_size],favre_wffEff_field.vector[0:local_size])
     #pragma acc parallel loop collapse (3)
     for(int i = inix; i <= endx; i++) {
         for(int j = iniy; j <= endy; j++) {
@@ -2266,6 +2262,8 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
                 avg_rhov_field[I1D(i,j,k)]  = updateTimeMeanQuantity(rhov_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],delta_t,averaging_time);
                 avg_rhow_field[I1D(i,j,k)]  = updateTimeMeanQuantity(rhow_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],delta_t,averaging_time);
                 avg_rhoE_field[I1D(i,j,k)]  = updateTimeMeanQuantity(rhoE_field[I1D(i,j,k)],avg_rhoE_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_rhoP_field[I1D(i,j,k)]  = updateTimeMeanQuantity(rho_field[I1D(i,j,k)]*P_field[I1D(i,j,k)],avg_rhoP_field[I1D(i,j,k)],delta_t,averaging_time);
+                avg_rhoT_field[I1D(i,j,k)]  = updateTimeMeanQuantity(rho_field[I1D(i,j,k)]*T_field[I1D(i,j,k)],avg_rhoT_field[I1D(i,j,k)],delta_t,averaging_time);
                 avg_u_field[I1D(i,j,k)]     = updateTimeMeanQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],delta_t,averaging_time);
                 avg_v_field[I1D(i,j,k)]     = updateTimeMeanQuantity(v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],delta_t,averaging_time);
                 avg_w_field[I1D(i,j,k)]     = updateTimeMeanQuantity(w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],delta_t,averaging_time);
@@ -2296,21 +2294,16 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
                 rmsf_c_v_field[I1D(i,j,k)]   = updateTimeRmsfQuantity(c_v_field[I1D(i,j,k)],avg_c_v_field[I1D(i,j,k)],rmsf_c_v_field[I1D(i,j,k)],delta_t,averaging_time);
                 rmsf_c_p_field[I1D(i,j,k)]   = updateTimeRmsfQuantity(c_p_field[I1D(i,j,k)],avg_c_p_field[I1D(i,j,k)],rmsf_c_p_field[I1D(i,j,k)],delta_t,averaging_time);
 
-                /// Reynolds-averaged turbulent stress tensor quantities
-                R_reynolds_uu_field[I1D(i,j,k)] = updateTimeReynoldsAveragedQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],R_reynolds_uu_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_reynolds_uv_field[I1D(i,j,k)] = updateTimeReynoldsAveragedQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],R_reynolds_uv_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_reynolds_uw_field[I1D(i,j,k)] = updateTimeReynoldsAveragedQuantity(u_field[I1D(i,j,k)],avg_u_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],R_reynolds_uw_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_reynolds_vv_field[I1D(i,j,k)] = updateTimeReynoldsAveragedQuantity(v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],R_reynolds_vv_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_reynolds_vw_field[I1D(i,j,k)] = updateTimeReynoldsAveragedQuantity(v_field[I1D(i,j,k)],avg_v_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],R_reynolds_vw_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_reynolds_ww_field[I1D(i,j,k)] = updateTimeReynoldsAveragedQuantity(w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_w_field[I1D(i,j,k)],R_reynolds_ww_field[I1D(i,j,k)],delta_t,averaging_time);
-
-                /// Favre-averaged turbulent stress tensor quantities
-                R_favre_uu_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_uu_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_favre_uv_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_uv_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_favre_uw_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_uw_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_favre_vv_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_vv_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_favre_vw_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_vw_field[I1D(i,j,k)],delta_t,averaging_time);
-                R_favre_ww_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],R_favre_ww_field[I1D(i,j,k)],delta_t,averaging_time);
+                /// Favre-averaged quantities
+		favre_uffuff_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],favre_uffuff_field[I1D(i,j,k)],delta_t,averaging_time); 
+		favre_uffvff_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],favre_uffvff_field[I1D(i,j,k)],delta_t,averaging_time); 
+		favre_uffwff_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],favre_uffwff_field[I1D(i,j,k)],delta_t,averaging_time); 
+		favre_vffvff_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],favre_vffvff_field[I1D(i,j,k)],delta_t,averaging_time); 
+		favre_vffwff_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],favre_vffwff_field[I1D(i,j,k)],delta_t,averaging_time); 
+		favre_wffwff_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],favre_wffwff_field[I1D(i,j,k)],delta_t,averaging_time); 
+		favre_uffEff_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(u_field[I1D(i,j,k)],avg_rhou_field[I1D(i,j,k)],E_field[I1D(i,j,k)],avg_rhoE_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],favre_uffEff_field[I1D(i,j,k)],delta_t,averaging_time); 
+		favre_vffEff_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(v_field[I1D(i,j,k)],avg_rhov_field[I1D(i,j,k)],E_field[I1D(i,j,k)],avg_rhoE_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],favre_vffEff_field[I1D(i,j,k)],delta_t,averaging_time); 
+		favre_wffEff_field[I1D(i,j,k)] = updateTimeFavreAveragedQuantity(w_field[I1D(i,j,k)],avg_rhow_field[I1D(i,j,k)],E_field[I1D(i,j,k)],avg_rhoE_field[I1D(i,j,k)],rho_field[I1D(i,j,k)],avg_rho_field[I1D(i,j,k)],favre_wffEff_field[I1D(i,j,k)],delta_t,averaging_time); 
             }
         }
     }
@@ -2324,6 +2317,8 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
     //avg_rhov_field.update();
     //avg_rhow_field.update();
     //avg_rhoE_field.update();
+    //avg_rhoP_field.update();
+    //avg_rhoT_field.update();
     //avg_u_field.update();
     //avg_v_field.update();
     //avg_w_field.update();
@@ -2351,18 +2346,12 @@ void FlowSolverRHEA::updateTimeAveragedQuantities() {
     //rmsf_kappa_field.update();
     //rmsf_c_v_field.update();
     //rmsf_c_p_field.update();
-    //R_reynolds_uu_field.update();
-    //R_reynolds_uv_field.update();
-    //R_reynolds_uw_field.update();
-    //R_reynolds_vv_field.update();
-    //R_reynolds_vw_field.update();
-    //R_reynolds_ww_field.update();
-    //R_favre_uu_field.update();
-    //R_favre_uv_field.update();
-    //R_favre_uw_field.update();
-    //R_favre_vv_field.update();
-    //R_favre_vw_field.update();
-    //R_favre_ww_field.update();
+    //favre_uffuff_field.update();
+    //favre_uffvff_field.update();
+    //favre_uffwff_field.update();
+    //favre_vffvff_field.update();
+    //favre_vffwff_field.update();
+    //favre_wffwff_field.update();
 
 };
 
@@ -2382,17 +2371,17 @@ double FlowSolverRHEA::updateTimeRmsfQuantity(const double &quantity, const doub
 
 };
 
-double FlowSolverRHEA::updateTimeReynoldsAveragedQuantity(const double &quantity_1, const double &mean_quantity_1, const double &quantity_2, const double &mean_quantity_2, const double &reynolds_averaged_quantity, const double &delta_t, const double &averaging_time) {
-
-    double fluctuating_quantity_1         = quantity_1 - mean_quantity_1;
-    double fluctuating_quantity_2         = quantity_2 - mean_quantity_2;
-    double product_fluctuating_quantities = fluctuating_quantity_1*fluctuating_quantity_2;
-
-    double updated_reynolds_averaged_quantity = ( reynolds_averaged_quantity*averaging_time + product_fluctuating_quantities*delta_t )/( averaging_time + delta_t ); 
-
-    return( updated_reynolds_averaged_quantity );
-
-};
+//double FlowSolverRHEA::updateTimeReynoldsAveragedQuantity(const double &quantity_1, const double &mean_quantity_1, const double &quantity_2, const double &mean_quantity_2, const double &reynolds_averaged_quantity, const double &delta_t, const double &averaging_time) {
+//
+//    double fluctuating_quantity_1         = quantity_1 - mean_quantity_1;
+//    double fluctuating_quantity_2         = quantity_2 - mean_quantity_2;
+//    double product_fluctuating_quantities = fluctuating_quantity_1*fluctuating_quantity_2;
+//
+//    double updated_reynolds_averaged_quantity = ( reynolds_averaged_quantity*averaging_time + product_fluctuating_quantities*delta_t )/( averaging_time + delta_t ); 
+//
+//    return( updated_reynolds_averaged_quantity );
+//
+//};
 
 double FlowSolverRHEA::updateTimeFavreAveragedQuantity(const double &quantity_1, const double &mean_rho_quantity_1, const double &quantity_2, const double &mean_rho_quantity_2, const double &rho, const double &mean_rho, const double &favre_averaged_quantity, const double &delta_t, const double &averaging_time) {
 
