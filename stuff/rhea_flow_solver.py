@@ -1047,7 +1047,7 @@ def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, mu, kapp
                                         + ( 0.25/delta_x )*( ( v[i+1][j+1][k] - v[i+1][j-1][k] )/delta_y
                                                            - ( v[i-1][j+1][k] - v[i-1][j-1][k] )/delta_y )
                                         + ( 0.25/delta_x )*( ( w[i+1][j][k+1] - w[i+1][j][k-1] )/delta_z
-                                                           - ( w[i-1][j][k+1] - w[i-1][j][k-1] )/delta_z ) )                                                                   + d_mu_x*tau_xx + d_mu_y*tau_xy + d_mu_z*tau_xz
+                                                           - ( w[i-1][j][k+1] - w[i-1][j][k-1] )/delta_z ) )                                                                   + ( d_mu_x*tau_xx + d_mu_y*tau_xy + d_mu_z*tau_xz )/( mu[i][j][k] + epsilon )
                 div_tau_y = mu[i][j][k]*( ( 1.00/delta_x )*( ( v[i+1][j][k] - v[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
                                                            - ( v[i][j][k] - v[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
                                         + ( 1.00/delta_y )*( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
@@ -1058,7 +1058,7 @@ def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, mu, kapp
                                         + ( 1.00/delta_y )*( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
                                                            - ( v[i][j][k] - v[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
                                         + ( 0.25/delta_y )*( ( w[i][j+1][k+1] - w[i][j+1][k-1] )/delta_z
-                                                           - ( w[i][j-1][k+1] - w[i][j-1][k-1] )/delta_z ) )                                                                   + d_mu_x*tau_xy + d_mu_y*tau_yy + d_mu_z*tau_yz
+                                                           - ( w[i][j-1][k+1] - w[i][j-1][k-1] )/delta_z ) )                                                                   + ( d_mu_x*tau_xy + d_mu_y*tau_yy + d_mu_z*tau_yz )/( mu[i][j][k] + epsilon )
                 div_tau_z = mu[i][j][k]*( ( 1.00/delta_x )*( ( w[i+1][j][k] - w[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
                                                            - ( w[i][j][k] - w[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
                                         + ( 1.00/delta_y )*( ( w[i][j+1][k] - w[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
@@ -1069,7 +1069,7 @@ def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, mu, kapp
                                         + ( 0.25/delta_z )*( ( v[i][j+1][k+1] - v[i][j-1][k+1] )/delta_y
                                                            - ( v[i][j+1][k-1] - v[i][j-1][k-1] )/delta_y )
                                         + ( 1.00/delta_z )*( ( w[i][j][k+1] - w[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                           - ( w[i][j][k] - w[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )                                       + d_mu_x*tau_xz + d_mu_y*tau_yz + d_mu_z*tau_zz
+                                                           - ( w[i][j][k] - w[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )                                       + ( d_mu_x*tau_xz + d_mu_y*tau_yz + d_mu_z*tau_zz )/( mu[i][j][k] + epsilon )
                 ## Fourier term
                 div_q = ( -1.0 )*kappa[i][j][k]*( ( 1.0/delta_x )*( ( T[i+1][j][k] - T[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
                                                                   - ( T[i][j][k] - T[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )

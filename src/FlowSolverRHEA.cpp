@@ -2020,7 +2020,7 @@ void FlowSolverRHEA::calculateViscousFluxes() {
                                                                     - ( v_field[I1D(i-1,j+1,k)] - v_field[I1D(i-1,j-1,k)] )/delta_y )
                                                  + ( 0.25/delta_x )*( ( w_field[I1D(i+1,j,k+1)] - w_field[I1D(i+1,j,k-1)] )/delta_z
                                                                     - ( w_field[I1D(i-1,j,k+1)] - w_field[I1D(i-1,j,k-1)] )/delta_z ) )
-	                  + d_mu_x*tau_xx + d_mu_y*tau_xy + d_mu_z*tau_xz;
+	                  + ( d_mu_x*tau_xx + d_mu_y*tau_xy + d_mu_z*tau_xz )/( mu_field[I1D(i,j,k)] + epsilon );
                 div_tau_y = mu_field[I1D(i,j,k)]*( ( 1.00/delta_x )*( ( v_field[I1D(i+1,j,k)] - v_field[I1D(i,j,k)] )/( x_field[I1D(i+1,j,k)] - x_field[I1D(i,j,k)] )
                                                                     - ( v_field[I1D(i,j,k)] - v_field[I1D(i-1,j,k)] )/( x_field[I1D(i,j,k)] - x_field[I1D(i-1,j,k)] ) )
                                                  + ( 1.00/delta_y )*( ( v_field[I1D(i,j+1,k)] - v_field[I1D(i,j,k)] )/( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j,k)] )
@@ -2033,7 +2033,7 @@ void FlowSolverRHEA::calculateViscousFluxes() {
                                                                     - ( v_field[I1D(i,j,k)] - v_field[I1D(i,j-1,k)] )/( y_field[I1D(i,j,k)] - y_field[I1D(i,j-1,k)] ) )
                                                  + ( 0.25/delta_y )*( ( w_field[I1D(i,j+1,k+1)] - w_field[I1D(i,j+1,k-1)] )/delta_z
                                                                     - ( w_field[I1D(i,j-1,k+1)] - w_field[I1D(i,j-1,k-1)] )/delta_z ) )
-	                  + d_mu_x*tau_xy + d_mu_y*tau_yy + d_mu_z*tau_yz;
+	                  + ( d_mu_x*tau_xy + d_mu_y*tau_yy + d_mu_z*tau_yz )/( mu_field[I1D(i,j,k)] + epsilon );
                 div_tau_z = mu_field[I1D(i,j,k)]*( ( 1.00/delta_x )*( ( w_field[I1D(i+1,j,k)] - w_field[I1D(i,j,k)] )/( x_field[I1D(i+1,j,k)] - x_field[I1D(i,j,k)] )
                                                                     - ( w_field[I1D(i,j,k)] - w_field[I1D(i-1,j,k)] )/( x_field[I1D(i,j,k)] - x_field[I1D(i-1,j,k)] ) )
                                                  + ( 1.00/delta_y )*( ( w_field[I1D(i,j+1,k)] - w_field[I1D(i,j,k)] )/( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j,k)] )
@@ -2046,7 +2046,7 @@ void FlowSolverRHEA::calculateViscousFluxes() {
                                                                     - ( v_field[I1D(i,j+1,k-1)] - v_field[I1D(i,j-1,k-1)] )/delta_y )
                                                  + ( 1.00/delta_z )*( ( w_field[I1D(i,j,k+1)] - w_field[I1D(i,j,k)] )/( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k)] )
                                                                     - ( w_field[I1D(i,j,k)] - w_field[I1D(i,j,k-1)] )/( z_field[I1D(i,j,k)] - z_field[I1D(i,j,k-1)] ) ) )
-	                  + d_mu_x*tau_xz + d_mu_y*tau_yz + d_mu_z*tau_zz;
+	                  + ( d_mu_x*tau_xz + d_mu_y*tau_yz + d_mu_z*tau_zz )/( mu_field[I1D(i,j,k)] + epsilon );
                 /// Fourier term
                 div_q = ( -1.0 )*kappa_field[I1D(i,j,k)]*( ( 1.0/delta_x )*( ( T_field[I1D(i+1,j,k)] - T_field[I1D(i,j,k)] )/( x_field[I1D(i+1,j,k)] - x_field[I1D(i,j,k)] )
                                                                            - ( T_field[I1D(i,j,k)] - T_field[I1D(i-1,j,k)] )/( x_field[I1D(i,j,k)] - x_field[I1D(i-1,j,k)] ) )
