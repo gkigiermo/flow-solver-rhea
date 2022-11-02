@@ -31,7 +31,7 @@ void ParallelTimer::start(string str)
 void ParallelTimer::stop(string str)
 {
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
     time_array[str][1] = getTime_cpu();
     time_array[str][2] = time_array[str][1] - time_array[str][0];      
 
