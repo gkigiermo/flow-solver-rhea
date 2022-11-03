@@ -20,3 +20,18 @@ test_1d_high_pressure_framework:
     - make clean
     - cd ../..
     - echo "Stop testing 1d_high_pressure_framework"
+
+test_2d_taylor_green_vortex:
+  stage: test
+  tags:
+    - flowsolverrhea  
+  script:
+    - echo "Start testing 2d_taylor_green_vortex"
+    - cd tests/2d_taylor_green_vortex
+    - export RHEA_PATH='../..'
+    - make
+    - ./execute.sh
+    - rm *.h5 *.xdmf timers_information_file.txt
+    - make clean
+    - cd ../..
+    - echo "Stop testing 2d_taylor_green_vortex"
