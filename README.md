@@ -41,9 +41,8 @@ The lines below provide detailed instructions for installing, compiling, running
 
 INSTALLATION:
 - Install (if not already available) C++ compiler & toolchain:
-$ sudo apt update
 $ sudo apt install build-essential make
-- Install (required) openmpi, yaml-cpp and hdf5 packages & libraries:
+- Install (required) openmpi, yaml-cpp and hdf5 libraries:
 $ sudo apt install libopenmpi-dev libyaml-cpp-dev libhdf5-openmpi-dev
 - Install (auxiliary) post-processing packages & libraries:
 $ sudo apt install texlive-full python3.8 python3-pip paraview
