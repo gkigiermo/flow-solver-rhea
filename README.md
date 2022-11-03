@@ -32,4 +32,44 @@ SUPPORT, ISSUES & CONTRIBUTION
 - Documentation of the classes, functions and variables is available in doxygen/html
 - Additional support is provided via the "Service Desk" of the project
 - Issues can be reported utilizing the "Issues" functionality menu
-- Contributions can be proposed, discussed and incorporated through "Merge requests" 
+- Contributions can be proposed, discussed and incorporated through "Merge requests"
+
+--------------------------------------------------
+STEP-BY-STEP GUIDE: Ubuntu 22.04.1 LTS (Jammy Jellyfish)
+
+The lines below provide detailed instructions for installing, compiling, running and post-processing the 3d_turbulent_channel_flow test on CPU-based computing architectures.
+
+INSTALLATION:
+- Install (if not already available) C++ compiler & toolchain:
+$ sudo apt update
+$ sudo apt install build-essential make
+- Install (required) openmpi, yaml-cpp and hdf5 packages & libraries:
+$ sudo apt install libopenmpi-dev libyaml-cpp-dev libhdf5-openmpi-dev
+- Install (auxiliary) post-processing packages & libraries:
+$ sudo apt install texlive-full python3.8 python3-pip paraview
+- Install (auxiliary) python packages & libraries:
+$ sudo pip3 install numpy scipy python3-matplotlib h5py
+- Clone repository into working directory (e.g., $HOME):
+$ git clone https://gitlab.com/ProjectRHEA/flowsolverrhea.git
+- Write RHEA's path in ~/.bashrc (e.g., $HOME directory):
+export RHEA_PATH='$HOME'
+- Reload bashrc settings:
+$ source ~/.bashrc
+- Makefile files are already prepared for this installation
+
+COMPILATION:
+- Change directory to the 3d_turbulent_channel_flow test:
+$ cd $RHEA_PATH/tests/3d_turbulent_channel_flow
+- Compile test case by executing:
+$ make
+
+EXECUTION:
+- Modify configuration_file.yaml file to output data every 1000 iterations:
+output_frequency_iter: 1000
+- Execute simulation on 4 CPUs by running:
+$ mpirun -np 4 ./RHEA.exe configuration_file.yaml
+- Visualize output files with paraview:
+$ paraview
+- Post-process output data using python script:
+$ python3 post_process_plot_script.py 
+--------------------------------------------------
