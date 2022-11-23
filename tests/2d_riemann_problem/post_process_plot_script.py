@@ -6,7 +6,6 @@ import numpy as np
 import math
 import h5py
 import matplotlib.pyplot as plt
-from matplotlib.mlab import griddata
 from matplotlib import rc,rcParams
 import matplotlib.colors as colors
 from matplotlib import ticker
