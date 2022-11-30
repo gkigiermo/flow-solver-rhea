@@ -16,15 +16,15 @@ INSTALLATION:
    - CPU-GPU flags with managed OpenACC: CXXFLAGS = -fast -acc -ta=tesla:managed -Minfo=accel -O3 -Wall -std=c++0x -I$(PROJECT_PATH)
    - CPU-GPU flags with non-managed OpenACC: CXXFLAGS= -fast -acc -ta=tesla,pinned -Minfo=accel -O3 -Wall -std=c++0x -I$(PROJECT_PATH)
    - Ubuntu - Linux paths:
-      INC_LIB_YAML =
-      INC_DIR_YAML =
-      INC_LIB_HDF5 = -L/usr/lib/x86_64-linux-gnu/hdf5/openmpi 
-      INC_DIR_HDF5 = -I/usr/include/hdf5/openmpi
+      INC_LIB_YAML = ;
+      INC_DIR_YAML = ;
+      INC_LIB_HDF5 = -L/usr/lib/x86_64-linux-gnu/hdf5/openmpi;
+      INC_DIR_HDF5 = -I/usr/include/hdf5/openmpi;
    - MAC - OS X paths:
-      INC_LIB_YAML = -L/usr/local/lib
-      INC_DIR_YAML = -I/usr/local/include
-      INC_LIB_HDF5 =
-      INC_DIR_HDF5 =
+      INC_LIB_YAML = -L/usr/local/lib;
+      INC_DIR_YAML = -I/usr/local/include;
+      INC_LIB_HDF5 = ;
+      INC_DIR_HDF5 = ;
 
 COMPILATION:
 - In myRHEA.cpp, overwrite setInitialConditions and calculateSourceTerms
