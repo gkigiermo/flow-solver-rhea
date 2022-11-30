@@ -11,7 +11,20 @@ INSTALLATION:
 - OpenACC requisites (if CPU-GPU available): NVIDIA HPC SDK compiler (version 21.5)
 - Clone/Download/Copy repository into working directory
 - Set environment variable with RHEA's path: export RHEA_PATH='path_to_rhea_root_directory' 
-- Adapt Makefile (compiler, flags & paths: CXX, CXXFLAGS, LDFLAGS, INC_LIB_YAML, INC_DIR_YAML, INC_LIB_HDF5, INC_DIR_HDF5) to the computing system
+- Adapt Makefile (compilation flags & paths: CXXFLAGS, INC_LIB_YAML, INC_DIR_YAML, INC_LIB_HDF5, INC_DIR_HDF5) to the computing system:
+   - Example of CPU flags: CXXFLAGS = -O3 -Wall -std=c++0x -Wno-unknown-pragmas -Wno-unused-variable -I$(PROJECT_PATH)
+   - Example of CPU-GPU flags with managed OpenACC: CXXFLAGS = -fast -acc -ta=tesla:managed -Minfo=accel -O3 -Wall -std=c++0x -I$(PROJECT_PATH)
+   - Example of CPU-GPU flags with non-managed OpenACC: CXXFLAGS= -fast -acc -ta=tesla,pinned -Minfo=accel -O3 -Wall -std=c++0x -I$(PROJECT_PATH)
+   - Example of Ubuntu - Linux paths:
+      INC_LIB_YAML =
+      INC_DIR_YAML =
+      INC_LIB_HDF5 = -L/usr/lib/x86_64-linux-gnu/hdf5/openmpi 
+      INC_DIR_HDF5 = -I/usr/include/hdf5/openmpi
+   - Example of MAC - OS X paths:
+      INC_LIB_YAML = -L/usr/local/lib
+      INC_DIR_YAML = -I/usr/local/include
+      INC_LIB_HDF5 =
+      INC_DIR_HDF5 =
 
 COMPILATION:
 - In myRHEA.cpp, overwrite setInitialConditions and calculateSourceTerms
