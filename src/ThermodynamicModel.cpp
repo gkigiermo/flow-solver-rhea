@@ -152,10 +152,11 @@ double IdealGasModel::calculateSoundSpeed(const double &P, const double &T, cons
 
 double IdealGasModel::calculateVolumeExpansivity(const double &T, const double &bar_v) {
 
-    double dP_dT_const_v = molecular_weight*R_specific/bar_v;
-    double dP_dv_const_T = ( -1.0 )*molecular_weight*R_specific*T/( bar_v*bar_v );
+    //double dP_dT_const_v = molecular_weight*R_specific/bar_v;
+    //double dP_dv_const_T = ( -1.0 )*molecular_weight*R_specific*T/( bar_v*bar_v );
 
-    double expansivity = ( -1.0 )*( dP_dT_const_v/( bar_v*dP_dv_const_T ) );
+    //double expansivity = ( -1.0 )*( dP_dT_const_v/( bar_v*dP_dv_const_T ) );
+    double expansivity = 1.0/T;
 
     return( expansivity );
   
@@ -163,9 +164,10 @@ double IdealGasModel::calculateVolumeExpansivity(const double &T, const double &
 
 double IdealGasModel::calculateIsothermalCompressibility(const double &T, const double &bar_v) {
 
-    double dP_dv_const_T = ( -1.0 )*molecular_weight*R_specific*T/( bar_v*bar_v );
+    //double dP_dv_const_T = ( -1.0 )*molecular_weight*R_specific*T/( bar_v*bar_v );
 
-    double isothermal_compressibility = ( -1.0 )/( bar_v*dP_dv_const_T );
+    //double isothermal_compressibility = ( -1.0 )/( bar_v*dP_dv_const_T );
+    double isothermal_compressibility = bar_v/( molecular_weight*R_specific*T );
 
     return( isothermal_compressibility );
   

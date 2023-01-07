@@ -104,7 +104,8 @@ A_y               = -1.0                # Stretching factor in y-direction
 A_z               = 0.0                 # Stretching factor in z-direction
 CFL               = 0.9			# CFL coefficient
 max_num_time_iter = 1e6			# Maximum number of time iterations
-output_iter       = 1e2			# Output data every given number of iterations
+output_iter       = 500			# Output data every given number of iterations
+transport_pressure_scheme = False	# Select transporting pressure instead of total energy
 
 ### Fixed parameters
 num_sptl_dim = 3         		# Number of spatial dimensions (fixed value)
@@ -141,6 +142,7 @@ rhou_0_field = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )   
 rhov_0_field = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                   # 3-D old field of rhov
 rhow_0_field = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                   # 3-D old field of rhow
 rhoE_0_field = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                   # 3-D old field of rhoE
+P_0_field    = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                   # 3-D old field of P
 
 ### Time integration fluxes ... two positions added for boundary points
 rho_rk_fluxes  = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2, rk_order ] )       # 3-D Runge-Kutta fluxes of rho
@@ -148,6 +150,7 @@ rhou_rk_fluxes = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2, rk_
 rhov_rk_fluxes = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2, rk_order ] )       # 3-D Runge-Kutta fluxes of rhov
 rhow_rk_fluxes = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2, rk_order ] )       # 3-D Runge-Kutta fluxes of rhow
 rhoE_rk_fluxes = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2, rk_order ] )       # 3-D Runge-Kutta fluxes of rhoE
+P_rk_fluxes    = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2, rk_order ] )       # 3-D Runge-Kutta fluxes of P
 
 ### Inviscid fluxes ... two positions added for boundary points
 rho_inv_flux  = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                  # 3-D inviscid fluxes of rho
@@ -161,6 +164,7 @@ rhou_vis_flux = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )  
 rhov_vis_flux = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                  # 3-D viscous fluxes of rhov
 rhow_vis_flux = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                  # 3-D viscous fluxes of rhow
 rhoE_vis_flux = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                  # 3-D viscous fluxes of rhoE
+work_vis_rhoe_flux = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )             # 3-D viscous fluxes of work rhoe
 
 ### Body forces ... two positions added for boundary points
 f_rhou_field = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                   # 3-D field of rhou
@@ -991,7 +995,7 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
 
 ### Calculate viscous fluxes
 @njit
-def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, mu, kappa, grid ):
+def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, work_vis_rhoe, u, v, w, T, mu, kappa, grid ):
 
     # Second-order central finite differences for derivatives:
     # P. Moin.
@@ -1042,73 +1046,104 @@ def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, u, v, w, T, mu, kapp
                                         + ( 1.00/delta_y )*( ( u[i][j+1][k] - u[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
                                                            - ( u[i][j][k] - u[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
                                         + ( 1.00/delta_z )*( ( u[i][j][k+1] - u[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                           - ( u[i][j][k] - u[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )			   + ( 1.0/3.0 )*mu[i][j][k]*( ( 1.00/delta_x )*( ( u[i+1][j][k] - u[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
+                                                           - ( u[i][j][k] - u[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )			  + ( 1.0/3.0 )*mu[i][j][k]*( ( 1.00/delta_x )*( ( u[i+1][j][k] - u[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
                                                            - ( u[i][j][k] - u[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
                                         + ( 0.25/delta_x )*( ( v[i+1][j+1][k] - v[i+1][j-1][k] )/delta_y
                                                            - ( v[i-1][j+1][k] - v[i-1][j-1][k] )/delta_y )
                                         + ( 0.25/delta_x )*( ( w[i+1][j][k+1] - w[i+1][j][k-1] )/delta_z
-                                                           - ( w[i-1][j][k+1] - w[i-1][j][k-1] )/delta_z ) )                                                                   + ( d_mu_x*tau_xx + d_mu_y*tau_xy + d_mu_z*tau_xz )/( mu[i][j][k] + epsilon )
+                                                           - ( w[i-1][j][k+1] - w[i-1][j][k-1] )/delta_z ) )                                                                  + ( d_mu_x*tau_xx + d_mu_y*tau_xy + d_mu_z*tau_xz )/( mu[i][j][k] + epsilon )
                 div_tau_y = mu[i][j][k]*( ( 1.00/delta_x )*( ( v[i+1][j][k] - v[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
                                                            - ( v[i][j][k] - v[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
                                         + ( 1.00/delta_y )*( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
                                                            - ( v[i][j][k] - v[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
                                         + ( 1.00/delta_z )*( ( v[i][j][k+1] - v[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                           - ( v[i][j][k] - v[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) ) 		           + ( 1.0/3.0 )*mu[i][j][k]*( ( 0.25/delta_y )*( ( u[i+1][j+1][k] - u[i-1][j+1][k] )/delta_x
+                                                           - ( v[i][j][k] - v[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) ) 		          + ( 1.0/3.0 )*mu[i][j][k]*( ( 0.25/delta_y )*( ( u[i+1][j+1][k] - u[i-1][j+1][k] )/delta_x
                                                            - ( u[i+1][j-1][k] - u[i-1][j-1][k] )/delta_x )
                                         + ( 1.00/delta_y )*( ( v[i][j+1][k] - v[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
                                                            - ( v[i][j][k] - v[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
                                         + ( 0.25/delta_y )*( ( w[i][j+1][k+1] - w[i][j+1][k-1] )/delta_z
-                                                           - ( w[i][j-1][k+1] - w[i][j-1][k-1] )/delta_z ) )                                                                   + ( d_mu_x*tau_xy + d_mu_y*tau_yy + d_mu_z*tau_yz )/( mu[i][j][k] + epsilon )
+                                                           - ( w[i][j-1][k+1] - w[i][j-1][k-1] )/delta_z ) )                                                                  + ( d_mu_x*tau_xy + d_mu_y*tau_yy + d_mu_z*tau_yz )/( mu[i][j][k] + epsilon )
                 div_tau_z = mu[i][j][k]*( ( 1.00/delta_x )*( ( w[i+1][j][k] - w[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
                                                            - ( w[i][j][k] - w[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
                                         + ( 1.00/delta_y )*( ( w[i][j+1][k] - w[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
                                                            - ( w[i][j][k] - w[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
                                         + ( 1.00/delta_z )*( ( w[i][j][k+1] - w[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                           - ( w[i][j][k] - w[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )			   + ( 1.0/3.0 )*mu[i][j][k]*( ( 0.25/delta_z )*( ( u[i+1][j][k+1] - u[i-1][j][k+1] )/delta_x
+                                                           - ( w[i][j][k] - w[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )			  + ( 1.0/3.0 )*mu[i][j][k]*( ( 0.25/delta_z )*( ( u[i+1][j][k+1] - u[i-1][j][k+1] )/delta_x
                                                            - ( u[i+1][j][k-1] - u[i-1][j][k-1] )/delta_x )
                                         + ( 0.25/delta_z )*( ( v[i][j+1][k+1] - v[i][j-1][k+1] )/delta_y
                                                            - ( v[i][j+1][k-1] - v[i][j-1][k-1] )/delta_y )
                                         + ( 1.00/delta_z )*( ( w[i][j][k+1] - w[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                           - ( w[i][j][k] - w[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )                                       + ( d_mu_x*tau_xz + d_mu_y*tau_yz + d_mu_z*tau_zz )/( mu[i][j][k] + epsilon )
+                                                           - ( w[i][j][k] - w[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )                                      + ( d_mu_x*tau_xz + d_mu_y*tau_yz + d_mu_z*tau_zz )/( mu[i][j][k] + epsilon )
                 ## Fourier term
                 div_q = ( -1.0 )*kappa[i][j][k]*( ( 1.0/delta_x )*( ( T[i+1][j][k] - T[i][j][k] )/( grid[i+1][j][k][0] - grid[i][j][k][0] )
                                                                   - ( T[i][j][k] - T[i-1][j][k] )/( grid[i][j][k][0] - grid[i-1][j][k][0] ) )
                                                 + ( 1.0/delta_y )*( ( T[i][j+1][k] - T[i][j][k] )/( grid[i][j+1][k][1] - grid[i][j][k][1] )
                                                                   - ( T[i][j][k] - T[i][j-1][k] )/( grid[i][j][k][1] - grid[i][j-1][k][1] ) )
                                                 + ( 1.0/delta_z )*( ( T[i][j][k+1] - T[i][j][k] )/( grid[i][j][k+1][2] - grid[i][j][k][2] )
-                                                                  - ( T[i][j][k] - T[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )                            - d_kappa_x*d_T_x - d_kappa_y*d_T_y - d_kappa_z*d_T_z
-                ## Work of viscous stresses
-                div_uvw_tau = u[i][j][k]*div_tau_x + v[i][j][k]*div_tau_y + w[i][j][k]*div_tau_z								                 + tau_xx*d_u_x + tau_xy*d_u_y + tau_xz*d_u_z													      + tau_xy*d_v_x + tau_yy*d_v_y + tau_yz*d_v_z													   + tau_xz*d_w_x + tau_yz*d_w_y + tau_zz*d_w_z
+                                                                  - ( T[i][j][k] - T[i][j][k-1] )/( grid[i][j][k][2] - grid[i][j][k-1][2] ) ) )                           - d_kappa_x*d_T_x - d_kappa_y*d_T_y - d_kappa_z*d_T_z
+                ## Work of viscous stresses for internal energy
+                div_uvw_tau_rhoe = tau_xx*d_u_x + tau_xy*d_u_y + tau_xz*d_u_z                                                                                                        + tau_xy*d_v_x + tau_yy*d_v_y + tau_yz*d_v_z                                                                                                        + tau_xz*d_w_x + tau_yz*d_w_y + tau_zz*d_w_z
+                ## Work of viscous stresses for kinetic energy
+                div_uvw_tau_rhoke = u[i][j][k]*div_tau_x + v[i][j][k]*div_tau_y + w[i][j][k]*div_tau_z
+                ## Work of viscous stresses for total energy
+                div_uvw_tau_rhoE = div_uvw_tau_rhoe + div_uvw_tau_rhoke
                 ## Viscous fluxes
                 rhou_vis[i][j][k] = div_tau_x
                 rhov_vis[i][j][k] = div_tau_y
                 rhow_vis[i][j][k] = div_tau_z
-                rhoE_vis[i][j][k] = ( -1.0 )*div_q + div_uvw_tau
+                rhoE_vis[i][j][k] = ( -1.0 )*div_q + div_uvw_tau_rhoE
+                work_vis_rhoe[i][j][k] = ( -1.0 )*div_q + div_uvw_tau_rhoe;
     #print( rhou_vis )
     #print( rhov_vis )
     #print( rhow_vis )
     #print( rhoE_vis )
+    #print( work_vis_rhoe )
 
 
 ### Sum inviscid & viscous fluxes and source terms
 @njit
-def sum_fluxes_source_terms( rho_tot, rhou_tot, rhov_tot, rhow_tot, rhoE_tot, rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rhou_vis, rhov_vis, rhow_vis, rhoE_vis, f_rhou, f_rhov, f_rhow, f_rhoE, rk_iter ):
+def sum_fluxes_source_terms( rho_tot, rhou_tot, rhov_tot, rhow_tot, rhoE_tot, P_tot, rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rhou_vis, rhov_vis, rhow_vis, rhoE_vis, work_vis_rhoe, f_rhou, f_rhov, f_rhow, f_rhoE, rho, u, v, w, P, T, sos, rk_iter, grid ):
+
+    # Calculate specific heat capacities
+    c_v = R_specific/( gamma - 1.0 )
+    c_p = c_v*gamma
 
     # Internal points
     for i in range( 1, num_grid_x + 1 ):    
         for j in range( 1, num_grid_y + 1 ):    
             for k in range( 1, num_grid_z + 1 ):
+                ## Geometric stuff
+                delta_x = 0.5*( grid[i+1][j][k][0] - grid[i-1][j][k][0] ) 
+                delta_y = 0.5*( grid[i][j+1][k][1] - grid[i][j-1][k][1] ) 
+                delta_z = 0.5*( grid[i][j][k+1][2] - grid[i][j][k-1][2] )
+                ## Pressure and velocity derivatives
+                d_P_x = ( P[i+1][j][k] - P[i-1][j][k] )/( 2.0*delta_x )
+                d_P_y = ( P[i][j+1][k] - P[i][j-1][k] )/( 2.0*delta_y )
+                d_P_z = ( P[i][j][k+1] - P[i][j][k-1] )/( 2.0*delta_z )
+                d_u_x = ( u[i+1][j][k] - u[i-1][j][k] )/( 2.0*delta_x )
+                d_v_y = ( v[i][j+1][k] - v[i][j-1][k] )/( 2.0*delta_y )
+                d_w_z = ( w[i][j][k+1] - w[i][j][k-1] )/( 2.0*delta_z )
+                ## Divergence of velocity
+                div_uvw = d_u_x + d_v_y + d_w_z
+                ## Pressure inviscid flux
+                P_inv_flux = u[i][j][k]*d_P_x + v[i][j][k]*d_P_y + w[i][j][k]*d_P_z + rho[i][j][k]*( sos[i][j][k]**2.0 )*div_uvw
+                ## Pressure viscous flux
+                volume_expansivity         = 1.0/T[i][j][k]     ## Ideal-gas law
+                isothermal_compressibility = 1.0/P[i][j][k]     ## Ideal-gas law
+                P_vis_flux = ( volume_expansivity/( rho[i][j][k]*c_v*isothermal_compressibility ) )*work_vis_rhoe[i][j][k]                
+                ## Calculate total right-hand side
                 rho_tot[i][j][k][rk_iter]  = ( -1.0 )*rho_inv[i][j][k]
                 rhou_tot[i][j][k][rk_iter] = ( -1.0 )*rhou_inv[i][j][k] + rhou_vis[i][j][k] + f_rhou[i][j][k]
                 rhov_tot[i][j][k][rk_iter] = ( -1.0 )*rhov_inv[i][j][k] + rhov_vis[i][j][k] + f_rhov[i][j][k]
                 rhow_tot[i][j][k][rk_iter] = ( -1.0 )*rhow_inv[i][j][k] + rhow_vis[i][j][k] + f_rhow[i][j][k]
                 rhoE_tot[i][j][k][rk_iter] = ( -1.0 )*rhoE_inv[i][j][k] + rhoE_vis[i][j][k] + f_rhoE[i][j][k]
+                P_tot[i][j][k][rk_iter]    = ( -1.0 )*P_inv_flux + P_vis_flux + f_rhoE[i][j][k]
     #print( rho_tot )
     #print( rhou_tot )
     #print( rhov_tot )
     #print( rhow_tot )
     #print( rhoE_tot )
-
+    #print( P_tot )
 
 ### Time integration of conserved variables
 @njit
@@ -1131,7 +1166,6 @@ def time_integration( y, y_0, h, k_s, rk_iter ):
                     y[i][j][k] = y_0[i][j][k] + ( h/6.0 )*( k_s[i][j][k][0] + k_s[i][j][k][1] + 4.0*k_s[i][j][k][2] )
     #print( y )
 
-
 ### Update primitive variables from conserved variables
 @njit
 def update_primitive( primitive, conserved, rho ):
@@ -1146,13 +1180,13 @@ def update_primitive( primitive, conserved, rho ):
 
 ### Update thermodynamic variables from primitive variables
 @njit
-def thermodynamic_state( P, T, sos, rho, u, v, w, E ):
+def thermodynamic_state( rhoE, P, T, sos, rho, u, v, w, E ):
 
     # Ideal-gas model:
     # c_v = R_specific/(gamma - 1) is specific heat capcity at constant volume
     # ke = (u*u + v*v + w*w)/2 is specific kinetic energy
     # e = E - ke is specific internal energy
-    # P = e*rho*(gamma - 1) is pressure
+    # P = rho*e*(gamma - 1) is pressure
     # T = e/c_v is temperature
     # sos = sqrt(gamma*P/rho) is speed of sound
 
@@ -1163,11 +1197,18 @@ def thermodynamic_state( P, T, sos, rho, u, v, w, E ):
     for i in range( 0, num_grid_x + 2 ):    
         for j in range( 0, num_grid_y + 2 ):    
             for k in range( 0, num_grid_z + 2 ):
-                ke           = 0.5*( u[i][j][k]**2.0 + v[i][j][k]**2.0 + w[i][j][k]**2.0 )
-                e            = E[i][j][k] - ke
-                P[i][j][k]   = e*rho[i][j][k]*( gamma - 1.0 ) 
+                ke = 0.5*( u[i][j][k]**2.0 + v[i][j][k]**2.0 + w[i][j][k]**2.0 )
+                if( transport_pressure_scheme ):
+                    e             = P[i][j][k]/( rho[i][j][k]*( gamma - 1.0 ) )
+                    E[i][j][k]    = e + ke
+                    rhoE[i][j][k] = rho[i][j][k]*E[i][j][k] 
+                else:
+                    e          = E[i][j][k] - ke
+                    P[i][j][k] = e*rho[i][j][k]*( gamma - 1.0 )
                 T[i][j][k]   = ( 1.0/c_v )*e
                 sos[i][j][k] = np.sqrt( gamma*( ( 1.0/rho[i][j][k] )*P[i][j][k] ) )
+    #print( E )
+    #print( rhoE )
     #print( P )
     #print( T )
     #print( sos )
@@ -1203,6 +1244,7 @@ update_field( rhou_0_field, rhou_field )
 update_field( rhov_0_field, rhov_field )  
 update_field( rhow_0_field, rhow_field )  
 update_field( rhoE_0_field, rhoE_field )
+update_field( P_0_field, P_field )
 
 ### Initialize time
 time = initial_time
@@ -1233,13 +1275,13 @@ for t in range( 0, int( max_num_time_iter ) ):
         inviscid_fluxes( rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux, rhoE_inv_flux, rho_field, u_field, v_field, w_field, E_field, P_field, sos_field, mesh )
 
         ### Calculate viscous fluxes
-        viscous_fluxes( rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux, u_field, v_field, w_field, T_field, mu_field, kappa_field, mesh )
+        viscous_fluxes( rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux, work_vis_rhoe_flux, u_field, v_field, w_field, T_field, mu_field, kappa_field, mesh )
 
         ### Calculate source terms
         source_terms( f_rhou_field, f_rhov_field, f_rhow_field, f_rhoE_field, rho_field, u_field, v_field, w_field, mesh )
 
         ### Sum fluxes & source terms
-        sum_fluxes_source_terms( rho_rk_fluxes, rhou_rk_fluxes, rhov_rk_fluxes, rhow_rk_fluxes, rhoE_rk_fluxes, rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux, rhoE_inv_flux, rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux, f_rhou_field, f_rhov_field, f_rhow_field, f_rhoE_field, rk )
+        sum_fluxes_source_terms( rho_rk_fluxes, rhou_rk_fluxes, rhov_rk_fluxes, rhow_rk_fluxes, rhoE_rk_fluxes, P_rk_fluxes, rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux, rhoE_inv_flux, rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux, work_vis_rhoe_flux, f_rhou_field, f_rhov_field, f_rhow_field, f_rhoE_field, rho_field, u_field, v_field, w_field, P_field, T_field, sos_field, rk, mesh )
 
         ### Advance conserved variables in time
         time_integration( rho_field,  rho_0_field,  delta_t, rho_rk_fluxes,  rk )
@@ -1247,6 +1289,8 @@ for t in range( 0, int( max_num_time_iter ) ):
         time_integration( rhov_field, rhov_0_field, delta_t, rhov_rk_fluxes, rk )
         time_integration( rhow_field, rhow_0_field, delta_t, rhow_rk_fluxes, rk )
         time_integration( rhoE_field, rhoE_0_field, delta_t, rhoE_rk_fluxes, rk )
+        if( transport_pressure_scheme ):
+            time_integration( P_field, P_0_field, delta_t, P_rk_fluxes, rk )
 
         ### Update primitive variables from conserved variables
         update_primitive( u_field, rhou_field, rho_field )
@@ -1255,7 +1299,7 @@ for t in range( 0, int( max_num_time_iter ) ):
         update_primitive( E_field, rhoE_field, rho_field )
        
         ### Update thermodynamic variables from primitive variables
-        thermodynamic_state( P_field, T_field, sos_field, rho_field, u_field, v_field, w_field, E_field )
+        thermodynamic_state( rhoE_field, P_field, T_field, sos_field, rho_field, u_field, v_field, w_field, E_field )
 
         ### Update boundaries
         update_boundaries( rho_field, rhou_field, rhov_field, rhow_field, rhoE_field, u_field, v_field, w_field, P_field, T_field, mesh )
@@ -1266,6 +1310,7 @@ for t in range( 0, int( max_num_time_iter ) ):
     update_field( rhov_0_field, rhov_field )  
     update_field( rhow_0_field, rhow_field )  
     update_field( rhoE_0_field, rhoE_field )  
+    update_field( P_0_field, P_field )  
 
     ### Update time
     time += delta_t
