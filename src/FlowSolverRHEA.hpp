@@ -350,8 +350,8 @@ class FlowSolverRHEA {
         /// The middle number (2) is the minor version.
         /// The rightmost number (3) is the revision, but it may also refer to a "point release" or "subminor version".
 	
-        /// Version number (updated 18/05/2022)
-	std::string version_number = "2.0.0";			/// Version number	
+        /// Version number (updated 11/01/2023)
+	std::string version_number = "1.0.0";			/// Version number	
 
     private:
 
