@@ -1650,7 +1650,9 @@ void FlowSolverRHEA::calculateTimeStep() {
                 /// Speed of sound
 		sos = sos_field[I1D(i,j,k)];
                 /// Heat capacities
-                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                //thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+		c_v = c_v_field[I1D(i,j,k)];
+		c_p = c_p_field[I1D(i,j,k)];
                 /// Prandtl (Pr) number
                 Pr = c_p/c_v;
                 if(kappa_field[I1D(i,j,k)] > epsilon) Pr = c_p*mu_field[I1D(i,j,k)]/kappa_field[I1D(i,j,k)];
