@@ -102,10 +102,13 @@ num_grid_z        = 1			# Number of internal grid points in the z-direction
 A_x               = -1.0                # Stretching factor in x-direction
 A_y               = -1.0                # Stretching factor in y-direction
 A_z               = 0.0                 # Stretching factor in z-direction
-CFL               = 0.9			# CFL coefficient
+CFL               = 0.1 		# CFL coefficient
 max_num_time_iter = 1e6			# Maximum number of time iterations
 output_iter       = 500			# Output data every given number of iterations
 transport_pressure_scheme = False	# Select transporting pressure instead of total energy
+artificial_compressibility_method = False   # Activate artificial compressibility method
+P_thermo          = P_0			# Initialize thermodynamic pressure for artificial compressibility method
+alpha             = 100.0 		# Speedup factor of artificial compressibility method
 
 ### Fixed parameters
 num_sptl_dim = 3         		# Number of spatial dimensions (fixed value)
@@ -564,6 +567,8 @@ def time_step( rho, u, v, w, sos, mu, kappa, grid ):
     # Initialize to largest float value
 #     delta_t = float( 'inf' )
     delta_t = 1.0e6
+    
+    delta_t_aux = 1.0e6
 
     # Internal points
     for i in range( 1, num_grid_x + 1 ):    
@@ -633,14 +638,13 @@ def spatial_discretization( grid ):
 
 
 ### Initialize thermodynamic variables
-def initialize_thermodynamics( rho, E, sos, u, v, w, P, T ):
+def initialize_thermodynamics( rho, E, u, v, w, P, T ):
 
     # Ideal-gas model:
     # rho = P/(R_specific*T) is density
     # e = P/(rho*(gamma - 1)) is specific internal energy
     # ke = (u*u + v*v + w*w)/2 is specific kinetic energy
     # E = e + ke is total energy
-    # sos = sqrt(gamma*P/rho) is speed of sound
 
     # All points
     for i in range( 0, num_grid_x + 2 ):    
@@ -650,9 +654,25 @@ def initialize_thermodynamics( rho, E, sos, u, v, w, P, T ):
                 e            = ( 1.0/( rho[i][j][k]*( gamma - 1.0 ) ) )*P[i][j][k]
                 ke           = 0.5*( u[i][j][k]**2.0 + v[i][j][k]**2.0 + w[i][j][k]**2.0 )
                 E[i][j][k]   = e + ke
-                sos[i][j][k] = np.sqrt( gamma*( ( 1.0/rho[i][j][k] )*P[i][j][k] ) )
     #print( rho )
     #print( E )
+
+
+### Calculate speed of sound
+@njit
+def calculate_speed_sound( sos, rho, P, P_thermo, T ):
+
+    # Ideal-gas model:
+    # sos = sqrt(gamma*P/rho) is speed of sound
+
+    # All points
+    for i in range( 0, num_grid_x + 2 ):    
+        for j in range( 0, num_grid_y + 2 ):    
+            for k in range( 0, num_grid_z + 2 ):
+                if( artificial_compressibility_method ):
+                    sos[i][j][k] = np.sqrt( ( gamma*P_thermo )/( rho[i][j][k]*( alpha**2.0 ) ) )
+                else:
+                    sos[i][j][k] = np.sqrt( gamma*P[i][j][k]/rho[i][j][k] )
     #print( sos )
 
 
@@ -678,6 +698,62 @@ def update_field( field_a, field_b ):
             for k in range( 0, num_grid_z + 2 ):
                 field_a[i][j][k] = field_b[i][j][k]
     #print( field_a )
+
+
+### Calculate volume-averaged value of a field
+@njit
+def calculate_volume_averaged_value( field, grid ):
+
+    # Initialize quantities
+    sum_volume       = 0.0
+    sum_volume_value = 0.0
+
+    # Internal points
+    for i in range( 1, num_grid_x + 1 ):    
+        for j in range( 1, num_grid_y + 1 ):    
+            for k in range( 1, num_grid_z + 1 ):
+                ## Geometric stuff
+                delta_x = 0.5*( grid[i+1][j][k][0] - grid[i-1][j][k][0] ) 
+                delta_y = 0.5*( grid[i][j+1][k][1] - grid[i][j-1][k][1] ) 
+                delta_z = 0.5*( grid[i][j][k+1][2] - grid[i][j][k-1][2] )
+                volume  = delta_x*delta_y*delta_z 
+                ## Update quantities
+                sum_volume       += volume
+                sum_volume_value += volume*field[i][j][k]
+
+    # Calculate volume-averaged value
+    volume_averaged_value = sum_volume_value/sum_volume
+
+    # Return volume-averaged value
+    return( volume_averaged_value )
+
+
+### Calculate thermodynamic pressure
+@njit
+def calculate_P_thermo( rho, T, grid ):
+
+    # Initialize quantities
+    sum_volume       = 0.0
+    sum_volume_value = 0.0
+
+    # Internal points
+    for i in range( 1, num_grid_x + 1 ):    
+        for j in range( 1, num_grid_y + 1 ):    
+            for k in range( 1, num_grid_z + 1 ):
+                ## Geometric stuff
+                delta_x = 0.5*( grid[i+1][j][k][0] - grid[i-1][j][k][0] ) 
+                delta_y = 0.5*( grid[i][j+1][k][1] - grid[i][j-1][k][1] ) 
+                delta_z = 0.5*( grid[i][j][k+1][2] - grid[i][j][k-1][2] )
+                volume  = delta_x*delta_y*delta_z 
+                ## Update quantities
+                sum_volume       += volume
+                sum_volume_value += volume*( rho[i][j][k]*R_specific*T[i][j][k] )
+
+    # Calculate thermodynamic pressure
+    volume_averaged_value = sum_volume_value/sum_volume
+
+    # Return thermodynamic pressure
+    return( volume_averaged_value )
 
 
 ### calculate wave speeds
@@ -809,7 +885,7 @@ def KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_
 
 ### Calculate inviscid fluxes
 @njit
-def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v, w, E, P, sos, grid ):
+def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v, w, E, P, P_thermo, sos, grid ):
 
     # Unsplit method for Euler equations:
     # E. F. Toro.
@@ -833,18 +909,22 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 E_L     = E[index_L][j][k];   E_R     = E[index_R][j][k]
                 P_L     = P[index_L][j][k];   P_R     = P[index_R][j][k]
                 a_L     = sos[index_L][j][k]; a_R     = sos[index_R][j][k]
+                P_rhouvw_L = P_L;             P_rhouvw_R = P_R
+                if( artificial_compressibility_method ):
+                    P_rhouvw_L = P_L - P_thermo
+                    P_rhouvw_R = P_R - P_thermo
                 # rho
                 var_type = 0
                 rho_F_p  = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 # rhou
                 var_type = 1
-                rhou_F_p = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
+                rhou_F_p = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )               
                 # rhov
                 var_type = 2
-                rhov_F_p = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
+                rhov_F_p = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )         
                 # rhow
                 var_type = 3
-                rhow_F_p = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
+                rhow_F_p = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )     
                 # rhoE
                 var_type = 4
                 rhoE_F_p = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )                
@@ -857,18 +937,22 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 E_L     = E[index_L][j][k];   E_R     = E[index_R][j][k]
                 P_L     = P[index_L][j][k];   P_R     = P[index_R][j][k]
                 a_L     = sos[index_L][j][k]; a_R     = sos[index_R][j][k]
+                P_rhouvw_L = P_L;             P_rhouvw_R = P_R
+                if( artificial_compressibility_method ):
+                    P_rhouvw_L = P_L - P_thermo
+                    P_rhouvw_R = P_R - P_thermo
                 # rho
                 var_type = 0
                 rho_F_m  = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 # rhou
                 var_type = 1
-                rhou_F_m = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
+                rhou_F_m = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )               
                 # rhov
                 var_type = 2
-                rhov_F_m = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
+                rhov_F_m = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )         
                 # rhow
                 var_type = 3
-                rhow_F_m = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
+                rhow_F_m = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )     
                 # rhoE
                 var_type = 4
                 rhoE_F_m = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
@@ -887,18 +971,22 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 E_L     = E[i][index_L][k];   E_R     = E[i][index_R][k]
                 P_L     = P[i][index_L][k];   P_R     = P[i][index_R][k]
                 a_L     = sos[i][index_L][k]; a_R     = sos[i][index_R][k]
+                P_rhouvw_L = P_L;             P_rhouvw_R = P_R
+                if( artificial_compressibility_method ):
+                    P_rhouvw_L = P_L - P_thermo
+                    P_rhouvw_R = P_R - P_thermo
                 # rho
                 var_type = 0
                 rho_F_p  = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 # rhou
                 var_type = 2
-                rhou_F_p = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
+                rhou_F_p = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )               
                 # rhov
                 var_type = 1
-                rhov_F_p = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
+                rhov_F_p = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )         
                 # rhow
                 var_type = 3
-                rhow_F_p = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
+                rhow_F_p = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )     
                 # rhoE
                 var_type = 4
                 rhoE_F_p = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )                
@@ -911,18 +999,22 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 E_L     = E[i][index_L][k];   E_R     = E[i][index_R][k]
                 P_L     = P[i][index_L][k];   P_R     = P[i][index_R][k]
                 a_L     = sos[i][index_L][k]; a_R     = sos[i][index_R][k]
+                P_rhouvw_L = P_L;             P_rhouvw_R = P_R
+                if( artificial_compressibility_method ):
+                    P_rhouvw_L = P_L - P_thermo
+                    P_rhouvw_R = P_R - P_thermo                
                 # rho
                 var_type = 0
                 rho_F_m  = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 # rhou
                 var_type = 2
-                rhou_F_m = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
+                rhou_F_m = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )               
                 # rhov
                 var_type = 1
-                rhov_F_m = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
+                rhov_F_m = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )         
                 # rhow
                 var_type = 3
-                rhow_F_m = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
+                rhow_F_m = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )     
                 # rhoE
                 var_type = 4
                 rhoE_F_m = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
@@ -941,18 +1033,22 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 E_L     = E[i][j][index_L];   E_R     = E[i][j][index_R]
                 P_L     = P[i][j][index_L];   P_R     = P[i][j][index_R]
                 a_L     = sos[i][j][index_L]; a_R     = sos[i][j][index_R]
+                P_rhouvw_L = P_L;             P_rhouvw_R = P_R
+                if( artificial_compressibility_method ):
+                    P_rhouvw_L = P_L - P_thermo
+                    P_rhouvw_R = P_R - P_thermo                
                 # rho
                 var_type = 0
                 rho_F_p  = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 # rhou
                 var_type = 3
-                rhou_F_p = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
+                rhou_F_p = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )               
                 # rhov
                 var_type = 2
-                rhov_F_p = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
+                rhov_F_p = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )         
                 # rhow
                 var_type = 1
-                rhow_F_p = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
+                rhow_F_p = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )     
                 # rhoE
                 var_type = 4
                 rhoE_F_p = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )                
@@ -965,18 +1061,22 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 E_L     = E[i][j][index_L];   E_R     = E[i][j][index_R]
                 P_L     = P[i][j][index_L];   P_R     = P[i][j][index_R]
                 a_L     = sos[i][j][index_L]; a_R     = sos[i][j][index_R]
+                P_rhouvw_L = P_L;             P_rhouvw_R = P_R
+                if( artificial_compressibility_method ):
+                    P_rhouvw_L = P_L - P_thermo
+                    P_rhouvw_R = P_R - P_thermo                
                 # rho
                 var_type = 0
                 rho_F_m  = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
                 # rhou
                 var_type = 3
-                rhou_F_m = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )               
+                rhou_F_m = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )               
                 # rhov
                 var_type = 2
-                rhov_F_m = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )         
+                rhov_F_m = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )         
                 # rhow
                 var_type = 1
-                rhow_F_m = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )     
+                rhow_F_m = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type )     
                 # rhoE
                 var_type = 4
                 rhoE_F_m = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
@@ -1180,7 +1280,7 @@ def update_primitive( primitive, conserved, rho ):
 
 ### Update thermodynamic variables from primitive variables
 @njit
-def thermodynamic_state( rhoE, P, T, sos, rho, u, v, w, E ):
+def thermodynamic_state( rhoE, P, T, rho, u, v, w, E ):
 
     # Ideal-gas model:
     # c_v = R_specific/(gamma - 1) is specific heat capcity at constant volume
@@ -1188,7 +1288,6 @@ def thermodynamic_state( rhoE, P, T, sos, rho, u, v, w, E ):
     # e = E - ke is specific internal energy
     # P = rho*e*(gamma - 1) is pressure
     # T = e/c_v is temperature
-    # sos = sqrt(gamma*P/rho) is speed of sound
 
     # Specific heat capacity at constant volume
     c_v = R_specific/( gamma - 1.0 )
@@ -1206,12 +1305,10 @@ def thermodynamic_state( rhoE, P, T, sos, rho, u, v, w, E ):
                     e          = E[i][j][k] - ke
                     P[i][j][k] = e*rho[i][j][k]*( gamma - 1.0 )
                 T[i][j][k]   = ( 1.0/c_v )*e
-                sos[i][j][k] = np.sqrt( gamma*( ( 1.0/rho[i][j][k] )*P[i][j][k] ) )
     #print( E )
     #print( rhoE )
     #print( P )
     #print( T )
-    #print( sos )
 
 
 
@@ -1227,7 +1324,10 @@ spatial_discretization( mesh )
 initialize_uvwPT( u_field, v_field, w_field, P_field, T_field, mesh )
 
 ### Initialize thermodynamic variables
-initialize_thermodynamics( rho_field, E_field, sos_field, u_field, v_field, w_field, P_field, T_field )
+initialize_thermodynamics( rho_field, E_field, u_field, v_field, w_field, P_field, T_field )
+if( artificial_compressibility_method ):
+    P_thermo = calculate_volume_averaged_value( P_field, mesh )
+calculate_speed_sound( sos_field, rho_field, P_field, P_thermo, T_field )
 
 ### Calculate transport coefficients
 transport_coefficients( mu_field, kappa_field )
@@ -1272,7 +1372,7 @@ for t in range( 0, int( max_num_time_iter ) ):
         transport_coefficients( mu_field, kappa_field )
 
         ### Calculate inviscid fluxes
-        inviscid_fluxes( rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux, rhoE_inv_flux, rho_field, u_field, v_field, w_field, E_field, P_field, sos_field, mesh )
+        inviscid_fluxes( rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux, rhoE_inv_flux, rho_field, u_field, v_field, w_field, E_field, P_field, P_thermo, sos_field, mesh )
 
         ### Calculate viscous fluxes
         viscous_fluxes( rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux, work_vis_rhoe_flux, u_field, v_field, w_field, T_field, mu_field, kappa_field, mesh )
@@ -1299,7 +1399,10 @@ for t in range( 0, int( max_num_time_iter ) ):
         update_primitive( E_field, rhoE_field, rho_field )
        
         ### Update thermodynamic variables from primitive variables
-        thermodynamic_state( rhoE_field, P_field, T_field, sos_field, rho_field, u_field, v_field, w_field, E_field )
+        thermodynamic_state( rhoE_field, P_field, T_field, rho_field, u_field, v_field, w_field, E_field )
+        if( artificial_compressibility_method ):
+            P_thermo = calculate_P_thermo( rho_field, T_field, mesh )
+        calculate_speed_sound( sos_field, rho_field, P_field, P_thermo, T_field )
 
         ### Update boundaries
         update_boundaries( rho_field, rhou_field, rhov_field, rhow_field, rhoE_field, u_field, v_field, w_field, P_field, T_field, mesh )
