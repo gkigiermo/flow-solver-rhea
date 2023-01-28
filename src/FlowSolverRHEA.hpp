@@ -166,6 +166,15 @@ class FlowSolverRHEA {
         /// Update time Favre-averaged quantity
         //virtual double updateTimeFavreAveragedQuantity(const double &quantity_1, const double &mean_rho_quantity_1, const double &quantity_2, const double &mean_rho_quantity_2, const double &rho, const double &mean_rho, const double &favre_averaged_quantity, const double &delta_t, const double &averaging_time);
         static double updateTimeFavreAveragedQuantity(const double &quantity_1, const double &mean_rho_quantity_1, const double &quantity_2, const double &mean_rho_quantity_2, const double &rho, const double &mean_rho, const double &favre_averaged_quantity, const double &delta_t, const double &averaging_time);
+        
+	/// Calculate volume-averaged pressure
+        virtual double calculateVolumeAveragedPressure();
+
+	/// Calculate artificially modified thermodynamics
+        virtual void calculateArtificiallyModifiedThermodynamics();
+
+	/// Calculate artificially modified transport coefficients
+        virtual void calculateArtificiallyModifiedTransportCoefficients();
 
     protected:
 
@@ -202,6 +211,9 @@ class FlowSolverRHEA {
 	std::string riemann_solver_scheme;			/// Riemann solver scheme
 	std::string runge_kutta_time_scheme;			/// Runge-Kutta time scheme
         bool transport_pressure_scheme;				/// Activate transport P instead of rhoE
+        bool artificial_compressibility_method;			/// Artificially decrease velocity of acoustic waves
+        double alpha;		      				/// Speedup factor of artificial compressibility method [-]
+        double P_thermo;	      				/// Thermodynamic (bulk) pressure for artificial compressibility method [Pa]
 
         /// Local mesh values for I1D macro
         int _lNx_;

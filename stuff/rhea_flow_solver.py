@@ -728,34 +728,6 @@ def calculate_volume_averaged_value( field, grid ):
     return( volume_averaged_value )
 
 
-### Calculate thermodynamic pressure
-@njit
-def calculate_P_thermo( rho, T, grid ):
-
-    # Initialize quantities
-    sum_volume       = 0.0
-    sum_volume_value = 0.0
-
-    # Internal points
-    for i in range( 1, num_grid_x + 1 ):    
-        for j in range( 1, num_grid_y + 1 ):    
-            for k in range( 1, num_grid_z + 1 ):
-                ## Geometric stuff
-                delta_x = 0.5*( grid[i+1][j][k][0] - grid[i-1][j][k][0] ) 
-                delta_y = 0.5*( grid[i][j+1][k][1] - grid[i][j-1][k][1] ) 
-                delta_z = 0.5*( grid[i][j][k+1][2] - grid[i][j][k-1][2] )
-                volume  = delta_x*delta_y*delta_z 
-                ## Update quantities
-                sum_volume       += volume
-                sum_volume_value += volume*( rho[i][j][k]*R_specific*T[i][j][k] )
-
-    # Calculate thermodynamic pressure
-    volume_averaged_value = sum_volume_value/sum_volume
-
-    # Return thermodynamic pressure
-    return( volume_averaged_value )
-
-
 ### calculate wave speeds
 @njit
 def waves_speed( rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R ):
@@ -1401,7 +1373,7 @@ for t in range( 0, int( max_num_time_iter ) ):
         ### Update thermodynamic variables from primitive variables
         thermodynamic_state( rhoE_field, P_field, T_field, rho_field, u_field, v_field, w_field, E_field )
         if( artificial_compressibility_method ):
-            P_thermo = calculate_P_thermo( rho_field, T_field, mesh )
+            P_thermo = calculate_volume_averaged_value( P_field, mesh )
         calculate_speed_sound( sos_field, rho_field, P_field, P_thermo, T_field )
 
         ### Update boundaries

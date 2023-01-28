@@ -175,17 +175,44 @@ void myRHEA::execute() {
         /// Initialize from restart file
         this->initializeFromRestart();
 
+        if( artificial_compressibility_method ) {
+
+            /// Calculate thermodynamic (bulk) pressure
+            P_thermo = this->calculateVolumeAveragedPressure();
+
+	    /// Calculate artificially modified thermodynamics
+            this->calculateArtificiallyModifiedThermodynamics();
+
+	    /// Calculate artificially modified transport coefficients
+            this->calculateArtificiallyModifiedTransportCoefficients();
+
+	}
 
     } else {
 
         /// Set initial conditions
         this->setInitialConditions();
-    
+
         /// Initialize thermodynamics
         this->initializeThermodynamics();
 
-        /// Calculate transport coefficients
-        this->calculateTransportCoefficients();
+        if( artificial_compressibility_method ) {
+
+            /// Calculate thermodynamic (bulk) pressure
+            P_thermo = this->calculateVolumeAveragedPressure();
+
+	    /// Calculate artificially modified thermodynamics
+            this->calculateArtificiallyModifiedThermodynamics();	    
+
+	    /// Calculate artificially modified transport coefficients
+            this->calculateArtificiallyModifiedTransportCoefficients();
+
+	} else {
+
+            /// Calculate transport coefficients
+            this->calculateTransportCoefficients();
+
+	}
 
     }
 
@@ -243,8 +270,17 @@ void myRHEA::execute() {
             /// Start timer: calculate_thermophysical_properties
             timers->start( "calculate_thermophysical_properties" );
 
-            /// Calculate transport coefficients
-            this->calculateTransportCoefficients();
+            if( artificial_compressibility_method ) {
+
+	        /// Calculate artificially modified transport coefficients
+                this->calculateArtificiallyModifiedTransportCoefficients();
+
+	    } else {
+
+                /// Calculate transport coefficients
+                this->calculateTransportCoefficients();
+
+	    }
 
             /// Stop timer: calculate_thermophysical_properties
             timers->stop( "calculate_thermophysical_properties" );
@@ -299,6 +335,16 @@ void myRHEA::execute() {
 
             /// Calculate thermodynamics from primitive variables
             this->calculateThermodynamicsFromPrimitiveVariables();
+
+            if( artificial_compressibility_method ) {
+
+                /// Calculate thermodynamic (bulk) pressure
+                P_thermo = this->calculateVolumeAveragedPressure();
+
+                /// Calculate artificially modified thermodynamics
+                this->calculateArtificiallyModifiedThermodynamics();	    
+
+	    }
 
             /// Stop timer: calculate_thermodynamics_from_primitive_variables
             timers->stop( "calculate_thermodynamics_from_primitive_variables" );

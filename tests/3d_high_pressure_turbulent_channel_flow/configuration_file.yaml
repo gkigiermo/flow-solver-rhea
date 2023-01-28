@@ -66,6 +66,9 @@ computational_parameters:
    runge_kutta_time_scheme: 'SSP-RK3'		          		# Runge-Kutta time scheme
    # Transport P instead of rhoE scheme: FALSE, TRUE
    transport_pressure_scheme: 'TRUE'  		          		# Transport P instead of rhoE scheme
+   # Artificially decrease the velocity of acoustic waves: FALSE, TRUE
+   artificial_compressibility_method: 'FALSE'  	          		# Artificially decrease velocity of acoustic waves
+   alpha: 0.0                                                           # Speedup factor of artificial compressibility method     
    final_time_iter: 100000000          					# Final time iteration
 
 

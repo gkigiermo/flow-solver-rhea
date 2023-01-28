@@ -358,6 +358,8 @@ void FlowSolverRHEA::readConfigurationFile() {
     riemann_solver_scheme              = computational_parameters["riemann_solver_scheme"].as<string>();
     runge_kutta_time_scheme            = computational_parameters["runge_kutta_time_scheme"].as<string>();
     transport_pressure_scheme          = computational_parameters["transport_pressure_scheme"].as<bool>();
+    artificial_compressibility_method  = computational_parameters["artificial_compressibility_method"].as<bool>();
+    alpha                              = computational_parameters["alpha"].as<double>();
     final_time_iter                    = computational_parameters["final_time_iter"].as<int>();
 
     /// Boundary conditions
@@ -977,10 +979,16 @@ void FlowSolverRHEA::updateBoundaries() {
                 E_field[I1D(i,j,k)]   = E_g;
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
-                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
-		/// Update c_v and c_p
+		/// Update sos, c_v and c_p
 		double c_v, c_p;
-                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+		if( artificial_compressibility_method ) {
+		    double P_aux = P_thermo/( alpha*alpha );
+                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_aux, T_g, rho_g );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
+		} else {
+                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_g, T_g, rho_g );
+		}
                 c_v_field[I1D(i,j,k)] = c_v;
                 c_p_field[I1D(i,j,k)] = c_p;
             }
@@ -1087,10 +1095,16 @@ void FlowSolverRHEA::updateBoundaries() {
                 E_field[I1D(i,j,k)]   = E_g;
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
-                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
-		/// Update c_v and c_p
+		/// Update sos, c_v and c_p
 		double c_v, c_p;
-                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+		if( artificial_compressibility_method ) {
+		    double P_aux = P_thermo/( alpha*alpha );
+                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_aux, T_g, rho_g );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
+		} else {
+                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_g, T_g, rho_g );
+		}
                 c_v_field[I1D(i,j,k)] = c_v;
                 c_p_field[I1D(i,j,k)] = c_p;		
             }
@@ -1197,10 +1211,16 @@ void FlowSolverRHEA::updateBoundaries() {
                 E_field[I1D(i,j,k)]   = E_g;
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
-                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
-		/// Update c_v and c_p
+		/// Update sos, c_v and c_p
 		double c_v, c_p;
-                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+		if( artificial_compressibility_method ) {
+		    double P_aux = P_thermo/( alpha*alpha );
+                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_aux, T_g, rho_g );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
+		} else {
+                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_g, T_g, rho_g );
+		}
                 c_v_field[I1D(i,j,k)] = c_v;
                 c_p_field[I1D(i,j,k)] = c_p;
             }
@@ -1307,10 +1327,16 @@ void FlowSolverRHEA::updateBoundaries() {
                 E_field[I1D(i,j,k)]   = E_g;
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
-                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
-		/// Update c_v and c_p
+		/// Update sos, c_v and c_p
 		double c_v, c_p;
-                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+		if( artificial_compressibility_method ) {
+		    double P_aux = P_thermo/( alpha*alpha );
+                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_aux, T_g, rho_g );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
+		} else {
+                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_g, T_g, rho_g );
+		}
                 c_v_field[I1D(i,j,k)] = c_v;
                 c_p_field[I1D(i,j,k)] = c_p;
             }
@@ -1417,10 +1443,16 @@ void FlowSolverRHEA::updateBoundaries() {
                 E_field[I1D(i,j,k)]   = E_g;
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
-                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
-		/// Update c_v and c_p
+		/// Update sos, c_v and c_p
 		double c_v, c_p;
-                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+		if( artificial_compressibility_method ) {
+		    double P_aux = P_thermo/( alpha*alpha );
+                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_aux, T_g, rho_g );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
+		} else {
+                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_g, T_g, rho_g );
+		}
                 c_v_field[I1D(i,j,k)] = c_v;
                 c_p_field[I1D(i,j,k)] = c_p;
             }
@@ -1527,10 +1559,16 @@ void FlowSolverRHEA::updateBoundaries() {
                 E_field[I1D(i,j,k)]   = E_g;
                 P_field[I1D(i,j,k)]   = P_g;
                 T_field[I1D(i,j,k)]   = T_g;
-                sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
-		/// Update c_v and c_p
+		/// Update sos, c_v and c_p
 		double c_v, c_p;
-                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+		if( artificial_compressibility_method ) {
+		    double P_aux = P_thermo/( alpha*alpha );
+                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_aux, T_g, rho_g );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
+		} else {
+                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
+                    thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_g, T_g, rho_g );
+		}
                 c_v_field[I1D(i,j,k)] = c_v;
                 c_p_field[I1D(i,j,k)] = c_p;
             }
@@ -1701,8 +1739,8 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
     /// Inner points: rho, rhou, rhov, rhow and rhoE
     int index_L, index_R, var_type;
     double delta_x, delta_y, delta_z;
-    double rho_L, u_L, v_L, w_L, E_L, P_L, a_L;
-    double rho_R, u_R, v_R, w_R, E_R, P_R, a_R;
+    double rho_L, u_L, v_L, w_L, E_L, P_L, P_rhouvw_L, a_L;
+    double rho_R, u_R, v_R, w_R, E_R, P_R, P_rhouvw_R, a_R;
     double rho_F_p, rho_F_m, rhou_F_p, rhou_F_m, rhov_F_p;
     double rhov_F_m, rhow_F_p, rhow_F_m, rhoE_F_p, rhoE_F_m;
 #if _OPENACC_MANUAL_DATA_MOVEMENT_
@@ -1717,7 +1755,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
     const int endy = topo->iter_common[_INNER_][_ENDY_];
     const int endz = topo->iter_common[_INNER_][_ENDZ_];
     #pragma acc enter data copyin(this) 
-    #pragma acc parallel loop collapse (3) copyin (rho_field.vector[0:local_size],u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],sos_field.vector[0:local_size],x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size]) copyout (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size]) 
+    #pragma acc parallel loop collapse (3) copyin (rho_field.vector[0:local_size],u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],sos_field.vector[0:local_size],x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size], artificial_compressibility_method, P_thermo) copyout (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size]) 
     for(int i = inix; i <= endx; i++) {
         for(int j = iniy; j <= endy; j++) {
             for(int k = iniz; k <= endz; k++) {
@@ -1740,22 +1778,27 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 E_L     = E_field[I1D(index_L,j,k)];   E_R     = E_field[I1D(index_R,j,k)];
                 P_L     = P_field[I1D(index_L,j,k)];   P_R     = P_field[I1D(index_R,j,k)];
                 a_L     = sos_field[I1D(index_L,j,k)]; a_R     = sos_field[I1D(index_R,j,k)];
+                P_rhouvw_L = P_L;                      P_rhouvw_R = P_R;
+                if( artificial_compressibility_method ) {
+                    P_rhouvw_L = P_L - P_thermo;
+                    P_rhouvw_R = P_R - P_thermo;
+		}
                 /// rho
                 var_type = 0;
                 //rho_F_p  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rho_F_p  = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 1;
-                //rhou_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhou_F_p = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhou_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhou_F_p = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
-                //rhov_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhov_F_p = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhov_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhov_F_p = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
-                //rhow_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhow_F_p = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhow_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhow_F_p = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 //rhoE_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
@@ -1769,22 +1812,27 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 E_L     = E_field[I1D(index_L,j,k)];   E_R     = E_field[I1D(index_R,j,k)];
                 P_L     = P_field[I1D(index_L,j,k)];   P_R     = P_field[I1D(index_R,j,k)];
                 a_L     = sos_field[I1D(index_L,j,k)]; a_R     = sos_field[I1D(index_R,j,k)];
+                P_rhouvw_L = P_L;                      P_rhouvw_R = P_R;
+                if( artificial_compressibility_method ) {
+                    P_rhouvw_L = P_L - P_thermo;
+                    P_rhouvw_R = P_R - P_thermo;
+		}		
                 /// rho
                 var_type = 0;
                 //rho_F_m  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rho_F_m  = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 1;
-                //rhou_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhou_F_m = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhou_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhou_F_m = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
-                //rhov_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhov_F_m = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhov_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhov_F_m = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
-                //rhow_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhow_F_m = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhow_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhow_F_m = calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 //rhoE_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
@@ -1804,22 +1852,27 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 E_L     = E_field[I1D(i,index_L,k)];   E_R     = E_field[I1D(i,index_R,k)];
                 P_L     = P_field[I1D(i,index_L,k)];   P_R     = P_field[I1D(i,index_R,k)];
                 a_L     = sos_field[I1D(i,index_L,k)]; a_R     = sos_field[I1D(i,index_R,k)];
+                P_rhouvw_L = P_L;                      P_rhouvw_R = P_R;
+                if( artificial_compressibility_method ) {
+                    P_rhouvw_L = P_L - P_thermo;
+                    P_rhouvw_R = P_R - P_thermo;
+		}		
                 /// rho
                 var_type = 0;
                 //rho_F_p  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rho_F_p  = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 2;
-                //rhou_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhou_F_p = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhou_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhou_F_p = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 1;
-                //rhov_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhov_F_p = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhov_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhov_F_p = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
-                //rhow_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhow_F_p = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhow_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhow_F_p = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 //rhoE_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
@@ -1833,22 +1886,27 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 E_L     = E_field[I1D(i,index_L,k)];   E_R     = E_field[I1D(i,index_R,k)];
                 P_L     = P_field[I1D(i,index_L,k)];   P_R     = P_field[I1D(i,index_R,k)];
                 a_L     = sos_field[I1D(i,index_L,k)]; a_R     = sos_field[I1D(i,index_R,k)];
+                P_rhouvw_L = P_L;                      P_rhouvw_R = P_R;
+                if( artificial_compressibility_method ) {
+                    P_rhouvw_L = P_L - P_thermo;
+                    P_rhouvw_R = P_R - P_thermo;
+		}		
                 /// rho
                 var_type = 0;
                 //rho_F_m  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rho_F_m  = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 2;
-                //rhou_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhou_F_m = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhou_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhou_F_m = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 1;
-                //rhov_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhov_F_m = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhov_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhov_F_m = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 3;
-                //rhow_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhow_F_m = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhow_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhow_F_m = calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 //rhoE_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
@@ -1868,22 +1926,27 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 E_L     = E_field[I1D(i,j,index_L)];   E_R     = E_field[I1D(i,j,index_R)];
                 P_L     = P_field[I1D(i,j,index_L)];   P_R     = P_field[I1D(i,j,index_R)];
                 a_L     = sos_field[I1D(i,j,index_L)]; a_R     = sos_field[I1D(i,j,index_R)];
+                P_rhouvw_L = P_L;                      P_rhouvw_R = P_R;
+                if( artificial_compressibility_method ) {
+                    P_rhouvw_L = P_L - P_thermo;
+                    P_rhouvw_R = P_R - P_thermo;
+		}		
                 /// rho
                 var_type = 0;
                 //rho_F_p  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rho_F_p  = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 3;
-                //rhou_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhou_F_p = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhou_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhou_F_p = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
-                //rhov_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhov_F_p = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhov_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhov_F_p = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 1;
-                //rhow_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhow_F_p = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhow_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhow_F_p = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 //rhoE_F_p = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
@@ -1897,22 +1960,27 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 E_L     = E_field[I1D(i,j,index_L)];   E_R     = E_field[I1D(i,j,index_R)];
                 P_L     = P_field[I1D(i,j,index_L)];   P_R     = P_field[I1D(i,j,index_R)];
                 a_L     = sos_field[I1D(i,j,index_L)]; a_R     = sos_field[I1D(i,j,index_R)];
+                P_rhouvw_L = P_L;                      P_rhouvw_R = P_R;
+                if( artificial_compressibility_method ) {
+                    P_rhouvw_L = P_L - P_thermo;
+                    P_rhouvw_R = P_R - P_thermo;
+		}		
                 /// rho
                 var_type = 0;
                 //rho_F_m  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 rho_F_m  = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
                 /// rhou
                 var_type = 3;
-                //rhou_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhou_F_m = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhou_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhou_F_m = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhov
                 var_type = 2;
-                //rhov_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhov_F_m = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhov_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhov_F_m = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhow
                 var_type = 1;
-                //rhow_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
-                rhow_F_m = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
+                //rhow_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
+                rhow_F_m = calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_rhouvw_L, P_rhouvw_R, a_L, a_R, var_type );
                 /// rhoE
                 var_type = 4;
                 //rhoE_F_m = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
@@ -2399,6 +2467,82 @@ double FlowSolverRHEA::updateTimeFavreAveragedQuantity(const double &quantity_1,
 
 };
 
+double FlowSolverRHEA::calculateVolumeAveragedPressure() {
+
+    /// Inner points: P
+    double local_sum_VP = 0.0;
+    double local_sum_V  = 0.0;
+    double volume       = 0.0;
+    double delta_x, delta_y, delta_z;    
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                /// Geometric stuff
+                delta_x = 0.5*( x_field[I1D(i+1,j,k)] - x_field[I1D(i-1,j,k)] ); 
+                delta_y = 0.5*( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j-1,k)] ); 
+                delta_z = 0.5*( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k-1)] );
+                /// Calculate volume
+                volume = delta_x*delta_y*delta_z; 
+                /// Sum V*P values
+                local_sum_VP += volume*P_field[I1D(i,j,k)];
+                /// Sum V values
+                local_sum_V += volume;
+	    }
+        }
+    }		    
+
+    /// Communicate local values to obtain global & average values
+    double global_sum_VP;
+    MPI_Allreduce(&local_sum_VP, &global_sum_VP, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    double global_sum_V;
+    MPI_Allreduce(&local_sum_V, &global_sum_V, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    double global_avg_P = global_sum_VP/global_sum_V;
+
+    return( global_avg_P );
+
+};
+
+void FlowSolverRHEA::calculateArtificiallyModifiedThermodynamics() {
+            
+    /// All (inner, halo, boundary) points: sos, c_v, c_p
+    double P_aux, c_v, c_p;
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+		P_aux = P_thermo/( alpha*alpha ); 
+                sos_field[I1D(i,j,k)]  = thermodynamics->calculateSoundSpeed( P_aux, T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                c_v_field[I1D(i,j,k)]  = c_v;
+                c_p_field[I1D(i,j,k)]  = c_p;
+            }
+        }
+    }
+
+    /// Update halo values
+    //sos_field.update();
+    //c_v_field.update();
+    //c_p_field.update();
+
+};
+
+void FlowSolverRHEA::calculateArtificiallyModifiedTransportCoefficients() {
+    
+    /// All (inner, halo, boundary) points: mu and kappa
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+                mu_field[I1D(i,j,k)]    = transport_coefficients->calculateDynamicViscosity( P_thermo, T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                kappa_field[I1D(i,j,k)] = transport_coefficients->calculateThermalConductivity( P_thermo, T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+            }
+        }
+    }
+
+    /// Update halo values
+    //mu_field.update();
+    //kappa_field.update();
+
+};
+
 void FlowSolverRHEA::execute() {
     
     /// Start timer: execute
@@ -2420,17 +2564,44 @@ void FlowSolverRHEA::execute() {
         /// Initialize from restart file
         this->initializeFromRestart();
 
+        if( artificial_compressibility_method ) {
+
+            /// Calculate thermodynamic (bulk) pressure
+            P_thermo = this->calculateVolumeAveragedPressure();
+
+	    /// Calculate artificially modified thermodynamics
+            this->calculateArtificiallyModifiedThermodynamics();
+
+	    /// Calculate artificially modified transport coefficients
+            this->calculateArtificiallyModifiedTransportCoefficients();
+
+	}
 
     } else {
 
         /// Set initial conditions
         this->setInitialConditions();
-    
+
         /// Initialize thermodynamics
         this->initializeThermodynamics();
 
-        /// Calculate transport coefficients
-        this->calculateTransportCoefficients();
+        if( artificial_compressibility_method ) {
+
+            /// Calculate thermodynamic (bulk) pressure
+            P_thermo = this->calculateVolumeAveragedPressure();
+
+	    /// Calculate artificially modified thermodynamics
+            this->calculateArtificiallyModifiedThermodynamics();	    
+
+	    /// Calculate artificially modified transport coefficients
+            this->calculateArtificiallyModifiedTransportCoefficients();
+
+	} else {
+
+            /// Calculate transport coefficients
+            this->calculateTransportCoefficients();
+
+	}
 
     }
 
@@ -2488,8 +2659,17 @@ void FlowSolverRHEA::execute() {
             /// Start timer: calculate_thermophysical_properties
             timers->start( "calculate_thermophysical_properties" );
 
-            /// Calculate transport coefficients
-            this->calculateTransportCoefficients();
+            if( artificial_compressibility_method ) {
+
+	        /// Calculate artificially modified transport coefficients
+                this->calculateArtificiallyModifiedTransportCoefficients();
+
+	    } else {
+
+                /// Calculate transport coefficients
+                this->calculateTransportCoefficients();
+
+	    }
 
             /// Stop timer: calculate_thermophysical_properties
             timers->stop( "calculate_thermophysical_properties" );
@@ -2545,6 +2725,16 @@ void FlowSolverRHEA::execute() {
             /// Calculate thermodynamics from primitive variables
             this->calculateThermodynamicsFromPrimitiveVariables();
 
+            if( artificial_compressibility_method ) {
+
+                /// Calculate thermodynamic (bulk) pressure
+                P_thermo = this->calculateVolumeAveragedPressure();
+
+                /// Calculate artificially modified thermodynamics
+                this->calculateArtificiallyModifiedThermodynamics();	    
+
+	    }
+
             /// Stop timer: calculate_thermodynamics_from_primitive_variables
             timers->stop( "calculate_thermodynamics_from_primitive_variables" );
 
@@ -2553,7 +2743,7 @@ void FlowSolverRHEA::execute() {
 
             /// Update boundary values
             this->updateBoundaries();
-
+            
             /// Stop timer: update_boundaries
             timers->stop( "update_boundaries" );
 
