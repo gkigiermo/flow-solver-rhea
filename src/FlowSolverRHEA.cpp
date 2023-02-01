@@ -1757,7 +1757,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
     const int endy = topo->iter_common[_INNER_][_ENDY_];
     const int endz = topo->iter_common[_INNER_][_ENDZ_];
     #pragma acc enter data copyin(this) 
-    #pragma acc parallel loop collapse (3) copyin (rho_field.vector[0:local_size],u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],sos_field.vector[0:local_size],x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size], artificial_compressibility_method, P_thermo) copyout (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size]) 
+    #pragma acc parallel loop collapse (3) copyin (rho_field.vector[0:local_size],u_field.vector[0:local_size],v_field.vector[0:local_size],w_field.vector[0:local_size],E_field.vector[0:local_size],P_field.vector[0:local_size],sos_field.vector[0:local_size],x_field.vector[0:local_size],y_field.vector[0:local_size],z_field.vector[0:local_size]) copyout (rho_inv_flux.vector[0:local_size],rhou_inv_flux.vector[0:local_size],rhov_inv_flux.vector[0:local_size],rhow_inv_flux.vector[0:local_size],rhoE_inv_flux.vector[0:local_size]) 
     for(int i = inix; i <= endx; i++) {
         for(int j = iniy; j <= endy; j++) {
             for(int k = iniz; k <= endz; k++) {
