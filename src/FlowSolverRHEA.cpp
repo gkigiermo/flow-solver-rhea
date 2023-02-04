@@ -982,8 +982,7 @@ void FlowSolverRHEA::updateBoundaries() {
 		/// Update sos, c_v and c_p
 		double c_v, c_p;
 		if( artificial_compressibility_method ) {
-		    double P_aux = P_thermo/( alpha*alpha + epsilon );
-                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_aux, T_g, rho_g );
+                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
                     thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
 		} else {
                     sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -1098,8 +1097,7 @@ void FlowSolverRHEA::updateBoundaries() {
 		/// Update sos, c_v and c_p
 		double c_v, c_p;
 		if( artificial_compressibility_method ) {
-		    double P_aux = P_thermo/( alpha*alpha + epsilon );
-                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_aux, T_g, rho_g );
+                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
                     thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
 		} else {
                     sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -1214,8 +1212,7 @@ void FlowSolverRHEA::updateBoundaries() {
 		/// Update sos, c_v and c_p
 		double c_v, c_p;
 		if( artificial_compressibility_method ) {
-		    double P_aux = P_thermo/( alpha*alpha + epsilon );
-                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_aux, T_g, rho_g );
+                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
                     thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
 		} else {
                     sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -1330,8 +1327,7 @@ void FlowSolverRHEA::updateBoundaries() {
 		/// Update sos, c_v and c_p
 		double c_v, c_p;
 		if( artificial_compressibility_method ) {
-		    double P_aux = P_thermo/( alpha*alpha + epsilon );
-                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_aux, T_g, rho_g );
+                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
                     thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
 		} else {
                     sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -1446,8 +1442,7 @@ void FlowSolverRHEA::updateBoundaries() {
 		/// Update sos, c_v and c_p
 		double c_v, c_p;
 		if( artificial_compressibility_method ) {
-		    double P_aux = P_thermo/( alpha*alpha + epsilon );
-                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_aux, T_g, rho_g );
+                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
                     thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
 		} else {
                     sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -1562,8 +1557,7 @@ void FlowSolverRHEA::updateBoundaries() {
 		/// Update sos, c_v and c_p
 		double c_v, c_p;
 		if( artificial_compressibility_method ) {
-		    double P_aux = P_thermo/( alpha*alpha + epsilon );
-                    sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_aux, T_g, rho_g );
+                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
                     thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
 		} else {
                     sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -2507,12 +2501,11 @@ double FlowSolverRHEA::calculateVolumeAveragedPressure() {
 void FlowSolverRHEA::calculateArtificiallyModifiedThermodynamics() {
             
     /// All (inner, halo, boundary) points: sos, c_v, c_p
-    double P_aux, c_v, c_p;
+    double c_v, c_p;
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-		P_aux = P_thermo/( alpha*alpha + epsilon ); 
-                sos_field[I1D(i,j,k)]  = thermodynamics->calculateSoundSpeed( P_aux, T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                sos_field[I1D(i,j,k)]  = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
                 thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
                 c_v_field[I1D(i,j,k)]  = c_v;
                 c_p_field[I1D(i,j,k)]  = c_p;

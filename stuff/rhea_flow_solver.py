@@ -670,7 +670,7 @@ def calculate_speed_sound( sos, rho, P, P_thermo, T ):
         for j in range( 0, num_grid_y + 2 ):    
             for k in range( 0, num_grid_z + 2 ):
                 if( artificial_compressibility_method ):
-                    sos[i][j][k] = np.sqrt( ( gamma*P_thermo )/( rho[i][j][k]*( alpha**2.0 ) ) )
+                    sos[i][j][k] = ( 1.0/( alpha + epsilon ) )*np.sqrt( gamma*P_thermo/rho[i][j][k] )
                 else:
                     sos[i][j][k] = np.sqrt( gamma*P[i][j][k]/rho[i][j][k] )
     #print( sos )
