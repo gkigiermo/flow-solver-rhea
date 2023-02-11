@@ -68,52 +68,56 @@ from numba import njit
 ########## SET PARAMETERS ##########
 
 ### Fluid properties 
-R_specific  = 287.058					# Specific gas constant of the fluid [J/(kg K)]
-gamma       = 1.4					# Heat capacity ratio of the fluid [-]
+R_specific  = 287.058					            # Specific gas constant of the fluid [J/(kg K)]
+gamma       = 1.4					                # Heat capacity ratio of the fluid [-]
 c_p         = gamma*R_specific/( gamma - 1.0 )		# Isobaric heat capacity
-Re_L        = 100.0					# Reynolds number based on L [-]
-Ma          = 1.0e-1/np.sqrt( gamma )			# Mach number [-]
-Pr          = 0.71					# Prandtl number [-]
-rho_0       = 1.0					# Reference density [kg/m^3]
-L           = 1.0					# Cavity size [m]
-U_lid       = 1.0 					# Lid velocity [m/s]
-P_0         = rho_0*U_lid*U_lid/( gamma*Ma*Ma )		# Reference pressure [Pa] 
+Re_L        = 100.0					                # Reynolds number based on L [-]
+Ma          = 1.0e-1/np.sqrt( gamma )			    # Mach number [-]
+Pr          = 0.71					                # Prandtl number [-]
+rho_0       = 1.0					                # Reference density [kg/m^3]
+L           = 1.0					                # Cavity size [m]
+U_lid       = 1.0 					                # Lid velocity [m/s]
+P_0         = rho_0*U_lid*U_lid/( gamma*Ma*Ma )     # Reference pressure [Pa] 
 T_0         = ( 1.0/( rho_0*R_specific ) )*P_0		# Reference temperature [K] 
-mu_value    = rho_0*U_lid*L/Re_L       			# Dynamic viscosity of the fluid [Pa s]
-kappa_value = c_p*mu_value/Pr				# Thermal conductivity of the fluid [W/(m k)]
+mu_value    = rho_0*U_lid*L/Re_L       			    # Dynamic viscosity of the fluid [Pa s]
+kappa_value = c_p*mu_value/Pr				        # Thermal conductivity of the fluid [W/(m k)]
 
 ### Problem parameters
-x_0           = 0.0                     # Domain origin in x-direction [m]
-y_0           = 0.0                     # Domain origin in y-direction [m]
-z_0           = 0.0                     # Domain origin in z-direction [m]
-L_x           = L                  	# Size of domain in x-direction
-L_y           = L	      		# Size of domain in y-direction
-L_z           = 0.1*L_x         	# Size of domain in z-direction
-initial_time  = 0.0   			# Initial time [s]
-final_time    = 50.0      		# Final time [s]
-name_file_out = 'output_data.csv'	# Name of output data [-]
+x_0           = 0.0                                 # Domain origin in x-direction [m]
+y_0           = 0.0                                 # Domain origin in y-direction [m]
+z_0           = 0.0                                 # Domain origin in z-direction [m]
+L_x           = L                  	                # Size of domain in x-direction
+L_y           = L	      		                    # Size of domain in y-direction
+L_z           = 0.1*L_x         	                # Size of domain in z-direction
+initial_time  = 0.0   			                    # Initial time [s]
+final_time    = 50.0      		                    # Final time [s]
+name_file_out = 'output_data.csv'	                # Name of output data [-]
 
 ### Computational parameters
-num_grid_x        = 32 			# Number of internal grid points in the x-direction
-num_grid_y        = 32			# Number of internal grid points in the y-direction
-num_grid_z        = 1			# Number of internal grid points in the z-direction
+num_grid_x        = 32 			                    # Number of internal grid points in the x-direction
+num_grid_y        = 32			                    # Number of internal grid points in the y-direction
+num_grid_z        = 1			                    # Number of internal grid points in the z-direction
 # Stretching factors: x = L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
 # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
-A_x               = -1.0                # Stretching factor in x-direction
-A_y               = -1.0                # Stretching factor in y-direction
-A_z               = 0.0                 # Stretching factor in z-direction
-CFL               = 0.1 		# CFL coefficient
-max_num_time_iter = 1e6			# Maximum number of time iterations
-output_iter       = 500			# Output data every given number of iterations
-transport_pressure_scheme = False	# Select transporting pressure instead of total energy
-artificial_compressibility_method = False   # Activate artificial compressibility method
-P_thermo          = P_0			# Initialize thermodynamic pressure for artificial compressibility method
-alpha             = 100.0 		# Speedup factor of artificial compressibility method
+A_x               = -1.0                            # Stretching factor in x-direction
+A_y               = -1.0                            # Stretching factor in y-direction
+A_z               = 0.0                             # Stretching factor in z-direction
+CFL               = 0.3 		                    # CFL coefficient
+max_num_time_iter = 1e6			                    # Maximum number of time iterations
+output_iter       = 500			                    # Output data every given number of iterations
+transport_pressure_scheme = False	                # Select transporting pressure instead of total energy
+artificial_compressibility_method = False           # Activate artificial compressibility method
+epsilon_acm       = 0.01 		                    # Ratio between modified_P_hydro and P_thermo for the artificial compressibility method ... it has to be small
 
 ### Fixed parameters
-num_sptl_dim = 3         		# Number of spatial dimensions (fixed value)
-rk_order     = 3         		# Time-integration Runge-Kutta order (fixed value)
-epsilon      = 1.0e-15   		# Small epsilon number (fixed value)
+num_sptl_dim = 3         		                    # Number of spatial dimensions (fixed value)
+rk_order     = 3         		                    # Time-integration Runge-Kutta order (fixed value)
+epsilon      = 1.0e-15   		                    # Small epsilon number (fixed value)
+
+### Auxiliar parameters
+delta_t   = 0.0                                     # Initialize time step
+P_thermo  = P_0  			                        # Initialize thermodynamic pressure for artificial compressibility method
+alpha_acm = 1.0       		                        # Initialize speedup factor of artificial compressibility method
 
 
 ########## ALLOCATE MEMORY ##########
@@ -670,7 +674,7 @@ def calculate_speed_sound( sos, rho, P, P_thermo, T ):
         for j in range( 0, num_grid_y + 2 ):    
             for k in range( 0, num_grid_z + 2 ):
                 if( artificial_compressibility_method ):
-                    sos[i][j][k] = ( 1.0/( alpha + epsilon ) )*np.sqrt( gamma*P_thermo/rho[i][j][k] )
+                    sos[i][j][k] = ( 1.0/( alpha_acm + epsilon ) )*np.sqrt( gamma*P_thermo/rho[i][j][k] )
                 else:
                     sos[i][j][k] = np.sqrt( gamma*P[i][j][k]/rho[i][j][k] )
     #print( sos )
@@ -726,6 +730,31 @@ def calculate_volume_averaged_value( field, grid ):
 
     # Return volume-averaged value
     return( volume_averaged_value )
+
+
+### Calculate alpha value of artificial compressibility method
+@njit
+def calculate_alpha_acm( P, sos, P_thermo, delta_t ):
+
+    # Approximate size of the domain
+    L = ( L_x*L_y*L_z )**( 1.0/3.0 )
+
+    # Initialize quantities
+    alpha = 1.0e6
+
+    # Internal points
+    for i in range( 1, num_grid_x + 1 ):    
+        for j in range( 1, num_grid_y + 1 ):    
+            for k in range( 1, num_grid_z + 1 ):
+                ## Update value
+                #alpha_aux = np.sqrt( abs( ( P_thermo*epsilon_acm )/( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) ) )
+                alpha_aux = alpha_acm + delta_t*( alpha_acm*sos[i][j][k]/( 2.0*L ) )*( np.sqrt( abs( ( P_thermo*epsilon_acm )/( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) ) ) - 1.0 )
+                alpha     = min( alpha, alpha_aux )
+                #alpha     = max( 1.0, min( alpha, alpha_aux ) )
+    #print(alpha)
+
+    # Return value of alpha
+    return( alpha )
 
 
 ### calculate wave speeds
@@ -1298,7 +1327,8 @@ initialize_uvwPT( u_field, v_field, w_field, P_field, T_field, mesh )
 ### Initialize thermodynamic variables
 initialize_thermodynamics( rho_field, E_field, u_field, v_field, w_field, P_field, T_field )
 if( artificial_compressibility_method ):
-    P_thermo = calculate_volume_averaged_value( P_field, mesh )
+    P_thermo  = calculate_volume_averaged_value( P_field, mesh )
+    alpha_acm = calculate_alpha_acm( P_field, sos_field, P_thermo, delta_t )
 calculate_speed_sound( sos_field, rho_field, P_field, P_thermo, T_field )
 
 ### Calculate transport coefficients
@@ -1373,7 +1403,8 @@ for t in range( 0, int( max_num_time_iter ) ):
         ### Update thermodynamic variables from primitive variables
         thermodynamic_state( rhoE_field, P_field, T_field, rho_field, u_field, v_field, w_field, E_field )
         if( artificial_compressibility_method ):
-            P_thermo = calculate_volume_averaged_value( P_field, mesh )
+            P_thermo  = calculate_volume_averaged_value( P_field, mesh )
+            alpha_acm = calculate_alpha_acm( P_field, sos_field, P_thermo, delta_t )
         calculate_speed_sound( sos_field, rho_field, P_field, P_thermo, T_field )
 
         ### Update boundaries

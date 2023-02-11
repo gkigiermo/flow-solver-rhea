@@ -170,6 +170,9 @@ class FlowSolverRHEA {
 	/// Calculate volume-averaged pressure
         virtual double calculateVolumeAveragedPressure();
 
+	/// Calculate alpha value of artificial compressibility method 
+        virtual double calculateAlphaArtificialCompressibilityMethod();
+
 	/// Calculate artificially modified thermodynamics
         virtual void calculateArtificiallyModifiedThermodynamics();
 
@@ -204,7 +207,7 @@ class FlowSolverRHEA {
         double A_y;						/// Stretching factor in y-direction
         double A_z;						/// Stretching factor in z-direction
         double CFL;						/// CFL coefficient
-        double delta_t;		      				/// Time step [s]
+        double delta_t = 0.0;	      				/// Time step [s]
         int current_time_iter;					/// Current time iteration
         int final_time_iter;					/// Final time iteration
         int rk_number_stages;					/// Number of stages of Runge-Kutta time discretization method
@@ -212,7 +215,8 @@ class FlowSolverRHEA {
 	std::string runge_kutta_time_scheme;			/// Runge-Kutta time scheme
         bool transport_pressure_scheme;				/// Activate transport P instead of rhoE
         bool artificial_compressibility_method;			/// Artificially decrease velocity of acoustic waves
-        double alpha;		      				/// Speedup factor of artificial compressibility method [-]
+        double epsilon_acm;	      				/// Ratio between modified_P_hydro and P_thermo for the artificial compressibility method [-]
+        double alpha_acm = 1.0;	      				/// Speedup factor of artificial compressibility method [-]
         double P_thermo;	      				/// Thermodynamic (bulk) pressure for artificial compressibility method [Pa]
 
         /// Local mesh values for I1D macro

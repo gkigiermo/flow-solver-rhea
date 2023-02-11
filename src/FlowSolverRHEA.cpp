@@ -359,7 +359,7 @@ void FlowSolverRHEA::readConfigurationFile() {
     runge_kutta_time_scheme            = computational_parameters["runge_kutta_time_scheme"].as<string>();
     transport_pressure_scheme          = computational_parameters["transport_pressure_scheme"].as<bool>();
     artificial_compressibility_method  = computational_parameters["artificial_compressibility_method"].as<bool>();
-    alpha                              = computational_parameters["alpha"].as<double>();
+    epsilon_acm                        = computational_parameters["epsilon_acm"].as<double>();
     final_time_iter                    = computational_parameters["final_time_iter"].as<int>();
 
     /// Boundary conditions
@@ -982,7 +982,7 @@ void FlowSolverRHEA::updateBoundaries() {
 		/// Update sos, c_v and c_p
 		double c_v, c_p;
 		if( artificial_compressibility_method ) {
-                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
+                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha_acm + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
                     thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
 		} else {
                     sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -1097,7 +1097,7 @@ void FlowSolverRHEA::updateBoundaries() {
 		/// Update sos, c_v and c_p
 		double c_v, c_p;
 		if( artificial_compressibility_method ) {
-                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
+                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha_acm + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
                     thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
 		} else {
                     sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -1212,7 +1212,7 @@ void FlowSolverRHEA::updateBoundaries() {
 		/// Update sos, c_v and c_p
 		double c_v, c_p;
 		if( artificial_compressibility_method ) {
-                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
+                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha_acm + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
                     thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
 		} else {
                     sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -1327,7 +1327,7 @@ void FlowSolverRHEA::updateBoundaries() {
 		/// Update sos, c_v and c_p
 		double c_v, c_p;
 		if( artificial_compressibility_method ) {
-                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
+                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha_acm + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
                     thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
 		} else {
                     sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -1442,7 +1442,7 @@ void FlowSolverRHEA::updateBoundaries() {
 		/// Update sos, c_v and c_p
 		double c_v, c_p;
 		if( artificial_compressibility_method ) {
-                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
+                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha_acm + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
                     thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
 		} else {
                     sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -1557,7 +1557,7 @@ void FlowSolverRHEA::updateBoundaries() {
 		/// Update sos, c_v and c_p
 		double c_v, c_p;
 		if( artificial_compressibility_method ) {
-                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
+                    sos_field[I1D(i,j,k)] = ( 1.0/( alpha_acm + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_g, rho_g );
                     thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_g, rho_g );
 		} else {
                     sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P_g, T_g, rho_g );
@@ -2498,6 +2498,40 @@ double FlowSolverRHEA::calculateVolumeAveragedPressure() {
 
 };
 
+double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
+
+    /// Automatic selection of alpha:
+    /// J. D. Ramshaw, P. J. O'Rourke, L. R. Stein.
+    /// Pressure gradient scaling method for fluid flow with nearly uniform pressure.
+    /// Journal of Computational Physics, 58, 361-376, 1985.
+
+    /// Initialize to largest double value
+    double local_alpha = numeric_limits<double>::max();
+
+    /// Approximate size of the domain
+    double L = pow( L_x*L_y*L_z, 1.0/3.0 );
+
+    /// Inner points: P
+    double alpha_aux;
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                /// Update value
+                //alpha_aux   = sqrt( abs( ( P_thermo*epsilon_acm )/( ( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) ) );
+                alpha_aux   = alpha_acm + delta_t*( alpha_acm*sos_field[I1D(i,j,k)]/( 2.0*L ) )*( sqrt( abs( ( P_thermo*epsilon_acm )/( ( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) ) ) - 1.0 );
+                local_alpha = min( local_alpha, alpha_aux );
+	    }
+        }
+    }		    
+
+    /// Communicate local value to obtain global value
+    double global_alpha;
+    MPI_Allreduce(&local_alpha, &global_alpha, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+
+    return( global_alpha );
+
+};
+
 void FlowSolverRHEA::calculateArtificiallyModifiedThermodynamics() {
             
     /// All (inner, halo, boundary) points: sos, c_v, c_p
@@ -2505,7 +2539,7 @@ void FlowSolverRHEA::calculateArtificiallyModifiedThermodynamics() {
     for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
         for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                sos_field[I1D(i,j,k)]  = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
+                sos_field[I1D(i,j,k)]  = ( 1.0/( alpha_acm + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
                 thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
                 c_v_field[I1D(i,j,k)]  = c_v;
                 c_p_field[I1D(i,j,k)]  = c_p;
@@ -2564,6 +2598,9 @@ void FlowSolverRHEA::execute() {
             /// Calculate thermodynamic (bulk) pressure
             P_thermo = this->calculateVolumeAveragedPressure();
 
+            /// Calculate alpha value of artificial compressibility method
+            alpha_acm = this->calculateAlphaArtificialCompressibilityMethod();
+
 	    /// Calculate artificially modified thermodynamics
             this->calculateArtificiallyModifiedThermodynamics();
 
@@ -2584,6 +2621,9 @@ void FlowSolverRHEA::execute() {
 
             /// Calculate thermodynamic (bulk) pressure
             P_thermo = this->calculateVolumeAveragedPressure();
+
+            /// Calculate alpha value of artificial compressibility method
+            alpha_acm = this->calculateAlphaArtificialCompressibilityMethod();
 
 	    /// Calculate artificially modified thermodynamics
             this->calculateArtificiallyModifiedThermodynamics();	    
@@ -2724,6 +2764,9 @@ void FlowSolverRHEA::execute() {
 
                 /// Calculate thermodynamic (bulk) pressure
                 P_thermo = this->calculateVolumeAveragedPressure();
+
+                /// Calculate alpha value of artificial compressibility method
+                alpha_acm = this->calculateAlphaArtificialCompressibilityMethod();
 
                 /// Calculate artificially modified thermodynamics
                 this->calculateArtificiallyModifiedThermodynamics();	    
