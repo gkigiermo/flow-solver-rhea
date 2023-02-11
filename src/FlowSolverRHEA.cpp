@@ -2500,16 +2500,8 @@ double FlowSolverRHEA::calculateVolumeAveragedPressure() {
 
 double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
 
-    /// Automatic selection of alpha:
-    /// J. D. Ramshaw, P. J. O'Rourke, L. R. Stein.
-    /// Pressure gradient scaling method for fluid flow with nearly uniform pressure.
-    /// Journal of Computational Physics, 58, 361-376, 1985.
-
     /// Initialize to largest double value
     double local_alpha = numeric_limits<double>::max();
-
-    /// Approximate size of the domain
-    double L = pow( L_x*L_y*L_z, 1.0/3.0 );
 
     /// Inner points: P
     double alpha_aux;
@@ -2517,8 +2509,7 @@ double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 /// Update value
-                //alpha_aux   = sqrt( abs( ( P_thermo*epsilon_acm )/( ( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) ) );
-                alpha_aux   = alpha_acm + delta_t*( alpha_acm*sos_field[I1D(i,j,k)]/( 2.0*L ) )*( sqrt( abs( ( P_thermo*epsilon_acm )/( ( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) ) ) - 1.0 );
+                alpha_aux   = sqrt( 1.0 + abs( ( P_field[I1D(i,j,k)]*epsilon_acm )/( ( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) ) );
                 local_alpha = min( local_alpha, alpha_aux );
 	    }
         }

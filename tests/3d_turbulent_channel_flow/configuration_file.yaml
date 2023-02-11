@@ -71,7 +71,7 @@ computational_parameters:
    transport_pressure_scheme: 'FALSE'  		          		# Transport P instead of rhoE scheme
    # Artificially decrease the velocity of acoustic waves: FALSE, TRUE
    artificial_compressibility_method: 'FALSE'  	          		# Artificially decrease velocity of acoustic waves
-   epsilon_acm: 0.01                                                    # Ratio between modified_P_hydro and P_thermo for the artificial compressibility method ... it has to be small     
+   epsilon_acm: 0.01                                                    # Relative error of artificial compressibility method     
    final_time_iter: 10000000          					# Final time iteration
 
 

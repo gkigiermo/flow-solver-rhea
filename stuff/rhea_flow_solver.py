@@ -102,12 +102,12 @@ num_grid_z        = 1			                    # Number of internal grid points in 
 A_x               = -1.0                            # Stretching factor in x-direction
 A_y               = -1.0                            # Stretching factor in y-direction
 A_z               = 0.0                             # Stretching factor in z-direction
-CFL               = 0.3 		                    # CFL coefficient
+CFL               = 0.1 		                    # CFL coefficient
 max_num_time_iter = 1e6			                    # Maximum number of time iterations
 output_iter       = 500			                    # Output data every given number of iterations
 transport_pressure_scheme = False	                # Select transporting pressure instead of total energy
 artificial_compressibility_method = False           # Activate artificial compressibility method
-epsilon_acm       = 0.01 		                    # Ratio between modified_P_hydro and P_thermo for the artificial compressibility method ... it has to be small
+epsilon_acm       = 0.01 		           # Relative error of artificial compressibility method ... it has to be small
 
 ### Fixed parameters
 num_sptl_dim = 3         		                    # Number of spatial dimensions (fixed value)
@@ -734,12 +734,9 @@ def calculate_volume_averaged_value( field, grid ):
 
 ### Calculate alpha value of artificial compressibility method
 @njit
-def calculate_alpha_acm( P, sos, P_thermo, delta_t ):
+def calculate_alpha_acm( P, P_thermo ):
 
-    # Approximate size of the domain
-    L = ( L_x*L_y*L_z )**( 1.0/3.0 )
-
-    # Initialize quantities
+    # Initialize value
     alpha = 1.0e6
 
     # Internal points
@@ -747,10 +744,8 @@ def calculate_alpha_acm( P, sos, P_thermo, delta_t ):
         for j in range( 1, num_grid_y + 1 ):    
             for k in range( 1, num_grid_z + 1 ):
                 ## Update value
-                #alpha_aux = np.sqrt( abs( ( P_thermo*epsilon_acm )/( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) ) )
-                alpha_aux = alpha_acm + delta_t*( alpha_acm*sos[i][j][k]/( 2.0*L ) )*( np.sqrt( abs( ( P_thermo*epsilon_acm )/( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) ) ) - 1.0 )
+                alpha_aux = np.sqrt( 1.0 + abs( ( P[i][j][k]*epsilon_acm )/( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) ) )
                 alpha     = min( alpha, alpha_aux )
-                #alpha     = max( 1.0, min( alpha, alpha_aux ) )
     #print(alpha)
 
     # Return value of alpha
@@ -1328,7 +1323,7 @@ initialize_uvwPT( u_field, v_field, w_field, P_field, T_field, mesh )
 initialize_thermodynamics( rho_field, E_field, u_field, v_field, w_field, P_field, T_field )
 if( artificial_compressibility_method ):
     P_thermo  = calculate_volume_averaged_value( P_field, mesh )
-    alpha_acm = calculate_alpha_acm( P_field, sos_field, P_thermo, delta_t )
+    alpha_acm = calculate_alpha_acm( P_field, P_thermo )
 calculate_speed_sound( sos_field, rho_field, P_field, P_thermo, T_field )
 
 ### Calculate transport coefficients
@@ -1404,7 +1399,7 @@ for t in range( 0, int( max_num_time_iter ) ):
         thermodynamic_state( rhoE_field, P_field, T_field, rho_field, u_field, v_field, w_field, E_field )
         if( artificial_compressibility_method ):
             P_thermo  = calculate_volume_averaged_value( P_field, mesh )
-            alpha_acm = calculate_alpha_acm( P_field, sos_field, P_thermo, delta_t )
+            alpha_acm = calculate_alpha_acm( P_field, P_thermo )
         calculate_speed_sound( sos_field, rho_field, P_field, P_thermo, T_field )
 
         ### Update boundaries

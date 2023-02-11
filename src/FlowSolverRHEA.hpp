@@ -215,7 +215,7 @@ class FlowSolverRHEA {
 	std::string runge_kutta_time_scheme;			/// Runge-Kutta time scheme
         bool transport_pressure_scheme;				/// Activate transport P instead of rhoE
         bool artificial_compressibility_method;			/// Artificially decrease velocity of acoustic waves
-        double epsilon_acm;	      				/// Ratio between modified_P_hydro and P_thermo for the artificial compressibility method [-]
+        double epsilon_acm;	      				/// Relative error of artificial compressibility method [-]
         double alpha_acm = 1.0;	      				/// Speedup factor of artificial compressibility method [-]
         double P_thermo;	      				/// Thermodynamic (bulk) pressure for artificial compressibility method [Pa]
 
