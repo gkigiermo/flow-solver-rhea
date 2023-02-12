@@ -751,8 +751,8 @@ def calculate_alpha_acm( P, P_thermo, grid ):
                 delta_z = 0.5*( grid[i][j][k+1][2] - grid[i][j][k-1][2] )
                 volume  = delta_x*delta_y*delta_z
                 ## Update values
-                sum_num = volume*abs( P[i][j][k] ) 
-                sum_den = volume*abs( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) 
+                sum_num += volume*abs( P[i][j][k] ) 
+                sum_den += volume*abs( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) 
     alpha = np.sqrt( 1.0 + epsilon_acm*sum_num/sum_den )
 
 #    # Internal points: L2-norm
@@ -767,8 +767,8 @@ def calculate_alpha_acm( P, P_thermo, grid ):
 #                delta_z = 0.5*( grid[i][j][k+1][2] - grid[i][j][k-1][2] )
 #                volume  = delta_x*delta_y*delta_z
 #                ## Update values
-#                sum_num = ( volume*P[i][j][k] )**2.0
-#                sum_den = ( volume*( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) )**2.0
+#                sum_num += ( volume*P[i][j][k] )**2.0
+#                sum_den += ( volume*( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) )**2.0
 #    alpha = np.sqrt( 1.0 + epsilon_acm*np.sqrt( sum_num )/np.sqrt( sum_den ) )
 
 #    # Internal points: infinity-norm
@@ -778,6 +778,8 @@ def calculate_alpha_acm( P, P_thermo, grid ):
 #                ## Update value
 #                alpha_aux = np.sqrt( 1.0 + abs( ( P[i][j][k]*epsilon_acm )/( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) ) )
 #                alpha     = min( alpha, alpha_aux )
+
+    print( alpha )
 
     # Return value of alpha
     return( alpha )
