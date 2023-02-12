@@ -2470,6 +2470,63 @@ double FlowSolverRHEA::calculateVolumeAveragedPressure() {
 
 double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
 
+#if 1	/// L1-norm
+    /// Inner points: P
+    double local_sum_num = 0.0;
+    double local_sum_den = 0.0;
+    double delta_x, delta_y, delta_z, volume = 0.0;    
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                /// Geometric stuff
+                delta_x = 0.5*( x_field[I1D(i+1,j,k)] - x_field[I1D(i-1,j,k)] ); 
+                delta_y = 0.5*( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j-1,k)] ); 
+                delta_z = 0.5*( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k-1)] );
+                volume  = delta_x*delta_y*delta_z;
+                /// Update values
+                local_sum_num += volume*abs( P_field[I1D(i,j,k)] );
+                local_sum_den += volume*abs( ( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ); 
+	    }
+        }
+    }		    
+
+    /// Communicate local values to obtain global values
+    double global_sum_num;
+    MPI_Allreduce(&local_sum_num, &global_sum_num, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    double global_sum_den;
+    MPI_Allreduce(&local_sum_den, &global_sum_den, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    double global_alpha = sqrt( 1.0 + epsilon_acm*global_sum_num/global_sum_den );
+#endif
+
+#if 0	/// L2-norm
+    /// Inner points: P
+    double local_sum_num = 0.0;
+    double local_sum_den = 0.0;
+    double delta_x, delta_y, delta_z, volume = 0.0;    
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                /// Geometric stuff
+                delta_x = 0.5*( x_field[I1D(i+1,j,k)] - x_field[I1D(i-1,j,k)] ); 
+                delta_y = 0.5*( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j-1,k)] ); 
+                delta_z = 0.5*( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k-1)] );
+                volume  = delta_x*delta_y*delta_z;
+                /// Update values
+                local_sum_num += pow( volume*P_field[I1D(i,j,k)], 2.0 );
+                local_sum_den += pow( volume*( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ), 2.0 ); 
+	    }
+        }
+    }		    
+
+    /// Communicate local values to obtain global values
+    double global_sum_num;
+    MPI_Allreduce(&local_sum_num, &global_sum_num, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    double global_sum_den;
+    MPI_Allreduce(&local_sum_den, &global_sum_den, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    double global_alpha = sqrt( 1.0 + epsilon_acm*sqrt( global_sum_num )/sqrt( global_sum_den ) );
+#endif
+
+#if 0	/// infinity-norm
     /// Initialize to largest double value
     double local_alpha = numeric_limits<double>::max();
 
@@ -2488,6 +2545,7 @@ double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
     /// Communicate local value to obtain global value
     double global_alpha;
     MPI_Allreduce(&local_alpha, &global_alpha, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+#endif
 
     return( global_alpha );
 
