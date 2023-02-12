@@ -779,8 +779,6 @@ def calculate_alpha_acm( P, P_thermo, grid ):
 #                alpha_aux = np.sqrt( 1.0 + abs( ( P[i][j][k]*epsilon_acm )/( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) ) )
 #                alpha     = min( alpha, alpha_aux )
 
-    print( alpha )
-
     # Return value of alpha
     return( alpha )
 
