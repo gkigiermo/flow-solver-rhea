@@ -107,7 +107,7 @@ max_num_time_iter = 1e6			                    # Maximum number of time iteration
 output_iter       = 500			                    # Output data every given number of iterations
 transport_pressure_scheme = False	                # Select transporting pressure instead of total energy
 artificial_compressibility_method = False           # Activate artificial compressibility method
-epsilon_acm       = 0.01 		           # Relative error of artificial compressibility method ... it has to be small
+epsilon_acm       = 0.01 		                    # Relative error of artificial compressibility method ... it has to be small
 
 ### Fixed parameters
 num_sptl_dim = 3         		                    # Number of spatial dimensions (fixed value)

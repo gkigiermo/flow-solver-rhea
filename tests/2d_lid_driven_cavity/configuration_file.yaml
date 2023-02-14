@@ -48,7 +48,7 @@ problem_parameters:
    z_0: 0.0                           					# Domain origin in z-direction [m]
    L_x: 1.0                        					# Size of domain in x-direction [m]
    L_y: 1.0                          					# Size of domain in y-direction [m]
-   L_z: 0.01                         					# Size of domain in z-direction [m]
+   L_z: 0.2                         					# Size of domain in z-direction [m]
    final_time: 50.0                        				# Final time [s]
 
 
