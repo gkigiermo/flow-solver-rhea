@@ -91,7 +91,7 @@ L_y           = L	      		                    # Size of domain in y-direction
 L_z           = 0.1*L_x         	                # Size of domain in z-direction
 initial_time  = 0.0   			                    # Initial time [s]
 final_time    = 50.0      		                    # Final time [s]
-name_file_out = 'output_data.csv'	                # Name of output data [-]
+name_file_out = 'output_data'   	                # Name of output data [-]
 
 ### Computational parameters
 num_grid_x        = 32 			                    # Number of internal grid points in the x-direction
@@ -518,15 +518,18 @@ def source_terms( f_rhou, f_rhov, f_rhow, f_rhoE, rho, u, v, w, mesh ):
 
 
 ### Output data to file
-def data_output( rho, u, v, w, E, P, T, sos, grid ):
+def data_output( time, time_iter, rho, u, v, w, E, P, T, sos, grid ):
     
     # Write 3-D data:
     # x, y, z, rho, u, v, w, E, P, T, sos
 
     # Open output file
-    data_file_out = open( name_file_out, 'wt' )
+    file_name = str( name_file_out ) + '_' + str( time_iter ) + '.csv'
+    data_file_out = open( file_name, 'wt' )
 
     # Header string
+    header_string = '# Time: ' + str( time ) + ' [s]\n'
+    data_file_out.write( header_string )
     header_string = '# x [m], y [m], z [m], rho [kg/m3], u [m/s], v [m/s], w [m/s], E [J/kg], P [Pa], T [K], sos [m/s]\n'
     data_file_out.write( header_string )
 
@@ -1354,7 +1357,8 @@ update_field( P_0_field, P_field )
 time = initial_time
 
 ### Iterate solver in time
-for t in range( 0, int( max_num_time_iter ) ):
+time_iter = 0
+while time_iter < max_num_time_iter:
 
     ### Calculate time step
     delta_t = time_step( rho_field, u_field, v_field, w_field, sos_field, mu_field, kappa_field, mesh )
@@ -1363,11 +1367,11 @@ for t in range( 0, int( max_num_time_iter ) ):
         #print( delta_t )
 
     ### Print time iteration iformation
-    print( 'Time iteration ' + str( t ) + ': t = ' + str( time ) + ' [s], delta_t = ' + str( delta_t ) + ' [s]' )
+    print( 'Time iteration ' + str( time_iter ) + ': t = ' + str( time ) + ' [s], delta_t = ' + str( delta_t ) + ' [s]' )
 
     ### Output data to file
-    if( t % output_iter == 0 ):
-        data_output( rho_field, u_field, v_field, w_field, E_field, P_field, T_field, sos_field, mesh )
+    if( time_iter % output_iter == 0 ):
+        data_output( time, time_iter, rho_field, u_field, v_field, w_field, E_field, P_field, T_field, sos_field, mesh )
 
     ### Runge-Kutta sub-steps
     for rk in range( 0, rk_order ):
@@ -1420,15 +1424,16 @@ for t in range( 0, int( max_num_time_iter ) ):
     update_field( rhoE_0_field, rhoE_field )  
     update_field( P_0_field, P_field )  
 
-    ### Update time
+    ### Update time and iteration counter
     time += delta_t
+    time_iter += 1
 
     ### Check if simulation is completed (time > final_time)
     if( time >= final_time ):
         break
 
 ### Output data to file
-data_output( rho_field, u_field, v_field, w_field, E_field, P_field, T_field, sos_field, mesh )
+data_output( time, time_iter, rho_field, u_field, v_field, w_field, E_field, P_field, T_field, sos_field, mesh )
 
 ### Print data output information
 print( 'Data output at time' + ': t = ' + str( time ) + ' [s]' )
