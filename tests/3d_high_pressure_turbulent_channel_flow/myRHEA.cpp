@@ -446,7 +446,7 @@ void myRHEA::execute() {
                             rhoE_field[I1D(i,j,k)] = rho*E;
 		            /// Update thermodynamics
 		            if( artificial_compressibility_method ) {
-                                sos_field[I1D(i,j,k)] = ( 1.0/( alpha + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T, rho );
+                                sos_field[I1D(i,j,k)] = ( 1.0/( alpha_acm + epsilon ) )*thermodynamics->calculateSoundSpeed( P_thermo, T, rho );
                                 thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_thermo, T, rho );
 			    } else {
                                 sos_field[I1D(i,j,k)] = thermodynamics->calculateSoundSpeed( P, T, rho );
