@@ -180,6 +180,9 @@ void myRHEA::execute() {
             /// Calculate thermodynamic (bulk) pressure
             P_thermo = this->calculateVolumeAveragedPressure();
 
+            /// Calculate alpha value of artificial compressibility method
+            alpha_acm = this->calculateAlphaArtificialCompressibilityMethod();
+
 	    /// Calculate artificially modified thermodynamics
             this->calculateArtificiallyModifiedThermodynamics();
 
@@ -201,8 +204,11 @@ void myRHEA::execute() {
             /// Calculate thermodynamic (bulk) pressure
             P_thermo = this->calculateVolumeAveragedPressure();
 
+            /// Calculate alpha value of artificial compressibility method
+            alpha_acm = this->calculateAlphaArtificialCompressibilityMethod();
+
 	    /// Calculate artificially modified thermodynamics
-            this->calculateArtificiallyModifiedThermodynamics();	    
+            this->calculateArtificiallyModifiedThermodynamics();
 
 	    /// Calculate artificially modified transport coefficients
             this->calculateArtificiallyModifiedTransportCoefficients();
@@ -340,6 +346,9 @@ void myRHEA::execute() {
 
                 /// Calculate thermodynamic (bulk) pressure
                 P_thermo = this->calculateVolumeAveragedPressure();
+
+                /// Calculate alpha value of artificial compressibility method
+                alpha_acm = this->calculateAlphaArtificialCompressibilityMethod();
 
                 /// Calculate artificially modified thermodynamics
                 this->calculateArtificiallyModifiedThermodynamics();	    
