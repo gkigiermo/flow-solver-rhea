@@ -2515,7 +2515,7 @@ double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
                 volume  = delta_x*delta_y*delta_z;
                 /// Update values
                 local_sum_num += pow( volume*P_field[I1D(i,j,k)], 2.0 );
-                local_sum_den += pow( volume*max( ( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ), fraction*P_thermo ), 2.0 ); 
+                local_sum_den += pow( volume*max( abs( ( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ), fraction*P_thermo ), 2.0 ); 
 	    }
         }
     }		    
@@ -2538,7 +2538,7 @@ double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 /// Update value
-                alpha_aux   = sqrt( 1.0 + abs( ( P_field[I1D(i,j,k)]*epsilon_acm )/max( ( ( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ), fraction*P_thermo) ) );
+                alpha_aux   = sqrt( 1.0 + ( P_field[I1D(i,j,k)]*epsilon_acm )/max( abs( ( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ), fraction*P_thermo ) );
                 local_alpha = min( local_alpha, alpha_aux );
 	    }
         }
