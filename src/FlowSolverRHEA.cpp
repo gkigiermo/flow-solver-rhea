@@ -2470,7 +2470,7 @@ double FlowSolverRHEA::calculateVolumeAveragedPressure() {
 
 double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
 
-    const double fraction = 1.0e-5;
+    const double P_threshold = 1.0e-5*P_thermo;
 
 #if 1	/// L1-norm
     /// Inner points: P
@@ -2487,7 +2487,7 @@ double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
                 volume  = delta_x*delta_y*delta_z;
                 /// Update values
                 local_sum_num += volume*abs( P_field[I1D(i,j,k)] );
-                local_sum_den += volume*max( abs( ( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ), fraction*P_thermo ); 
+                local_sum_den += volume*( max( abs( P_field[I1D(i,j,k)] - P_thermo ), P_threshold ) );
 	    }
         }
     }		    
@@ -2515,7 +2515,7 @@ double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
                 volume  = delta_x*delta_y*delta_z;
                 /// Update values
                 local_sum_num += pow( volume*P_field[I1D(i,j,k)], 2.0 );
-                local_sum_den += pow( volume*max( abs( ( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ), fraction*P_thermo ), 2.0 ); 
+                local_sum_den += pow( volume*( max( abs( P_field[I1D(i,j,k)] - P_thermo ), P_threshold ) ), 2.0 ); 
 	    }
         }
     }		    
@@ -2538,7 +2538,7 @@ double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 /// Update value
-                alpha_aux   = sqrt( 1.0 + ( P_field[I1D(i,j,k)]*epsilon_acm )/max( abs( ( P_field[I1D(i,j,k)] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ), fraction*P_thermo ) );
+                alpha_aux   = sqrt( 1.0 + ( P_field[I1D(i,j,k)]*epsilon_acm )/( max( abs( P_field[I1D(i,j,k)] - P_thermo ), P_threshold ) ) );
                 local_alpha = min( local_alpha, alpha_aux );
 	    }
         }
