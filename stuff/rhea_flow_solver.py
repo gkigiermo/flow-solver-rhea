@@ -567,10 +567,6 @@ def time_step( rho, u, v, w, sos, mu, kappa, grid ):
     # Multigrid for hypersonic viscous two- and three-dimensional flows.
     # NASA Contractor Report 187603, 1991.
 
-    # Calculate specific heat capacities
-    c_v = R_specific/( gamma - 1.0 )
-    c_p = c_v*gamma
-
     # Initialize to largest float value
 #     delta_t = float( 'inf' )
     delta_t = 1.0e6
@@ -581,26 +577,28 @@ def time_step( rho, u, v, w, sos, mu, kappa, grid ):
     for i in range( 1, num_grid_x + 1 ):    
         for j in range( 1, num_grid_y + 1 ):    
             for k in range( 1, num_grid_z + 1 ):
+                # Calculate specific heat capacities
+                c_v = R_specific/( gamma - 1.0 )
+                c_p = c_v*gamma                
                 ## Geometric stuff
                 delta_x = 0.5*( grid[i+1][j][k][0] - grid[i-1][j][k][0] ) 
                 delta_y = 0.5*( grid[i][j+1][k][1] - grid[i][j-1][k][1] ) 
                 delta_z = 0.5*( grid[i][j][k+1][2] - grid[i][j][k-1][2] )                
-                ## Calculate Prandtl (Pr) number
-                Pr = gamma
-                if( kappa[i][j][k] > epsilon ):
-                    Pr = ( 1.0/( kappa[i][j][k] ) )*c_p*mu[i][j][k]
-                ## x-direction inviscid & viscous terms
+                ## x-direction inviscid, viscous and thermal terms
                 S_x     = abs( u[i][j][k] ) + sos[i][j][k]
                 delta_t = min( delta_t, ( 1.0/S_x )*CFL*delta_x )
-                delta_t = min( delta_t, ( 1.0/( mu[i][j][k]*gamma + epsilon ) )*CFL*Pr*rho[i][j][k]*( delta_x**2.0 ) )
-                ## y-direction inviscid & viscous terms
+                delta_t = min( delta_t, ( 1.0/( mu[i][j][k] + epsilon ) )*CFL*rho[i][j][k]*( delta_x**2.0 ) )
+                delta_t = min( delta_t, ( 1.0/( kappa[i][j][k] + epsilon ) )*CFL*rho[i][j][k]*c_p*( delta_x**2.0 ) )
+                ## y-direction inviscid, viscous and thermal terms
                 S_y     = abs( v[i][j][k] ) + sos[i][j][k]
                 delta_t = min( delta_t, ( 1.0/S_y )*CFL*delta_y )
-                delta_t = min( delta_t, ( 1.0/( mu[i][j][k]*gamma + epsilon ) )*CFL*Pr*rho[i][j][k]*( delta_y**2.0 ) )
-                ## z-direction inviscid & viscous terms
+                delta_t = min( delta_t, ( 1.0/( mu[i][j][k] + epsilon ) )*CFL*rho[i][j][k]*( delta_y**2.0 ) )
+                delta_t = min( delta_t, ( 1.0/( kappa[i][j][k] + epsilon ) )*CFL*rho[i][j][k]*c_p*( delta_y**2.0 ) )
+                ## z-direction inviscid, viscous and thermal terms
                 S_z     = abs( w[i][j][k] ) + sos[i][j][k]
                 delta_t = min( delta_t, ( 1.0/S_z )*CFL*delta_z )
-                delta_t = min( delta_t, ( 1.0/( mu[i][j][k]*gamma + epsilon ) )*CFL*Pr*rho[i][j][k]*( delta_z**2.0 ) )
+                delta_t = min( delta_t, ( 1.0/( mu[i][j][k] + epsilon ) )*CFL*rho[i][j][k]*( delta_z**2.0 ) )
+                delta_t = min( delta_t, ( 1.0/( kappa[i][j][k] + epsilon ) )*CFL*rho[i][j][k]*c_p*( delta_z**2.0 ) )
     #print( delta_t )
 
     # Return minimum time step

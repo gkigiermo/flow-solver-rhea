@@ -1635,7 +1635,7 @@ void FlowSolverRHEA::calculateTimeStep() {
     double local_delta_t = numeric_limits<double>::max();
 
     /// Inner points: find minimum (local) delta_t
-    double sos, c_v, c_p, Pr;
+    double sos, c_p;
     double delta_x, delta_y, delta_z;
     double S_x, S_y, S_z;
     for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
@@ -1645,27 +1645,26 @@ void FlowSolverRHEA::calculateTimeStep() {
 		sos = sos_field[I1D(i,j,k)];
                 /// Heat capacities
                 //thermodynamics->calculateSpecificHeatCapacities( c_v, c_p, P_field[I1D(i,j,k)], T_field[I1D(i,j,k)], rho_field[I1D(i,j,k)] );
-		c_v = c_v_field[I1D(i,j,k)];
 		c_p = c_p_field[I1D(i,j,k)];
-                /// Prandtl (Pr) number
-                Pr = c_p/c_v;
-                if(kappa_field[I1D(i,j,k)] > epsilon) Pr = c_p*mu_field[I1D(i,j,k)]/kappa_field[I1D(i,j,k)];
                 /// Geometric stuff
                 delta_x = 0.5*( x_field[I1D(i+1,j,k)] - x_field[I1D(i-1,j,k)] ); 
                 delta_y = 0.5*( y_field[I1D(i,j+1,k)] - y_field[I1D(i,j-1,k)] ); 
                 delta_z = 0.5*( z_field[I1D(i,j,k+1)] - z_field[I1D(i,j,k-1)] );
-                /// x-direction inviscid & viscous terms
+                /// x-direction inviscid, viscous & thermal terms
                 S_x           = abs( u_field[I1D(i,j,k)] ) + sos;
-                local_delta_t = min( local_delta_t, CFL*delta_x/S_x );
-                local_delta_t = min( local_delta_t, CFL*Pr*rho_field[I1D(i,j,k)]*pow( delta_x, 2.0 )/( mu_field[I1D(i,j,k)]*( c_p/c_v ) + epsilon ) );
-                /// y-direction inviscid & viscous terms
+                local_delta_t = min( local_delta_t, CFL*delta_x/S_x );											/// acoustic scale
+                local_delta_t = min( local_delta_t, CFL*rho_field[I1D(i,j,k)]*pow( delta_x, 2.0 )/( mu_field[I1D(i,j,k)] + epsilon ) );			/// viscous scale
+                local_delta_t = min( local_delta_t, CFL*rho_field[I1D(i,j,k)]*c_p*pow( delta_x, 2.0 )/( kappa_field[I1D(i,j,k)] + epsilon ) );		/// thermal diffusivity scale
+                /// y-direction inviscid, viscous & thermal terms
                 S_y           = abs( v_field[I1D(i,j,k)] ) + sos;
-                local_delta_t = min( local_delta_t, CFL*delta_y/S_y );
-                local_delta_t = min( local_delta_t, CFL*Pr*rho_field[I1D(i,j,k)]*pow( delta_y, 2.0 )/( mu_field[I1D(i,j,k)]*( c_p/c_v ) + epsilon ) );
-                /// z-direction inviscid & viscous terms
+                local_delta_t = min( local_delta_t, CFL*delta_y/S_y );											/// acoustic scale
+                local_delta_t = min( local_delta_t, CFL*rho_field[I1D(i,j,k)]*pow( delta_y, 2.0 )/( mu_field[I1D(i,j,k)] + epsilon ) );			/// viscous scale
+                local_delta_t = min( local_delta_t, CFL*rho_field[I1D(i,j,k)]*c_p*pow( delta_y, 2.0 )/( kappa_field[I1D(i,j,k)] + epsilon ) );		/// thermal diffusivity scale
+                /// z-direction inviscid, viscous & thermal terms
                 S_z           = abs( w_field[I1D(i,j,k)] ) + sos;
-                local_delta_t = min( local_delta_t, CFL*delta_z/S_z );
-                local_delta_t = min( local_delta_t, CFL*Pr*rho_field[I1D(i,j,k)]*pow( delta_z, 2.0 )/( mu_field[I1D(i,j,k)]*( c_p/c_v ) + epsilon ) );
+                local_delta_t = min( local_delta_t, CFL*delta_z/S_z );											/// acoustic scale
+                local_delta_t = min( local_delta_t, CFL*rho_field[I1D(i,j,k)]*pow( delta_z, 2.0 )/( mu_field[I1D(i,j,k)] + epsilon ) );			/// viscous scale
+                local_delta_t = min( local_delta_t, CFL*rho_field[I1D(i,j,k)]*c_p*pow( delta_z, 2.0 )/( kappa_field[I1D(i,j,k)] + epsilon ) );		/// thermal diffusivity scale
             }
         }
     }
