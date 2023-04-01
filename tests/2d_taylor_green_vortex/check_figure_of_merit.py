@@ -19,11 +19,11 @@ time    = rho_0*L*L/( 8.0*nu_ref*np.pi*np.pi ) 		# Final time [s]
 epsilon = 1.0e-8					# Small number/tolerance
 
 # Set reference results for N = 16
-u_L2_norm_error_ref = 0.006544214672209231
-v_L2_norm_error_ref = 0.006544214672209231
+u_L2_norm_error_ref = 0.006544074542517827
+v_L2_norm_error_ref = 0.006544074542517832
 
 ### Open data file
-data_file = h5py.File( '2d_taylor_green_vortex_223.h5', 'r' )
+data_file = h5py.File( '2d_taylor_green_vortex_66.h5', 'r' )
 #list( data_file.keys() )
 x_data     = data_file['x'][0,:,:];     x_data     = np.asarray( x_data.flatten() )
 y_data     = data_file['y'][0,:,:];     y_data     = np.asarray( y_data.flatten() )
@@ -59,7 +59,6 @@ for i in range( 0, len( x_data ) ):
             v_L2_norm_den   += v_exact**2.0
 u_L2_norm_error = np.sqrt( u_L2_norm_error/u_L2_norm_den )
 v_L2_norm_error = np.sqrt( v_L2_norm_error/v_L2_norm_den )
-
 
 ### Check results
 if( ( np.abs( u_L2_norm_error - u_L2_norm_error_ref ) < epsilon ) and ( np.abs( v_L2_norm_error - v_L2_norm_error_ref ) < epsilon ) ):
