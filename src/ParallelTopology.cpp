@@ -183,20 +183,62 @@ ParallelTopology::ParallelTopology(ComputationalDomain* dom, int nprocsx, int np
     }
 
 
-    //Calculating Id offsets /* this should be updated to include the case with imbalanced partitions*/
+    //Calculating Id offsets /* this should be updated to include the case with imbalanced partitions ... done! */
 
     //offset x
-    int factx = rank%npx;
-    offx = factx*(lNx - 2 );
+    //int factx = rank%npx;
+    //offx = factx*(lNx - 2);
+    int r_x, lNx_r, offx_r;
+    for( int k = 0; k < npz; k++ ) {
+        for( int j = 0; j < npy; j++ ) {
+	    offx_r = 0;
+            for( int i = 0; i < npx; i++ ) {
+	        r_x = i + j*npx + k*npx*npy;
+                lNx_r = localNx;
+                if( r_x%npx < divx ) lNx_r = localNx + 1;
+	        if( r_x == rank ) offx = offx_r;
+	        offx_r += lNx_r;
+            }
+        }
+    }
+    //cout << rank << "  " << offx << endl;
 
     //offset y
-    int facty = (rank%(npx*npy));
-    facty = (facty/npx);
-    offy = facty*(lNy - 2 );
+    //int facty = (rank%(npx*npy));
+    //facty = (facty/npx);
+    //offy = facty*(lNy - 2);
+    int r_y, lNy_r, offy_r;
+    for( int k = 0; k < npz; k++ ) {
+        for( int i = 0; i < npx; i++ ) {
+	    offy_r = 0;
+            for( int j = 0; j < npy; j++ ) {
+	        r_y = i + j*npx + k*npx*npy;
+                lNy_r = localNy;
+                if( ( r_y%( npx*npy ) )/npx < divy ) lNy_r = localNy + 1;
+	        if( r_y == rank ) offy = offy_r;
+	        offy_r += lNy_r;
+            }
+        }
+    }    
+    //cout << rank << "  " << offy << endl;
 
     //offset z
-    int factz = (rank/(npx*npy));
-    offz = factz*(lNz -2 );
+    //int factz = (rank/(npx*npy));
+    //offz = factz*(lNz - 2);
+    int r_z, lNz_r, offz_r;
+    for( int i = 0; i < npx; i++ ) {
+        for( int j = 0; j < npy; j++ ) {
+	    offz_r = 0;
+            for( int k = 0; k < npz; k++ ) {
+	        r_z = i + j*npx + k*npx*npy;
+                lNz_r = localNz;
+                if( r_z/( npx*npy ) < divz ) lNz_r = localNz + 1;
+	        if( r_z == rank ) offz = offz_r;
+	        offz_r += lNz_r;
+            }
+        }
+    }    
+    //cout << rank << "  " << offz << endl;
 
 
     create_common_iters();
