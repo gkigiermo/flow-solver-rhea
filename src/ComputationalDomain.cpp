@@ -50,7 +50,7 @@ void ComputationalDomain::calculateGlobalGrid()
     double eta_x, eta_y, eta_z;
 
     //Mesh in X
-    for(int i = 0; i <= gNx + 2; i++)
+    for(int i = 0; i < gNx + 2; i++)
     {
         eta_x = (i - 0.5)/gNx;
         globx[i] = x_0 + L_x*eta_x + A_x*( 0.5*L_x - L_x*eta_x )*( 1.0 - eta_x )*eta_x;
@@ -67,7 +67,7 @@ void ComputationalDomain::calculateGlobalGrid()
     }
 
     //Mesh in Y
-    for(int j=0; j <= gNy+2; j++)
+    for(int j=0; j < gNy+2; j++)
     {
         eta_y = (j - 0.5)/gNy;
         globy[j] = y_0 + L_y*eta_y + A_y*( 0.5*L_y - L_y*eta_y )*( 1.0 - eta_y )*eta_y;
@@ -86,7 +86,7 @@ void ComputationalDomain::calculateGlobalGrid()
 
 
     //Mesh in Z
-    for(int k=0; k <= gNz+2; k++)
+    for(int k=0; k < gNz+2; k++)
     {
         eta_z = (k - 0.5)/gNz;
         globz[k] = z_0 + L_z*eta_z + A_z*( 0.5*L_z - L_z*eta_z )*( 1.0 - eta_z )*eta_z;

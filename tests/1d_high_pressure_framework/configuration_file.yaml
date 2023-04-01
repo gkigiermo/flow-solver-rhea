@@ -55,8 +55,8 @@ problem_parameters:
 ##### COMPUTATIONAL PARAMETERS #####
 computational_parameters:
    num_grid_x: 100                     					# Number of internal grid points in the x-direction
-   num_grid_y: 2                      					# Number of internal grid points in the y-direction
-   num_grid_z: 2                     					# Number of internal grid points in the z-direction
+   num_grid_y: 1                      					# Number of internal grid points in the y-direction
+   num_grid_z: 1                     					# Number of internal grid points in the z-direction
    # Stretching factors: x = x_0 + L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
    # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
    A_x: 0.0                 					        # Stretching factor in x-direction
