@@ -58,7 +58,7 @@ void myRHEA::setInitialConditions() {
                     w_field[I1D(i,j,k)] = 0.0;
                     P_field[I1D(i,j,k)] = P_0;
                     random_number       = 2.0*( (double) rand()/( RAND_MAX ) ) - 1.0;
-                    T_field[I1D(i,j,k)] = ( ( T_cw - T_hw )/L )*mesh->x[i] + T_hw + alpha*random_number*T_0;
+                    T_field[I1D(i,j,k)] = ( ( T_cw  - T_hw )/L )*mesh->x[i] + T_hw + 0.5*( T_cw - T_hw )*( 1.0 - mesh->y[j] )*( 1.0 - mesh->x[i] ) + alpha*random_number*T_0;
             }
         }
     }
