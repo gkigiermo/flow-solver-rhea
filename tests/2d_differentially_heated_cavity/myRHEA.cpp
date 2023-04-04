@@ -12,14 +12,23 @@ const double pi      = 2.0*asin(1.0);                           /// pi number (f
 const int cout_precision = 5;                                   /// Output precision (fixed)
 
 /// PROBLEM PARAMETERS ///
-const double eta        = 0.6;                                  /// Temperature difference ratio [-]
-const double T_0        = 600.0;                                /// Reference temperature [K]
-const double T_hw       = T_0*( 1.0 + eta );                    /// Hot-wall temperature [K]
-const double T_cw       = T_0*( 1.0 - eta );                    /// Cold-wall temperature [K]
-const double P_0        = 101325.0;                             /// Reference pressure [Pa]
-const double L          = 1.0;		                        /// Cavity size [m]
-const double g          = 9.81;                                 /// Gravitational constant [m/s2]
-const double alpha      = 0.01;                                 /// Magnitude of temperature perturbation
+const double R_specific = 287.058;				/// Specific gas constant [J/(kg K)]
+const double gamma_0    = 1.4;					/// Heat capacity ratio [-]
+const double c_p_0      = gamma_0*R_specific/( gamma_0 - 1.0 );	/// Reference isobaric heat capacity [J/(kg K)]
+const double Ma         = 0.001;				/// Mach number [-]
+const double Pr         = 0.71;					/// Prandtl number [-]
+const double Ra         = 1.0e4;				/// Rayleigh number [-]
+const double L          = 1.0;					/// Cavity size [m]
+const double P_0 	= 101325.0;				/// Reference pressure [Pa]
+const double T_cw       = 295.0;		                /// Cold-wall temperature [K]
+const double T_hw       = 305.0;		                /// Hot-wall temperature [K]								
+const double T_0 	= 0.5*(T_cw+T_hw);			/// Reference temperature [K]
+const double rho_0 	= P_0/(R_specific*T_0);			/// Reference density [kg/m3]
+const double alpha_0    = L*Ma*sqrt(gamma_0*R_specific*T_0);	/// Reference thermal diffusivity [m2/s]
+const double kappa_0    = rho_0*alpha_0*c_p_0;			/// Reference thermal conductivity [W/(m K)]
+const double mu_0       = rho_0*alpha_0*Pr;			/// Reference dynamic viscosity [Pa s]
+const double g          = (mu_0*alpha_0*T_0*Ra)/(rho_0*(T_hw-T_cw)*L*L*L);	/// Gravitational constant [m/s2]
+const double alpha      = 0.001;                                /// Magnitude of temperature perturbation
 
 /// Control bulk pressure to maintain the fixed target value P_b
 bool control_bulk_pressure = true;
@@ -51,7 +60,7 @@ void myRHEA::setInitialConditions() {
                     w_field[I1D(i,j,k)] = 0.0;
                     P_field[I1D(i,j,k)] = P_0;
                     random_number       = 2.0*( (double) rand()/( RAND_MAX ) ) - 1.0;
-                    T_field[I1D(i,j,k)] = ( ( T_cw  - T_hw )/L )*mesh->x[i] + T_hw + 0.5*( T_cw - T_hw )*( 1.0 - mesh->y[j] )*( 1.0 - mesh->x[i] ) + alpha*random_number*T_0;
+		    T_field[I1D(i,j,k)] = ( ( T_cw - T_hw )/L )*mesh->x[i] + T_hw + alpha*random_number*T_0;		    
             }
         }
     }
@@ -74,7 +83,7 @@ void myRHEA::calculateSourceTerms() {
         for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
             for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 f_rhou_field[I1D(i,j,k)] = 0.0;
-                f_rhov_field[I1D(i,j,k)] = rho_field[I1D(i,j,k)]*( -1.0 )*g;
+                f_rhov_field[I1D(i,j,k)] = rho_0*g*( T_field[I1D(i,j,k)] - T_0 )/T_0;
                 f_rhow_field[I1D(i,j,k)] = 0.0;
                 f_rhoE_field[I1D(i,j,k)] = 0.0;
             }

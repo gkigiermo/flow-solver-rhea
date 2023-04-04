@@ -1,6 +1,9 @@
 # RHEA's CONFIGURATION FILE (YAML LANGUAGE)
 #
-# 2D differentially-heated cavity: (Le Quéré et al. 2005, test 1)  
+# 2D differentially-heated cavity (Pr = 0.71, Ra = 10^4, Ma = 0.001):
+# G. de Vahl Davis.
+# Natural convection of air in a square cavity. A benchmark numerical solution.
+# International Journal for Numerical Methods in Fluids, 3, 249-264, 1983. 
 ---
 
 ##### FLUID & FLOW PROPERTIES #####
@@ -23,8 +26,8 @@ fluid_flow_properties:
    # LOW_PRESSURE_GAS (provide reference dynamic viscosity, reference thermal conductivity, reference temperature, Sutherland's dynamic viscosity constant, Sutherland's thermal conductivity constant),
    # HIGH_PRESSURE (provide molecular weight, critical temperature, critical molar volume, acentric factor, dipole moment, association factor, NASA 7-coefficient polynomial)
    transport_coefficients_model: 'CONSTANT'	  			# Transport coefficients model
-   mu: 1.68e-5                         					# Dynamic viscosity [Pa·s]
-   kappa: 2.38e-2                         				# Thermal conductivity [W/(m·K)]
+   mu: 0.29006                   					# Dynamic viscosity [Pa·s]
+   kappa: 410.46                         				# Thermal conductivity [W/(m·K)]
    #mu_0: 0.0								# Reference dynamic viscosity [Pa·s]	
    #kappa_0: 0.0							# Reference thermal conductivity [W/(m·K)]	
    #T_0: 0.0								# Reference temperature [K]	
@@ -46,7 +49,7 @@ problem_parameters:
    L_x: 1.0                      					# Size of domain in x-direction [m]
    L_y: 1.0                           					# Size of domain in y-direction [m]
    L_z: 0.01	                    					# Size of domain in z-direction [m]
-   final_time: 1.0e06                  					# Final time [s]
+   final_time: 30.0                   					# Final time [s]
 
 
 ##### COMPUTATIONAL PARAMETERS #####
@@ -82,8 +85,8 @@ boundary_conditions:
    #                 SUBSONIC_OUTFLOW (provide P_inf)
    #                 SUPERSONIC_INFLOW (provide u, v, w, P, T)
    #                 SUPERSONIC_OUTFLOW (no value/derivative needed)
-   west_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 960.0]                   # West boundary condition
-   east_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 240.0]                   # East boundary condition
+   west_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 305.0]                   # West boundary condition
+   east_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, 295.0]                   # East boundary condition
    south_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, -1.0]                   # South boundary condition
    north_bc: ['DIRICHLET', 0.0, 0.0, 0.0, -1.0, -1.0]                   # North boundary condition
    back_bc: ['NEUMANN', 0.0, 0.0, 0.0, 0.0, 0.0]                        # Back boundary condition
