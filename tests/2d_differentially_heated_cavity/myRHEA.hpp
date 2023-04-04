@@ -24,12 +24,6 @@ class myRHEA : public FlowSolverRHEA {
         /// Calculate rhou, rhov, rhow and rhoE source terms ... needs to be modified/overwritten according to the problem under consideration
         void calculateSourceTerms();
 
-        /// Calculate transport coefficients
-        void calculateTransportCoefficients();
-
-	/// Calculate artificially modified transport coefficients
-        void calculateArtificiallyModifiedTransportCoefficients();
-
     protected:
 
     private:

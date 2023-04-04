@@ -12,10 +12,6 @@ const double pi      = 2.0*asin(1.0);                           /// pi number (f
 const int cout_precision = 5;                                   /// Output precision (fixed)
 
 /// PROBLEM PARAMETERS ///
-const double R_specific = 287.0;      	                        /// Specific gas constant [J/(kg K)]
-const double gamma_0    = 1.4;                                  /// Heat capacity ratio [-]
-const double c_p        = gamma_0*R_specific/( gamma_0 - 1.0 ); /// Isobaric heat capacity [J/(kg K)]
-const double Pr         = 0.71;                                 /// Prandtl number [-]
 const double eta        = 0.6;                                  /// Temperature difference ratio [-]
 const double T_0        = 600.0;                                /// Reference temperature [K]
 const double T_hw       = T_0*( 1.0 + eta );                    /// Hot-wall temperature [K]
@@ -23,9 +19,6 @@ const double T_cw       = T_0*( 1.0 - eta );                    /// Cold-wall te
 const double P_0        = 101325.0;                             /// Reference pressure [Pa]
 const double L          = 1.0;		                        /// Cavity size [m]
 const double g          = 9.81;                                 /// Gravitational constant [m/s2]
-const double T_star     = 273.0;                 	        /// Sutherland's reference temperature [K]
-const double S          = 110.5;                 	        /// Sutherland's dynamic viscosity constant [K]
-const double mu_star    = 1.68e-5;                 	        /// Sutherland's reference dynamic viscosity [Pa s]
 const double alpha      = 0.01;                                 /// Magnitude of temperature perturbation
 
 /// Control bulk pressure to maintain the fixed target value P_b
@@ -93,42 +86,6 @@ void myRHEA::calculateSourceTerms() {
     //f_rhov_field.update();
     //f_rhow_field.update();
     //f_rhoE_field.update();
-
-};
-
-void myRHEA::calculateTransportCoefficients() { 
-    
-    /// All (inner, halo, boundary) points: mu and kappa
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-		mu_field[I1D(i,j,k)]    = mu_star*pow( T_field[I1D(i,j,k)]/T_star, 3.0/2.0 )*( ( T_star + S )/( T_field[I1D(i,j,k)] + S ) );
-                kappa_field[I1D(i,j,k)] = ( mu_field[I1D(i,j,k)]*gamma_0*R_specific )/( ( gamma_0 - 1.0 )*Pr );
-            }
-        }
-    }
-
-    /// Update halo values
-    //mu_field.update();
-    //kappa_field.update();
-
-};
-
-void myRHEA::calculateArtificiallyModifiedTransportCoefficients() {
-
-    /// All (inner, halo, boundary) points: mu and kappa
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-		mu_field[I1D(i,j,k)]    = mu_star*pow( T_field[I1D(i,j,k)]/T_star, 3.0/2.0 )*( ( T_star + S )/( T_field[I1D(i,j,k)] + S ) );
-                kappa_field[I1D(i,j,k)] = ( mu_field[I1D(i,j,k)]*gamma_0*R_specific )/( ( gamma_0 - 1.0 )*Pr );
-            }
-        }
-    }
-
-    /// Update halo values
-    //mu_field.update();
-    //kappa_field.update();
 
 };
 
