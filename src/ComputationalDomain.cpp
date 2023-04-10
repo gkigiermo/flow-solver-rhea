@@ -44,66 +44,58 @@ ComputationalDomain::ComputationalDomain(double sizex, double sizey, double size
     calculateGlobalGrid();
 }
 
-void ComputationalDomain::calculateGlobalGrid()
-{
+void ComputationalDomain::calculateGlobalGrid() {
 
     double eta_x, eta_y, eta_z;
 
-    //Mesh in X
-    for(int i = 0; i < gNx + 2; i++)
-    {
+    // Mesh in x
+    for( int i = 0; i < (gNx + 2); i++ ) {
         eta_x = (i - 0.5)/gNx;
         globx[i] = x_0 + L_x*eta_x + A_x*( 0.5*L_x - L_x*eta_x )*( 1.0 - eta_x )*eta_x;
 
-        if(i == 0){
+        if(i == 0) {
             eta_x = ( 1.0 - 0.5 )/gNx;
             globx[i] = x_0 - ( L_x*eta_x + A_x*( 0.5*L_x - L_x*eta_x )*( 1.0 - eta_x )*eta_x );
-
         }
-        if( i == gNx + 1 ){
+        if( i == ( gNx + 1 ) ) {
             eta_x = ( gNx - 0.5 )/gNx;
             globx[i] = x_0 + 2.0*L_x - ( L_x*eta_x + A_x*( 0.5*L_x - L_x*eta_x )*( 1.0 - eta_x )*eta_x );
         }
     }
 
-    //Mesh in Y
-    for(int j=0; j < gNy+2; j++)
-    {
+    // Mesh in y
+    for( int j = 0; j < (gNy + 2); j++ ) {
         eta_y = (j - 0.5)/gNy;
         globy[j] = y_0 + L_y*eta_y + A_y*( 0.5*L_y - L_y*eta_y )*( 1.0 - eta_y )*eta_y;
 
-        if( j == 0 ){
+        if( j == 0 ) {
             eta_y = ( 1.0 - 0.5 )/gNy;
             globy[j] = y_0 - ( L_y*eta_y + A_y*( 0.5*L_y - L_y*eta_y )*( 1.0 - eta_y )*eta_y );
-
         }
-        if( j == gNy + 1 ){
+        if( j == (gNy + 1) ) {
             eta_y = ( gNy - 0.5 )/gNy;
             globy[j] = y_0 + 2.0*L_y - ( L_y*eta_y + A_y*( 0.5*L_y - L_y*eta_y )*( 1.0 - eta_y )*eta_y );
         }
-   }
+    }
 
-
-
-    //Mesh in Z
-    for(int k=0; k < gNz+2; k++)
-    {
+    // Mesh in z
+    for( int k = 0; k < (gNz + 2); k++ ) {
         eta_z = (k - 0.5)/gNz;
         globz[k] = z_0 + L_z*eta_z + A_z*( 0.5*L_z - L_z*eta_z )*( 1.0 - eta_z )*eta_z;
 
-        if( k == 0 ){
+        if( k == 0 ) {
             eta_z = ( 1.0 - 0.5 )/gNz;
             globz[k] = z_0 - ( L_z*eta_z + A_z*( 0.5*L_z - L_z*eta_z )*( 1.0 - eta_z )*eta_z );
-
         }
-        if( k == gNz + 1 ){
+        if( k == (gNz + 1) ) {
             eta_z = ( gNz - 0.5 )/gNz;
             globz[k] = z_0 + 2.0*L_z - ( L_z*eta_z + A_z*( 0.5*L_z - L_z*eta_z )*( 1.0 - eta_z )*eta_z );
         }
-   }
+    }
+
 }
-void ComputationalDomain::calculateLocalGrid(int lNx, int lNy, int lNz)
-{
+
+void ComputationalDomain::calculateLocalGrid(int lNx, int lNy, int lNz) {
 
     x = new double[lNx];
     y = new double[lNy];
