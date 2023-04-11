@@ -110,9 +110,8 @@ void NewtonRaphson::lnsrch(vector<double> &xold, double &fold, vector<double> &g
 
     const double sigma   = 0.01;
     const double Tau     = 0.1;
-    //const double alamMin = 1e-6;	// original value
-    const double alamMin = 1e-6;
-    //const double alamMin = 1.0e-1; // ... diverges!
+    //const double alamMin = 1e-6;
+    const double alamMin = 1e-1;
     //const int max_iter   = 10;
 
     //int i, j, n = xold.size();
