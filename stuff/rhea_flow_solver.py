@@ -115,9 +115,9 @@ rk_order     = 3         		                    # Time-integration Runge-Kutta or
 epsilon      = 1.0e-15   		                    # Small epsilon number (fixed value)
 
 ### Auxiliar parameters
-delta_t   = 0.0                                     # Initialize time step
-P_thermo  = P_0  			                        # Initialize thermodynamic pressure for artificial compressibility method
-alpha_acm = 1.0       		                        # Initialize speedup factor of artificial compressibility method
+delta_t   = 0.0                                             # Initialize time step
+P_thermo  = 0.0  			                    # Initialize thermodynamic pressure for artificial compressibility method
+alpha_acm = 1.0       		                            # Initialize speedup factor of artificial compressibility method
 
 
 ########## ALLOCATE MEMORY ##########
@@ -740,6 +740,9 @@ def calculate_alpha_acm( P, P_thermo, grid ):
     # Initialize value
     alpha = 1.0e6
 
+    # Define pressure threshold
+    P_threshold = 1.0e-5*P_thermo
+
     # Internal points: L1-norm
     sum_num = 0.0
     sum_den = 0.0
@@ -753,7 +756,7 @@ def calculate_alpha_acm( P, P_thermo, grid ):
                 volume  = delta_x*delta_y*delta_z
                 ## Update values
                 sum_num += volume*abs( P[i][j][k] ) 
-                sum_den += volume*abs( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) 
+                sum_den += volume*( max( abs( P[i][j][k] - P_thermo ), P_threshold ) ) 
     alpha = np.sqrt( 1.0 + epsilon_acm*sum_num/sum_den )
 
 #    # Internal points: L2-norm
@@ -769,7 +772,7 @@ def calculate_alpha_acm( P, P_thermo, grid ):
 #                volume  = delta_x*delta_y*delta_z
 #                ## Update values
 #                sum_num += ( volume*P[i][j][k] )**2.0
-#                sum_den += ( volume*( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) )**2.0
+#                sum_den += ( volume*( max( abs( P[i][j][k] - P_thermo ), P_threshold ) ) )**2.0
 #    alpha = np.sqrt( 1.0 + epsilon_acm*np.sqrt( sum_num )/np.sqrt( sum_den ) )
 
 #    # Internal points: infinity-norm
@@ -777,7 +780,7 @@ def calculate_alpha_acm( P, P_thermo, grid ):
 #        for j in range( 1, num_grid_y + 1 ):    
 #            for k in range( 1, num_grid_z + 1 ):
 #                ## Update value
-#                alpha_aux = np.sqrt( 1.0 + abs( ( P[i][j][k]*epsilon_acm )/( ( P[i][j][k] - P_thermo )/( alpha_acm*alpha_acm + epsilon ) ) ) )
+#                alpha_aux = np.sqrt( 1.0 + ( P[i][j][k]*epsilon_acm )/( max( abs( P[i][j][k] - P_thermo ), P_threshold ) ) )
 #                alpha     = min( alpha, alpha_aux )
 
     # Return value of alpha
@@ -937,10 +940,7 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 E_L     = E[index_L][j][k];   E_R     = E[index_R][j][k]
                 P_L     = P[index_L][j][k];   P_R     = P[index_R][j][k]
                 a_L     = sos[index_L][j][k]; a_R     = sos[index_R][j][k]
-                P_rhouvw_L = P_L;             P_rhouvw_R = P_R
-                if( artificial_compressibility_method ):
-                    P_rhouvw_L = P_L - P_thermo
-                    P_rhouvw_R = P_R - P_thermo
+                P_rhouvw_L = P_L - P_thermo;  P_rhouvw_R = P_R - P_thermo       # P_Thermo = 0.0 when ACM is deactivated
                 # rho
                 var_type = 0
                 rho_F_p  = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
@@ -965,10 +965,7 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 E_L     = E[index_L][j][k];   E_R     = E[index_R][j][k]
                 P_L     = P[index_L][j][k];   P_R     = P[index_R][j][k]
                 a_L     = sos[index_L][j][k]; a_R     = sos[index_R][j][k]
-                P_rhouvw_L = P_L;             P_rhouvw_R = P_R
-                if( artificial_compressibility_method ):
-                    P_rhouvw_L = P_L - P_thermo
-                    P_rhouvw_R = P_R - P_thermo
+                P_rhouvw_L = P_L - P_thermo;  P_rhouvw_R = P_R - P_thermo       # P_Thermo = 0.0 when ACM is deactivated
                 # rho
                 var_type = 0
                 rho_F_m  = KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
@@ -999,10 +996,7 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 E_L     = E[i][index_L][k];   E_R     = E[i][index_R][k]
                 P_L     = P[i][index_L][k];   P_R     = P[i][index_R][k]
                 a_L     = sos[i][index_L][k]; a_R     = sos[i][index_R][k]
-                P_rhouvw_L = P_L;             P_rhouvw_R = P_R
-                if( artificial_compressibility_method ):
-                    P_rhouvw_L = P_L - P_thermo
-                    P_rhouvw_R = P_R - P_thermo
+                P_rhouvw_L = P_L - P_thermo;  P_rhouvw_R = P_R - P_thermo       # P_Thermo = 0.0 when ACM is deactivated
                 # rho
                 var_type = 0
                 rho_F_p  = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
@@ -1027,10 +1021,7 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 E_L     = E[i][index_L][k];   E_R     = E[i][index_R][k]
                 P_L     = P[i][index_L][k];   P_R     = P[i][index_R][k]
                 a_L     = sos[i][index_L][k]; a_R     = sos[i][index_R][k]
-                P_rhouvw_L = P_L;             P_rhouvw_R = P_R
-                if( artificial_compressibility_method ):
-                    P_rhouvw_L = P_L - P_thermo
-                    P_rhouvw_R = P_R - P_thermo                
+                P_rhouvw_L = P_L - P_thermo;  P_rhouvw_R = P_R - P_thermo       # P_Thermo = 0.0 when ACM is deactivated
                 # rho
                 var_type = 0
                 rho_F_m  = KGP_flux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
@@ -1061,10 +1052,7 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 E_L     = E[i][j][index_L];   E_R     = E[i][j][index_R]
                 P_L     = P[i][j][index_L];   P_R     = P[i][j][index_R]
                 a_L     = sos[i][j][index_L]; a_R     = sos[i][j][index_R]
-                P_rhouvw_L = P_L;             P_rhouvw_R = P_R
-                if( artificial_compressibility_method ):
-                    P_rhouvw_L = P_L - P_thermo
-                    P_rhouvw_R = P_R - P_thermo                
+                P_rhouvw_L = P_L - P_thermo;  P_rhouvw_R = P_R - P_thermo       # P_Thermo = 0.0 when ACM is deactivated
                 # rho
                 var_type = 0
                 rho_F_p  = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )
@@ -1089,10 +1077,7 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
                 E_L     = E[i][j][index_L];   E_R     = E[i][j][index_R]
                 P_L     = P[i][j][index_L];   P_R     = P[i][j][index_R]
                 a_L     = sos[i][j][index_L]; a_R     = sos[i][j][index_R]
-                P_rhouvw_L = P_L;             P_rhouvw_R = P_R
-                if( artificial_compressibility_method ):
-                    P_rhouvw_L = P_L - P_thermo
-                    P_rhouvw_R = P_R - P_thermo                
+                P_rhouvw_L = P_L - P_thermo;  P_rhouvw_R = P_R - P_thermo       # P_Thermo = 0.0 when ACM is deactivated
                 # rho
                 var_type = 0
                 rho_F_m  = KGP_flux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type )

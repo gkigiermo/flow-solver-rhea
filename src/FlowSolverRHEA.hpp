@@ -217,7 +217,7 @@ class FlowSolverRHEA {
         bool artificial_compressibility_method;			/// Artificially decrease velocity of acoustic waves
         double epsilon_acm;	      				/// Relative error of artificial compressibility method [-]
         double alpha_acm = 1.0;	      				/// Speedup factor of artificial compressibility method [-]
-        double P_thermo;	      				/// Thermodynamic (bulk) pressure for artificial compressibility method [Pa]
+        double P_thermo = 0.0;	      				/// Thermodynamic (bulk) pressure for artificial compressibility method [Pa]
 
         /// Local mesh values for I1D macro
         int _lNx_;

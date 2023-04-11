@@ -1773,11 +1773,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 E_L     = E_field[I1D(index_L,j,k)];   E_R     = E_field[I1D(index_R,j,k)];
                 P_L     = P_field[I1D(index_L,j,k)];   P_R     = P_field[I1D(index_R,j,k)];
                 a_L     = sos_field[I1D(index_L,j,k)]; a_R     = sos_field[I1D(index_R,j,k)];
-                P_rhouvw_L = P_L;                      P_rhouvw_R = P_R;
-                if( artificial_compressibility_method ) {
-                    P_rhouvw_L = P_L - P_thermo;
-                    P_rhouvw_R = P_R - P_thermo;
-		}
+                P_rhouvw_L = P_L - P_thermo;           P_rhouvw_R = P_R - P_thermo;	/// P_Thermo = 0.0 when ACM is deactivated
                 /// rho
                 var_type = 0;
                 //rho_F_p  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
@@ -1807,11 +1803,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 E_L     = E_field[I1D(index_L,j,k)];   E_R     = E_field[I1D(index_R,j,k)];
                 P_L     = P_field[I1D(index_L,j,k)];   P_R     = P_field[I1D(index_R,j,k)];
                 a_L     = sos_field[I1D(index_L,j,k)]; a_R     = sos_field[I1D(index_R,j,k)];
-                P_rhouvw_L = P_L;                      P_rhouvw_R = P_R;
-                if( artificial_compressibility_method ) {
-                    P_rhouvw_L = P_L - P_thermo;
-                    P_rhouvw_R = P_R - P_thermo;
-		}		
+                P_rhouvw_L = P_L - P_thermo;           P_rhouvw_R = P_R - P_thermo;	/// P_Thermo = 0.0 when ACM is deactivated
                 /// rho
                 var_type = 0;
                 //rho_F_m  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
@@ -1847,11 +1839,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 E_L     = E_field[I1D(i,index_L,k)];   E_R     = E_field[I1D(i,index_R,k)];
                 P_L     = P_field[I1D(i,index_L,k)];   P_R     = P_field[I1D(i,index_R,k)];
                 a_L     = sos_field[I1D(i,index_L,k)]; a_R     = sos_field[I1D(i,index_R,k)];
-                P_rhouvw_L = P_L;                      P_rhouvw_R = P_R;
-                if( artificial_compressibility_method ) {
-                    P_rhouvw_L = P_L - P_thermo;
-                    P_rhouvw_R = P_R - P_thermo;
-		}		
+                P_rhouvw_L = P_L - P_thermo;           P_rhouvw_R = P_R - P_thermo;	/// P_Thermo = 0.0 when ACM is deactivated
                 /// rho
                 var_type = 0;
                 //rho_F_p  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
@@ -1881,11 +1869,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 E_L     = E_field[I1D(i,index_L,k)];   E_R     = E_field[I1D(i,index_R,k)];
                 P_L     = P_field[I1D(i,index_L,k)];   P_R     = P_field[I1D(i,index_R,k)];
                 a_L     = sos_field[I1D(i,index_L,k)]; a_R     = sos_field[I1D(i,index_R,k)];
-                P_rhouvw_L = P_L;                      P_rhouvw_R = P_R;
-                if( artificial_compressibility_method ) {
-                    P_rhouvw_L = P_L - P_thermo;
-                    P_rhouvw_R = P_R - P_thermo;
-		}		
+                P_rhouvw_L = P_L - P_thermo;           P_rhouvw_R = P_R - P_thermo;	/// P_Thermo = 0.0 when ACM is deactivated
                 /// rho
                 var_type = 0;
                 //rho_F_m  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, v_L, v_R, u_L, u_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
@@ -1921,11 +1905,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 E_L     = E_field[I1D(i,j,index_L)];   E_R     = E_field[I1D(i,j,index_R)];
                 P_L     = P_field[I1D(i,j,index_L)];   P_R     = P_field[I1D(i,j,index_R)];
                 a_L     = sos_field[I1D(i,j,index_L)]; a_R     = sos_field[I1D(i,j,index_R)];
-                P_rhouvw_L = P_L;                      P_rhouvw_R = P_R;
-                if( artificial_compressibility_method ) {
-                    P_rhouvw_L = P_L - P_thermo;
-                    P_rhouvw_R = P_R - P_thermo;
-		}		
+                P_rhouvw_L = P_L - P_thermo;           P_rhouvw_R = P_R - P_thermo;	/// P_Thermo = 0.0 when ACM is deactivated
                 /// rho
                 var_type = 0;
                 //rho_F_p  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
@@ -1955,11 +1935,7 @@ void FlowSolverRHEA::calculateInviscidFluxes() {
                 E_L     = E_field[I1D(i,j,index_L)];   E_R     = E_field[I1D(i,j,index_R)];
                 P_L     = P_field[I1D(i,j,index_L)];   P_R     = P_field[I1D(i,j,index_R)];
                 a_L     = sos_field[I1D(i,j,index_L)]; a_R     = sos_field[I1D(i,j,index_R)];
-                P_rhouvw_L = P_L;                      P_rhouvw_R = P_R;
-                if( artificial_compressibility_method ) {
-                    P_rhouvw_L = P_L - P_thermo;
-                    P_rhouvw_R = P_R - P_thermo;
-		}		
+                P_rhouvw_L = P_L - P_thermo;           P_rhouvw_R = P_R - P_thermo;	/// P_Thermo = 0.0 when ACM is deactivated
                 /// rho
                 var_type = 0;
                 //rho_F_m  = riemann_solver->calculateIntercellFlux( rho_L, rho_R, w_L, w_R, v_L, v_R, u_L, u_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type );
