@@ -387,6 +387,11 @@ PengRobinsonModel::PengRobinsonModel(const string configuration_file) : BaseTher
 	eos_kappa = 0.37464 + 1.54226*acentric_factor - 0.26992*pow( acentric_factor, 2.0 );
     }
 
+    /// Construct (initialize) nr_T_solver
+    nr_T_unknowns.resize( 1, 0.0 );
+    nr_T_r_vec.resize( nr_T_unknowns.size(), 0.0 );
+    nr_T_solver = new NR_T_from_P_rho( nr_T_r_vec, *this );
+
     /// Construct (initialize) nr_PT_solver
     nr_PT_unknowns.resize( 2, 0.0 );
     nr_PT_r_vec.resize( nr_PT_unknowns.size(), 0.0 );
@@ -498,6 +503,7 @@ double PengRobinsonModel::calculateTemperatureFromPressureDensity(const double &
 
 void PengRobinsonModel::calculateTemperatureFromPressureDensityWithInitialGuess(double &T, const double &P, const double &rho) {
 
+#if 0	
     /// Numerical Recipes in C++, Second Edition.
     /// W.H. Press, S.A. Teulosky, W.T. Vetterling, B.P. Flannery.
     /// 5.1 Series and Their Convergence: Aitken’s delta-squared process.
@@ -523,6 +529,18 @@ void PengRobinsonModel::calculateTemperatureFromPressureDensityWithInitialGuess(
         if( abs( ( T - x_2 )/ T ) < aitken_relative_tolerance ) break;	/// If the result is within tolerance, leave the loop!
         x_0 = T;							/// Otherwise, update x_0 to iterate again ...                 
     }
+#else
+    //double T_norm  = this->critical_temperature;	/// Set temperature normalization factor
+    double T_norm   = fabs( T ) + 1.0e-14;		/// Set temperature normalization factor
+    double nr_f     = -1.0;				/// Newton-Raphson residual value
+    int nr_num_iter = 0;				/// Number of iterations required to obtain the solution
+
+    /// Calculate T from P & rho by means of a Brent solver
+    nr_T_unknowns[0] = T/T_norm;								/// Initialize unknown with previous temperature (normalized)
+    nr_T_solver->setExternalParameters( P, rho, T_norm );					/// Set parameters of the solver
+    nr_T_solver->solve( nr_f, nr_T_unknowns, max_nr_iter, nr_num_iter, nr_relative_tolerance );	/// Newton-Raphson solver
+    T = nr_T_unknowns[0]*T_norm;								/// Update T from Newton-Raphson solver (unnormalized)
+#endif
 
 };
 

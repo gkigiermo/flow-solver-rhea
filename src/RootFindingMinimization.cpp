@@ -8,16 +8,110 @@ using namespace std;
 
 ////////// BaseRootFindingMinimization CLASS //////////
 
-BaseRootFindingMinimization::BaseRootFindingMinimization() {};
+BaseRootFindingMinimization::BaseRootFindingMinimization(vector<double> &fvec_) : fvec(fvec_) {};
         
 BaseRootFindingMinimization::~BaseRootFindingMinimization() {};
+
+
+////////// Brent CLASS //////////
+
+//Brent::Brent() : BaseRootFindingMinimization() {};
+
+Brent::Brent(vector<double> &fvec_) : BaseRootFindingMinimization(fvec_) {};
+
+Brent::~Brent() {};                                                                           
+
+void Brent::set_ax_bx_cx(const double &ax_, const double &bx_, const double &cx_) {
+
+    ax = ax_;
+    bx = bx_;
+    cx = cx_;
+
+};
+
+void Brent::solve(double &fxmin, vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance) {
+
+    /// Parabolic interpolation and Brent's method in one dimension
+    /// W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery.
+    /// Numerical recipes in C++.
+    /// Cambridge University Press, 2001.
+
+    const double CGOLD = 0.3819660;
+    const double ZEPS = numeric_limits<double>::epsilon();
+
+    double a,b,d=0.0,p,q,r,tol1,tol2,u,v,w,xm,etemp,fu,fv,fw,e=0.0;
+    vector<double> x( 1, 0.0 );
+    vector<double> u_( 1, 0.0 );
+
+    a=(ax < cx ? ax : cx);
+    b=(ax > cx ? ax : cx);
+    x[0]=w=v=bx;
+    function_vector(x,fvec);
+    fw=fv=fxmin=fvec[0];
+    for(iter=0; iter<max_iter; ++iter) {
+        xm=0.5*(a+b);
+        tol2=2.0*(tol1=tolerance*fabs(x[0])+ZEPS);
+        if(fabs(x[0]-xm)<=(tol2-0.5*(b-a))) {
+            xmin[0]=x[0];
+            return ;
+        }
+        if(fabs(e)>tol1) {
+            r=(x[0]-w)*(fxmin-fv);
+            q=(x[0]-v)*(fxmin-fw);
+            p=(x[0]-v)*q-(x[0]-w)*r;
+            q=2.0*(q-r);
+            if(q>0.0) {
+                p=-p;
+            }
+            q=fabs(q);
+            etemp=e;
+            e=d;
+            if((fabs(p)>=fabs(0.5*q*etemp))||(p<=q*(a-x[0]))||(p>=q*(b-x[0]))) {
+                d=CGOLD*(e=(x[0]>=xm ? a-x[0] : b-x[0]));
+            } else {
+                d=p/q;
+                u=x[0]+d;
+                if((u-a < tol2)||(b-u < tol2)) {
+                    d=SIGN(tol1,xm-x[0]);
+                }
+            }
+        } else {
+            d=CGOLD*(e=(x[0] >= xm ? a-x[0] : b-x[0]));
+        }
+        u=(fabs(d) >= tol1 ? x[0]+d : x[0]+SIGN(tol1,d));
+        u_[0]=u;
+        function_vector(u_,fvec);
+        fu=fvec[0];
+        if(fu<=fxmin) {
+            if(u>=x[0]) a=x[0]; else b=x[0];
+            shft3(v,w,x[0],u);
+            shft3(fv,fw,fxmin,fu);
+        } else {
+            if(u<x[0]) a=u; else b=u;
+            if(fu<=fw || w==x[0]) {
+                v=w;
+                w=u;
+                fv=fw;
+                fw=fu;
+            } else if(fu <= fv || v==x[0] || v==w) {
+                v=u;
+                fv=fu;
+            }
+        }
+    }
+#if _ACTIVATE_COUT_
+    cout << "Too many iterations in Brent" <<endl;
+#endif
+    xmin[0]=x[0];
+
+};
 
 
 ////////// NewtonRaphson CLASS //////////
 
 //NewtonRaphson::NewtonRaphson() : BaseRootFindingMinimization() {};
 
-NewtonRaphson::NewtonRaphson(vector<double> &fvec_) : BaseRootFindingMinimization(), fvec(fvec_) {};
+NewtonRaphson::NewtonRaphson(vector<double> &fvec_) : BaseRootFindingMinimization(fvec_) {};
 
 NewtonRaphson::~NewtonRaphson() {};                                                                           
 

@@ -10,6 +10,7 @@
 
 ////////// CLASS DECLARATION //////////
 class BaseRootFindingMinimization;			/// BaseRootFindingMinimization
+class Brent;						/// Brent
 class NewtonRaphson;					/// NewtonRaphson
 
 ////////// FUNCTION DECLARATION //////////
@@ -20,7 +21,8 @@ class BaseRootFindingMinimization {
     public:
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        BaseRootFindingMinimization();					/// Default constructor
+        //BaseRootFindingMinimization();				/// Default constructor
+        BaseRootFindingMinimization(std::vector<double> &fvec_);	/// Parametrized constructor
         virtual ~BaseRootFindingMinimization();                         /// Destructor
 
 	////////// GET FUNCTIONS //////////
@@ -28,6 +30,12 @@ class BaseRootFindingMinimization {
 	////////// SET FUNCTIONS //////////
 
 	////////// METHODS //////////
+
+        /// Numerical Recipes in C++ shift algorithm
+        inline void shft3(double &a, double &b, double &c, const double &d) { a = b; b = c; c = d; };
+
+	// Numerical Recipes in C++ sign algorithm
+        inline double SIGN(const double &a, const double &b) { return b >= 0 ? (a >= 0 ? a : -a) : (a >= 0 ? -a : a); };
 
 	/// Numerical Recipes in C++ SQR algorithm
         inline double SQR(const double &a) { return a*a; };	
@@ -42,10 +50,43 @@ class BaseRootFindingMinimization {
 
         ////////// PARAMETERS //////////
 
+	/// Vector of functions to be zeroed
+	std::vector<double> &fvec;
+
     private:
 
 };
 
+
+////////// Brent CLASS //////////
+
+class Brent : public BaseRootFindingMinimization {
+
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        //Brent();							/// Default constructor 
+        Brent(std::vector<double> &fvec_);				/// Parametrized constructor
+        virtual ~Brent();               				/// Destructor    
+
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+        void set_ax_bx_cx(const double &ax_, const double &bx_, const double &cx_);
+
+	////////// METHODS //////////
+
+        /// Runs the minimization algorithm, calculating the minimum (fxmin) and its independent variables (xmin)
+        void solve(double &fxmin, std::vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance);
+
+    protected:
+
+        ////////// PARAMETERS //////////
+
+        /// Bracketing triplet of abscissas ax, bx, cx (such that bx is between ax and cx, and f(bx) is less than both f(ax) and f(cx))
+        double ax, bx, cx;
+
+};
 
 
 ////////// NewtonRaphson CLASS //////////
@@ -56,7 +97,7 @@ class NewtonRaphson : public BaseRootFindingMinimization {
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
         //NewtonRaphson();						/// Default constructor 
-        NewtonRaphson(std::vector<double> &fvec_);				/// Parametrized constructor
+        NewtonRaphson(std::vector<double> &fvec_);			/// Parametrized constructor
         virtual ~NewtonRaphson();               			/// Destructor    
  
 	////////// GET FUNCTIONS //////////
@@ -86,9 +127,6 @@ class NewtonRaphson : public BaseRootFindingMinimization {
     protected:
 
         ////////// PARAMETERS //////////
-
-	/// Vector of functions to be zeroed
-	std::vector<double> &fvec;
 
 };
 

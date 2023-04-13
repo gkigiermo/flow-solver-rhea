@@ -308,6 +308,56 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 
     private:
 
+        /// Newton-Raphson solver nested class used to obtain T from P & rho
+        class NR_T_from_P_rho : public NewtonRaphson { 
+
+            public:
+
+            ////////// CONSTRUCTORS & DESTRUCTOR //////////
+            NR_T_from_P_rho(std::vector<double> &fvec_, PengRobinsonModel &pr_model_) : NewtonRaphson(fvec_), pr_model(pr_model_) {};	/// Parametrized constructor
+            virtual ~NR_T_from_P_rho() {};												/// Destructor
+
+	    ////////// METHODS //////////
+
+            /// Set external (enclosing class) parameters
+            void setExternalParameters(const double &target_P_, const double &target_rho_, const double &T_norm_) {
+
+                target_P   = target_P_;
+                target_rho = target_rho_;
+                T_norm     = T_norm_;
+
+            };
+
+            /// Evaluates the functions (residuals) in position x
+            void function_vector(std::vector<double> &x, std::vector<double> &fx) {
+
+                /// Set state to x
+                double T = x[0]*T_norm;		// Unnormalize temperature
+
+                /// For single-component systems:
+                /// P will not oscillate for supercritical thermodynamic states
+                /// P will oscillate for subcritical thermodynamic states
+                /// ... small oscillations close to the critical point (slightly subcritical)
+                /// ... large oscillations far from the critical point (notably subcritical) -> in that case, use two-phase solver
+                double guess_P = pr_model.calculatePressureFromTemperatureDensity( T, target_rho );
+
+                /// Compute fx (residuals)
+                fx[0] = ( guess_P - target_P )/( fabs( target_P ) + 1.0e-14 );		/// function normalized
+        
+            };
+      
+            ////////// PARAMETERS //////////
+
+	    /// External (enclosing) parameters
+            double target_P;			/// External (enclosing class) target pressure
+            double target_rho;			/// External (enclosing class) target density
+            double T_norm;			/// External (enclosing class) temperature normalization
+
+	    /// External (enclosing) class
+            PengRobinsonModel &pr_model;	/// Reference to PengRobinsonModel (enclosing) class
+ 
+        };
+
         /// Newton-Raphson solver nested class used to obtain P & T from rho & e
         class NR_P_T_from_rho_e : public NewtonRaphson { 
 
@@ -370,7 +420,6 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         ////////// PARAMETERS //////////
 
         /// Thermodynamic properties
-        double atmospheric_pressure = 101325.0;			/// Atmospheric pressure [Pa]
         double acentric_factor;					/// Acentric factor [-]
         double critical_temperature;				/// Critical temperature [K]
         double critical_pressure;				/// Critical pressure [Pa]
@@ -389,6 +438,9 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         /// Newton-Raphson solver parameters
         int max_nr_iter              = 1000;			/// Maximum number of iterations
         double nr_relative_tolerance = 1.0e-5;			/// Relative tolerance
+        NR_T_from_P_rho *nr_T_solver;				/// Pointer to NR_T_from_P_rho
+	std::vector<double> nr_T_unknowns;			/// NR_T_from_P_rho unknowns: T
+	std::vector<double> nr_T_r_vec;				/// NR_T_from_P_rho vector of functions residuals
         NR_P_T_from_rho_e *nr_PT_solver;			/// Pointer to NR_P_T_from_rho_e
 	std::vector<double> nr_PT_unknowns;			/// NR_P_T_from_rho_e unknowns: P & T
 	std::vector<double> nr_PT_r_vec;			/// NR_P_T_from_rho_e vector of functions residuals
