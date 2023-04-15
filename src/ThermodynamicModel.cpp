@@ -535,7 +535,7 @@ void PengRobinsonModel::calculateTemperatureFromPressureDensityWithInitialGuess(
 #else
     //double T_norm  = this->critical_temperature;	/// Set temperature normalization factor
     double T_norm  = fabs( T ) + 1.0e-14;		/// Set temperature normalization factor
-    double b_f     = -1.0;				/// Newton-Raphson residual value
+    double b_f     = -1.0;				/// Brent residual value
     int b_num_iter = 0;					/// Number of iterations required to obtain the solution
     double ax = 0.9;					/// Minimum range abscissa
     double bx = 1.0;					/// Intermediate abscissa
@@ -545,7 +545,7 @@ void PengRobinsonModel::calculateTemperatureFromPressureDensityWithInitialGuess(
     b_T_unknowns[0] = T/T_norm;									/// Initialize unknown with previous temperature (normalized)
     b_T_solver->set_ax_bx_cx( ax, bx, cx );							/// Set bracketing triplet of abscissas
     b_T_solver->setExternalParameters( P, rho, T_norm );					/// Set parameters of the solver
-    b_T_solver->solve( b_f, b_T_unknowns, max_b_iter, b_num_iter, b_relative_tolerance );	/// Newton-Raphson solver
+    b_T_solver->solve( b_f, b_T_unknowns, max_b_iter, b_num_iter, b_relative_tolerance );	/// Brent solver
     T = b_T_unknowns[0]*T_norm;									/// Update T from Newton-Raphson solver (unnormalized)
 #endif
 
