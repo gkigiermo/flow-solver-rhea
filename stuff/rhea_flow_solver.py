@@ -57,13 +57,13 @@ import numpy as np
 from numba import njit
 
 ########## LOAD ADDITIONAL CLASSES ##########
-from rhea_python_thermodynamics_transport_coefficients import BaseThermodynamicModel
-from rhea_python_thermodynamics_transport_coefficients import IdealGasModel
-from rhea_python_thermodynamics_transport_coefficients import PengRobinsonModel
-from rhea_python_thermodynamics_transport_coefficients import BaseTransportCoefficients 
-from rhea_python_thermodynamics_transport_coefficients import ConstantTransportCoefficients
-from rhea_python_thermodynamics_transport_coefficients import LowPressureGasTransportCoefficients
-from rhea_python_thermodynamics_transport_coefficients import HighPressureTransportCoeficients
+from rhea_thermodynamics_transport_coefficients import BaseThermodynamicModel
+from rhea_thermodynamics_transport_coefficients import IdealGasModel
+from rhea_thermodynamics_transport_coefficients import PengRobinsonModel
+from rhea_thermodynamics_transport_coefficients import BaseTransportCoefficients 
+from rhea_thermodynamics_transport_coefficients import ConstantTransportCoefficients
+from rhea_thermodynamics_transport_coefficients import LowPressureGasTransportCoefficients
+from rhea_thermodynamics_transport_coefficients import HighPressureTransportCoeficients
 
 ########## SET PARAMETERS ############
 
