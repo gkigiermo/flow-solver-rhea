@@ -1,8 +1,6 @@
-#!/usr/bin/python
-
 ################################################################################################################
 #                                                                                                              #
-# RHEA - an open-source Reproducible Hybrid-architecture flow solver Engineered for Academia                  #
+# RHEA - an open-source Reproducible Hybrid-architecture flow solver Engineered for Academia                   #
 #                                                                                                              #
 # Rhea was the Titaness great Mother of the Gods, and goddess of female fertility, motherhood, and generation. #
 # Her name means "flow" and "ease", representing the eternal flow of time and generations with ease.           #
@@ -32,7 +30,6 @@
 #                                                                                                              #
 ################################################################################################################
 
-
 # Primitive variables:
 #   - Density rho
 #   - Velocities u, v, w
@@ -40,47 +37,83 @@
 #     ... E = e + ke
 #     ... is the sum of internal energy e
 #     ... and kinetic energy ke = (u*u + v*v + w*w)/2
-
 # Conserved variables:
 #   - Mass rho
 #   - Momentum rho*u, rho*v, rho*w
 #   - Total energy rho*E
-
 # Thermodynamic state:
 #   - Pressure P
 #   - Temperature T
 #   - Speed of sound sos
-
 # Thermophysical properties:
 #   - Specific gas constant R_specific
 #   - Ratio of heat capacities gamma
 #   - Dynamic viscosity mu
 #   - Thermal conductivity kappa
 
-
-
 ########## PHYTON MODULES ##########
 import os, sys
 import numpy as np
 from numba import njit
 
+########## LOAD ADDITIONAL CLASSES ##########
+from rhea_python_thermodynamics_transport_coefficients import BaseThermodynamicModel
+from rhea_python_thermodynamics_transport_coefficients import IdealGasModel
+from rhea_python_thermodynamics_transport_coefficients import PengRobinsonModel
+from rhea_python_thermodynamics_transport_coefficients import BaseTransportCoefficients 
+from rhea_python_thermodynamics_transport_coefficients import ConstantTransportCoefficients
+from rhea_python_thermodynamics_transport_coefficients import LowPressureGasTransportCoefficients
+from rhea_python_thermodynamics_transport_coefficients import HighPressureTransportCoeficients
 
-########## SET PARAMETERS ##########
+########## SET PARAMETERS ############
 
 ### Fluid properties 
-R_specific  = 287.058					            # Specific gas constant of the fluid [J/(kg K)]
-gamma       = 1.4					                # Heat capacity ratio of the fluid [-]
-c_p         = gamma*R_specific/( gamma - 1.0 )		# Isobaric heat capacity
-Re_L        = 100.0					                # Reynolds number based on L [-]
-Ma          = 1.0e-1/np.sqrt( gamma )			    # Mach number [-]
-Pr          = 0.71					                # Prandtl number [-]
-rho_0       = 1.0					                # Reference density [kg/m^3]
-L           = 1.0					                # Cavity size [m]
-U_lid       = 1.0 					                # Lid velocity [m/s]
-P_0         = rho_0*U_lid*U_lid/( gamma*Ma*Ma )     # Reference pressure [Pa] 
-T_0         = ( 1.0/( rho_0*R_specific ) )*P_0		# Reference temperature [K] 
-mu_value    = rho_0*U_lid*L/Re_L       			    # Dynamic viscosity of the fluid [Pa s]
-kappa_value = c_p*mu_value/Pr				        # Thermal conductivity of the fluid [W/(m k)]
+R_specific  = 287.058					                                        # Specific gas constant of the fluid [J/(kg K)]
+R_universal      = 8.31446261815324                                             # Universal gas constant [j/(mol k)]
+gamma       = 1.4					                                            # Heat capacity ratio of the fluid [-]
+c_p         = gamma*R_specific/( gamma - 1.0 )		                            # Isobaric heat capacity
+Re_L        = 100.0					                                            # Reynolds number based on L [-]
+Ma          = 1.0e-1/np.sqrt( gamma )			                                # Mach number [-]
+Pr          = 0.71					                                            # Prandtl number [-]
+rho_0       = 1.0					                                            # Reference density [kg/m^3]
+L           = 1.0					                                            # Cavity size [m]
+U_lid       = 1.0 					                                            # Lid velocity [m/s]
+P_0         = rho_0*U_lid*U_lid/( gamma*Ma*Ma )                                 # Reference pressure [Pa] 
+T_0         = ( 1.0/( rho_0*R_specific ) )*P_0		                            # Reference temperature [K] 
+mu_value    = rho_0*U_lid*L/Re_L       			                                # Dynamic viscosity of the fluid [Pa s]
+kappa_value = c_p*mu_value/Pr				                                    # Thermal conductivity of the fluid [W/(m k)]
+mu_0        = 0.00001663
+kappa_0     = 0.0242
+S_mu        = 107.0
+S_kappa     = 150.0
+molecular_weight = 0.0280134
+acentric_factor  = 0.0372
+critical_temperature = 126.192
+critical_molar_volume = 0.000089412
+dipole_moment         = 0.0
+association_factor   = 0.0
+NASA_coefficients = [ 2.952576370000000000000,
+                      0.001396900400000000000,
+                     -0.000000492631603000000,
+                      0.000000000078601019000,
+                     -0.000000000000004607552,
+                     -923.9486880000000000000,
+                      5.871887620000000000000,
+                      3.531005280000000000000,
+                     -0.000123660980000000000,
+                     -0.000000502999433000000,
+                      0.000000002435306120000,
+                     -0.000000000001408812400,
+                     -1046.976280000000000000,
+                      2.967470380000000000000,
+                      0.000000000000000000000] 
+
+thermodynamics = IdealGasModel(R_specific, gamma)
+#thermodynamics = PengRobinsonModel(W, acentric_factor, critical_temperature, critical_pressure, critical_molar_volume, NASA_coefficients)
+#transport_coefficients = BaseTransportCoefficients(R_universal, mu_value, kappa_value)
+transport_coefficients = ConstantTransportCoefficients(mu_value, kappa_value)                   # Transport coeficicents 
+#transport_coefficients = LowPressureGasTransportCoefficients( mu_0, kappa_0, T_0, S_mu, S_kappa)
+#transport_coefficients = HighPressureTransportCoeficients(molecular_weight, acentric_factor, critical_temperature, critical_molar_volume, NASA_coefficients, dipole_moment,association_factor)
 
 ### Problem parameters
 x_0           = 0.0                                 # Domain origin in x-direction [m]
@@ -91,11 +124,11 @@ L_y           = L	      		                    # Size of domain in y-direction
 L_z           = 0.1*L_x         	                # Size of domain in z-direction
 initial_time  = 0.0   			                    # Initial time [s]
 final_time    = 50.0      		                    # Final time [s]
-name_file_out = 'output_data'   	                # Name of output data [-]
+name_file_out = 'output_data16x16'   	            # Name of output data [-]
 
 ### Computational parameters
-num_grid_x        = 32 			                    # Number of internal grid points in the x-direction
-num_grid_y        = 32			                    # Number of internal grid points in the y-direction
+num_grid_x        = 16 			                    # Number of internal grid points in the x-direction
+num_grid_y        = 16			                    # Number of internal grid points in the y-direction
 num_grid_z        = 1			                    # Number of internal grid points in the z-direction
 # Stretching factors: x = L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
 # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
@@ -115,10 +148,9 @@ rk_order     = 3         		                    # Time-integration Runge-Kutta or
 epsilon      = 1.0e-15   		                    # Small epsilon number (fixed value)
 
 ### Auxiliar parameters
-delta_t   = 0.0                                             # Initialize time step
-P_thermo  = 0.0  			                    # Initialize thermodynamic pressure for artificial compressibility method
-alpha_acm = 1.0       		                            # Initialize speedup factor of artificial compressibility method
-
+delta_t   = 0.0                                     # Initialize time step
+P_thermo  = 0.0  			                        # Initialize thermodynamic pressure for artificial compressibility method
+alpha_acm = 1.0       		                        # Initialize speedup factor of artificial compressibility method
 
 ########## ALLOCATE MEMORY ##########
 
@@ -180,7 +212,6 @@ f_rhow_field = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )   
 f_rhoE_field = np.zeros( [ num_grid_x + 2, num_grid_y + 2, num_grid_z + 2 ] )                   # 3-D field of rhoE
 
 
-
 ########## DEFINITIONS ##########
 
 ### Initialize u, v, w, P and T variables
@@ -201,9 +232,8 @@ def initialize_uvwPT( u, v, w, P, T, grid ):
     #print( P )
     #print( T )
 
-
 ### Update boundaries
-@njit
+#@njit
 def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
 
     # General form: w_g*phi_g + w_in*phi_in = phi_b
@@ -212,7 +242,6 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
     # phi_b is boundary value/flux
     # w_g is ghost cell weight
     # w_in is inner cell weight
-
     # Boundary conditions:
     # West:  Dirichlet & Neumann
     # East:  Dirichlet & Neumann
@@ -232,15 +261,16 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
             u_in  = rhou[i+1][j][k]/rho[i+1][j][k]
             v_in  = rhov[i+1][j][k]/rho[i+1][j][k]
             w_in  = rhow[i+1][j][k]/rho[i+1][j][k]
-            P_g   = P_in;					# Neumann
-            T_g   = ( T_0 - wg_in*T_in )/wg_g;			# Dirichlet
-            u_g   = ( 0.0 - wg_in*u_in )/wg_g;			# Dirichlet
-            v_g   = ( 0.0 - wg_in*v_in )/wg_g;			# Dirichlet
-            w_g   = ( 0.0 - wg_in*w_in )/wg_g;			# Dirichlet
-            rho_g = ( 1.0/( R_specific*T_g ) )*P_g		# Ideal-gas law
-            e_g   = ( 1.0/( rho_g*( gamma - 1.0 ) ) )*P_g	# Specific internal energy
+            P_g   = P_in;				                	# Neumann
+            T_g   = ( T_0 - wg_in*T_in )/wg_g;		    	# Dirichlet
+            u_g   = ( 0.0 - wg_in*u_in )/wg_g;		    	# Dirichlet
+            v_g   = ( 0.0 - wg_in*v_in )/wg_g;			    # Dirichlet
+            w_g   = ( 0.0 - wg_in*w_in )/wg_g;			    # Dirichlet
+            # Internal energy and density
+            rho_g = -1.0; e_g = -1.0
+            rho_g, e_g = thermodynamics.calculateDensityInternalEnergyFromPressureTemperature(rho_g, e_g, P_g, T_g)
             ke_g  = 0.5*( u_g**2.0 + v_g**2.0 + w_g**2.0 )	# Specific kinetic energy
-            E_g   = e_g + ke_g					# Specific total energy
+            E_g   = e_g + ke_g					            # Specific total energy
             rho[i][j][k]  = rho_g
             rhou[i][j][k] = rho_g*u_g
             rhov[i][j][k] = rho_g*v_g
@@ -258,15 +288,16 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
             u_in  = rhou[i-1][j][k]/rho[i-1][j][k]
             v_in  = rhov[i-1][j][k]/rho[i-1][j][k]
             w_in  = rhow[i-1][j][k]/rho[i-1][j][k]
-            P_g   = P_in;					# Neumann
-            T_g   = ( T_0 - wg_in*T_in )/wg_g;			# Dirichlet
-            u_g   = ( 0.0 - wg_in*u_in )/wg_g;			# Dirichlet
-            v_g   = ( 0.0 - wg_in*v_in )/wg_g;			# Dirichlet
-            w_g   = ( 0.0 - wg_in*w_in )/wg_g;			# Dirichlet
-            rho_g = ( 1.0/( R_specific*T_g ) )*P_g		# Ideal-gas law
-            e_g   = ( 1.0/( rho_g*( gamma - 1.0 ) ) )*P_g	# Specific internal energy
+            P_g   = P_in;					                # Neumann
+            T_g   = ( T_0 - wg_in*T_in )/wg_g;		    	# Dirichlet
+            u_g   = ( 0.0 - wg_in*u_in )/wg_g;		    	# Dirichlet
+            v_g   = ( 0.0 - wg_in*v_in )/wg_g;			    # Dirichlet
+            w_g   = ( 0.0 - wg_in*w_in )/wg_g;			    # Dirichlet
+            # Internal energy and density
+            rho_g = -1.0; e_g = -1.0
+            rho_g, e_g = thermodynamics.calculateDensityInternalEnergyFromPressureTemperature(rho_g, e_g, P_g, T_g)
             ke_g  = 0.5*( u_g**2.0 + v_g**2.0 + w_g**2.0 )	# Specific kinetic energy
-            E_g   = e_g + ke_g					# Specific total energy
+            E_g   = e_g + ke_g					            # Specific total energy
             rho[i][j][k]  = rho_g
             rhou[i][j][k] = rho_g*u_g
             rhov[i][j][k] = rho_g*v_g
@@ -284,15 +315,16 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
             u_in  = rhou[i][j+1][k]/rho[i][j+1][k]
             v_in  = rhov[i][j+1][k]/rho[i][j+1][k]
             w_in  = rhow[i][j+1][k]/rho[i][j+1][k]
-            P_g   = P_in;					# Neumann
-            T_g   = ( T_0 - wg_in*T_in )/wg_g;			# Dirichlet
+            P_g   = P_in;					                # Neumann
+            T_g   = ( T_0 - wg_in*T_in )/wg_g;			    # Dirichlet
             u_g   = ( 0.0 - wg_in*u_in )/wg_g;		        # Dirichlet
-            v_g   = ( 0.0 - wg_in*v_in )/wg_g;			# Dirichlet
-            w_g   = ( 0.0 - wg_in*w_in )/wg_g;			# Dirichlet
-            rho_g = ( 1.0/( R_specific*T_g ) )*P_g		# Ideal-gas law
-            e_g   = ( 1.0/( rho_g*( gamma - 1.0 ) ) )*P_g	# Specific internal energy
+            v_g   = ( 0.0 - wg_in*v_in )/wg_g;			    # Dirichlet
+            w_g   = ( 0.0 - wg_in*w_in )/wg_g;			    # Dirichlet
+            # Internal energy and density
+            rho_g = -1.0; e_g = -1.0
+            rho_g, e_g = thermodynamics.calculateDensityInternalEnergyFromPressureTemperature(rho_g, e_g, P_g, T_g)
             ke_g  = 0.5*( u_g**2.0 + v_g**2.0 + w_g**2.0 )	# Specific kinetic energy
-            E_g   = e_g + ke_g					# Specific total energy
+            E_g   = e_g + ke_g					            # Specific total energy
             rho[i][j][k]  = rho_g
             rhou[i][j][k] = rho_g*u_g
             rhov[i][j][k] = rho_g*v_g
@@ -310,20 +342,21 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
             u_in  = rhou[i][j-1][k]/rho[i][j-1][k]
             v_in  = rhov[i][j-1][k]/rho[i][j-1][k]
             w_in  = rhow[i][j-1][k]/rho[i][j-1][k]
-            P_g   = P_in;					# Neumann
-            T_g   = ( T_0 - wg_in*T_in )/wg_g;			# Dirichlet
-            u_g   = ( U_lid - wg_in*u_in )/wg_g;		# Dirichlet
-            v_g   = ( 0.0 - wg_in*v_in )/wg_g;			# Dirichlet
-            w_g   = ( 0.0 - wg_in*w_in )/wg_g;			# Dirichlet
-            rho_g = ( 1.0/( R_specific*T_g ) )*P_g		# Ideal-gas law
-            e_g   = ( 1.0/( rho_g*( gamma - 1.0 ) ) )*P_g	# Specific internal energy
+            P_g   = P_in;				                	# Neumann
+            T_g   = ( T_0 - wg_in*T_in )/wg_g;			    # Dirichlet
+            u_g   = ( U_lid - wg_in*u_in )/wg_g;		    # Dirichlet
+            v_g   = ( 0.0 - wg_in*v_in )/wg_g;			    # Dirichlet
+            w_g   = ( 0.0 - wg_in*w_in )/wg_g;			    # Dirichlet
+            # Internal energy and density
+            rho_g = -1.0; e_g = -1.0
+            rho_g, e_g = thermodynamics.calculateDensityInternalEnergyFromPressureTemperature(rho_g, e_g, P_g, T_g)
             ke_g  = 0.5*( u_g**2.0 + v_g**2.0 + w_g**2.0 )	# Specific kinetic energy
-            E_g   = e_g + ke_g					# Specific total energy
+            E_g   = e_g + ke_g					            # Specific total energy
             rho[i][j][k]  = rho_g
             rhou[i][j][k] = rho_g*u_g
             rhov[i][j][k] = rho_g*v_g
             rhow[i][j][k] = rho_g*w_g
-            rhoE[i][j][k] = rho_g*E_g            
+            rhoE[i][j][k] = rho_g*E_g     
 
     # Back boundary points
     k = 0    
@@ -334,7 +367,7 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
             rhov[i][j][k] = rhov[i][j][k+1]
             rhow[i][j][k] = rhow[i][j][k+1]
             rhoE[i][j][k] = rhoE[i][j][k+1]
-
+            
     # Front boundary points
     k = num_grid_z + 1    
     for i in range( 1, num_grid_x + 1 ):    
@@ -482,27 +515,23 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
     #print( rhow )    
     #print( rhoE )
 
-
 ### Calculate transport coefficients
-@njit
-def transport_coefficients( mu, kappa ):
-
-    # Constant-value model:
+#@njit
+def calculate_transport_coefficients( mu, kappa, P, T, rho ):
 
     # All points
     for i in range( 0, num_grid_x + 2 ):    
         for j in range( 0, num_grid_y + 2 ):    
             for k in range( 0, num_grid_z + 2 ):
-                mu[i][j][k]    = mu_value        
-                kappa[i][j][k] = kappa_value
-    #print( mu )
-    #print( kappa )
+                mu[i][j][k]    = transport_coefficients.calculateDynamicViscosity( P[i][j][k], T[i][j][k], rho[i][j][k] )
+                kappa[i][j][k] = transport_coefficients.calculateThermalConductivity( P[i][j][k], T[i][j][k], rho[i][j][k] )            
+    # print( mu )
+    # print( kappa )
 
 
 ### Calculate source terms
 @njit
 def source_terms( f_rhou, f_rhov, f_rhow, f_rhoE, rho, u, v, w, mesh ):
-
     # Internal points
     for i in range( 1, num_grid_x + 1 ):    
         for j in range( 1, num_grid_y + 1 ):    
@@ -554,8 +583,8 @@ def data_output( time, time_iter, rho, u, v, w, E, P, T, sos, grid ):
 
 
 ### Calculate time step
-@njit
-def time_step( rho, u, v, w, sos, mu, kappa, grid ):
+#@njit
+def time_step( rho, u, v, w, P, T, sos, mu, kappa, grid ):
 
     # Inviscid time step size for explicit schemes:
     # E. F. Toro.
@@ -570,16 +599,14 @@ def time_step( rho, u, v, w, sos, mu, kappa, grid ):
     # Initialize to largest float value
 #     delta_t = float( 'inf' )
     delta_t = 1.0e6
-    
-    delta_t_aux = 1.0e6
 
     # Internal points
     for i in range( 1, num_grid_x + 1 ):    
         for j in range( 1, num_grid_y + 1 ):    
             for k in range( 1, num_grid_z + 1 ):
                 # Calculate specific heat capacities
-                c_v = R_specific/( gamma - 1.0 )
-                c_p = c_v*gamma                
+                c_v = -1.0; c_p = -1.0
+                c_v, c_p = thermodynamics.calculateSpecificHeatCapacities(c_v, c_p, P[i][j][k], T[i][j][k], rho[i][j][k])
                 ## Geometric stuff
                 delta_x = 0.5*( grid[i+1][j][k][0] - grid[i-1][j][k][0] ) 
                 delta_y = 0.5*( grid[i][j+1][k][1] - grid[i][j-1][k][1] ) 
@@ -600,7 +627,7 @@ def time_step( rho, u, v, w, sos, mu, kappa, grid ):
                 delta_t = min( delta_t, ( 1.0/( mu[i][j][k] + epsilon ) )*CFL*rho[i][j][k]*( delta_z**2.0 ) )
                 delta_t = min( delta_t, ( 1.0/( kappa[i][j][k] + epsilon ) )*CFL*rho[i][j][k]*c_p*( delta_z**2.0 ) )
     #print( delta_t )
-
+    
     # Return minimum time step
     return( delta_t )
 
@@ -645,18 +672,13 @@ def spatial_discretization( grid ):
 ### Initialize thermodynamic variables
 def initialize_thermodynamics( rho, E, u, v, w, P, T ):
 
-    # Ideal-gas model:
-    # rho = P/(R_specific*T) is density
-    # e = P/(rho*(gamma - 1)) is specific internal energy
-    # ke = (u*u + v*v + w*w)/2 is specific kinetic energy
-    # E = e + ke is total energy
-
     # All points
     for i in range( 0, num_grid_x + 2 ):    
         for j in range( 0, num_grid_y + 2 ):    
             for k in range( 0, num_grid_z + 2 ):
-                rho[i][j][k] = ( 1.0/( R_specific*T[i][j][k] ) )*P[i][j][k]        
-                e            = ( 1.0/( rho[i][j][k]*( gamma - 1.0 ) ) )*P[i][j][k]
+                rho_aux = -1.0; e_aux = -1.0
+                rho_aux, e_aux = thermodynamics.calculateDensityInternalEnergyFromPressureTemperature( rho_aux, e_aux, P[i][j][k], T[i][j][k])   # Calculate density and Internal Energy 
+                rho[i][j][k] = rho_aux; e = e_aux
                 ke           = 0.5*( u[i][j][k]**2.0 + v[i][j][k]**2.0 + w[i][j][k]**2.0 )
                 E[i][j][k]   = e + ke
     #print( rho )
@@ -664,27 +686,23 @@ def initialize_thermodynamics( rho, E, u, v, w, P, T ):
 
 
 ### Calculate speed of sound
-@njit
+#@njit
 def calculate_speed_sound( sos, rho, P, P_thermo, T ):
-
-    # Ideal-gas model:
-    # sos = sqrt(gamma*P/rho) is speed of sound
 
     # All points
     for i in range( 0, num_grid_x + 2 ):    
         for j in range( 0, num_grid_y + 2 ):    
             for k in range( 0, num_grid_z + 2 ):
                 if( artificial_compressibility_method ):
-                    sos[i][j][k] = ( 1.0/( alpha_acm + epsilon ) )*np.sqrt( gamma*P_thermo/rho[i][j][k] )
+                    sos[i][j][k] = ( 1.0/( alpha_acm + epsilon ) )*thermodynamics.calculateSoundSpeed(P_thermo, T[i][j][k], rho[i][j][k])
                 else:
-                    sos[i][j][k] = np.sqrt( gamma*P[i][j][k]/rho[i][j][k] )
+                    sos[i][j][k] = thermodynamics.calculateSoundSpeed(P[i][j][k], T[i][j][k], rho[i][j][k])   # Calculate a speed of sound 
     #print( sos )
 
 
 ### Update conserved variables from primitive variables
 @njit
 def update_conserved( conserved, primitive, rho ):
-
     # All points
     for i in range( 0, num_grid_x + 2 ):    
         for j in range( 0, num_grid_y + 2 ):    
@@ -696,7 +714,6 @@ def update_conserved( conserved, primitive, rho ):
 ### Update field
 @njit
 def update_field( field_a, field_b ):
-
     # All points
     for i in range( 0, num_grid_x + 2 ):    
         for j in range( 0, num_grid_y + 2 ):    
@@ -774,7 +791,6 @@ def calculate_alpha_acm( P, P_thermo, grid ):
 #                sum_num += ( volume*P[i][j][k] )**2.0
 #                sum_den += ( volume*( max( abs( P[i][j][k] - P_thermo ), P_threshold ) ) )**2.0
 #    alpha = np.sqrt( 1.0 + epsilon_acm*np.sqrt( sum_num )/np.sqrt( sum_den ) )
-
 #    # Internal points: infinity-norm
 #    for i in range( 1, num_grid_x + 1 ):    
 #        for j in range( 1, num_grid_y + 1 ):    
@@ -782,7 +798,7 @@ def calculate_alpha_acm( P, P_thermo, grid ):
 #                ## Update value
 #                alpha_aux = np.sqrt( 1.0 + ( P[i][j][k]*epsilon_acm )/( max( abs( P[i][j][k] - P_thermo ), P_threshold ) ) )
 #                alpha     = min( alpha, alpha_aux )
-
+    
     # Return value of alpha
     return( alpha )
 
@@ -794,8 +810,8 @@ def waves_speed( rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R ):
     # HLLC approximate Riemann solver:
     # E. F. Toro.
     # Riemann solvers and numerical methods for fluid dynamics.
-    # Springer, 2009.    
-
+    # Springer, 2009. 
+       
     rho_bar = 0.5*( rho_L + rho_R )
     a_bar   = 0.5*( a_L + a_R )
     P_pvrs  = 0.5*( P_L + P_R ) - 0.5*( u_R - u_L )*rho_bar*a_bar
@@ -817,12 +833,12 @@ def waves_speed( rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R ):
 ### Calculate HLLC flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE
 @njit
 def HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type ):
-
+    
     # HLLC approximate Riemann solver:
     # E. F. Toro.
     # Riemann solvers and numerical methods for fluid dynamics.
     # Springer, 2009.    
-
+    
     F_L = rho_L*u_L
     F_R = rho_R*u_R
     U_L = rho_L
@@ -892,15 +908,15 @@ def HLLC_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a
 ### Calculate KGP flux ... var_type corresponds to: 0 for rho, 1-3 for rhouvw, 4 for rhoE 
 @njit
 def KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_L, a_R, var_type ):
-
+    
     # Kennedy, Gruber & Pirozzoli (KGP) scheme:
     # G. Coppola , F. Capuano , S. Pirozzoli, L. de Luca.
     # Numerically stable formulations of convective terms for turbulent compressible flows.
     # Journal of Computational Physics, 382, 86-104, 2019.
-
+    
     F = ( 1.0/8.0 )*( rho_L + rho_R )*( u_L + u_R )
     if( var_type == 0 ):
-        F *= 1.0 + 1.0;
+        F *= 1.0 + 1.0
     elif ( var_type == 1 ):
         F *= u_L + u_R
         F += ( 1.0/2.0 )*( P_L + P_R )
@@ -910,19 +926,19 @@ def KGP_flux( rho_L, rho_R, u_L, u_R, v_L, v_R, w_L, w_R, E_L, E_R, P_L, P_R, a_
         F *= w_L + w_R
     elif ( var_type == 4 ):
         F *= E_L + P_L/rho_L + E_R + P_R/rho_R
-
+    
     return( F )
 
 
 ### Calculate inviscid fluxes
 @njit
 def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v, w, E, P, P_thermo, sos, grid ):
-
+   
     # Unsplit method for Euler equations:
     # E. F. Toro.
     # Riemann solvers and numerical methods for fluid dynamics.
     # Springer, 2009.
-
+    
     # Internal points
     for i in range( 1, num_grid_x + 1 ):    
         for j in range( 1, num_grid_y + 1 ):    
@@ -1109,12 +1125,12 @@ def inviscid_fluxes( rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rho, u, v,
 ### Calculate viscous fluxes
 @njit
 def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, work_vis_rhoe, u, v, w, T, mu, kappa, grid ):
-
+    
     # Second-order central finite differences for derivatives:
     # P. Moin.
     # Fundamentals of engineering numerical analysis.
     # Cambridge University Press, 2010.
-
+    
     # Internal points
     for i in range( 1, num_grid_x + 1 ):    
         for j in range( 1, num_grid_y + 1 ):    
@@ -1214,17 +1230,16 @@ def viscous_fluxes( rhou_vis, rhov_vis, rhow_vis, rhoE_vis, work_vis_rhoe, u, v,
 
 
 ### Sum inviscid & viscous fluxes and source terms
-@njit
+#@njit
 def sum_fluxes_source_terms( rho_tot, rhou_tot, rhov_tot, rhow_tot, rhoE_tot, P_tot, rho_inv, rhou_inv, rhov_inv, rhow_inv, rhoE_inv, rhou_vis, rhov_vis, rhow_vis, rhoE_vis, work_vis_rhoe, f_rhou, f_rhov, f_rhow, f_rhoE, rho, u, v, w, P, T, sos, rk_iter, grid ):
-
-    # Calculate specific heat capacities
-    c_v = R_specific/( gamma - 1.0 )
-    c_p = c_v*gamma
-
+    
     # Internal points
     for i in range( 1, num_grid_x + 1 ):    
         for j in range( 1, num_grid_y + 1 ):    
             for k in range( 1, num_grid_z + 1 ):
+                # Calculate specific heat capacities
+                c_v = -1.0; c_p = -1.0
+                c_v, c_p = thermodynamics.calculateSpecificHeatCapacities(c_v, c_p, P[i][j][k], T[i][j][k], rho[i][j][k])                
                 ## Geometric stuff
                 delta_x = 0.5*( grid[i+1][j][k][0] - grid[i-1][j][k][0] ) 
                 delta_y = 0.5*( grid[i][j+1][k][1] - grid[i][j-1][k][1] ) 
@@ -1241,8 +1256,8 @@ def sum_fluxes_source_terms( rho_tot, rhou_tot, rhov_tot, rhow_tot, rhoE_tot, P_
                 ## Pressure inviscid flux
                 P_inv_flux = u[i][j][k]*d_P_x + v[i][j][k]*d_P_y + w[i][j][k]*d_P_z + rho[i][j][k]*( sos[i][j][k]**2.0 )*div_uvw
                 ## Pressure viscous flux
-                volume_expansivity         = 1.0/T[i][j][k]     ## Ideal-gas law
-                isothermal_compressibility = 1.0/P[i][j][k]     ## Ideal-gas law
+                volume_expansivity         = 1.0/T[i][j][k]    
+                isothermal_compressibility = 1.0/P[i][j][k]     
                 P_vis_flux = ( volume_expansivity/( rho[i][j][k]*c_v*isothermal_compressibility ) )*work_vis_rhoe[i][j][k]                
                 ## Calculate total right-hand side
                 rho_tot[i][j][k][rk_iter]  = ( -1.0 )*rho_inv[i][j][k]
@@ -1292,32 +1307,32 @@ def update_primitive( primitive, conserved, rho ):
 
 
 ### Update thermodynamic variables from primitive variables
-@njit
+#@njit
 def thermodynamic_state( rhoE, P, T, rho, u, v, w, E ):
-
-    # Ideal-gas model:
-    # c_v = R_specific/(gamma - 1) is specific heat capcity at constant volume
-    # ke = (u*u + v*v + w*w)/2 is specific kinetic energy
-    # e = E - ke is specific internal energy
-    # P = rho*e*(gamma - 1) is pressure
-    # T = e/c_v is temperature
-
-    # Specific heat capacity at constant volume
-    c_v = R_specific/( gamma - 1.0 )
 
     # All points
     for i in range( 0, num_grid_x + 2 ):    
         for j in range( 0, num_grid_y + 2 ):    
             for k in range( 0, num_grid_z + 2 ):
+                # Specific kinetic energy
                 ke = 0.5*( u[i][j][k]**2.0 + v[i][j][k]**2.0 + w[i][j][k]**2.0 )
                 if( transport_pressure_scheme ):
-                    e             = P[i][j][k]/( rho[i][j][k]*( gamma - 1.0 ) )
+                    # Temperature
+                    T_aux = T[i][j][k]
+                    T_aux = thermodynamics.calculateTemperatureFromPressureDensityWithInitialGuess(T_aux, P[i][j][k], rho[i][j][k])
+                    T[i][j][k] = T_aux
+                    # Specific internal energy
+                    e = thermodynamics.calculateInternalEnergyFromPressureTemperatureDensity(P[i][j][k], T[i][j][k], rho[i][j][k])
+                    # Specific total energy and rhoE
                     E[i][j][k]    = e + ke
                     rhoE[i][j][k] = rho[i][j][k]*E[i][j][k] 
                 else:
-                    e          = E[i][j][k] - ke
-                    P[i][j][k] = e*rho[i][j][k]*( gamma - 1.0 )
-                T[i][j][k]   = ( 1.0/c_v )*e
+                    # Specific internal energy
+                    e = E[i][j][k] - ke
+                    # Pressure & Temperature
+                    P_aux = P[i][j][k]; T_aux = T[i][j][k]
+                    P_aux, T_aux = thermodynamics.calculatePressureTemperatureFromDensityInternalEnergy(P_aux, T_aux, rho[i][j][k], e)
+                    P[i][j][k] = P_aux; T[i][j][k] = T_aux
     #print( E )
     #print( rhoE )
     #print( P )
@@ -1344,7 +1359,7 @@ if( artificial_compressibility_method ):
 calculate_speed_sound( sos_field, rho_field, P_field, P_thermo, T_field )
 
 ### Calculate transport coefficients
-transport_coefficients( mu_field, kappa_field )
+calculate_transport_coefficients( mu_field, kappa_field, P_field, T_field, rho_field )
 
 ### Update conserved variables from primitive variables
 update_conserved( rhou_field, u_field, rho_field )
@@ -1368,36 +1383,36 @@ time_iter = 0
 while time_iter < max_num_time_iter:
 
     ### Calculate time step
-    delta_t = time_step( rho_field, u_field, v_field, w_field, sos_field, mu_field, kappa_field, mesh )
+    delta_t = time_step( rho_field, u_field, v_field, w_field, P_field, T_field, sos_field, mu_field, kappa_field, mesh )
     if( ( time + delta_t ) > final_time ):
         delta_t = final_time - time
         #print( delta_t )
 
     ### Print time iteration iformation
     print( 'Time iteration ' + str( time_iter ) + ': t = ' + str( time ) + ' [s], delta_t = ' + str( delta_t ) + ' [s]' )
-
+    
     ### Output data to file
     if( time_iter % output_iter == 0 ):
         data_output( time, time_iter, rho_field, u_field, v_field, w_field, E_field, P_field, T_field, sos_field, mesh )
-
+    
     ### Runge-Kutta sub-steps
     for rk in range( 0, rk_order ):
 
         ### Calculate transport coefficients
-        transport_coefficients( mu_field, kappa_field )
-
+        calculate_transport_coefficients( mu_field, kappa_field, P_field, T_field, rho_field )
+        
         ### Calculate inviscid fluxes
         inviscid_fluxes( rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux, rhoE_inv_flux, rho_field, u_field, v_field, w_field, E_field, P_field, P_thermo, sos_field, mesh )
-
+        
         ### Calculate viscous fluxes
         viscous_fluxes( rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux, work_vis_rhoe_flux, u_field, v_field, w_field, T_field, mu_field, kappa_field, mesh )
-
+        
         ### Calculate source terms
         source_terms( f_rhou_field, f_rhov_field, f_rhow_field, f_rhoE_field, rho_field, u_field, v_field, w_field, mesh )
-
+        
         ### Sum fluxes & source terms
         sum_fluxes_source_terms( rho_rk_fluxes, rhou_rk_fluxes, rhov_rk_fluxes, rhow_rk_fluxes, rhoE_rk_fluxes, P_rk_fluxes, rho_inv_flux, rhou_inv_flux, rhov_inv_flux, rhow_inv_flux, rhoE_inv_flux, rhou_vis_flux, rhov_vis_flux, rhow_vis_flux, rhoE_vis_flux, work_vis_rhoe_flux, f_rhou_field, f_rhov_field, f_rhow_field, f_rhoE_field, rho_field, u_field, v_field, w_field, P_field, T_field, sos_field, rk, mesh )
-
+        
         ### Advance conserved variables in time
         time_integration( rho_field,  rho_0_field,  delta_t, rho_rk_fluxes,  rk )
         time_integration( rhou_field, rhou_0_field, delta_t, rhou_rk_fluxes, rk )
@@ -1422,7 +1437,7 @@ while time_iter < max_num_time_iter:
 
         ### Update boundaries
         update_boundaries( rho_field, rhou_field, rhov_field, rhow_field, rhoE_field, u_field, v_field, w_field, P_field, T_field, mesh )
-
+    
     ### Update old fields of conserved variables
     update_field( rho_0_field,  rho_field )  
     update_field( rhou_0_field, rhou_field )  
