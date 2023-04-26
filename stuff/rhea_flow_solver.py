@@ -69,7 +69,7 @@ from rhea_thermodynamics_transport_coefficients import HighPressureTransportCoef
 
 ### Fluid properties 
 R_specific  = 287.058					                                        # Specific gas constant of the fluid [J/(kg K)]
-R_universal      = 8.31446261815324                                             # Universal gas constant [j/(mol k)]
+R_universal = 8.31446261815324                                                  # Universal gas constant [J/(mol k)]
 gamma       = 1.4					                                            # Heat capacity ratio of the fluid [-]
 c_p         = gamma*R_specific/( gamma - 1.0 )		                            # Isobaric heat capacity
 Re_L        = 100.0					                                            # Reynolds number based on L [-]
@@ -107,11 +107,9 @@ NASA_coefficients = [ 2.952576370000000000000,
                      -1046.976280000000000000,
                       2.967470380000000000000,
                       0.000000000000000000000] 
-
 thermodynamics = IdealGasModel(R_specific, gamma)
 #thermodynamics = PengRobinsonModel(W, acentric_factor, critical_temperature, critical_pressure, critical_molar_volume, NASA_coefficients)
-#transport_coefficients = BaseTransportCoefficients(R_universal, mu_value, kappa_value)
-transport_coefficients = ConstantTransportCoefficients(mu_value, kappa_value)                   # Transport coeficicents 
+transport_coefficients = ConstantTransportCoefficients(mu_value, kappa_value)
 #transport_coefficients = LowPressureGasTransportCoefficients( mu_0, kappa_0, T_0, S_mu, S_kappa)
 #transport_coefficients = HighPressureTransportCoeficients(molecular_weight, acentric_factor, critical_temperature, critical_molar_volume, NASA_coefficients, dipole_moment,association_factor)
 
@@ -124,16 +122,16 @@ L_y           = L	      		                    # Size of domain in y-direction
 L_z           = 0.1*L_x         	                # Size of domain in z-direction
 initial_time  = 0.0   			                    # Initial time [s]
 final_time    = 50.0      		                    # Final time [s]
-name_file_out = 'output_data16x16'   	            # Name of output data [-]
+name_file_out = 'output_data'          	            # Name of output data [-]
 
 ### Computational parameters
-num_grid_x        = 16 			                    # Number of internal grid points in the x-direction
-num_grid_y        = 16			                    # Number of internal grid points in the y-direction
+num_grid_x        = 64 			                    # Number of internal grid points in the x-direction
+num_grid_y        = 64			                    # Number of internal grid points in the y-direction
 num_grid_z        = 1			                    # Number of internal grid points in the z-direction
 # Stretching factors: x = L*eta + A*( 0.5*L - L*eta )*( 1.0 - eta )*eta, with eta = ( l - 0.5 )/num_grid 
 # A < 0: stretching at ends; A = 0: uniform; A > 0: stretching at center
-A_x               = -1.0                            # Stretching factor in x-direction
-A_y               = -1.0                            # Stretching factor in y-direction
+A_x               = 0.0                             # Stretching factor in x-direction
+A_y               = 0.0                             # Stretching factor in y-direction
 A_z               = 0.0                             # Stretching factor in z-direction
 CFL               = 0.1 		                    # CFL coefficient
 max_num_time_iter = 1e6			                    # Maximum number of time iterations
