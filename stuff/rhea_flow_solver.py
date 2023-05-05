@@ -68,61 +68,64 @@ from rhea_thermodynamics_transport_coefficients import HighPressureTransportCoef
 ########## SET PARAMETERS ############
 
 ### Fluid properties 
-R_specific  = 287.058					                                        # Specific gas constant of the fluid [J/(kg K)]
-R_universal = 8.31446261815324                                                  # Universal gas constant [J/(mol k)]
-gamma       = 1.4					                                            # Heat capacity ratio of the fluid [-]
-c_p         = gamma*R_specific/( gamma - 1.0 )		                            # Isobaric heat capacity
-Re_L        = 100.0					                                            # Reynolds number based on L [-]
-Ma          = 1.0e-1/np.sqrt( gamma )			                                # Mach number [-]
-Pr          = 0.71					                                            # Prandtl number [-]
-rho_0       = 1.0					                                            # Reference density [kg/m^3]
-L           = 1.0					                                            # Cavity size [m]
-U_lid       = 1.0 					                                            # Lid velocity [m/s]
-P_0         = rho_0*U_lid*U_lid/( gamma*Ma*Ma )                                 # Reference pressure [Pa] 
-T_0         = ( 1.0/( rho_0*R_specific ) )*P_0		                            # Reference temperature [K] 
-mu_value    = rho_0*U_lid*L/Re_L       			                                # Dynamic viscosity of the fluid [Pa s]
-kappa_value = c_p*mu_value/Pr				                                    # Thermal conductivity of the fluid [W/(m k)]
-mu_0        = 0.00001663
-kappa_0     = 0.0242
-S_mu        = 107.0
-S_kappa     = 150.0
-molecular_weight = 0.0280134
-acentric_factor  = 0.0372
-critical_temperature = 126.192
-critical_molar_volume = 0.000089412
-dipole_moment         = 0.0
-association_factor   = 0.0
-NASA_coefficients = [ 2.952576370000000000000,
-                      0.001396900400000000000,
-                     -0.000000492631603000000,
-                      0.000000000078601019000,
-                     -0.000000000000004607552,
-                     -923.9486880000000000000,
-                      5.871887620000000000000,
-                      3.531005280000000000000,
-                     -0.000123660980000000000,
-                     -0.000000502999433000000,
-                      0.000000002435306120000,
-                     -0.000000000001408812400,
-                     -1046.976280000000000000,
-                      2.967470380000000000000,
-                      0.000000000000000000000] 
+R_specific            = 296.8                 		# Specific gas constant [J/(kg·K)]
+gamma                 = 1.4                         # Heat capacity ratio (ideal-gas) [-]
+molecular_weight      = 0.0280134              		# Molecular weight [kg/mol]
+acentric_factor       = 0.0372               		# Acentric factor [-]
+critical_temperature  = 126.192           			# Critical temperature [K]
+critical_pressure     = 3395800.0           		# Critical pressure [Pa]
+critical_molar_volume = 0.000089412       			# Critical molar volume [m3/mol]
+NASA_coefficients     = [ 2.952576370000000000000,
+                          0.001396900400000000000,
+                         -0.000000492631603000000,
+                          0.000000000078601019000,
+                         -0.000000000000004607552,
+                         -923.9486880000000000000,
+                          5.871887620000000000000,
+                          3.531005280000000000000,
+                         -0.000123660980000000000,
+                         -0.000000502999433000000,
+                          0.000000002435306120000,
+                         -0.000000000001408812400,
+                         -1046.976280000000000000,
+                          2.967470380000000000000,
+                          0.000000000000000000000]  # NASA 7-coefficient polynomial (15 values)
+mu_0                  = 0.00001663					# Reference dynamic viscosity [Pa·s]	
+kappa_0               = 0.0242						# Reference thermal conductivity [W/(m·K)]	
+T_0                   = 273.0						# Reference temperature [K]	
+S_mu                  = 107.0						# Sutherland's dynamic viscosity constant [K]	
+S_kappa               = 150.0						# Sutherland's thermal conductivity constant [K]
+dipole_moment         = 0.0               			# Dipole moment [D]
+association_factor    = 0.0             			# Association factor [-]
+
+### Problem parameters
+x_0           = 0.0                                     # Domain origin in x-direction [m]
+y_0           = 0.0                                     # Domain origin in y-direction [m]
+z_0           = 0.0                                     # Domain origin in z-direction [m]
+L             = 1.0					                    # Cavity size [m]
+L_x           = L                  	                    # Size of domain in x-direction
+L_y           = L	      		                        # Size of domain in y-direction
+L_z           = 0.01*L_x         	                    # Size of domain in z-direction
+U_lid         = 1.0					                    # Lid velocity [m/s]
+Re_L          = 100.0					                # Reynolds number based on L [-]
+Ma            = 1.0e-1/np.sqrt( gamma )			        # Mach number [-]
+Pr            = 0.71					                # Prandtl number [-]
+rho_ref       = 1.0					                    # Reference density [kg/m^3]
+P_ref         = rho_ref*U_lid*U_lid/( gamma*Ma*Ma )     # Reference pressure [Pa] 
+T_ref         = ( 1.0/( rho_ref*R_specific ) )*P_ref    # Reference temperature [K]
+c_p           = gamma*R_specific/( gamma - 1.0 )	    # Isobaric heat capacity [J/(kg K)]
+mu_value      = rho_ref*U_lid*L/Re_L       			    # Dynamic viscosity of the fluid [Pa s]
+kappa_value   = c_p*mu_value/Pr				            # Thermal conductivity of the fluid [W/(m k)]
+initial_time  = 0.0   			                        # Initial time [s]
+final_time    = 50.0      		                        # Final time [s]
+name_file_out = 'output_data'          	                # Name of output data [-]
+
+### Thermodynamics & transport properties model
 thermodynamics = IdealGasModel(R_specific, gamma)
 #thermodynamics = PengRobinsonModel(W, acentric_factor, critical_temperature, critical_pressure, critical_molar_volume, NASA_coefficients)
 transport_coefficients = ConstantTransportCoefficients(mu_value, kappa_value)
 #transport_coefficients = LowPressureGasTransportCoefficients( mu_0, kappa_0, T_0, S_mu, S_kappa)
 #transport_coefficients = HighPressureTransportCoeficients(molecular_weight, acentric_factor, critical_temperature, critical_molar_volume, NASA_coefficients, dipole_moment,association_factor)
-
-### Problem parameters
-x_0           = 0.0                                 # Domain origin in x-direction [m]
-y_0           = 0.0                                 # Domain origin in y-direction [m]
-z_0           = 0.0                                 # Domain origin in z-direction [m]
-L_x           = L                  	                # Size of domain in x-direction
-L_y           = L	      		                    # Size of domain in y-direction
-L_z           = 0.1*L_x         	                # Size of domain in z-direction
-initial_time  = 0.0   			                    # Initial time [s]
-final_time    = 50.0      		                    # Final time [s]
-name_file_out = 'output_data'          	            # Name of output data [-]
 
 ### Computational parameters
 num_grid_x        = 64 			                    # Number of internal grid points in the x-direction
@@ -222,8 +225,8 @@ def initialize_uvwPT( u, v, w, P, T, grid ):
                 u[i][j][k] = 0.0
                 v[i][j][k] = 0.0
                 w[i][j][k] = 0.0
-                P[i][j][k] = P_0
-                T[i][j][k] = T_0
+                P[i][j][k] = P_ref
+                T[i][j][k] = T_ref
     #print( u )
     #print( v )
     #print( w )
@@ -260,7 +263,7 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
             v_in  = rhov[i+1][j][k]/rho[i+1][j][k]
             w_in  = rhow[i+1][j][k]/rho[i+1][j][k]
             P_g   = P_in;				                	# Neumann
-            T_g   = ( T_0 - wg_in*T_in )/wg_g;		    	# Dirichlet
+            T_g   = ( T_ref - wg_in*T_in )/wg_g;	    	# Dirichlet
             u_g   = ( 0.0 - wg_in*u_in )/wg_g;		    	# Dirichlet
             v_g   = ( 0.0 - wg_in*v_in )/wg_g;			    # Dirichlet
             w_g   = ( 0.0 - wg_in*w_in )/wg_g;			    # Dirichlet
@@ -287,7 +290,7 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
             v_in  = rhov[i-1][j][k]/rho[i-1][j][k]
             w_in  = rhow[i-1][j][k]/rho[i-1][j][k]
             P_g   = P_in;					                # Neumann
-            T_g   = ( T_0 - wg_in*T_in )/wg_g;		    	# Dirichlet
+            T_g   = ( T_ref - wg_in*T_in )/wg_g;		   	# Dirichlet
             u_g   = ( 0.0 - wg_in*u_in )/wg_g;		    	# Dirichlet
             v_g   = ( 0.0 - wg_in*v_in )/wg_g;			    # Dirichlet
             w_g   = ( 0.0 - wg_in*w_in )/wg_g;			    # Dirichlet
@@ -314,7 +317,7 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
             v_in  = rhov[i][j+1][k]/rho[i][j+1][k]
             w_in  = rhow[i][j+1][k]/rho[i][j+1][k]
             P_g   = P_in;					                # Neumann
-            T_g   = ( T_0 - wg_in*T_in )/wg_g;			    # Dirichlet
+            T_g   = ( T_ref - wg_in*T_in )/wg_g;		    # Dirichlet
             u_g   = ( 0.0 - wg_in*u_in )/wg_g;		        # Dirichlet
             v_g   = ( 0.0 - wg_in*v_in )/wg_g;			    # Dirichlet
             w_g   = ( 0.0 - wg_in*w_in )/wg_g;			    # Dirichlet
@@ -341,7 +344,7 @@ def update_boundaries( rho, rhou, rhov, rhow, rhoE, u, v, w, P, T, grid ):
             v_in  = rhov[i][j-1][k]/rho[i][j-1][k]
             w_in  = rhow[i][j-1][k]/rho[i][j-1][k]
             P_g   = P_in;				                	# Neumann
-            T_g   = ( T_0 - wg_in*T_in )/wg_g;			    # Dirichlet
+            T_g   = ( T_ref - wg_in*T_in )/wg_g;		    # Dirichlet
             u_g   = ( U_lid - wg_in*u_in )/wg_g;		    # Dirichlet
             v_g   = ( 0.0 - wg_in*v_in )/wg_g;			    # Dirichlet
             w_g   = ( 0.0 - wg_in*w_in )/wg_g;			    # Dirichlet

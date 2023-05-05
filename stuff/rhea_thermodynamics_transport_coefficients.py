@@ -224,10 +224,10 @@ class PengRobinsonModel(BaseThermodynamicModel):
 
   ### Constructor
 
-  def __init__(self, W, acentric_factor, critical_temperature, critical_pressure, critical_molar_volume, NASA_coefficients):
+  def __init__(self, molecular_weight, acentric_factor, critical_temperature, critical_pressure, critical_molar_volume, NASA_coefficients):
     super(BaseThermodynamicModel,self).__init__()  
-    self.molecular_weight           = W
-    self.R_specific                 = self.R_universal/W     
+    self.molecular_weight           = molecular_weight
+    self.R_specific                 = self.R_universal/molecular_weight     
     self.acentric_factor            = acentric_factor
     self.critical_temperature       = critical_temperature
     self.critical_pressure          = critical_pressure
@@ -275,13 +275,13 @@ class PengRobinsonModel(BaseThermodynamicModel):
     return T
 
 
-  def calculateTemperatureFromPressureDensityWithInitialGuess( self, P, rho ):
+  def calculateTemperatureFromPressureDensityWithInitialGuess( self, T, P, rho ):
 
     # Calculate molar volume 
     bar_v = self.molecular_weight/rho
     
     # Calculate temperature guess using ideal-gas model
-    T = P*self.bar_v/self.R_universal
+    T = P*bar_v/self.R_universal
 
     x_0 = T
 
@@ -346,7 +346,7 @@ class PengRobinsonModel(BaseThermodynamicModel):
     return P, T
 
 
-  def calculateDensityInternalEnergyFromPressureTemperature(self, P, T):
+  def calculateDensityInternalEnergyFromPressureTemperature(self, rho, e, P, T):
 
     # Auxiliar parameters
     eos_a  = self.calculate_eos_a(T)
@@ -355,15 +355,6 @@ class PengRobinsonModel(BaseThermodynamicModel):
     b      = 2.0*P*self.eos_b - eos_en
     c      = (-1.0)*P*self.eos_b*self.eos_b - 2.0*eos_en*self.eos_b + eos_a
     d      = (-1.0)*self.eos_b*(eos_a + (-1.0)*eos_en*self.eos_b)
-
-    print(f"a = {a}\n")
-    print(f"b = {b}\n")
-    print(f"c = {c}\n")
-    print(f"d = {d}\n")
-    
-    print(f"self.eos_b = {self.eos_b}\n")
-    print(f"eos_a = {eos_a}\n")
-    print(f"eos_en = {eos_en}\n")
 
     # Cubic solve to calculate rho
     v_1, v_2, v_3 = self.calculateRootsCubicPolynomial(a, b, c, d)
@@ -376,7 +367,7 @@ class PengRobinsonModel(BaseThermodynamicModel):
     return rho, e
 
 
-  def calculateSpecificHeatCapacities(self, P, T, rho):
+  def calculateSpecificHeatCapacities(self, c_v, c_p, P, T, rho):
 
     bar_v = self.molecular_weight/rho
     std_bar_c_p = self.calculateMolarStdCpFromNASApolynomials(T)
