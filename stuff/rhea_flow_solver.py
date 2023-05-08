@@ -122,7 +122,7 @@ name_file_out = 'output_data'          	                # Name of output data [-
 
 ### Thermodynamics & transport properties model
 thermodynamics = IdealGasModel(R_specific, gamma)
-#thermodynamics = PengRobinsonModel(W, acentric_factor, critical_temperature, critical_pressure, critical_molar_volume, NASA_coefficients)
+#thermodynamics = PengRobinsonModel(molecular_weight, acentric_factor, critical_temperature, critical_pressure, critical_molar_volume, NASA_coefficients)
 transport_coefficients = ConstantTransportCoefficients(mu_value, kappa_value)
 #transport_coefficients = LowPressureGasTransportCoefficients( mu_0, kappa_0, T_0, S_mu, S_kappa)
 #transport_coefficients = HighPressureTransportCoeficients(molecular_weight, acentric_factor, critical_temperature, critical_molar_volume, NASA_coefficients, dipole_moment,association_factor)
