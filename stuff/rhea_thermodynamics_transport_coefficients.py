@@ -248,6 +248,13 @@ class PengRobinsonModel(BaseThermodynamicModel):
 
   ### Methods
 
+  def n_solve( self, functions, variables, norm_factors ):
+    func = lambda x : [ f(*x) for f in functions ]
+    variables = fsolve( func, variables, xtol = self.xtol, epsfcn = self.epsfcn, factor = self.factor, diag = norm_factors )
+
+    return variables
+
+
   def calculateTemperatureFromPressureDensity( self, P, rho ):
 
     # Calculate molar volume 
@@ -277,28 +284,26 @@ class PengRobinsonModel(BaseThermodynamicModel):
 
   def calculateTemperatureFromPressureDensityWithInitialGuess( self, T, P, rho ):
 
-    # Calculate molar volume 
-    bar_v = self.molecular_weight/rho
-    
-    # Calculate temperature guess using ideal-gas model
-    T = P*bar_v/self.R_universal
+    ### Define functions
+    functions = []
+    functions.append( lambda variable_T : ( ( self.calculatePressureFromTemperatureDensity(variable_T,rho) ) - P )/P )
 
-    x_0 = T
+    ### Initialize variables: T
+    variables = np.zeros( 1 )
+    variables[0] = T    # Use input T value as initial guess
 
-    for iter in range(self.max_aitken_iter):
-      x_1 = ((bar_v - self.eos_b) / self.R_universal) * (P + (self.calculate_eos_a(x_0) /((bar_v**2.0) + 2.0 * self.eos_b * bar_v - (self.eos_b**2.0))))
-      x_2 = ((bar_v - self.eos_b) / self.R_universal) * (P + (self.calculate_eos_a(x_1) /((bar_v**2.0) + 2.0 * self.eos_b * bar_v - (self.eos_b**2.0))))
-    
-      denominator = x_2 - 2.0 * x_1 + x_0
+    ### Set normalization factors of Jacobian's diagonal: T
+    norm_factors = np.zeros( 1 )
+    norm_factors[0] = copy.deepcopy( abs( variables[0] ) )
 
-      #T = x_2 - (pow(x_2 - x_1, 2.0)) / denominator
-      T = x_2 - (x_2 - x_1)**2.0 / (denominator + 1.0e-10)
-    
-      if abs((T - x_2) / T) < self.aitken_relative_tolerance:
-          break  # If the result is within tolerance, leave the loop!
+    ### Solve nonlinear system
+    variables = self.n_solve( functions, variables, norm_factors )
+    #print( variables )
 
-      x_0 = T  # Otherwise, update x_0 to iterate again...
-    
+    ### Assign solution to T
+    T = variables[0]
+    #print( T)
+
     return T
 
 
@@ -309,14 +314,10 @@ class PengRobinsonModel(BaseThermodynamicModel):
 
     return e
 
-  def n_solve( self, functions, variables, norm_factors ):
-    func = lambda x : [ f(*x) for f in functions ]
-    variables = fsolve( func, variables, xtol = self.xtol, epsfcn = self.epsfcn, factor = self.factor, diag = norm_factors )
-
-    return variables
 
   def calculatePressureTemperatureFromDensityInternalEnergy(self, P, T, rho, e):
 
+    # Calculate molar volume 
     bar_v = self.molecular_weight/rho
 
     ### Define functions
