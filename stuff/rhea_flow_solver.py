@@ -808,24 +808,16 @@ def calculate_alpha_acm( P, P_thermo, grid ):
 @njit
 def waves_speed( rho_L, rho_R, u_L, u_R, P_L, P_R, a_L, a_R ):
 
-    # HLLC approximate Riemann solver:
-    # E. F. Toro.
-    # Riemann solvers and numerical methods for fluid dynamics.
-    # Springer, 2009. 
-       
-    rho_bar = 0.5*( rho_L + rho_R )
-    a_bar   = 0.5*( a_L + a_R )
-    P_pvrs  = 0.5*( P_L + P_R ) - 0.5*( u_R - u_L )*rho_bar*a_bar
-    P_star  = max( 0.0, P_pvrs )
-    q_L     = 1.0
-    if( P_star > P_L ):
-        q_L = np.sqrt( 1.0 + ( ( gamma + 1.0 )/( 2.0*gamma ) )*( ( P_star/P_L ) - 1.0 ) )
-    q_R     = 1.0
-    if( P_star > P_R ):
-        q_R = np.sqrt( 1.0 + ( ( gamma + 1.0 )/( 2.0*gamma ) )*( ( P_star/P_R ) - 1.0 ) )                    
-    S_L     = u_L - a_L*q_L 
-    S_R     = u_R + a_R*q_R
-    #print( S_L, S_R )
+    # Direct wave speed estimates:
+    # B. Einfeldt.
+    # On Godunov-type methods for gas dynamics.
+    # SIAM Journal on Numerical Analysis, 25, 294-318, 1988.
+
+    hat_u = ( u_L*np.sqrt( rho_L ) + u_R*np.sqrt( rho_R ) )/( np.sqrt( rho_L ) + np.sqrt( rho_R ) )
+    hat_a = np.sqrt( ( ( a_L*a_L*np.sqrt( rho_L ) + a_R*a_R*np.sqrt( rho_R ) )/( np.sqrt( rho_L ) + np.sqrt( rho_R ) ) ) + 0.5*( ( np.sqrt( rho_L )*np.sqrt( rho_R ) )/( ( np.sqrt( rho_L ) + np.sqrt( rho_R ) )*( np.sqrt( rho_L ) + np.sqrt( rho_R ) ) ) )*( u_R - u_L )*( u_R - u_L ) )
+
+    S_L = min( u_L - a_L, hat_u - hat_a )
+    S_R = max( u_R + a_R, hat_u + hat_a )
 
     # Return wave speed estimates
     return( S_L, S_R )
