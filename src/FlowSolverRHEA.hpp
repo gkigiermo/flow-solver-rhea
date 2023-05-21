@@ -16,7 +16,7 @@
 #include "ComputationalDomain.hpp"
 #include "ParallelTopology.hpp"
 #include "DistributedArray.hpp"
-#include "ManagerHDF5.hpp"
+#include "InputOutputManager.hpp"
 #include "ParallelTimer.hpp"
 
 ////////// CLASS DECLARATION //////////
@@ -357,7 +357,7 @@ class FlowSolverRHEA {
         BaseExplicitRungeKuttaMethod *runge_kutta_method;	/// Runge-Kutta method
         ComputationalDomain *mesh;				/// Computational domain
         ParallelTopology *topo;					/// Parallel topology
-        ManagerHDF5 *writer_reader;				/// HDF5 data writer/reader
+        WriteReadHDF5 *writer_reader;				/// HDF5 data writer/reader
         ParallelTimer *timers;					/// Parallel timer
 
 	////////// VERSION STUFF //////////
@@ -366,8 +366,8 @@ class FlowSolverRHEA {
         /// The middle number (2) is the minor version.
         /// The rightmost number (3) is the revision, but it may also refer to a "point release" or "subminor version".
 	
-        /// Version number (updated 11/01/2023)
-	std::string version_number = "1.0.0";			/// Version number	
+        /// Version number (updated 21/05/2023)
+	std::string version_number = "2.0.0";			/// Version number	
 
     private:
 

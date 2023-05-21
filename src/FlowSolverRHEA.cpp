@@ -229,7 +229,7 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     /// Construct (initialize) writer/reader
     char char_array[ output_data_file_name.length() + 1 ]; 
     strcpy( char_array,output_data_file_name.c_str() );
-    writer_reader = new ManagerHDF5( topo, char_array, generate_xdmf );
+    writer_reader = new WriteReadHDF5( topo, char_array, generate_xdmf );
     writer_reader->addAttributeDouble( "Time");
     writer_reader->addAttributeInt( "Iteration" );
     writer_reader->addAttributeDouble( "AveragingTime" );

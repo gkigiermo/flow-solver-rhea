@@ -1,8 +1,8 @@
-#include "ManagerHDF5.hpp"
+#include "InputOutputManager.hpp"
 
 using namespace std;
 
-ManagerHDF5::ManagerHDF5(ParallelTopology* topo,  char const* outputName,bool _gen_xdmf)
+WriteReadHDF5::WriteReadHDF5(ParallelTopology* topo,  char const* outputName,bool _gen_xdmf)
 {
     myTopo = topo;
     sprintf(outname,"%s",outputName);
@@ -44,13 +44,13 @@ ManagerHDF5::ManagerHDF5(ParallelTopology* topo,  char const* outputName,bool _g
 
 }
 
-void ManagerHDF5::addField(DistributedArray* newfield)
+void WriteReadHDF5::addField(DistributedArray* newfield)
 {
     fieldList.push_back(newfield);
 
 }
 
-void ManagerHDF5::printOnScreen()
+void WriteReadHDF5::printOnScreen()
 {
     if(myTopo->getRank() == 0){
 
@@ -64,7 +64,7 @@ void ManagerHDF5::printOnScreen()
     }
 }
 
-void ManagerHDF5::write(int it ) //, double time, bool xdmf_file)
+void WriteReadHDF5::write(int it ) //, double time, bool xdmf_file)
 {
     char filename[100];
 
@@ -210,7 +210,7 @@ void ManagerHDF5::write(int it ) //, double time, bool xdmf_file)
 
 }
 
-void ManagerHDF5::read( char const* inputName)
+void WriteReadHDF5::read( char const* inputName)
 {
     char filename[100];
     
@@ -308,3 +308,73 @@ void ManagerHDF5::read( char const* inputName)
    status = H5Fclose(file_id); 
 
 }
+
+////////// TemporalPointProbe CLASS //////////
+
+TemporalPointProbe::TemporalPointProbe() {};
+
+TemporalPointProbe::TemporalPointProbe(const int &x_position_, const int &y_position_, const int &z_position_, const string output_file_name_, ComputationalDomain* mesh_, ParallelTopology* topo_) {
+
+    /// Set position, output file name, mesh & topo
+    x_position = x_position_;
+    y_position = y_position_;
+    z_position = z_position_;
+    output_file_name = output_file_name_;
+    mesh = mesh_;
+    topo = topo_;
+
+    /// Locate closest grid point to probe
+    this->locateClosestGridPointToProbe();
+
+};
+
+TemporalPointProbe::~TemporalPointProbe() {
+
+    /// Free mesh, topo
+    if( mesh != NULL ) free( mesh );	
+    if( topo != NULL ) free( topo );
+
+};
+
+void TemporalPointProbe::locateClosestGridPointToProbe() {
+
+    /// Initialize MPI
+    int my_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    /// Initialize to largest double value
+    double local_min_distance = numeric_limits<double>::max();
+
+    /// All (inner, boundary & halo) points: locate closest grid point within partition
+    double x, y, z, distance;
+    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+                /// Geometric stuff
+                x = mesh->x[i];
+                y = mesh->y[j];
+                z = mesh->z[k];
+                /// Distance
+		distance = pow( pow( x - x_position, 2.0 ) + pow( y - y_position, 2.0 ) + pow( z - z_position, 2.0 ), 1.0/2.0 );
+                /// If minimum distance, update information
+		if( distance < local_min_distance ) {
+		    local_min_distance = distance;
+		    i_local_index = i;
+		    j_local_index = j;
+		    k_local_index = k;
+		}
+	    }
+        }
+    }
+
+    /// Find minimum (global) distance & processor owning the probe
+    double global_min_distance;
+    MPI_Allreduce(&local_min_distance, &global_min_distance, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    double local_owner_rank = -1.0;
+    if( abs( global_min_distance - local_min_distance ) < ( 1.1*numeric_limits<double>::min() ) ) {
+        local_owner_rank = my_rank;
+    }
+    MPI_Allreduce(&local_owner_rank, &global_owner_rank, 1, MPI_INTEGER, MPI_MAX, MPI_COMM_WORLD);
+
+};
