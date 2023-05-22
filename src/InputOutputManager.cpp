@@ -16,11 +16,11 @@ WriteReadHDF5::WriteReadHDF5(ParallelTopology* topo,  char const* outputName,boo
     dim_gsize[1] = (topo->getMesh())->getGNy() + 2;
     dim_gsize[2] = (topo->getMesh())->getGNx() + 2;
 
-	dim_lsize[0] = topo->lenslabz; //  _lNz_;
+    dim_lsize[0] = topo->lenslabz; //  _lNz_;
     dim_lsize[1] = topo->lenslaby;
     dim_lsize[2] = topo->lenslabx;
 
-	dim_offset[0] = topo->offslab_z; //  _lNz_;
+    dim_offset[0] = topo->offslab_z; //  _lNz_;
     dim_offset[1] = topo->offslab_y;
     dim_offset[2] = topo->offslab_x;
 
@@ -346,11 +346,11 @@ void TemporalPointProbe::locateClosestGridPointToProbe() {
     /// Initialize to largest double value
     double local_min_distance = numeric_limits<double>::max();
 
-    /// All (inner, boundary & halo) points: locate closest grid point within partition
+    /// Inner points: locate closest grid point within partition
     double x, y, z, distance;
-    for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
-        for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
-            for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
+    for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+        for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+            for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
                 /// Geometric stuff
                 x = mesh->x[i];
                 y = mesh->y[j];
@@ -376,5 +376,23 @@ void TemporalPointProbe::locateClosestGridPointToProbe() {
         local_owner_rank = my_rank;
     }
     MPI_Allreduce(&local_owner_rank, &global_owner_rank, 1, MPI_INTEGER, MPI_MAX, MPI_COMM_WORLD);
+
+};
+
+void TemporalPointProbe::writeDataStringToOutputFile(const string output_header_string, const string output_data_string) {
+
+    /// Initialize MPI
+    int my_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    /// Owner rank writes to file
+    if( global_owner_rank == my_rank ) {
+        fstream output_file;
+        output_file.open( output_file_name, ios::out | ios::app );
+        if( !output_file ) output_file << output_header_string << endl;
+        output_file << output_data_string << endl;
+        output_file.close();
+    }
 
 };

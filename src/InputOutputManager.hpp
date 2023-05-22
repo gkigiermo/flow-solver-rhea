@@ -4,6 +4,7 @@
 ////////// INCLUDES //////////
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <hdf5.h>
 #include <list>
 #include <string.h>
@@ -83,7 +84,6 @@ class TemporalPointProbe {
         inline double getPositionX() { return( x_position ); };
         inline double getPositionY() { return( y_position ); };
         inline double getPositionZ() { return( z_position ); };
-        inline double getTime() { return( time ); };
         inline std::string getOutputFileName() { return( output_file_name ); };
         inline int getGlobalOwnerRank() { return( global_owner_rank ); };
         inline int getLocalIndexI() { return( i_local_index ); };
@@ -94,7 +94,6 @@ class TemporalPointProbe {
         inline void setPositionX(double x_position_) { x_position = x_position_; };
         inline void setPositionY(double y_position_) { y_position = y_position_; };
         inline void setPositionZ(double z_position_) { z_position = z_position_; };
-        inline void setTime(double time_) { time = time_; };
         inline void setOutputFileName(std::string output_file_name_) { output_file_name = output_file_name_; };
         inline void setGlobalOwnerRank(int global_owner_rank_) { global_owner_rank = global_owner_rank_; };
         inline void setLocalIndexI(int i_local_index_) { i_local_index = i_local_index_; };
@@ -105,6 +104,9 @@ class TemporalPointProbe {
 	
 	/// Locate closest grid point to probe
         virtual void locateClosestGridPointToProbe();
+        
+	/// Write data string to output file
+	virtual void writeDataStringToOutputFile(const std::string output_header_string, const std::string output_data_string);
 
     protected:
 
@@ -114,7 +116,6 @@ class TemporalPointProbe {
         double x_position;         	 	 	/// Position in x [m]
         double y_position;         	 	 	/// Position in y [m]
         double z_position;         	 	 	/// Position in z [m]
-        double time = -1.0;         	 	 	/// Time [s]
 	std::string output_file_name;			/// Output file name
 
         /// Computational parameters
@@ -123,7 +124,7 @@ class TemporalPointProbe {
 	int j_local_index = -1;				/// Local index j
 	int k_local_index = -1;				/// Local index k
 
-	////////// COMPUTATIONAL DOMtimeLEL TOPOLOGY //////////
+	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY //////////
         ComputationalDomain *mesh;			/// Computational domain
         ParallelTopology *topo;				/// Parallel topology
 
