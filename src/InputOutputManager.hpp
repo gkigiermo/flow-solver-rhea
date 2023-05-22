@@ -96,10 +96,10 @@ class TemporalPointProbe {
         inline void setPositionY(double y_position_) { y_position = y_position_; };
         inline void setPositionZ(double z_position_) { z_position = z_position_; };
         inline void setOutputFileName(std::string output_file_name_) { output_file_name = output_file_name_; };
-        inline void setGlobalOwnerRank(int global_owner_rank_) { global_owner_rank = global_owner_rank_; };
-        inline void setLocalIndexI(int i_local_index_) { i_local_index = i_local_index_; };
-        inline void setLocalIndexJ(int j_local_index_) { j_local_index = j_local_index_; };
-        inline void setLocalIndexK(int k_local_index_) { k_local_index = k_local_index_; };
+        //inline void setGlobalOwnerRank(int global_owner_rank_) { global_owner_rank = global_owner_rank_; };
+        //inline void setLocalIndexI(int i_local_index_) { i_local_index = i_local_index_; };
+        //inline void setLocalIndexJ(int j_local_index_) { j_local_index = j_local_index_; };
+        //inline void setLocalIndexK(int k_local_index_) { k_local_index = k_local_index_; };
 
 	////////// PROBE METHODS //////////
 	
