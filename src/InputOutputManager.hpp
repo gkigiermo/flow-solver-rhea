@@ -76,9 +76,10 @@ class TemporalPointProbe {
     public:
 
         ////////// CONSTRUCTORS & DESTRUCTOR //////////
-        TemporalPointProbe();					/// Default constructor
-        TemporalPointProbe(const double &x_position_, const double &y_position_, const double &z_position_, const std::string output_file_name_, ComputationalDomain* mesh_, ParallelTopology* topo_);			     /// Parametrized constructor
-        virtual ~TemporalPointProbe();				/// Destructor
+        TemporalPointProbe();								/// Default constructor
+        TemporalPointProbe(ComputationalDomain* mesh_, ParallelTopology* topo_);	/// Parametrized constructor
+        TemporalPointProbe(const double &x_position_, const double &y_position_, const double &z_position_, const std::string output_file_name_, ComputationalDomain* mesh_, ParallelTopology* topo_);	/// Parametrized constructor
+        virtual ~TemporalPointProbe();							/// Destructor
 
 	////////// GET FUNCTIONS //////////
         inline double getPositionX() { return( x_position ); };

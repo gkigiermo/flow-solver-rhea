@@ -2,6 +2,9 @@
 
 using namespace std;
 
+////////// FIXED PARAMETERS //////////
+const int cout_precision = 5;		                /// Output precision (fixed)
+
 WriteReadHDF5::WriteReadHDF5(ParallelTopology* topo,  char const* outputName,bool _gen_xdmf)
 {
     myTopo = topo;
@@ -313,6 +316,14 @@ void WriteReadHDF5::read( char const* inputName)
 
 TemporalPointProbe::TemporalPointProbe() {};
 
+TemporalPointProbe::TemporalPointProbe(ComputationalDomain* mesh_, ParallelTopology* topo_) {
+
+    /// Set mesh & topo
+    mesh = mesh_;
+    topo = topo_;
+
+};
+
 TemporalPointProbe::TemporalPointProbe(const double &x_position_, const double &y_position_, const double &z_position_, const string output_file_name_, ComputationalDomain* mesh_, ParallelTopology* topo_) {
 
     /// Set position, output file name, mesh & topo
@@ -331,8 +342,8 @@ TemporalPointProbe::TemporalPointProbe(const double &x_position_, const double &
 TemporalPointProbe::~TemporalPointProbe() {
 
     /// Free mesh, topo
-    if( mesh != NULL ) free( mesh );	
-    if( topo != NULL ) free( topo );
+    //if( mesh != NULL ) free( mesh );	
+    //if( topo != NULL ) free( topo );
 
 };
 
@@ -371,15 +382,25 @@ void TemporalPointProbe::locateClosestGridPointToProbe() {
     /// Find minimum (global) distance & processor owning the probe
     double global_min_distance;
     MPI_Allreduce(&local_min_distance, &global_min_distance, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-    double local_owner_rank = -1.0;
+    int local_owner_rank = -1.0;
     if( abs( global_min_distance - local_min_distance ) < ( 1.1*numeric_limits<double>::min() ) ) {
         local_owner_rank = my_rank;
     }
     MPI_Allreduce(&local_owner_rank, &global_owner_rank, 1, MPI_INTEGER, MPI_MAX, MPI_COMM_WORLD);
 
+    /// Return the local indices to -1, if not processor owning the probe
+    if( my_rank != global_owner_rank ) {
+        i_local_index = -1;
+        j_local_index = -1;
+        k_local_index = -1;
+    }
+
 };
 
 void TemporalPointProbe::writeDataStringToOutputFile(const string output_header_string, const string output_data_string) {
+
+    /// Set output (cout) precision
+    cout.precision( cout_precision );
 
     /// Initialize MPI
     int my_rank, world_size;
@@ -388,10 +409,22 @@ void TemporalPointProbe::writeDataStringToOutputFile(const string output_header_
 
     /// Owner rank writes to file
     if( global_owner_rank == my_rank ) {
-        fstream output_file;
-        output_file.open( output_file_name, ios::out | ios::app );
-        if( !output_file ) output_file << output_header_string << endl;
-        output_file << output_data_string << endl;
+        /// Check if file exists
+	ifstream check_output_file( output_file_name );
+	int line_counter = 0;
+	while( check_output_file.peek() != EOF ) {
+	    line_counter++;
+	    break;
+	}
+	check_output_file.close();
+        /// Open file to write (append)
+        fstream output_file( output_file_name, ios::out | ios::app );	
+        /// Write header if file does not exist
+        if( line_counter < 1 ) {
+	    output_file << output_header_string << endl;
+	}
+        /// Write data to file
+        output_file << std::scientific << output_data_string << endl;
         output_file.close();
     }
 

@@ -311,12 +311,19 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     timers->createTimer( "update_previous_state_conserved_variables" );
 
     /// Construct (initialize) temporal point probes
+    TemporalPointProbe temporal_point_probe(mesh, topo);
+    temporal_point_probes.resize( number_temporal_point_probes );
     for(int tpp = 0; tpp < number_temporal_point_probes; ++tpp) {
-        /// Construct temporal point probe
-	TemporalPointProbe temporal_point_probe(tpp_x_positions[tpp], tpp_y_positions[tpp], tpp_z_positions[tpp], tpp_output_file_names[tpp], mesh, topo);
+        /// Set parameters of temporal point probe
+	temporal_point_probe.setPositionX( tpp_x_positions[tpp] );
+	temporal_point_probe.setPositionY( tpp_y_positions[tpp] );
+	temporal_point_probe.setPositionZ( tpp_z_positions[tpp] );
+	temporal_point_probe.setOutputFileName( tpp_output_file_names[tpp] );
         /// Insert temporal point probe to vector
-        temporal_point_probes.push_back( temporal_point_probe );
-    }	    
+        temporal_point_probes[tpp] = temporal_point_probe;
+	/// Locate closest grid point to probe
+	temporal_point_probes[tpp].locateClosestGridPointToProbe();
+    }	   
 
 };
 
@@ -538,6 +545,11 @@ void FlowSolverRHEA::readConfigurationFile() {
     /// Temporal point probes
     const YAML::Node & temporal_point_probes = configuration["temporal_point_probes"];
     number_temporal_point_probes = temporal_point_probes["number_temporal_point_probes"].as<int>();
+    tpp_x_positions.resize( number_temporal_point_probes );
+    tpp_y_positions.resize( number_temporal_point_probes );
+    tpp_z_positions.resize( number_temporal_point_probes );
+    tpp_output_frequency_iters.resize( number_temporal_point_probes );
+    tpp_output_file_names.resize( number_temporal_point_probes );
     string yaml_input_name;
     for(int tpp = 0; tpp < number_temporal_point_probes; ++tpp) {
 	yaml_input_name = "probe_" + to_string( tpp + 1 ) + "_x_position";
@@ -2292,18 +2304,18 @@ void FlowSolverRHEA::outputTemporalPointProbesData() {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
     /// Iterate through temporal point probes
-    int i_index, j_index, k_index;
-    string output_header_string, output_data_string; 
     for(int tpp = 0; tpp < number_temporal_point_probes; ++tpp) {
         /// Write temporal point probe data to file (if criterion satisfied)
-	if( current_time_iter%tpp_output_frequency_iters[tpp] == 0 ) {
+        if( current_time_iter%tpp_output_frequency_iters[tpp] == 0 ) {
             /// Owner rank writes to file
             if( temporal_point_probes[tpp].getGlobalOwnerRank() == my_rank ) {
+                int i_index, j_index, k_index;
                 /// Get local indices i, j, k
 		i_index = temporal_point_probes[tpp].getLocalIndexI(); 
 		j_index = temporal_point_probes[tpp].getLocalIndexJ(); 
-		k_index = temporal_point_probes[tpp].getLocalIndexK(); 
+		k_index = temporal_point_probes[tpp].getLocalIndexK();
                 /// Generate header string
+                string output_header_string; 
 	        output_header_string  = "# t [s], x [m], y[m], z[m], rho [kg/m3], u [m/s], v [m/s], w [m/s], E [J/kg], P [Pa], T [K], sos [m/s], mu [Pa·s], kappa [W/(m·K)], c_v [J/(kg·K)], c_p [J/(kg·K)]";
 	        output_header_string += ", avg_rho [kg/m3], avg_rhou [kg/(s·m2)], avg_rhov [kg/(s·m2)], avg_rhow [kg/(s·m2)], avg_rhoE [J/m3], avg_rhoP [kg2/(m4·s2)], avg_rhoT [(kg·K)/m3]";
 	        output_header_string += ", avg_u [m/s], avg_v [m/s], avg_w [m/s], avg_E [J/kg], avg_P [Pa], avg_T [K], avg_sos [m/s], avg_mu [Pa·s], avg_kappa [W/(m·K)], avg_c_v [J/(kg·K)], avg_c_p [J/(kg·K)]";
@@ -2312,6 +2324,7 @@ void FlowSolverRHEA::outputTemporalPointProbesData() {
 	        output_header_string += ", favre_uffuff [m2/s2], favre_uffvff [m2/s2], favre_uffwff [m2/s2], favre_vffvff [m2/s2], favre_vffwff [m2/s2], favre_wffwff [m2/s2]";
 	        output_header_string += ", favre_uffEff [(m·J)/(s·kg)], favre_vffEff [(m·J)/(s·kg)], favre_wffEff [(m·J)/(s·kg)]";
                 /// Generate data string
+                string output_data_string; 
 	        output_data_string    = to_string( current_time );
 	        output_data_string   += "," + to_string( x_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( y_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( z_field[I1D(i_index,j_index,k_index)] );
 	        output_data_string   += "," + to_string( rho_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( v_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( w_field[I1D(i_index,j_index,k_index)] );
