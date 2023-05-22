@@ -313,7 +313,7 @@ void WriteReadHDF5::read( char const* inputName)
 
 TemporalPointProbe::TemporalPointProbe() {};
 
-TemporalPointProbe::TemporalPointProbe(const int &x_position_, const int &y_position_, const int &z_position_, const string output_file_name_, ComputationalDomain* mesh_, ParallelTopology* topo_) {
+TemporalPointProbe::TemporalPointProbe(const double &x_position_, const double &y_position_, const double &z_position_, const string output_file_name_, ComputationalDomain* mesh_, ParallelTopology* topo_) {
 
     /// Set position, output file name, mesh & topo
     x_position = x_position_;

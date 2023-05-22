@@ -148,6 +148,9 @@ class FlowSolverRHEA {
         /// Output current solver state data
         virtual void outputCurrentStateData();
 
+        /// Output temporal point probes data
+        virtual void outputTemporalPointProbesData();
+
         /// Update time-averaged quantities
         virtual void updateTimeAveragedQuantities();
 
@@ -350,7 +353,7 @@ class FlowSolverRHEA {
         DistributedArray favre_wffEff_field;			/// 3-D field of Favre-averaged widetilde{w''E''} = overline{rhow''E''}/bar{rho}
 
 	////////// THERMODYNAMIC MODEL, TRANSPORT COEFFICIENTS, RIEMANN SOLVER, EXPLICIT RUNGE-KUTTA METHOD //////////
-	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER, PARALLEL TIMER //////////
+	////////// COMPUTATIONAL DOMAIN, PARALLEL TOPOLOGY, WRITER/READER, TEMPORAL POINT PROBES, PARALLEL TIMER //////////
         BaseThermodynamicModel *thermodynamics;			/// Thermodynamic model
         BaseTransportCoefficients *transport_coefficients;	/// Transport coefficients
         //BaseRiemannSolver *riemann_solver;			/// Riemann solver
@@ -359,6 +362,15 @@ class FlowSolverRHEA {
         ParallelTopology *topo;					/// Parallel topology
         WriteReadHDF5 *writer_reader;				/// HDF5 data writer/reader
         ParallelTimer *timers;					/// Parallel timer
+	
+	////////// TEMPORAL POINT PROBES //////////
+	std::vector<TemporalPointProbe> temporal_point_probes;	/// Temporal point probes
+        int number_temporal_point_probes = 0;			/// Number of temporal point probes (default is zero)	
+	std::vector<double> tpp_x_positions;			/// Positions in x-direction of temporal point probes [m]					
+	std::vector<double> tpp_y_positions;			/// Positions in y-direction of temporal point probes [m]					
+	std::vector<double> tpp_z_positions;			/// Positions in z-direction of temporal point probes [m]						
+	std::vector<int> tpp_output_frequency_iters;		/// Output frequency iterations of temporal point probes
+	std::vector<std::string> tpp_output_file_names;		/// Output file names of temporal point probes
 
 	////////// VERSION STUFF //////////
         /// Version numbers consist of three numbers separated by dots; i.e., 1.2.3.

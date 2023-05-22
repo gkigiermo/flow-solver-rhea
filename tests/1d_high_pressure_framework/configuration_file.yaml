@@ -105,6 +105,23 @@ print_write_read_parameters:
    reset_time_averaging: 'FALSE'          				# Reset time averaging
 
 
+##### TEMPORAL POINT PROBES #####
+temporal_point_probes:
+   number_temporal_point_probes: 0            				# Number of temporal point probes
+   ## TEMPORAL POINT PROBE 1
+   #probe_1_x_position: 1.0                    				# Probe 1 position in x-direction [m]
+   #probe_1_y_position: 1.0                    				# Probe 1 position in y-direction [m]
+   #probe_1_z_position: 1.0                    				# Probe 1 position in z-direction [m]
+   #probe_1_output_frequency_iter: 100      				# Probe 1 output iteration frequency
+   #probe_1_output_data_file_name: 'temporal_point_probe_1.csv'		# Probe 1 name of output data file
+   ## TEMPORAL POINT PROBE 2
+   #probe_2_x_position: 1.5                    				# Probe 2 position in x-direction [m]
+   #probe_2_y_position: 1.5                    				# Probe 2 position in y-direction [m]
+   #probe_2_z_position: 1.5                    				# Probe 2 position in z-direction [m]
+   #probe_2_output_frequency_iter: 100      				# Probe 2 output iteration frequency
+   #probe_2_output_data_file_name: 'temporal_point_probe_2.csv'		# Probe 2 name of output data file
+     
+
 ##### TIMERS INFORMATION #####
 timers_information:
    print_timers: 'TRUE'               					# Print timers information

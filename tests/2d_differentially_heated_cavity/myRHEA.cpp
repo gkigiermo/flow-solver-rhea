@@ -205,6 +205,9 @@ void myRHEA::execute() {
         /// Output current state data to file (if criterion satisfied)
         if( current_time_iter%output_frequency_iter == 0 ) this->outputCurrentStateData();
 
+	/// Output temporal point probes data to files
+	this->outputTemporalPointProbesData();
+
         /// Stop timer: output_solver_state
         timers->stop( "output_solver_state" );
 

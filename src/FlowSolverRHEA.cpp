@@ -310,6 +310,14 @@ FlowSolverRHEA::FlowSolverRHEA(const string name_configuration_file) : configura
     timers->createTimer( "update_time_averaged_quantities" );
     timers->createTimer( "update_previous_state_conserved_variables" );
 
+    /// Construct (initialize) temporal point probes
+    for(int tpp = 0; tpp < number_temporal_point_probes; ++tpp) {
+        /// Construct temporal point probe
+	TemporalPointProbe temporal_point_probe(tpp_x_positions[tpp], tpp_y_positions[tpp], tpp_z_positions[tpp], tpp_output_file_names[tpp], mesh, topo);
+        /// Insert temporal point probe to vector
+        temporal_point_probes.push_back( temporal_point_probe );
+    }	    
+
 };
 
 FlowSolverRHEA::~FlowSolverRHEA() {
@@ -526,6 +534,23 @@ void FlowSolverRHEA::readConfigurationFile() {
     restart_data_file     = print_write_read_parameters["restart_data_file"].as<string>();
     time_averaging_active = print_write_read_parameters["time_averaging_active"].as<bool>();
     reset_time_averaging  = print_write_read_parameters["reset_time_averaging"].as<bool>();
+
+    /// Temporal point probes
+    const YAML::Node & temporal_point_probes = configuration["temporal_point_probes"];
+    number_temporal_point_probes = temporal_point_probes["number_temporal_point_probes"].as<int>();
+    string yaml_input_name;
+    for(int tpp = 0; tpp < number_temporal_point_probes; ++tpp) {
+	yaml_input_name = "probe_" + to_string( tpp + 1 ) + "_x_position";
+        tpp_x_positions[tpp] = temporal_point_probes[yaml_input_name].as<double>();
+	yaml_input_name = "probe_" + to_string( tpp + 1 ) + "_y_position";
+        tpp_y_positions[tpp] = temporal_point_probes[yaml_input_name].as<double>();
+	yaml_input_name = "probe_" + to_string( tpp + 1 ) + "_z_position";
+        tpp_z_positions[tpp] = temporal_point_probes[yaml_input_name].as<double>();
+	yaml_input_name = "probe_" + to_string( tpp + 1 ) + "_output_frequency_iter";
+        tpp_output_frequency_iters[tpp] = temporal_point_probes[yaml_input_name].as<int>();
+	yaml_input_name = "probe_" + to_string( tpp + 1 ) + "_output_data_file_name";
+        tpp_output_file_names[tpp] = temporal_point_probes[yaml_input_name].as<string>();
+    }	    
 
     /// Timers information
     const YAML::Node & timers_information = configuration["timers_information"];
@@ -2259,6 +2284,61 @@ void FlowSolverRHEA::outputCurrentStateData() {
 
 };
 
+void FlowSolverRHEA::outputTemporalPointProbesData() {
+
+    /// Initialize MPI stuff
+    int my_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    /// Iterate through temporal point probes
+    int i_index, j_index, k_index;
+    string output_header_string, output_data_string; 
+    for(int tpp = 0; tpp < number_temporal_point_probes; ++tpp) {
+        /// Write temporal point probe data to file (if criterion satisfied)
+	if( current_time_iter%tpp_output_frequency_iters[tpp] == 0 ) {
+            /// Owner rank writes to file
+            if( temporal_point_probes[tpp].getGlobalOwnerRank() == my_rank ) {
+                /// Get local indices i, j, k
+		i_index = temporal_point_probes[tpp].getLocalIndexI(); 
+		j_index = temporal_point_probes[tpp].getLocalIndexJ(); 
+		k_index = temporal_point_probes[tpp].getLocalIndexK(); 
+                /// Generate header string
+	        output_header_string  = "# t [s], x [m], y[m], z[m], rho [kg/m3], u [m/s], v [m/s], w [m/s], E [J/kg], P [Pa], T [K], sos [m/s], mu [Pa·s], kappa [W/(m·K)], c_v [J/(kg·K)], c_p [J/(kg·K)]";
+	        output_header_string += ", avg_rho [kg/m3], avg_rhou [kg/(s·m2)], avg_rhov [kg/(s·m2)], avg_rhow [kg/(s·m2)], avg_rhoE [J/m3], avg_rhoP [kg2/(m4·s2)], avg_rhoT [(kg·K)/m3]";
+	        output_header_string += ", avg_u [m/s], avg_v [m/s], avg_w [m/s], avg_E [J/kg], avg_P [Pa], avg_T [K], avg_sos [m/s], avg_mu [Pa·s], avg_kappa [W/(m·K)], avg_c_v [J/(kg·K)], avg_c_p [J/(kg·K)]";
+	        output_header_string += ", rmsf_rho [kg/m3], rmsf_rhou [kg/(s·m2)], rmsf_rhov [kg/(s·m2)], rmsf_rhow [kg/(s·m2)], rmsf_rhoE [J/m3]";
+	        output_header_string += ", rmsf_u [m/s], rmsf_v [m/s], rmsf_w [m/s], rmsf_E [J/kg], rmsf_P [Pa], rmsf_T [K], rmsf_sos [m/s], rmsf_mu [Pa·s], rmsf_kappa [W/(m·K)], rmsf_c_v [J/(kg·K)], rmsf_c_p [J/(kg·K)]";
+	        output_header_string += ", favre_uffuff [m2/s2], favre_uffvff [m2/s2], favre_uffwff [m2/s2], favre_vffvff [m2/s2], favre_vffwff [m2/s2], favre_wffwff [m2/s2]";
+	        output_header_string += ", favre_uffEff [(m·J)/(s·kg)], favre_vffEff [(m·J)/(s·kg)], favre_wffEff [(m·J)/(s·kg)]";
+                /// Generate data string
+	        output_data_string    = to_string( current_time );
+	        output_data_string   += "," + to_string( x_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( y_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( z_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( rho_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( v_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( w_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( E_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( P_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( T_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( sos_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( mu_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( kappa_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( c_v_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( c_p_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_rho_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( avg_rhou_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_rhov_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_rhow_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( avg_rhoE_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_rhoP_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_rhoT_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( avg_u_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_v_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_w_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( avg_E_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_P_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_T_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( avg_sos_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_mu_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_kappa_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( avg_c_v_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_c_p_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( rmsf_rho_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_rhou_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_rhov_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_rhow_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_rhoE_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( rmsf_u_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_v_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_w_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( rmsf_E_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_P_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_T_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( rmsf_sos_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_mu_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_kappa_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_c_v_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_c_p_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( favre_uffuff_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( favre_uffvff_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( favre_uffwff_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( favre_vffvff_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( favre_vffwff_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( favre_wffwff_field[I1D(i_index,j_index,k_index)] );
+	        output_data_string   += "," + to_string( favre_uffEff_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( favre_vffEff_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( favre_wffEff_field[I1D(i_index,j_index,k_index)] );
+                /// Write (header string) data string to file
+                temporal_point_probes[tpp].writeDataStringToOutputFile(output_header_string, output_data_string);
+	    }
+	}
+    }	    
+
+};
+
 void FlowSolverRHEA::updateTimeAveragedQuantities() {
 
     /// All (inner, boundary & halo) points: first- and second-order time statistics of flow quantities 
@@ -2704,6 +2784,9 @@ void FlowSolverRHEA::execute() {
 
         /// Output current state data to file (if criterion satisfied)
         if( current_time_iter%output_frequency_iter == 0 ) this->outputCurrentStateData();
+        
+	/// Output temporal point probes data to files
+	this->outputTemporalPointProbesData();
 
         /// Stop timer: output_solver_state
         timers->stop( "output_solver_state" );
