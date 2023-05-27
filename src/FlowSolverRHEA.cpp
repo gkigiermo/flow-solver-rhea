@@ -2570,7 +2570,7 @@ double FlowSolverRHEA::calculateVolumeAveragedPressure() {
 double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
 
     //const double P_threshold = 1.0e-5*P_thermo;
-    const double P_threshold = 1.0e-2*P_thermo;
+    const double P_threshold = 1.0e-3*P_thermo;
 
 #if 0	/// L1-norm
     /// Inner points: P
