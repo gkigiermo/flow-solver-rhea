@@ -2569,9 +2569,10 @@ double FlowSolverRHEA::calculateVolumeAveragedPressure() {
 
 double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
 
-    const double P_threshold = 1.0e-5*P_thermo;
+    //const double P_threshold = 1.0e-5*P_thermo;
+    const double P_threshold = 1.0e-2*P_thermo;
 
-#if 1	/// L1-norm
+#if 0	/// L1-norm
     /// Inner points: P
     double local_sum_num = 0.0;
     double local_sum_den = 0.0;
@@ -2599,7 +2600,7 @@ double FlowSolverRHEA::calculateAlphaArtificialCompressibilityMethod() {
     double global_alpha = sqrt( 1.0 + epsilon_acm*global_sum_num/global_sum_den );
 #endif
 
-#if 0	/// L2-norm
+#if 1	/// L2-norm
     /// Inner points: P
     double local_sum_num = 0.0;
     double local_sum_den = 0.0;

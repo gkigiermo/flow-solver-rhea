@@ -533,6 +533,10 @@ void PengRobinsonModel::calculateTemperatureFromPressureDensityWithInitialGuess(
         x_0 = T;							/// Otherwise, update x_0 to iterate again ...                 
     }
 #else
+    /// Perform a non-linear iteration to help approximate the solution
+    double bar_v = molecular_weight/rho;
+    T = ( P + this->calculate_eos_a( T )/( bar_v*bar_v + 2.0*eos_b*bar_v - eos_b*eos_b ) )*( bar_v - eos_b )/R_universal;
+
     //double T_norm  = this->critical_temperature;	/// Set temperature normalization factor
     double T_norm  = fabs( T ) + 1.0e-14;		/// Set temperature normalization factor
     double b_f     = -1.0;				/// Brent residual value
