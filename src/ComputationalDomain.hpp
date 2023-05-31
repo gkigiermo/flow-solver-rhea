@@ -36,23 +36,12 @@ class ComputationalDomain{
         int gNy;
         int gNz;
 
-        //Cell dimensions
-        double *gdx;
-        double *gdy;
-        double *gdz;
-
         //Local number of cells in each direction
         int Nx;
         int Ny;
         int Nz;
 
-        //Local cell dimensions
-        double *dx;
-        double *dy;
-        double *dz;
-
         //Boundary conditions
-
         int bc[6];
 
         //Positions globally

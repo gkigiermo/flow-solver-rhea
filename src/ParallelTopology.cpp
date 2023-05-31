@@ -183,7 +183,7 @@ ParallelTopology::ParallelTopology(ComputationalDomain* dom, int nprocsx, int np
     }
 
 
-    //Calculating Id offsets /* this should be updated to include the case with imbalanced partitions ... done! */
+    //Calculating Id offsets /* this should be updated to include the case with imbalanced partitions ... done!
 
     //offset x
     //int factx = rank%npx;

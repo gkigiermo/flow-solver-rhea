@@ -12,21 +12,6 @@ ComputationalDomain::ComputationalDomain(double sizex, double sizey, double size
     L_y=sizey;
     L_z=sizez;
 
-    // Simple way of calculating the global dx vector
-    gdx = new double[gNx];
-    gdy = new double[gNy];
-    gdz = new double[gNz];
-
-    for(int i=0;i<gNx;i++)
-        gdx[i]=L_x/gNx;
-
-    for(int j=0;j<gNy;j++)
-        gdy[j]=L_y/gNy;
-
-    for(int k=0;k<gNz;k++)
-        gdz[k]=L_z/gNz;
-
-
     x_0 = orig_x;
     y_0 = orig_y;
     z_0 = orig_z;
@@ -108,20 +93,6 @@ void ComputationalDomain::calculateLocalGrid(int lNx, int lNy, int lNz) {
 
 void ComputationalDomain::printDomain()
 {
-
-/*    cout<<" Domain x "<<endl;
-    cout<<" Nx "<<gNx<<endl;
-    cout<<" Lx "<<L_x<<endl;
-    cout<<" dx "<<gdx[0]<<endl;
-    cout<<" Domain y "<<endl;
-    cout<<" Ny "<<gNy<<endl;
-    cout<<" Ly "<<L_y<<endl;
-    cout<<" dy "<<gdy[0]<<endl;
-    cout<<" Domain z "<<endl;
-    cout<<" Nz "<<gNz<<endl;
-    cout<<" Lz "<<L_z<<endl;
-    cout<<" dz "<<gdz[0]<<endl;
-*/
 
     cout<<"Global x: "<<endl;
     for(int i=0;i<gNx+2;i++)
