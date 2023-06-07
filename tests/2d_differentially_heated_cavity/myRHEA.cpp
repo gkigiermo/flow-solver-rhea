@@ -338,13 +338,13 @@ void myRHEA::execute() {
                 double global_avg_P = global_sum_PV/global_sum_V;
 
                 /// Modify P values
-                double ratio_P_0_target_P_0_numerical = P_0/( global_avg_P + epsilon );
+                //double ratio_P_0_target_P_0_numerical = P_0/( global_avg_P + epsilon );
                 for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
                     for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
                         for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                             /// Sum P*V values
                             //P_field[I1D(i,j,k)] *= ratio_P_0_target_P_0_numerical;
-                            P_field[I1D(i,j,k)] = P_b;
+                            P_field[I1D(i,j,k)] += P_b - global_avg_P;
                         }
                     }
                 }
