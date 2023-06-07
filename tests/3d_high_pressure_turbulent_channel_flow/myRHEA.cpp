@@ -399,7 +399,8 @@ void myRHEA::execute() {
                     for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
                         for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                             /// Sum P*V values
-                            P_field[I1D(i,j,k)] *= ratio_P_b_target_P_b_numerical;
+                            //P_field[I1D(i,j,k)] *= ratio_P_b_target_P_b_numerical;
+                            P_field[I1D(i,j,k)] = P_b;
                         }
                     }
                 }
