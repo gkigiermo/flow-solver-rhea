@@ -364,6 +364,17 @@ void myRHEA::execute() {
             /// Start: bulk pressure explicitly modified to maintain the fixed target value P_b
             if( control_bulk_pressure ) {
 
+                /// Apply filter
+		double own_filter_weight = 10.0*( 1.0/27.0 );
+		double other_filter_weight = ( 1.0 - own_filter_weight )/26.0;
+                for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
+                    for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
+                        for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
+                            P_field[I1D(i,j,k)] = other_filter_weight*P_field[I1D(i-1,j-1,k-1)] + other_filter_weight*P_field[I1D(i,j-1,k-1)] + other_filter_weight*P_field[I1D(i+1,j-1,k-1)] + other_filter_weight*P_field[I1D(i-1,j,k-1)] + other_filter_weight*P_field[I1D(i,j,k-1)] + other_filter_weight*P_field[I1D(i+1,j,k-1)] + other_filter_weight*P_field[I1D(i-1,j+1,k-1)] + other_filter_weight*P_field[I1D(i,j+1,k-1)] + other_filter_weight*P_field[I1D(i+1,j+1,k-1)] + other_filter_weight*P_field[I1D(i-1,j-1,k)] + other_filter_weight*P_field[I1D(i,j-1,k)] + other_filter_weight*P_field[I1D(i+1,j-1,k)] + other_filter_weight*P_field[I1D(i-1,j,k)] + own_filter_weight*P_field[I1D(i,j,k)] + other_filter_weight*P_field[I1D(i+1,j,k)] + other_filter_weight*P_field[I1D(i-1,j+1,k)] + other_filter_weight*P_field[I1D(i,j+1,k)] + other_filter_weight*P_field[I1D(i+1,j+1,k)] + other_filter_weight*P_field[I1D(i-1,j-1,k+1)] + other_filter_weight*P_field[I1D(i,j-1,k+1)] + other_filter_weight*P_field[I1D(i+1,j-1,k+1)] + other_filter_weight*P_field[I1D(i-1,j,k+1)] + other_filter_weight*P_field[I1D(i,j,k+1)] + other_filter_weight*P_field[I1D(i+1,j,k+1)] + other_filter_weight*P_field[I1D(i-1,j+1,k+1)] + other_filter_weight*P_field[I1D(i,j+1,k+1)] + other_filter_weight*P_field[I1D(i+1,j+1,k+1)];
+                        }
+                    }
+                }
+
                 /// Calculate local values
                 double local_sum_PV = 0.0;
                 double local_sum_V  = 0.0;
@@ -392,17 +403,6 @@ void myRHEA::execute() {
                 double global_sum_V;
                 MPI_Allreduce(&local_sum_V, &global_sum_V, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
                 double global_avg_P = global_sum_PV/global_sum_V;
-
-                /// Apply filter
-		double own_filter_weight = 10.0*( 1.0/27.0 );
-		double other_filter_weight = ( 1.0 - own_filter_weight )/26.0;
-                for(int i = topo->iter_common[_INNER_][_INIX_]; i <= topo->iter_common[_INNER_][_ENDX_]; i++) {
-                    for(int j = topo->iter_common[_INNER_][_INIY_]; j <= topo->iter_common[_INNER_][_ENDY_]; j++) {
-                        for(int k = topo->iter_common[_INNER_][_INIZ_]; k <= topo->iter_common[_INNER_][_ENDZ_]; k++) {
-                            P_field[I1D(i,j,k)] = other_filter_weight*P_field[I1D(i-1,j-1,k-1)] + other_filter_weight*P_field[I1D(i,j-1,k-1)] + other_filter_weight*P_field[I1D(i+1,j-1,k-1)] + other_filter_weight*P_field[I1D(i-1,j,k-1)] + other_filter_weight*P_field[I1D(i,j,k-1)] + other_filter_weight*P_field[I1D(i+1,j,k-1)] + other_filter_weight*P_field[I1D(i-1,j+1,k-1)] + other_filter_weight*P_field[I1D(i,j+1,k-1)] + other_filter_weight*P_field[I1D(i+1,j+1,k-1)] + other_filter_weight*P_field[I1D(i-1,j-1,k)] + other_filter_weight*P_field[I1D(i,j-1,k)] + other_filter_weight*P_field[I1D(i+1,j-1,k)] + other_filter_weight*P_field[I1D(i-1,j,k)] + own_filter_weight*P_field[I1D(i,j,k)] + other_filter_weight*P_field[I1D(i+1,j,k)] + other_filter_weight*P_field[I1D(i-1,j+1,k)] + other_filter_weight*P_field[I1D(i,j+1,k)] + other_filter_weight*P_field[I1D(i+1,j+1,k)] + other_filter_weight*P_field[I1D(i-1,j-1,k+1)] + other_filter_weight*P_field[I1D(i,j-1,k+1)] + other_filter_weight*P_field[I1D(i+1,j-1,k+1)] + other_filter_weight*P_field[I1D(i-1,j,k+1)] + other_filter_weight*P_field[I1D(i,j,k+1)] + other_filter_weight*P_field[I1D(i+1,j,k+1)] + other_filter_weight*P_field[I1D(i-1,j+1,k+1)] + other_filter_weight*P_field[I1D(i,j+1,k+1)] + other_filter_weight*P_field[I1D(i+1,j+1,k+1)];
-                        }
-                    }
-                }
 
                 /// Modify P values
                 //double ratio_P_b_target_P_b_numerical = P_b/( global_avg_P + epsilon );
