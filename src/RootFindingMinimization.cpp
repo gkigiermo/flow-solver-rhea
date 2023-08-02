@@ -200,10 +200,54 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
 void NewtonRaphson::lnsrch(vector<double> &xold, double &fold, vector<double> &g, vector<double> &p, vector<double> &x,double &f, double &stpmax, bool &check,vector< vector<double> > &fjac, vector<int> &indx) {
 
 #if _TAYLORED_LNSRCH_
-    int i, n = xold.size();
-    double alam = 1.0e-5;
+    /// Taylored linear search:
 
-    for(i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
+    const double sigma   = 0.01;
+    const double Tau     = 0.1;
+    const double alamMin = 1e-6;
+    //const double alamMin = 1e-1;
+    //const int max_iter   = 10;
+
+    //int i, j, n = xold.size();
+    int i, n = xold.size();
+
+    double f0 = 0.0;
+    check = false;
+    for(i = 0; i < n; ++i) f0 += p[i]*p[i];
+    f0 = sqrt( f0/n );
+    f0 *= 0.5*f0;
+
+    vector<double> myp(n);
+    for(i = 0; i < n; ++i) myp[i] = p[i];
+
+    double alam = 1.0;
+    //for( j = 0; j < max_iter; j++ ) {
+    for( ; ; ) {
+       /// Compute f( x + Lambda*dx )
+       for(i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
+       for(i = 0; i < n; i++) myp[i] = -fvec[i];
+       lubksb(fjac,indx,myp);
+       double f = 0.0;
+       for(i = 0; i < n; ++i) f += myp[i]*myp[i];
+       f = sqrt(f/n);
+       f *= 0.5*f;
+
+       double fMax = ( 1.0 - 2.0*alam*sigma )*f0;
+       if( f > fMax ) {
+          double tmp = alam*alam*f0/( ( 2.0*alam - 1.0 )*f0 + f );
+          alam = ( Tau*alam > tmp ) ? Tau*alam : tmp;
+          if( alam < alamMin ) { 
+             alam = 10.0*alamMin;
+             for(i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
+             check = true;
+             break;
+          }
+       } else {
+          // Lamdba is good
+          //for(int i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
+          break;
+       }
+    }
 #else
     /// Newton-Raphson method using approximated derivatives:
     /// W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery.
@@ -231,8 +275,7 @@ void NewtonRaphson::lnsrch(vector<double> &xold, double &fold, vector<double> &g
         if( temp > test ) test = temp;
     }
     alamin = TOLX/test;
-    //alam = 1.0;
-    alam = 1.0e-5;
+    alam = 1.0;
     for(;;) {
         for( i = 0; i < n; i++ ) x[i] = xold[i] + alam*p[i];
         f = fmin( x );
