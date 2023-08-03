@@ -236,9 +236,16 @@ void NewtonRaphson::lnsrch(vector<double> &xold, double &fold, vector<double> &g
        if( f > fMax ) {
           double tmp = alam*alam*f0/( ( 2.0*alam - 1.0 )*f0 + f );
           alam = ( Tau*alam > tmp ) ? Tau*alam : tmp;
-          if( alam < alamMin ) { 
-             alam = 10.0*alamMin;
-             for(i = 0; i < n; ++i) x[i] = xold[i] + alam*p[i];
+          if( alam < alamMin ) {
+             //alam = 10.0*alamMin;
+             for(i = 0; i < n; ++i) {
+	         if( i == 0 ) {
+                     alam = 1.0e-6;		// Pressure
+	         } else {
+                     alam = 1.0e-3;		// Temperature
+	         }		     
+	         x[i] = xold[i] + alam*p[i];
+	     }
              check = true;
              break;
           }
