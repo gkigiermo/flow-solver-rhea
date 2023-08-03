@@ -17,6 +17,14 @@ format_dataset          = np.float64
 original_data_file = h5py.File( original_name_data_file, 'r' )
 modified_data_file = h5py.File( modified_name_data_file, 'w' )
 
+### Print initial size of datasets
+x_data       = original_data_file['x'][:,:,:]
+num_points_x = x_data[0,0,:].size
+num_points_y = x_data[0,:,0].size
+num_points_z = x_data[:,0,0].size
+print( '\nSize of datasets:' )
+print( 'x-direction:', num_points_x, ', y-direction:', num_points_y, ', z-direction:', num_points_z )
+
 #### Copy attributes from original to extruded file
 attribute_time = original_data_file.attrs['Time']
 modified_data_file.attrs.create( 'Time', attribute_time ) 
