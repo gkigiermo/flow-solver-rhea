@@ -242,7 +242,7 @@ void NewtonRaphson::lnsrch(vector<double> &xold, double &fold, vector<double> &g
 	         if( i == 0 ) {
                      alam = 1.0e-6;		// Pressure
 	         } else {
-                     alam = 1.0e-3;		// Temperature
+                     alam = 1.0e-1;		// Temperature
 	         }		     
 	         x[i] = xold[i] + alam*p[i];
 	     }
