@@ -106,6 +106,17 @@ void IdealGasModel::calculatePressureTemperatureFromDensityInternalEnergy(double
 
 };
 
+double IdealGasModel::calculateDensityFromPressureTemperature(const double &P, const double &T) {
+
+    /// Ideal-gas model:
+    /// rho = P/( R_specific*T ) is density
+    
+    double rho = P/( R_specific*T );
+
+    return( rho );
+
+};
+
 void IdealGasModel::calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T) {
 
     /// Ideal-gas model:
@@ -288,11 +299,24 @@ void StiffenedGasModel::calculatePressureTemperatureFromDensityInternalEnergy(do
 
 };
 
+double StiffenedGasModel::calculateDensityFromPressureTemperature(const double &P, const double &T) {
+
+    /// Stiffened-gas model:
+    /// e = c_v*T*((P + gamma*P_inf)/(P + P_inf)) + e_0 is specific internal energy
+    /// rho = P_inf/(e - e_0 - c_v*T) is density
+
+    double e   = c_v*T*( ( P + gamma*P_inf )/( P + P_inf ) ) + e_0;
+    double rho = P_inf/( e - e_0 - c_v*T );
+
+    return( rho );
+
+};
+
 void StiffenedGasModel::calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T) {
 
     /// Stiffened-gas model:
-    /// rho = P_inf/(e - e_0 - c_v*T) is density
     /// e = c_v*T*((P + gamma*P_inf)/(P + P_inf)) + e_0 is specific internal energy
+    /// rho = P_inf/(e - e_0 - c_v*T) is density
 
     e   = c_v*T*( ( P + gamma*P_inf )/( P + P_inf ) ) + e_0;
     rho = P_inf/( e - e_0 - c_v*T );
@@ -585,6 +609,25 @@ void PengRobinsonModel::calculatePressureTemperatureFromDensityInternalEnergy(do
     nr_PT_solver->solve( nr_f, nr_PT_unknowns, max_nr_iter, nr_num_iter, nr_relative_tolerance );	/// Newton-Raphson solver
     P = nr_PT_unknowns[0]*P_norm;									/// Update P & T from Newton-Raphson solver (unnormalized)
     T = nr_PT_unknowns[1]*T_norm;
+
+};
+
+double PengRobinsonModel::calculateDensityFromPressureTemperature(const double &P, const double &T) {
+
+    /// Auxiliar parameters
+    double eos_a  = this->calculate_eos_a( T );
+    double eos_en = P*eos_b + R_universal*T;
+    double a      = P;
+    double b      = P*2.0*eos_b - eos_en;
+    double c      = P*( -1.0 )*eos_b*eos_b - eos_en*2.0*eos_b + eos_a;
+    double d      = ( -1.0 )*eos_b*( eos_a + eos_en*( -1.0 )*eos_b );
+
+    /// Cubic solve to calculate rho
+    complex<double> v_1, v_2, v_3;
+    this->calculateRootsCubicPolynomial( v_1, v_2, v_3, a, b, c, d );
+    double rho = molecular_weight/real( v_1 );		/// First root is always real
+
+    return( rho );
 
 };
 
