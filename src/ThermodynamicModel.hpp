@@ -53,6 +53,9 @@ class BaseThermodynamicModel {
 
         /// Calculate pressure and temperature from density and internal energy
         virtual void calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {};
+        
+        /// Calculate density from pressure and temperature
+        virtual double calculateDensityFromPressureTemperature(const double &P, const double &T) = 0;
 
         /// Calculate density and internal energy from pressure and temperature
         virtual void calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T) {};
@@ -119,6 +122,9 @@ class IdealGasModel : public BaseThermodynamicModel {
         /// Calculate pressure and temperature from density and internal energy
         void calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e);
 
+        /// Calculate density from pressure and temperature
+        double calculateDensityFromPressureTemperature(const double &P, const double &T);
+
         /// Calculate density and internal energy from pressure and temperature
         void calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T);
 
@@ -178,6 +184,9 @@ class StiffenedGasModel : public BaseThermodynamicModel {
 
         /// Calculate pressure and temperature from density and internal energy
         void calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e);
+
+        /// Calculate density from pressure and temperature
+        double calculateDensityFromPressureTemperature(const double &P, const double &T);
 
         /// Calculate density and internal energy from pressure and temperature
         void calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T);
@@ -245,6 +254,9 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 
         /// Calculate pressure and temperature from density and internal energy
         void calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e);
+
+        /// Calculate density from pressure and temperature
+        double calculateDensityFromPressureTemperature(const double &P, const double &T);
 
         /// Calculate density and internal energy from pressure and temperature
         void calculateDensityInternalEnergyFromPressureTemperature(double &rho, double &e, const double &P, const double &T);
@@ -343,12 +355,12 @@ class PengRobinsonModel : public BaseThermodynamicModel {
                 /// ... large oscillations far from the critical point (notably subcritical) -> in that case, use two-phase solver
                 double molecular_weight = pr_model.getMolecularWeight(); 
                 double target_molar_v   = molecular_weight/target_rho;
-                double guess_P = pr_model.calculatePressureFromTemperatureDensity( T, target_rho );
-                double guess_e = pr_model.calculateMolarInternalEnergyFromPressureTemperatureMolarVolume( P, T, target_molar_v )/molecular_weight;
+                double guess_rho = pr_model.calculateDensityFromPressureTemperature( P, T );
+                double guess_e   = pr_model.calculateMolarInternalEnergyFromPressureTemperatureMolarVolume( P, T, target_molar_v )/molecular_weight;
  
                 /// Compute fx (residuals)
-                fx[0] = ( guess_P - P )/( fabs( P_norm ) + 1.0e-14 );		/// function normalized
-                fx[1] = ( guess_e - target_e )/( fabs( target_e ) + 1.0e-14 );	/// function normalized
+                fx[0] = ( guess_rho - target_rho )/( fabs( target_rho ) + 1.0e-14 );		/// function normalized
+                fx[1] = ( guess_e - target_e )/( fabs( target_e ) + 1.0e-14 );			/// function normalized
         
             };
       
