@@ -12,8 +12,10 @@
 class BaseRootFindingMinimization;			/// BaseRootFindingMinimization
 class Brent;						/// Brent
 class NewtonRaphson;					/// NewtonRaphson
+class Broyden;						/// Broyden
 
 ////////// FUNCTION DECLARATION //////////
+
 
 ////////// BaseRootFindingMinimization CLASS //////////
 class BaseRootFindingMinimization {
@@ -39,6 +41,33 @@ class BaseRootFindingMinimization {
 
 	/// Numerical Recipes in C++ SQR algorithm
         inline double SQR(const double &a) { return a*a; };	
+
+        /// Numerical recipes in C++ linear search
+        void lnsrch(std::vector<double> &xold, double &fold, std::vector<double> &g, std::vector<double> &p, std::vector<double> &x,double &f, double &stpmax, bool &check,std::vector< std::vector<double> > &fjac);
+
+        /// Numerical recipes in C++ LU decomposition method
+	void lubksb(std::vector< std::vector<double> > &a, std::vector<int> &indx, std::vector<double> &b);
+
+        /// Numerical recipes in C++ LU decomposition method
+        void ludcmp(std::vector< std::vector<double> > &a, std::vector<int> &indx, double &d);
+
+        /// Numerical recipes in C++ Jacobian method
+        void fdjac(std::vector<double> &x, std::vector< std::vector<double> > &df);
+        
+        /// Numerical recipes in C++ QR decomposition method
+        void qrdcmp(std::vector< std::vector<double> > &a, std::vector<double> &c, std::vector<double> &d, bool &sing);
+        
+        /// Numerical recipes in C++ rsolv method
+        void rsolv(std::vector< std::vector<double> > &a, std::vector<double> &d, std::vector<double> &b);
+        
+        /// Numerical recipes in C++ qrupdt method
+        void qrupdt(std::vector< std::vector<double> > &r, std::vector< std::vector<double> > &qt, std::vector<double> &u, std::vector<double> &v);
+        
+        /// Numerical recipes in C++ rotate method
+        void rotate(std::vector< std::vector<double> > &r, std::vector< std::vector<double> > &qt, const int &i, const double &a, const double &b);
+
+        /// Numerical recipes in C++ fmin method
+        double fmin(std::vector<double> &x);
 
         /// Runs the minimization algorithm, calculating the minimum (fxmin) and its independent variables (xmin)
         virtual void solve(double &fxmin, std::vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance) = 0; 
@@ -109,20 +138,32 @@ class NewtonRaphson : public BaseRootFindingMinimization {
         /// Runs the minimization algorithm, calculating the minimum (fxmin) and its independent variables (xmin)
         void solve(double &fxmin, std::vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance);
 
-        /// Performs minimization linear search
-        void lnsrch(std::vector<double> &xold, double &fold, std::vector<double> &g, std::vector<double> &p, std::vector<double> &x,double &f, double &stpmax, bool &check,std::vector< std::vector<double> > &fjac, std::vector<int> &indx);
+    protected:
 
-        /// Numerical recipes in C++ LU decomposition method
-	void lubksb(std::vector< std::vector<double> > &a, std::vector<int> &indx, std::vector<double> &b);
+        ////////// PARAMETERS //////////
 
-        /// Numerical recipes in C++ LU decomposition method
-        void ludcmp(std::vector< std::vector<double> > &a, std::vector<int> &indx, double &d);
+};
 
-        /// Numerical recipes in C++ Jacobian method
-        void fdjac(std::vector<double> &x, std::vector< std::vector<double> > &df);
 
-        /// Numerical recipes in C++ fmin method
-        double fmin(std::vector<double> &x);
+////////// Broyden CLASS //////////
+
+class Broyden : public BaseRootFindingMinimization {
+
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        //Broyden();							/// Default constructor 
+        Broyden(std::vector<double> &fvec_);				/// Parametrized constructor
+        virtual ~Broyden();               				/// Destructor    
+ 
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+
+        /// Runs the minimization algorithm, calculating the minimum (fxmin) and its independent variables (xmin)
+        void solve(double &fxmin, std::vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance);
 
     protected:
 
