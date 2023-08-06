@@ -401,7 +401,7 @@ void myRHEA::execute() {
                             /// Sum P*V values
                             //P_field[I1D(i,j,k)] *= ratio_P_b_target_P_b_numerical;
                             //P_field[I1D(i,j,k)] += P_b - global_avg_P;
-                            P_field[I1D(i,j,k)] = 1.0e-2*P_field[I1D(i,j,k)] + ( 1.0 - 1.0e-2 )*P_b;
+                            P_field[I1D(i,j,k)] = 1.0e-3*P_field[I1D(i,j,k)] + ( 1.0 - 1.0e-3 )*P_b;
                         }
                     }
                 }
