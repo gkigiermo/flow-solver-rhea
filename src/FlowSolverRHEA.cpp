@@ -8,9 +8,10 @@ using namespace std;
 #define _OPENACC_MANUAL_DATA_MOVEMENT_ 1		/// Select manual/managed data movement for OpenACC
 
 ////////// FIXED PARAMETERS //////////
-const double epsilon     = 1.0e-15;			/// Small epsilon number (fixed)
-const double pi          = 2.0*asin(1.0);		/// pi number (fixed)
-const int cout_precision = 5;		                /// Output precision (fixed)
+const double epsilon        = 1.0e-15;			/// Small epsilon number (fixed)
+const double pi             = 2.0*asin(1.0);		/// pi number (fixed)
+const int cout_precision    = 5;		        /// Output precision (fixed)
+const int fstream_precision = 15;	                /// Fstream precision (fixed)
 int riemann_solver_scheme_index;			/// Index of Riemann solver scheme
 
 
@@ -2324,27 +2325,67 @@ void FlowSolverRHEA::outputTemporalPointProbesData() {
 	        output_header_string += ", favre_uffuff [m2/s2], favre_uffvff [m2/s2], favre_uffwff [m2/s2], favre_vffvff [m2/s2], favre_vffwff [m2/s2], favre_wffwff [m2/s2]";
 	        output_header_string += ", favre_uffEff [(m·J)/(s·kg)], favre_vffEff [(m·J)/(s·kg)], favre_wffEff [(m·J)/(s·kg)]";
                 /// Generate data string
-                string output_data_string; 
-	        output_data_string    = to_string( current_time );
-	        output_data_string   += "," + to_string( x_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( y_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( z_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( rho_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( u_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( v_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( w_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( E_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( P_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( T_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( sos_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( mu_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( kappa_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( c_v_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( c_p_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( avg_rho_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_rhou_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_rhov_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_rhow_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( avg_rhoE_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_rhoP_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_rhoT_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( avg_u_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_v_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_w_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( avg_E_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_P_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_T_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( avg_sos_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_mu_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_kappa_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( avg_c_v_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( avg_c_p_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( rmsf_rho_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_rhou_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_rhov_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_rhow_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_rhoE_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( rmsf_u_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_v_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_w_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( rmsf_E_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_P_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_T_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( rmsf_sos_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_mu_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_kappa_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( rmsf_c_v_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( rmsf_c_p_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( favre_uffuff_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( favre_uffvff_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( favre_uffwff_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( favre_vffvff_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( favre_vffwff_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( favre_wffwff_field[I1D(i_index,j_index,k_index)] );
-	        output_data_string   += "," + to_string( favre_uffEff_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( favre_vffEff_field[I1D(i_index,j_index,k_index)] ) + "," + to_string( favre_wffEff_field[I1D(i_index,j_index,k_index)] );
+                ostringstream sstr; sstr.precision( fstream_precision ); sstr << fixed;
+                sstr << current_time;
+                sstr << "," << x_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << y_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << z_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rho_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << u_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << v_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << w_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << E_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << P_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << T_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << sos_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << mu_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << kappa_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << c_v_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << c_p_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_rho_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_rhou_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_rhov_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_rhow_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_rhoE_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_rhoP_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_rhoT_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_u_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_v_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_w_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_E_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_P_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_T_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_sos_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_mu_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_kappa_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_c_v_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << avg_c_p_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_rho_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_rhou_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_rhov_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_rhow_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_rhoE_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_u_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_v_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_w_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_E_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_P_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_T_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_sos_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_mu_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_kappa_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_c_v_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << rmsf_c_p_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << favre_uffuff_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << favre_uffvff_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << favre_uffwff_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << favre_vffvff_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << favre_vffwff_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << favre_wffwff_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << favre_uffEff_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << favre_vffEff_field[I1D(i_index,j_index,k_index)];
+                sstr << "," << favre_wffEff_field[I1D(i_index,j_index,k_index)];
+                string output_data_string = sstr.str();
                 /// Write (header string) data string to file
                 temporal_point_probes[tpp].writeDataStringToOutputFile(output_header_string, output_data_string);
 	    }
