@@ -382,11 +382,13 @@ void TemporalPointProbe::locateClosestGridPointToProbe() {
     /// Find minimum (global) distance & processor owning the probe
     double global_min_distance;
     MPI_Allreduce(&local_min_distance, &global_min_distance, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-    int local_owner_rank = -1;
+    double double_local_owner_rank = -1.0;
     if( abs( global_min_distance - local_min_distance ) < ( 1.1*numeric_limits<double>::min() ) ) {
-        local_owner_rank = my_rank;
+        double_local_owner_rank = 1.0*my_rank;
     }
-    MPI_Allreduce(&local_owner_rank, &global_owner_rank, 1, MPI_INTEGER, MPI_MAX, MPI_COMM_WORLD);
+    double double_global_owner_rank = -1.0;
+    MPI_Allreduce(&double_local_owner_rank, &double_global_owner_rank, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    global_owner_rank = int( double_global_owner_rank );
 
     /// Return the local indices to -1, if not processor owning the probe
     if( my_rank != global_owner_rank ) {
