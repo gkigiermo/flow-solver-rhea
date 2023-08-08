@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 #include <string.h>
+#include <sstream>
 #include <limits>
 #include <iomanip>
 #include <mpi.h>
