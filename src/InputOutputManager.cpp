@@ -401,9 +401,6 @@ void TemporalPointProbe::locateClosestGridPointToProbe() {
 
 void TemporalPointProbe::writeDataStringToOutputFile(const string output_header_string, const string output_data_string) {
 
-    /// Set output (cout) precision
-    cout.precision( cout_precision );
-
     /// Initialize MPI
     int my_rank, world_size;
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -426,7 +423,7 @@ void TemporalPointProbe::writeDataStringToOutputFile(const string output_header_
 	    output_file << output_header_string << endl;
 	}
         /// Write data to file
-        output_file << std::scientific << output_data_string << endl;
+        output_file << output_data_string << endl;
         output_file.close();
     }
 
