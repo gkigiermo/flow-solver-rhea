@@ -27,7 +27,7 @@ const double tau_bw     = rho_bw*u_tau_bw*u_tau_bw;             /// Wall shear s
 const double kappa_vK   = 0.41;                                 /// von Kármán constant
 const double y_0        = nu_bw/( 9.0*u_tau_bw );               /// Smooth-wall roughness bottom wall [m]
 const double u_0        = ( u_tau_bw/kappa_vK )*( log( delta/y_0 ) + ( y_0/delta ) - 1.0 );   /// Volume-average of a log-law velocity profile [m/s]
-const double alpha      = 0.25;                                 /// Magnitude of perturbations
+const double alpha      = 0.001;                                /// Magnitude of perturbations
 
 /// Estimated uniform body force to drive the flow
 double controller_output = tau_bw/delta;		        /// Initialize controller output
