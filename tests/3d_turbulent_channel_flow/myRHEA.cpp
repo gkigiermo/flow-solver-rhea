@@ -14,7 +14,7 @@ using namespace std;
 const double gamma_0    = 1.4;					/// Heat capacity ratio
 //const double c_p        = gamma_0*R_specific/( gamma_0 - 1.0 );	/// Isobaric heat capacity
 const double delta      = 1.0;					/// Channel half-height
-const double Re_tau     = 180.0;				/// Friction Reynolds number
+const double Re_tau     = 100.0;				/// Friction Reynolds number
 const double Ma         = 3.0e-1;				/// Mach number
 //const double Pr         = 0.71;					/// Prandtl number
 const double rho_0      = 1.0;					/// Reference density	
@@ -26,13 +26,15 @@ const double nu         = u_tau*delta/Re_tau;			/// Kinematic viscosity
 const double Re_b       = pow( Re_tau/0.09, 1.0/0.88 );		/// Bulk (approximated) Reynolds number
 const double u_b        = nu*Re_b/( 2.0*delta );		/// Bulk (approximated) velocity
 const double P_0        = rho_0*u_b*u_b/( gamma_0*Ma*Ma );	/// Reference pressure
-//const double L_x        = 4.0*pi*delta;				/// Streamwise length
+//const double T_0        = P_0/( rho_0*R_specific );		/// Reference temperature
+//const double L_x        = 4.0*pi*delta;			/// Streamwise length
 //const double L_y        = 2.0*delta;				/// Wall-normal height
 //const double L_z        = 4.0*pi*delta/3.0;			/// Spanwise width
 const double kappa_vK   = 0.41;                                 /// von Kármán constant
 const double y_0        = nu/( 9.0*u_tau );                     /// Smooth-wall roughness
 const double u_0        = ( u_tau/kappa_vK )*( log( delta/y_0 ) + ( y_0/delta ) - 1.0 );        /// Volume average of a log-law velocity profile
-const double alpha      = 0.5;                                  /// Magnitude of velocity perturbation
+const double alpha_u    = 0.1;                                  /// Magnitude of velocity perturbations
+const double alpha_P    = 0.1;                                  /// Magnitude of pressure perturbations
 
 ////////// myRHEA CLASS //////////
 
@@ -52,10 +54,11 @@ void myRHEA::setInitialConditions() {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 random_number       = 2.0*( (double) rand()/( RAND_MAX ) ) - 1.0;
                 y_dist              = min( mesh->y[j], 2.0*delta - mesh->y[j] );
-                u_field[I1D(i,j,k)] = ( 2.0*u_0*y_dist/delta ) + alpha*u_0*random_number;
+                u_field[I1D(i,j,k)] = ( 2.0*u_0*y_dist/delta ) + alpha_u*u_0*random_number;
                 v_field[I1D(i,j,k)] = 0.0;
                 w_field[I1D(i,j,k)] = 0.0;
-                P_field[I1D(i,j,k)] = P_0;
+                //P_field[I1D(i,j,k)] = P_0;
+                P_field[I1D(i,j,k)] = P_0*( 1.0 + alpha_P*random_number );
                 T_field[I1D(i,j,k)] = thermodynamics->calculateTemperatureFromPressureDensity( P_field[I1D(i,j,k)], rho_0 );
             }
         }
