@@ -27,7 +27,9 @@ const double tau_bw     = rho_bw*u_tau_bw*u_tau_bw;             /// Wall shear s
 const double kappa_vK   = 0.41;                                 /// von Kármán constant
 const double y_0        = nu_bw/( 9.0*u_tau_bw );               /// Smooth-wall roughness bottom wall [m]
 const double u_0        = ( u_tau_bw/kappa_vK )*( log( delta/y_0 ) + ( y_0/delta ) - 1.0 );   /// Volume-average of a log-law velocity profile [m/s]
-const double alpha      = 0.1;                                  /// Magnitude of perturbations
+//const double alpha      = 0.25;                                 /// Magnitude of perturbations
+const double alpha_u    = 0.1;                                  /// Magnitude of velocity perturbations
+const double alpha_P    = 0.1;                                  /// Magnitude of pressure perturbations
 
 /// Estimated uniform body force to drive the flow
 double controller_output = tau_bw/delta;		        /// Initialize controller output
@@ -60,10 +62,11 @@ void myRHEA::setInitialConditions() {
             for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
                 random_number       = 2.0*( (double) rand()/( RAND_MAX ) ) - 1.0;
                 y_dist              = min( mesh->y[j], 2.0*delta - mesh->y[j] );
-		u_field[I1D(i,j,k)] = ( 2.0*u_0*y_dist/delta ) + alpha*u_0*random_number;
+		u_field[I1D(i,j,k)] = ( 2.0*u_0*y_dist/delta ) + alpha_u*u_0*random_number;
                 v_field[I1D(i,j,k)] = 0.0;
                 w_field[I1D(i,j,k)] = 0.0;
-                P_field[I1D(i,j,k)] = P_b;
+                //P_field[I1D(i,j,k)] = P_b;
+                P_field[I1D(i,j,k)] = P_b*( 1.0 + alpha_P*random_number );
                 T_field[I1D(i,j,k)] = T_bw + ( mesh->y[j]/( 2.0*delta ) )*( T_tw - T_bw );
 	    }
         }
@@ -394,14 +397,10 @@ void myRHEA::execute() {
                 double global_avg_P = global_sum_PV/global_sum_V;
 
                 /// Modify P values
-                //double ratio_P_b_target_P_b_numerical = P_b/( global_avg_P + epsilon );
                 for(int i = topo->iter_common[_ALL_][_INIX_]; i <= topo->iter_common[_ALL_][_ENDX_]; i++) {
                     for(int j = topo->iter_common[_ALL_][_INIY_]; j <= topo->iter_common[_ALL_][_ENDY_]; j++) {
                         for(int k = topo->iter_common[_ALL_][_INIZ_]; k <= topo->iter_common[_ALL_][_ENDZ_]; k++) {
-                            /// Sum P*V values
-                            //P_field[I1D(i,j,k)] *= ratio_P_b_target_P_b_numerical;
                             P_field[I1D(i,j,k)] += P_b - global_avg_P;
-                            //P_field[I1D(i,j,k)] = 1.0e-3*P_field[I1D(i,j,k)] + ( 1.0 - 1.0e-3 )*P_b;
                         }
                     }
                 }
