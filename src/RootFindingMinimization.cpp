@@ -435,7 +435,6 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
 
     //const int MAXITS=200;
     const int MAXITS=max_iter;
-    //const double TOLF=1.0e-8, TOLX=numeric_limits<double>::epsilon(), STPMX=100.0, TOLMIN=1.0e-12;
     const double TOLF=1.0e-8, TOLX=numeric_limits<double>::epsilon(), STPMX=100.0, TOLMIN=1.0e-12;
     int i, j, n = xmin.size();
     bool check;
