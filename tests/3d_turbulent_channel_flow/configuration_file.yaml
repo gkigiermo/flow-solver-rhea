@@ -70,8 +70,8 @@ computational_parameters:
    # Transport P instead of rhoE scheme: FALSE, TRUE
    transport_pressure_scheme: 'FALSE'  		          		# Transport P instead of rhoE scheme
    # Artificially decrease the velocity of acoustic waves: FALSE, TRUE
-   artificial_compressibility_method: 'FALSE'  	          		# Artificially decrease velocity of acoustic waves
-   epsilon_acm: 0.01                                                    # Relative error of artificial compressibility method     
+   artificial_compressibility_method: 'TRUE'  	          		# Artificially decrease velocity of acoustic waves
+   epsilon_acm: 0.05                                                    # Relative error of artificial compressibility method     
    final_time_iter: 10000000          					# Final time iteration
 
 
@@ -95,9 +95,9 @@ boundary_conditions:
 
 ##### PRINT/WRITE/READ PARAMETERS #####
 print_write_read_parameters:
-   print_frequency_iter: 1000	             				# Print information iteration frequency
+   print_frequency_iter: 100	             				# Print information iteration frequency
    output_data_file_name: '3d_turbulent_channel_flow'  			# Name of output data file
-   output_frequency_iter: 50000       					# Data output iteration frequency
+   output_frequency_iter: 1000       					# Data output iteration frequency
    generate_xdmf: 'TRUE'               					# Generate xdmf file reader
    use_restart: 'FALSE'                					# Use restart to initialize problem
    restart_data_file: 'restart_data_file.h5' 				# Restart data file
