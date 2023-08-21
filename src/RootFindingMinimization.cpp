@@ -11,7 +11,7 @@ BaseRootFindingMinimization::BaseRootFindingMinimization(vector<double> &fvec_) 
         
 BaseRootFindingMinimization::~BaseRootFindingMinimization() {};
 
-void BaseRootFindingMinimization::lnsrch(vector<double> &xold, double &fold, vector<double> &g, vector<double> &p, vector<double> &x,double &f, double &stpmax, bool &check,vector< vector<double> > &fjac) {
+void BaseRootFindingMinimization::lnsrch(vector<double> &xold, double &fold, vector<double> &g, vector<double> &p, vector<double> &x,double &f, double &stpmax, bool &check) {
 
     /// Globally Convergent Methods for Nonlinear Systems of Equations: linear search
     /// W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery.
@@ -141,7 +141,8 @@ void BaseRootFindingMinimization::fdjac(vector<double> &x, vector< vector<double
     /// Numerical recipes in C++.
     /// Cambridge University Press, 2001.
 
-    const double EPS = 1.0e-8;
+    //const double EPS = 1.0e-8;
+    const double EPS = 1.0e-6;
     double h, temp;
     int i, j, n = x.size();
     vector<double> f(n);
@@ -435,7 +436,8 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
 
     //const int MAXITS=200;
     const int MAXITS=max_iter;
-    const double TOLF=1.0e-8, TOLX=numeric_limits<double>::epsilon(), STPMX=100.0, TOLMIN=1.0e-12;
+    //const double TOLF=1.0e-8, TOLX=numeric_limits<double>::epsilon(), STPMX=100.0, TOLMIN=1.0e-12;
+    const double TOLF=tolerance, TOLX=numeric_limits<double>::epsilon(), STPMX=100.0, TOLMIN=1.0e-12;
     int i, j, n = xmin.size();
     bool check;
     double den,d,f,fold,stpmax,sum,temp,test;
@@ -468,7 +470,7 @@ void NewtonRaphson::solve(double &fxmin, vector<double> &xmin, const int &max_it
       for(i = 0; i < n; i++) p[i] = -fvec[i];
       ludcmp(fjac,indx,d);
       lubksb(fjac,indx,p);
-      lnsrch(xold,fold,g,p,xmin,f,stpmax,check,fjac);
+      lnsrch(xold,fold,g,p,xmin,f,stpmax,check);
       test = 0.0;
       for(i = 0; i < n; i++) {
         if( fabs( fvec[i] ) > test ) fxmin = test = fabs( fvec[i] );
@@ -527,7 +529,8 @@ void Broyden::solve(double &fxmin, vector<double> &xmin, const int &max_iter, in
     //const int MAXITS = 200;
     const int MAXITS = max_iter;
     const double EPS = numeric_limits<double>::epsilon();
-    const double TOLF = 1.0e-8, TOLX = EPS, STPMX = 100.0, TOLMIN = 1.0e-12;
+    //const double TOLF = 1.0e-8, TOLX = EPS, STPMX = 100.0, TOLMIN = 1.0e-12;
+    const double TOLF = tolerance, TOLX = EPS, STPMX = 100.0, TOLMIN = 1.0e-12;
     bool check, restrt, sing, skip;
     int i, j, k, n = xmin.size();
     double den, f, fold, stpmax, sum, temp, test;
@@ -623,7 +626,7 @@ void Broyden::solve(double &fxmin, vector<double> &xmin, const int &max_iter, in
 	}
 	fold = f;
 	rsolv(fjac,d,p);
-	lnsrch(xold,fold,g,p,xmin,f,stpmax,check,fjac);
+	lnsrch(xold,fold,g,p,xmin,f,stpmax,check);
 	test = 0.0;
 	for( i = 0; i < n; i++ ) {
 	    if( fabs( fvec[i] ) > test ) fxmin = test = fabs(fvec[i]);
@@ -660,6 +663,126 @@ void Broyden::solve(double &fxmin, vector<double> &xmin, const int &max_iter, in
     }
 #if _ACTIVATE_COUT_
     cout << "MAXITS exceeded in Broyden" << endl;
+#endif
+
+};
+
+
+////////// BFGS CLASS //////////
+
+//BFGS::BFGS() : BaseRootFindingMinimization() {};
+
+BFGS::BFGS(vector<double> &fvec_) : BaseRootFindingMinimization(fvec_) {};
+
+BFGS::~BFGS() {};                                                                           
+
+void BFGS::dfunc(std::vector<double> &x, std::vector<double> &g) {
+
+    /// Globally Convergent Methods for Nonlinear Systems of Equations: dfunc method
+    /// W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery.
+    /// Numerical recipes in C++.
+    /// Cambridge University Press, 2001.
+
+    //const double EPS = 1.0e-8;
+    const double EPS = 1.0e-6;
+    double h, temp;
+    int i, n = x.size();
+    vector<double> f1(n);
+    vector<double> f2(n);
+
+    for( i = 0; i < n; i++ ) {
+      temp = x[i];
+      h = EPS*fabs( temp );
+      x[i] = temp - h;
+      function_vector(x,f1);
+      x[i] = temp + h;
+      function_vector(x,f2);
+      g[i] = ( f2[i] - f1[i] )/( 2.0*h );
+      x[i] = temp;
+    }
+
+};
+
+void BFGS::solve(double &fxmin, vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance) {
+
+    /// Broyden-Fletcher-Goldfarb-Shanno (BFGS) method using approximated derivatives:
+    /// W. H. Press, S. A. Teukolsky, W. T. Vetterling, B. P. Flannery.
+    /// Numerical recipes in C++.
+    /// Cambridge University Press, 2001.
+
+    const int MAXITS=200;
+    //const int MAXITS = max_iter;
+    const double EPS = numeric_limits<double>::epsilon();
+    //const double TOLF = 1.0e-8, TOLX = 4.0*EPS, STPMX = 100.0;
+    const double TOLF = tolerance, TOLX = 4.0*EPS, STPMX = 100.0;
+    bool check;
+    double den, fac, fad, fae, fp, stpmax, sum = 0.0, sumdg, sumxi, temp, test;
+    int i, j, its, n = xmin.size();
+
+    vector<double> dg(n), g(n), hdg(n), pnew(n), xi(n);
+    vector < vector < double > > hessin(n,vector<double> (n));
+
+    fp = fmin( xmin );
+    dfunc( xmin, g );
+    for(i = 0; i < n; i++) {
+        for(j = 0; j < n; j++) hessin[i][j] = 0.0;
+        hessin[i][i] = 1.0;
+        xi[i] = (-1.0)*g[i];
+        sum += xmin[i]*xmin[i];
+    }
+    stpmax = STPMX*max( sqrt( sum ), double( n ) );
+    for(its = 0; its < MAXITS; its++) {
+        lnsrch(xmin,fp,g,xi,pnew,fxmin,stpmax,check);
+        fp = fxmin;
+        for(i = 0; i < n; i++) {
+            xi[i] = pnew[i] - xmin[i];
+            xmin[i] = pnew[i];
+        }
+        test = 0.0;
+        for(i = 0; i < n; i++) {
+            temp = fabs( xi[i]/max( fabs( xmin[i] ), 1.0 ) );
+            if( temp > test ) test = temp;
+        }
+        if( test < TOLX ) return;
+        for(i = 0; i < n; i++) dg[i] = g[i];
+        dfunc( xmin, g );
+        test = 0.0;
+        den = max( fxmin, 1.0 );
+        for(i = 0; i < n; i++) {
+            temp = fabs( g[i])*max(fabs(xmin[i]), 1.0 )/den;
+            if( temp > test) test = temp;
+        }
+        if( test < TOLF ) return;
+        for(i = 0; i < n; i++) dg[i] = g[i] - dg[i];
+        for(i = 0; i < n; i++) {
+            hdg[i] = 0.0;
+            for(j = 0; j < n; j++) hdg[i] += hessin[i][j]*dg[j];
+        }
+        fac = fae = sumdg = sumxi = 0.0;
+        for(i = 0; i < n; i++) {
+            fac += dg[i]*xi[i];
+            fae += dg[i]*hdg[i];
+            sumdg += sqrt(dg[i]);
+            sumxi += sqrt(xi[i]);
+        }
+        if( fac > sqrt( EPS*sumdg*sumxi ) ) {
+            fac = 1.0/fac;
+            fad = 1.0/fae;
+            for(i = 0; i < n; i++) dg[i] = fac*xi[i] - fad*hdg[i];
+            for(i = 0; i < n; i++) {
+                for(j = 0; j < n; j++) {
+                    hessin[i][j] += fac*xi[i]*xi[j] - fad*hdg[i]*hdg[j] + fae*dg[i]*dg[j];
+                    hessin[j][i] = hessin[i][j];
+                }
+            }
+        }
+        for(i = 0; i < n; i++) {
+            xi[i] = 0.0;
+            for(j = 0; j < n; j++) xi[i] -= hessin[i][j]*g[j];
+        }
+    }
+#if _ACTIVATE_COUT_
+    cout << "MAXITS exceeded in BFGS" << endl;
 #endif
 
 };
