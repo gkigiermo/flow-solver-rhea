@@ -413,8 +413,8 @@ PengRobinsonModel::PengRobinsonModel(const string configuration_file) : BaseTher
 
     ///// Construct (initialize) nls_PT_solver
     nls_PT_unknowns.resize( 2, 0.0 );
-    nls_PT_r_vec.resize( 2, 0.0 );
-    //nls_PT_r_vec.resize( 1, 0.0 );
+    nls_PT_r_vec.resize( 2, 0.0 );	// Newton-Raphson solver
+    //nls_PT_r_vec.resize( 1, 0.0 );	// BFGS solver
     nls_PT_solver = new NLS_P_T_from_rho_e( nls_PT_r_vec, *this );
 
     /// Construct (initialize) b_T_solver
