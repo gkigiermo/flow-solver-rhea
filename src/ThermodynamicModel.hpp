@@ -320,7 +320,7 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 
     private:
 
-        /// Newton-Raphson solver nested class used to obtain P & T from rho & e
+        /// Nonlinear solver nested class used to obtain P & T from rho & e
         class NLS_P_T_from_rho_e : public NewtonRaphson { 
         //class NLS_P_T_from_rho_e : public BFGS { 
 
