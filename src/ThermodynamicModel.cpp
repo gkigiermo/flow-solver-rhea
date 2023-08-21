@@ -575,7 +575,7 @@ void PengRobinsonModel::calculateTemperatureFromPressureDensityWithInitialGuess(
     b_T_solver->set_ax_bx_cx( ax, bx, cx );							/// Set bracketing triplet of abscissas
     b_T_solver->setExternalParameters( P, rho, T_norm );					/// Set parameters of the solver
     b_T_solver->solve( b_f, b_T_unknowns, max_b_iter, b_num_iter, b_relative_tolerance );	/// Brent solver
-    T = b_T_unknowns[0]*T_norm;									/// Update T from Newton-Raphson solver (unnormalized)
+    T = b_T_unknowns[0]*T_norm;									/// Update T from solver (unnormalized)
 #endif
 
 };
