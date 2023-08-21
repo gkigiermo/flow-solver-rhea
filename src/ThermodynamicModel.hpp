@@ -361,10 +361,9 @@ class PengRobinsonModel : public BaseThermodynamicModel {
                 double guess_e   = pr_model.calculateMolarInternalEnergyFromPressureTemperatureMolarVolume( P, T, target_molar_v )/molecular_weight;
  
                 /// Compute fx (residuals)
-                fx[0] = ( guess_rho - target_rho )/( fabs( target_rho ) + 1.0e-14 );		/// function normalized
+                fx[0] = ( guess_rho - target_rho )/( fabs( target_rho ) + 1.0e-14 );	/// function normalized
                 fx[1] = ( guess_e - target_e )/( fabs( target_e ) + 1.0e-14 );		/// function normalized
                 //fx[0] = ( ( guess_rho - target_rho )/( fabs( target_rho ) + 1.0e-14 ) ) + ( ( guess_e - target_e )/( fabs( target_e ) + 1.0e-14 ) );	/// function normalized
-        
             };
       
             ////////// PARAMETERS //////////
