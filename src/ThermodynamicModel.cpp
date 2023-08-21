@@ -411,10 +411,11 @@ PengRobinsonModel::PengRobinsonModel(const string configuration_file) : BaseTher
 	eos_kappa = 0.37464 + 1.54226*acentric_factor - 0.26992*pow( acentric_factor, 2.0 );
     }
 
-    /// Construct (initialize) nr_PT_solver
-    nr_PT_unknowns.resize( 2, 0.0 );
-    nr_PT_r_vec.resize( nr_PT_unknowns.size(), 0.0 );
-    nr_PT_solver = new NR_P_T_from_rho_e( nr_PT_r_vec, *this );
+    ///// Construct (initialize) nls_PT_solver
+    nls_PT_unknowns.resize( 2, 0.0 );
+    nls_PT_r_vec.resize( 2, 0.0 );
+    //nls_PT_r_vec.resize( 1, 0.0 );
+    nls_PT_solver = new NLS_P_T_from_rho_e( nls_PT_r_vec, *this );
 
     /// Construct (initialize) b_T_solver
     b_T_unknowns.resize( 1, 0.0 );
@@ -425,8 +426,8 @@ PengRobinsonModel::PengRobinsonModel(const string configuration_file) : BaseTher
 
 PengRobinsonModel::~PengRobinsonModel() {
 
-    /// Free nr_PT_solver
-    if( nr_PT_solver != NULL ) free( nr_PT_solver );
+    /// Free nls_PT_solver
+    if( nls_PT_solver != NULL ) free( nls_PT_solver );
 
     /// Free b_T_solver
     if( b_T_solver != NULL ) free( b_T_solver );
@@ -596,19 +597,19 @@ double PengRobinsonModel::calculateInternalEnergyFromPressureTemperatureDensity(
 void PengRobinsonModel::calculatePressureTemperatureFromDensityInternalEnergy(double &P, double &T, const double &rho, const double &e) {
 
     //double P_norm   = this->critical_pressure;	/// Set pressure normalization factor
-    double P_norm   = fabs( P ) + 1.0e-14;		/// Set pressure normalization factor
+    double P_norm    = fabs( P ) + 1.0e-14;		/// Set pressure normalization factor
     //double T_norm   = this->critical_temperature;	/// Set temperature normalization factor
-    double T_norm   = fabs( T ) + 1.0e-14;		/// Set temperature normalization factor
-    double nr_f     = -1.0;				/// Newton-Raphson residual value
-    int nr_num_iter = 0;				/// Number of iterations required to obtain the solution
+    double T_norm    = fabs( T ) + 1.0e-14;		/// Set temperature normalization factor
+    double nls_f     = -1.0;				/// Nonlinear solver residual value
+    int nls_num_iter = 0;				/// Number of iterations required to obtain the solution
 
-    /// Calculate P & T from rho & e by means of a Newton-Raphson solver
-    nr_PT_unknowns[0] = P/P_norm;									/// Initialize unknown with previous pressure (normalized)
-    nr_PT_unknowns[1] = T/T_norm;									/// Initialize unknown with previous temperature (normalized)
-    nr_PT_solver->setExternalParameters( rho, e, P_norm, T_norm );					/// Set parameters of the solver
-    nr_PT_solver->solve( nr_f, nr_PT_unknowns, max_nr_iter, nr_num_iter, nr_relative_tolerance );	/// Newton-Raphson solver
-    P = nr_PT_unknowns[0]*P_norm;									/// Update P & T from Newton-Raphson solver (unnormalized)
-    T = nr_PT_unknowns[1]*T_norm;
+    /// Calculate P & T from rho & e by means of a nonlinear solver
+    nls_PT_unknowns[0] = P/P_norm;									/// Initialize unknown with previous pressure (normalized)
+    nls_PT_unknowns[1] = T/T_norm;									/// Initialize unknown with previous temperature (normalized)
+    nls_PT_solver->setExternalParameters( rho, e, P_norm, T_norm );					/// Set parameters of the solver
+    nls_PT_solver->solve( nls_f, nls_PT_unknowns, max_nls_iter, nls_num_iter, nls_relative_tolerance );	/// Nonlinear solver
+    P = nls_PT_unknowns[0]*P_norm;									/// Update P & T from nonlinear solver (unnormalized)
+    T = nls_PT_unknowns[1]*T_norm;
 
 };
 
