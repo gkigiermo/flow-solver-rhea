@@ -321,13 +321,15 @@ class PengRobinsonModel : public BaseThermodynamicModel {
     private:
 
         /// Newton-Raphson solver nested class used to obtain P & T from rho & e
-        class NR_P_T_from_rho_e : public NewtonRaphson { 
+        class NLS_P_T_from_rho_e : public NewtonRaphson { 
+        //class NLS_P_T_from_rho_e : public BFGS { 
 
             public:
 
             ////////// CONSTRUCTORS & DESTRUCTOR //////////
-            NR_P_T_from_rho_e(std::vector<double> &fvec_, PengRobinsonModel &pr_model_) : NewtonRaphson(fvec_), pr_model(pr_model_) {};	/// Parametrized constructor
-            virtual ~NR_P_T_from_rho_e() {};												/// Destructor
+            NLS_P_T_from_rho_e(std::vector<double> &fvec_, PengRobinsonModel &pr_model_) : NewtonRaphson(fvec_), pr_model(pr_model_) {};	/// Parametrized constructor
+            //NLS_P_T_from_rho_e(std::vector<double> &fvec_, PengRobinsonModel &pr_model_) : BFGS(fvec_), pr_model(pr_model_) {};	/// Parametrized constructor
+            virtual ~NLS_P_T_from_rho_e() {};												/// Destructor
 
 	    ////////// METHODS //////////
 
@@ -360,7 +362,8 @@ class PengRobinsonModel : public BaseThermodynamicModel {
  
                 /// Compute fx (residuals)
                 fx[0] = ( guess_rho - target_rho )/( fabs( target_rho ) + 1.0e-14 );		/// function normalized
-                fx[1] = ( guess_e - target_e )/( fabs( target_e ) + 1.0e-14 );			/// function normalized
+                fx[1] = ( guess_e - target_e )/( fabs( target_e ) + 1.0e-14 );		/// function normalized
+                //fx[0] = ( ( guess_rho - target_rho )/( fabs( target_rho ) + 1.0e-14 ) ) + ( ( guess_e - target_e )/( fabs( target_e ) + 1.0e-14 ) );	/// function normalized
         
             };
       
@@ -447,12 +450,12 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         int max_aitken_iter              = 1000;		/// Maximum number of iterations
         double aitken_relative_tolerance = 1.0e-5;		/// Relative tolerance
 
-        /// Newton-Raphson solver parameters
-        int max_nr_iter              = 1000;			/// Maximum number of iterations
-        double nr_relative_tolerance = 1.0e-5;			/// Relative tolerance
-        NR_P_T_from_rho_e *nr_PT_solver;			/// Pointer to NR_P_T_from_rho_e
-	std::vector<double> nr_PT_unknowns;			/// NR_P_T_from_rho_e unknowns: P & T
-	std::vector<double> nr_PT_r_vec;			/// NR_P_T_from_rho_e vector of functions residuals
+        /// Nonlinear solver parameters
+        int max_nls_iter              = 1000;			/// Maximum number of iterations
+        double nls_relative_tolerance = 1.0e-5;			/// Relative tolerance
+        NLS_P_T_from_rho_e *nls_PT_solver;			/// Pointer to NLS_P_T_from_rho_e
+	std::vector<double> nls_PT_unknowns;			/// NLS_P_T_from_rho_e unknowns: P & T
+	std::vector<double> nls_PT_r_vec;			/// NLS_P_T_from_rho_e vector of functions residuals
 
         /// Brent solver parameters
         int max_b_iter              = 1000;			/// Maximum number of iterations
