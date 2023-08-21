@@ -880,7 +880,7 @@ void FlowSolverRHEA::calculateThermodynamicsFromPrimitiveVariables() {
                     ke = 0.5*( pow( u_field[I1D(i,j,k)], 2.0 ) + pow( v_field[I1D(i,j,k)], 2.0 ) + pow( w_field[I1D(i,j,k)], 2.0 ) ); 
                     e  = E_field[I1D(i,j,k)] - ke;
                     P = P_field[I1D(i,j,k)];	/// Initial pressure guess
-                    if( artificial_compressibility_method ) P = P_thermo;	/// Initial pressure gues
+                    //if( artificial_compressibility_method ) P = P_thermo;	/// Initial pressure gues
                     T = T_field[I1D(i,j,k)]; 	/// Initial temperature guess
                     thermodynamics->calculatePressureTemperatureFromDensityInternalEnergy( P, T, rho_field[I1D(i,j,k)], e );
                     P_field[I1D(i,j,k)]   = P; 
