@@ -13,6 +13,7 @@ class BaseRootFindingMinimization;			/// BaseRootFindingMinimization
 class Brent;						/// Brent
 class NewtonRaphson;					/// NewtonRaphson
 class Broyden;						/// Broyden
+class BFGS;						/// BFGS
 
 ////////// FUNCTION DECLARATION //////////
 
@@ -43,7 +44,7 @@ class BaseRootFindingMinimization {
         inline double SQR(const double &a) { return a*a; };	
 
         /// Numerical recipes in C++ linear search
-        void lnsrch(std::vector<double> &xold, double &fold, std::vector<double> &g, std::vector<double> &p, std::vector<double> &x,double &f, double &stpmax, bool &check,std::vector< std::vector<double> > &fjac);
+        void lnsrch(std::vector<double> &xold, double &fold, std::vector<double> &g, std::vector<double> &p, std::vector<double> &x,double &f, double &stpmax, bool &check);
 
         /// Numerical recipes in C++ LU decomposition method
 	void lubksb(std::vector< std::vector<double> > &a, std::vector<int> &indx, std::vector<double> &b);
@@ -161,6 +162,36 @@ class Broyden : public BaseRootFindingMinimization {
 	////////// SET FUNCTIONS //////////
 
 	////////// METHODS //////////
+
+        /// Runs the minimization algorithm, calculating the minimum (fxmin) and its independent variables (xmin)
+        void solve(double &fxmin, std::vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance);
+
+    protected:
+
+        ////////// PARAMETERS //////////
+
+};
+
+
+////////// BFGS CLASS //////////
+
+class BFGS : public BaseRootFindingMinimization {
+
+    public:
+
+        ////////// CONSTRUCTORS & DESTRUCTOR //////////
+        //BFGS();							/// Default constructor 
+        BFGS(std::vector<double> &fvec_);				/// Parametrized constructor
+        virtual ~BFGS();               					/// Destructor    
+ 
+	////////// GET FUNCTIONS //////////
+
+	////////// SET FUNCTIONS //////////
+
+	////////// METHODS //////////
+
+        /// Calucaltes the gradient of the function
+        void dfunc(std::vector<double> &x, std::vector<double> &g);
 
         /// Runs the minimization algorithm, calculating the minimum (fxmin) and its independent variables (xmin)
         void solve(double &fxmin, std::vector<double> &xmin, const int &max_iter, int &iter, const double &tolerance);
