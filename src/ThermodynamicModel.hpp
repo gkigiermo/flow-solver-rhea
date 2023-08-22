@@ -322,14 +322,12 @@ class PengRobinsonModel : public BaseThermodynamicModel {
 
         /// Nonlinear solver nested class used to obtain P & T from rho & e
         class NLS_P_T_from_rho_e : public NewtonRaphson { 
-        //class NLS_P_T_from_rho_e : public BFGS { 
 
             public:
 
             ////////// CONSTRUCTORS & DESTRUCTOR //////////
             NLS_P_T_from_rho_e(std::vector<double> &fvec_, PengRobinsonModel &pr_model_) : NewtonRaphson(fvec_), pr_model(pr_model_) {};	/// Parametrized constructor
-            //NLS_P_T_from_rho_e(std::vector<double> &fvec_, PengRobinsonModel &pr_model_) : BFGS(fvec_), pr_model(pr_model_) {};	/// Parametrized constructor
-            virtual ~NLS_P_T_from_rho_e() {};												/// Destructor
+            virtual ~NLS_P_T_from_rho_e() {};													/// Destructor
 
 	    ////////// METHODS //////////
 
@@ -363,7 +361,7 @@ class PengRobinsonModel : public BaseThermodynamicModel {
                 /// Compute fx (residuals)
                 fx[0] = ( guess_rho - target_rho )/( fabs( target_rho ) + 1.0e-14 );	/// function normalized
                 fx[1] = ( guess_e - target_e )/( fabs( target_e ) + 1.0e-14 );		/// function normalized
-                //fx[0] = ( ( guess_rho - target_rho )/( fabs( target_rho ) + 1.0e-14 ) ) + ( ( guess_e - target_e )/( fabs( target_e ) + 1.0e-14 ) );	/// function normalized
+
             };
       
             ////////// PARAMETERS //////////
@@ -379,14 +377,14 @@ class PengRobinsonModel : public BaseThermodynamicModel {
  
         };
 
-        /// Brent solver nested class used to obtain T from P & rho
-        class B_T_from_P_rho : public Brent { 
+        /// Nonlinear solver nested class used to obtain T from P & rho
+        class NLS_T_from_P_rho : public Brent { 
 
             public:
 
             ////////// CONSTRUCTORS & DESTRUCTOR //////////
-            B_T_from_P_rho(std::vector<double> &fvec_, PengRobinsonModel &pr_model_) : Brent(fvec_), pr_model(pr_model_) {};	/// Parametrized constructor
-            virtual ~B_T_from_P_rho() {};											/// Destructor
+            NLS_T_from_P_rho(std::vector<double> &fvec_, PengRobinsonModel &pr_model_) : Brent(fvec_), pr_model(pr_model_) {};	/// Parametrized constructor
+            virtual ~NLS_T_from_P_rho() {};											/// Destructor
 
 	    ////////// METHODS //////////
 
@@ -413,7 +411,7 @@ class PengRobinsonModel : public BaseThermodynamicModel {
                 double guess_P = pr_model.calculatePressureFromTemperatureDensity( T, target_rho );
 
                 /// Compute fx (residuals)
-                fx[0] = fabs( ( guess_P - target_P )/( target_P + 1.0e-14 ) );		/// function normalized
+                fx[0] = ( ( guess_P - target_P )/( target_P + 1.0e-14 ) );		/// function normalized
         
             };
       
@@ -446,22 +444,22 @@ class PengRobinsonModel : public BaseThermodynamicModel {
         double eos_ac, eos_kappa;				/// EoS dimensionless parameters
 
         /// Aitken's delta-squared process parameters
-        int max_aitken_iter              = 1000;		/// Maximum number of iterations
+        int aitken_max_iter              = 1000;		/// Maximum number of iterations
         double aitken_relative_tolerance = 1.0e-5;		/// Relative tolerance
 
-        /// Nonlinear solver parameters
-        int max_nls_iter              = 1000;			/// Maximum number of iterations
-        double nls_relative_tolerance = 1.0e-5;			/// Relative tolerance
+        /// Nonlinear P-T solver parameters
+        int nls_PT_max_iter              = 1000;		/// Maximum number of iterations
+        double nls_PT_relative_tolerance = 1.0e-5;		/// Relative tolerance
         NLS_P_T_from_rho_e *nls_PT_solver;			/// Pointer to NLS_P_T_from_rho_e
 	std::vector<double> nls_PT_unknowns;			/// NLS_P_T_from_rho_e unknowns: P & T
 	std::vector<double> nls_PT_r_vec;			/// NLS_P_T_from_rho_e vector of functions residuals
 
-        /// Brent solver parameters
-        int max_b_iter              = 1000;			/// Maximum number of iterations
-        double b_relative_tolerance = 1.0e-5;			/// Relative tolerance
-        B_T_from_P_rho *b_T_solver;				/// Pointer to B_T_from_P_rho
-	std::vector<double> b_T_unknowns;			/// B_T_from_P_rho unknowns: T
-	std::vector<double> b_T_r_vec;				/// B_T_from_P_rho vector of functions residuals
+        /// Nonlinear T solver parameters
+        int nls_T_max_iter              = 1000;			/// Maximum number of iterations
+        double nls_T_relative_tolerance = 1.0e-5;		/// Relative tolerance
+        NLS_T_from_P_rho *nls_T_solver;				/// Pointer to NLS_T_from_P_rho
+	std::vector<double> nls_T_unknowns;			/// NLS_T_from_P_rho unknowns: T
+	std::vector<double> nls_T_r_vec;			/// NLS_T_from_P_rho vector of functions residuals
 
     private:
 
