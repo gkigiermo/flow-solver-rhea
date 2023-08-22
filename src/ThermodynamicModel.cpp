@@ -413,14 +413,13 @@ PengRobinsonModel::PengRobinsonModel(const string configuration_file) : BaseTher
 
     ///// Construct (initialize) nls_PT_solver
     nls_PT_unknowns.resize( 2, 0.0 );
-    nls_PT_r_vec.resize( 2, 0.0 );	// Newton-Raphson solver
-    //nls_PT_r_vec.resize( 1, 0.0 );	// BFGS solver
+    nls_PT_r_vec.resize( 2, 0.0 );
     nls_PT_solver = new NLS_P_T_from_rho_e( nls_PT_r_vec, *this );
 
-    /// Construct (initialize) b_T_solver
-    b_T_unknowns.resize( 1, 0.0 );
-    b_T_r_vec.resize( b_T_unknowns.size(), 0.0 );
-    b_T_solver = new B_T_from_P_rho( b_T_r_vec, *this );
+    /// Construct (initialize) nls_T_solver
+    nls_T_unknowns.resize( 1, 0.0 );
+    nls_T_r_vec.resize( 1, 0.0 );
+    nls_T_solver = new NLS_T_from_P_rho( nls_T_r_vec, *this );
 
 };
 
@@ -429,8 +428,8 @@ PengRobinsonModel::~PengRobinsonModel() {
     /// Free nls_PT_solver
     if( nls_PT_solver != NULL ) free( nls_PT_solver );
 
-    /// Free b_T_solver
-    if( b_T_solver != NULL ) free( b_T_solver );
+    /// Free nls_T_solver
+    if( nls_T_solver != NULL ) free( nls_T_solver );
 
 };
 
@@ -513,7 +512,7 @@ double PengRobinsonModel::calculateTemperatureFromPressureDensity(const double &
 
     /// Aitken’s delta-squared process:
     double x_0 = T, x_1, x_2, denominator;
-    for(int iter = 0; iter < max_aitken_iter; iter++) { 
+    for(int iter = 0; iter < aitken_max_iter; iter++) { 
         x_1 = ( (bar_v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_0 )/( pow( bar_v, 2.0 ) + 2.0*eos_b*bar_v - pow( eos_b, 2.0 ) ) ) );
         x_2 = ( (bar_v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_1 )/( pow( bar_v, 2.0 ) + 2.0*eos_b*bar_v - pow( eos_b, 2.0 ) ) ) );
 
@@ -531,7 +530,7 @@ double PengRobinsonModel::calculateTemperatureFromPressureDensity(const double &
 
 void PengRobinsonModel::calculateTemperatureFromPressureDensityWithInitialGuess(double &T, const double &P, const double &rho) {
 
-#if 0	
+#if 1	
     /// Numerical Recipes in C++, Second Edition.
     /// W.H. Press, S.A. Teulosky, W.T. Vetterling, B.P. Flannery.
     /// 5.1 Series and Their Convergence: Aitken’s delta-squared process.
@@ -539,13 +538,9 @@ void PengRobinsonModel::calculateTemperatureFromPressureDensityWithInitialGuess(
     // Calculate molar volume
     double bar_v = molecular_weight/rho;
 
-    //// Perturb slightly T to avoid division error
-    //double random_number = 2.0*( (double) rand()/( RAND_MAX ) ) - 1.0;
-    //T += 1.0e-8*rand()*T;
-
     /// Aitken’s delta-squared process:
     double x_0 = T, x_1, x_2, denominator;
-    for(int iter = 0; iter < max_aitken_iter; iter++) { 
+    for(int iter = 0; iter < aitken_max_iter; iter++) { 
         x_1 = ( (bar_v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_0 )/( pow( bar_v, 2.0 ) + 2.0*eos_b*bar_v - pow( eos_b, 2.0 ) ) ) );
         x_2 = ( (bar_v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_1 )/( pow( bar_v, 2.0 ) + 2.0*eos_b*bar_v - pow( eos_b, 2.0 ) ) ) );
 
@@ -562,20 +557,20 @@ void PengRobinsonModel::calculateTemperatureFromPressureDensityWithInitialGuess(
     double bar_v = molecular_weight/rho;
     T = ( P + this->calculate_eos_a( T )/( bar_v*bar_v + 2.0*eos_b*bar_v - eos_b*eos_b ) )*( bar_v - eos_b )/R_universal;
 
-    //double T_norm  = this->critical_temperature;	/// Set temperature normalization factor
-    double T_norm  = fabs( T ) + 1.0e-14;		/// Set temperature normalization factor
-    double b_f     = -1.0;				/// Brent residual value
-    int b_num_iter = 0;					/// Number of iterations required to obtain the solution
+    //double T_norm    = this->critical_temperature;	/// Set temperature normalization factor
+    double T_norm    = fabs( T ) + 1.0e-14;		/// Set temperature normalization factor
+    double nls_f     = -1.0;				/// Nonlinear residual value
+    int nls_num_iter = 0;				/// Number of iterations required to obtain the solution
     double ax = 0.9;					/// Minimum range abscissa
     double bx = 1.0;					/// Intermediate abscissa
     double cx = 1.1;					/// Maximum abscissa
 
-    /// Calculate T from P & rho by means of a Brent solver
-    b_T_unknowns[0] = T/T_norm;									/// Initialize unknown with previous temperature (normalized)
-    b_T_solver->set_ax_bx_cx( ax, bx, cx );							/// Set bracketing triplet of abscissas
-    b_T_solver->setExternalParameters( P, rho, T_norm );					/// Set parameters of the solver
-    b_T_solver->solve( b_f, b_T_unknowns, max_b_iter, b_num_iter, b_relative_tolerance );	/// Brent solver
-    T = b_T_unknowns[0]*T_norm;									/// Update T from solver (unnormalized)
+    /// Calculate T from P & rho by means of a nonlinear solver
+    nls_T_unknowns[0] = T/T_norm;										/// Initialize unknown with previous temperature (normalized)
+    nls_T_solver->set_ax_bx_cx( ax, bx, cx );									/// Set bracketing triplet of abscissas
+    nls_T_solver->setExternalParameters( P, rho, T_norm );							/// Set parameters of the solver
+    nls_T_solver->solve( nls_f, nls_T_unknowns, nls_T_max_iter, nls_num_iter, nls_T_relative_tolerance );	/// Nonlinear solver
+    T = nls_T_unknowns[0]*T_norm;										/// Update T from solver (unnormalized)
 #endif
 
 };
@@ -604,11 +599,11 @@ void PengRobinsonModel::calculatePressureTemperatureFromDensityInternalEnergy(do
     int nls_num_iter = 0;				/// Number of iterations required to obtain the solution
 
     /// Calculate P & T from rho & e by means of a nonlinear solver
-    nls_PT_unknowns[0] = P/P_norm;									/// Initialize unknown with previous pressure (normalized)
-    nls_PT_unknowns[1] = T/T_norm;									/// Initialize unknown with previous temperature (normalized)
-    nls_PT_solver->setExternalParameters( rho, e, P_norm, T_norm );					/// Set parameters of the solver
-    nls_PT_solver->solve( nls_f, nls_PT_unknowns, max_nls_iter, nls_num_iter, nls_relative_tolerance );	/// Nonlinear solver
-    P = nls_PT_unknowns[0]*P_norm;									/// Update P & T from nonlinear solver (unnormalized)
+    nls_PT_unknowns[0] = P/P_norm;										/// Initialize unknown with previous pressure (normalized)
+    nls_PT_unknowns[1] = T/T_norm;										/// Initialize unknown with previous temperature (normalized)
+    nls_PT_solver->setExternalParameters( rho, e, P_norm, T_norm );						/// Set parameters of the solver
+    nls_PT_solver->solve( nls_f, nls_PT_unknowns, nls_PT_max_iter, nls_num_iter, nls_PT_relative_tolerance );	/// Nonlinear solver
+    P = nls_PT_unknowns[0]*P_norm;										/// Update P & T from nonlinear solver (unnormalized)
     T = nls_PT_unknowns[1]*T_norm;
 
 };
@@ -939,7 +934,7 @@ double PengRobinsonModel::calculateTemperatureFromPressureMolarVolume(const doub
 
     /// Aitken’s delta-squared process:
     double x_0 = T, x_1, x_2, denominator;
-    for(int iter = 0; iter < max_aitken_iter; iter++) { 
+    for(int iter = 0; iter < aitken_max_iter; iter++) { 
         x_1 = ( (bar_v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_0 )/( pow( bar_v, 2.0 ) + 2.0*eos_b*bar_v - pow( eos_b, 2.0 ) ) ) );
         x_2 = ( (bar_v - eos_b )/R_universal )*( P + ( this->calculate_eos_a( x_1 )/( pow( bar_v, 2.0 ) + 2.0*eos_b*bar_v - pow( eos_b, 2.0 ) ) ) );
 
