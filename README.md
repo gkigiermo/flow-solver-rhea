@@ -8,7 +8,7 @@ The flow solver RHEA solves the conservation equations of fluid motion for compr
 
 Use the following citation to reference the solver: L. Jofre, A. Abdellatif, G. Oyarzun, (2023). RHEA: an open-source Reproducible Hybrid-architecture flow solver Engineered for Academia. Journal of Open Source Software, 8(81), 4637. [![DOI](https://joss.theoj.org/papers/10.21105/joss.04637/status.svg)](https://doi.org/10.21105/joss.04637)
 
-The RHEA solver and associated tools are developed and mantained by Prof. Lluís Jofre (principal investigator) at the Multiscale Fluid Mechanics Lab of UPC - BarcelonaTech.
+The RHEA solver and associated tools are developed and mantained by Prof. Lluís Jofre (principal investigator) at the Multiscale Fluid Mechanics Lab of UPC - BarcelonaTech. If interested in utilizing the software, please contact him via email: lluis.jofre@upc.edu
 
 INSTALLATION:
 - Requisites: C++ compiler and MPI library, YAML (yaml-cpp version 1.2) & HDF5 libraries/modules (compatible with MPI)
